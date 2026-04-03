@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="StudyMaster favicon">
+  <defs>
+    <linearGradient id="favGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#01696F"/>
+      <stop offset="0.5" stop-color="#00A7B2"/>
+      <stop offset="1" stop-color="#D4A827"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#favGradient)"/>
+  <path d="M17 23h30M17 31h21M17 39h26" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="45" cy="39" r="8" fill="#ffffff" opacity="0.96"/>
+  <path d="M42.8 39.2l2.4 2.4 4.8-4.8" stroke="#0E4F56" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
