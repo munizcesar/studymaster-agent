@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image Generator - StudyMaster</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f0f0f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #01696f;
+      margin-bottom: 30px;
+    }
+    .preview {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      background: #f7f6f2;
+    }
+    svg {
+      width: 100%;
+      max-width: 1200px;
+      height: auto;
+      display: block;
+    }
+    .controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-download {
+      background: #01696f;
+      color: white;
+    }
+    .btn-download:hover {
+      background: #0c4e54;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(1, 105, 111, 0.3);
+    }
+    .btn-copy {
+      background: #e0eeec;
+      color: #01696f;
+      border: 2px solid #01696f;
+    }
+    .btn-copy:hover {
+      background: #01696f;
+      color: white;
+    }
+    .info {
+      background: #f0f7f6;
+      border-left: 4px solid #01696f;
+      padding: 20px;
+      border-radius: 4px;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .info h3 {
+      color: #01696f;
+      margin-top: 0;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📸 OG Image Generator - StudyMaster</h1>
+    
+    <div class="preview" id="preview">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+        <defs>
+          <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#0a8fa3;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#006494;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#0a8fa3;stop-opacity:1" />
+          </linearGradient>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+
+        <rect width="1200" height="630" fill="#f7f6f2"/>
+        <circle cx="1100" cy="100" r="400" fill="url(#premiumGradient)" opacity="0.08"/>
+        <circle cx="100" cy="580" r="350" fill="url(#premiumGradient)" opacity="0.08"/>
+
+        <g filter="url(#shadow)">
+          <rect x="80" y="150" width="260" height="260" rx="40" fill="url(#premiumGradient)" opacity="0.95"/>
+          <path d="M 160 220 L 160 340 Q 160 360 175 360 L 215 335 L 215 215 Z" fill="#f7f6f2" opacity="0.9"/>
+          <path d="M 240 215 L 240 335 Q 280 360 295 360 Q 310 360 310 340 L 310 220 Z" fill="#ffffff" opacity="0.85"/>
+          <line x1="190" y1="240" x2="190" y2="340" stroke="#f7f6f2" stroke-width="4" opacity="0.7"/>
+          <line x1="250" y1="240" x2="250" y2="340" stroke="#ffffff" stroke-width="4" opacity="0.6"/>
+        </g>
+
+        <text x="400" y="300" font-family="Inter, -apple-system, sans-serif" font-size="120" font-weight="800" letter-spacing="-3">
+          <tspan fill="url(#textGradient)">StudyMaster</tspan>
+        </text>
+
+        <text x="400" y="360" font-family="Inter, -apple-system, sans-serif" font-size="32" font-weight="500" fill="#6b6965" letter-spacing="0.5">
+          Agente de Estudo com IA
+        </text>
+
+        <g>
+          <rect x="400" y="390" width="520" height="50" rx="25" fill="#e0eeec" opacity="0.8"/>
+          <text x="670" y="423" font-family="Inter, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#01696f" text-anchor="middle">⚡ Crie prompts personalizados em minutos</text>
+        </g>
+
+        <text x="1150" y="600" font-family="Inter, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#bab9b4" text-anchor="end">
+          studymaster-agent.pages.dev
+        </text>
+
+        <circle cx="970" cy="180" r="12" fill="url(#premiumGradient)" opacity="0.7"/>
+        <circle cx="1030" cy="150" r="8" fill="url(#premiumGradient)" opacity="0.5"/>
+        <circle cx="1080" cy="200" r="10" fill="url(#premiumGradient)" opacity="0.6"/>
+      </svg>
+    </div>
+
+    <div class="controls">
+      <button class="btn-download" onclick="downloadPNG()">📥 Baixar como PNG (1200x630)</button>
+      <button class="btn-copy" onclick="downloadSVG()">📥 Baixar como SVG</button>
+    </div>
+
+    <div class="info">
+      <h3>ℹ️ Como usar a OG Image</h3>
+      <p>1. Baixe a imagem em PNG (1200x630px - padrão Open Graph)</p>
+      <p>2. Faça upload para a pasta <code>/public</code> ou <code>/assets</code> do seu projeto</p>
+      <p>3. Adicione estas tags no <code>&lt;head&gt;</code> do seu HTML:</p>
+      <pre style="background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto;"><code>&lt;meta property="og:image" content="https://studymaster-agent.pages.dev/og-image.png"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:type" content="image/png"&gt;
+&lt;meta name="twitter:image" content="https://studymaster-agent.pages.dev/og-image.png"&gt;</code></pre>
+      <p><strong>Resultado:</strong> Quando alguém compartilhar seu link no Facebook, Twitter, WhatsApp, LinkedIn, etc., essa imagem premium aparecerá! 🎨</p>
+    </div>
+  </div>
+
+  <script>
+    function downloadPNG() {
+      const svg = document.querySelector('svg');
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 630;
+      const ctx = canvas.getContext('2d');
+      
+      // Criar imagem do SVG
+      const svgString = new XMLSerializer().serializeToString(svg);
+      const img = new Image();
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      
+      img.onload = function() {
+        ctx.drawImage(img, 0, 0, 1200, 630);
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = 'og-image.png';
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+
+    function downloadSVG() {
+      const svg = document.querySelector('svg');
+      const svgString = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'og-image.svg';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
