@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  // Sempre inicia em modo claro — escuro é opcional pelo usuário
+  document.documentElement.setAttribute('data-theme', 'light');
+</script>
 <style>
 :root,[data-theme="light"]{
   --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
@@ -178,7 +182,7 @@ footer{border-top:1px solid var(--color-divider);padding:var(--space-8) 0;text-a
         </div>
       </a>
       <div class="header-actions">
-        <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
+        <button class="theme-toggle" data-theme-toggle aria-label="Alternar para modo escuro">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
         <button class="btn-copy-hero" onclick="copyPrompt(this)">
@@ -551,44 +555,49 @@ NOVO MATERIAL → volte à Etapa 1
 
 <script>
 (function(){
-  const t=document.querySelector('[data-theme-toggle]');
-  const r=document.documentElement;
-  let d=r.getAttribute('data-theme')||'dark';
-  r.setAttribute('data-theme',d);
-  const icons={
-    dark:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
-    light:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+  // Sempre inicia em modo claro — escuro é opcional pelo botão
+  const r = document.documentElement;
+  const t = document.querySelector('[data-theme-toggle]');
+  let d = 'light';
+  r.setAttribute('data-theme', d);
+
+  const icons = {
+    light: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+    dark:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
   };
+
   if(t){
-    t.innerHTML=icons[d];
-    t.addEventListener('click',()=>{
-      d=d==='dark'?'light':'dark';
-      r.setAttribute('data-theme',d);
-      t.innerHTML=icons[d];
+    t.innerHTML = icons.light;
+    t.setAttribute('aria-label','Alternar para modo escuro');
+    t.addEventListener('click', () => {
+      d = d === 'light' ? 'dark' : 'light';
+      r.setAttribute('data-theme', d);
+      t.innerHTML = icons[d === 'dark' ? 'dark' : 'light'];
+      t.setAttribute('aria-label', d === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro');
     });
   }
 })();
 
 function copyPrompt(btn){
-  const text=document.getElementById('promptContent').innerText;
-  navigator.clipboard.writeText(text).then(()=>{
-    document.querySelectorAll('.btn-copy,.btn-copy-hero').forEach(b=>{
+  const text = document.getElementById('promptContent').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    document.querySelectorAll('.btn-copy,.btn-copy-hero').forEach(b => {
       b.classList.add('copied');
-      if(b.querySelector('span'))b.querySelector('span').textContent='✓ Copiado!';
-      else b.textContent='✓ Copiado!';
-      setTimeout(()=>{
+      if(b.querySelector('span')) b.querySelector('span').textContent = '✓ Copiado!';
+      else b.textContent = '✓ Copiado!';
+      setTimeout(() => {
         b.classList.remove('copied');
-        if(b.querySelector('span'))b.querySelector('span').textContent='Copiar tudo';
-        else b.textContent='Copiar Prompt';
-      },2200);
+        if(b.querySelector('span')) b.querySelector('span').textContent = 'Copiar tudo';
+        else b.textContent = 'Copiar Prompt';
+      }, 2200);
     });
   });
 }
 
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click',e=>{
-    const t=document.querySelector(a.getAttribute('href'));
-    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'})}
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
   });
 });
 </script>
