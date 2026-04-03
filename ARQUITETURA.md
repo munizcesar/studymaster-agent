@@ -111,6 +111,44 @@ Posso fazer isso? (Y/N)"
 
 ---
 
+## 🚀 DEPLOYMENT — CLOUDFLARE PAGES
+
+### Setup Inicial
+
+1. **Push para GitHub** ✅
+   ```bash
+   git push origin main
+   ```
+
+2. **Conectar ao Cloudflare Pages**
+   - Acesse [dash.cloudflare.com](https://dash.cloudflare.com)
+   - Pages → Connect to Git
+   - Selecione repo `studymaster-agent`
+
+3. **Configuração no Cloudflare**
+   - **Build command:** (deixe vazio)
+   - **Publish directory:** `.` (raiz do projeto)
+   - **Deploy!**
+
+### Estrutura para Cloudflare
+
+```
+studymaster-agent/
+├── index.html                 ← Servido como /
+├── README.md
+├── ARQUITETURA.md
+├── .cloudflare-pages.json    ← Config Cloudflare
+├── .gitignore
+└── .git/
+```
+
+### URLs
+
+- **Cloudflare:** `https://studymaster-agent.pages.dev`
+- **Domínio customizado:** Configure em Cloudflare Pages → Custom domains
+
+---
+
 **Última atualização:** 3 de abril de 2026  
 **Autor:** GitHub Copilot  
 **Status:** ✨ ATIVO

@@ -1,0 +1,6 @@
+{
+  "name": "studymaster-agent",
+  "description": "StudyMaster — Agente de Estudo Acadêmico com IA",
+  "buildCommand": "",
+  "outputDirectory": "."
+}
