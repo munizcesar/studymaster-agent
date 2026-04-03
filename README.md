@@ -28,7 +28,7 @@ Ao usar o prompt, a IA se transforma em um tutor interativo que:
 ## 🚀 Como usar
 
 ### Opção 1 — Direto pelo navegador
-1. Baixe o arquivo `studymaster-agent.html`
+1. Baixe o arquivo `index.html`
 2. Abra no navegador
 3. Clique em **"Copiar Prompt"**
 4. Cole em qualquer IA (ChatGPT, Claude, Gemini, Perplexity…)
@@ -87,7 +87,8 @@ ETAPA 8 → Modo revisão inteligente (foco nos erros)
 
 ```
 studymaster-agent/
-├── studymaster-agent.html   # App completo (single-file)
+├── index.html               # App completo (single-file)
+├── _redirects               # Compatibilidade de URL antiga
 └── README.md
 ```
 

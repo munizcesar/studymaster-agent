@@ -5,7 +5,7 @@
 ```
 studymaster-agent/
 ├── index.html         ← ⭐ Único arquivo HTML (tudo aqui)
-├── netlify.toml       ← Configuração de deploy
+├── _redirects         ← Compatibilidade de links antigos
 ├── README.md          ← Documentação
 └── .git/
 ```
@@ -47,8 +47,8 @@ Se houver múltiplos arquivos → versões desincronizadas → bugs
 
 | Princípio | Por Quê? |
 |-----------|----------|
-| **Single HTML File** | Netlify serve `/` → `index.html`. Simples, sem redirecionamentos. |
-| **Tema Light por Padrão** | Atributo HTML + Script JS (redundância intencional) |
+| **Single HTML File** | Cloudflare Pages serve `/` → `index.html`. Simples e previsível. |
+| **Tema Light por Padrão** | `data-theme="light"` no HTML e toggle no botão |
 | **Sem Bibliotecas Externas** | CSS + JS puros = funciona em qualquer IA sem dependências |
 | **Tudo Auto-Contido** | HTML + CSS + JS = arquivo único portável |
 
