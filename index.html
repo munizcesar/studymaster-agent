@@ -4,27 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StudyMaster — Agente de Estudo com IA</title>
-
-<!-- Open Graph Meta Tags (Redes Sociais) -->
+<meta name="description" content="Crie prompts de estudo personalizados com IA em segundos. Configure dificuldade, tipo de questão e modo da sessão.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="StudyMaster — Agente de Estudo com IA">
-<meta property="og:description" content="Crie prompts personalizados para estudar com inteligência artificial. Configure dificuldade, tipo de questão e copie com um clique. Funciona com ChatGPT, Claude, Gemini e outras IAs.">
-<meta property="og:image" content="https://studymaster-agent.pages.dev/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:type" content="image/png">
-<meta property="og:url" content="https://studymaster-agent.pages.dev">
-
-<!-- Twitter Card -->
+<meta property="og:description" content="Monte seu prompt personalizado e estude com feedback imediato em qualquer IA.">
+<meta property="og:url" content="https://studymaster-agent.pages.dev/">
+<meta property="og:image" content="https://studymaster-agent.pages.dev/og-image.svg">
+<meta property="og:image:alt" content="StudyMaster com visual premium para estudo com IA">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="StudyMaster — Agente de Estudo com IA">
-<meta name="twitter:description" content="Crie prompts personalizados para estudar com inteligência artificial.">
-<meta name="twitter:image" content="https://studymaster-agent.pages.dev/og-image.png">
-
-<!-- Descrição e Keywords -->
-<meta name="description" content="Crie prompts personalizados para estudar com inteligência artificial. Configure dificuldade, tipo de questão e copie com um clique.">
-<meta name="keywords" content="estudo, IA, ChatGPT, simulado, questões, inteligência artificial, gerador de prompts">
-
+<meta name="twitter:description" content="Crie simulados e prompts personalizados para estudar em qualquer IA.">
+<meta name="twitter:image" content="https://studymaster-agent.pages.dev/og-image.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -96,8 +86,8 @@ a{color:var(--color-primary);text-decoration:none;transition:color var(--transit
 header{position:sticky;top:0;z-index:100;background:color-mix(in oklch,var(--color-bg) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--color-divider);padding:var(--space-3) 0}
 .header-inner{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4)}
 .logo{display:flex;align-items:center;gap:var(--space-3);text-decoration:none;color:var(--color-text)}
-.logo-mark{width:38px;height:38px;flex-shrink:0}
-.logo-name{font-size:var(--text-base);font-weight:800;letter-spacing:-.03em}
+.logo-mark{width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 6px 14px rgba(1,105,111,.22))}
+.logo-name{font-size:var(--text-base);font-weight:800;letter-spacing:-.03em;background:linear-gradient(112deg,#01696f 0%,#00a7b2 46%,#d4a827 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .logo-tag{font-size:var(--text-xs);color:var(--color-text-muted);font-weight:400;margin-top:-2px}
 .header-right{display:flex;align-items:center;gap:var(--space-3)}
 .nav-link{font-size:var(--text-sm);color:var(--color-text-muted);font-weight:500;padding:var(--space-2) var(--space-3);border-radius:var(--radius-md)}
@@ -299,10 +289,17 @@ footer{border-top:1px solid var(--color-divider);padding:var(--space-8) 0;text-a
     <div class="header-inner">
       <a href="#" class="logo">
         <svg class="logo-mark" viewBox="0 0 38 38" fill="none" aria-label="StudyMaster">
-          <rect width="38" height="38" rx="11" fill="var(--color-primary)"/>
+          <defs>
+            <linearGradient id="logoPremiumGradient" x1="5" y1="4" x2="35" y2="35" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#01696F"/>
+              <stop offset="0.5" stop-color="#00A7B2"/>
+              <stop offset="1" stop-color="#D4A827"/>
+            </linearGradient>
+          </defs>
+          <rect width="38" height="38" rx="11" fill="url(#logoPremiumGradient)"/>
           <path d="M10 14h18M10 19h13M10 24h16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
           <circle cx="27" cy="24" r="4.5" fill="white" opacity=".95"/>
-          <path d="M26 24l1 1 2.5-2.5" stroke="var(--color-primary)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M26 24l1 1 2.5-2.5" stroke="#0E4F56" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <div>
           <div class="logo-name">StudyMaster</div>

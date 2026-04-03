@@ -1,70 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">StudyMaster - Agente de Estudo com IA</title>
+  <desc id="desc">Imagem de compartilhamento social com identidade premium do StudyMaster.</desc>
   <defs>
-    <!-- Degradê Premium Teal → Cyan → Azul -->
-    <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#0a8fa3;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#006494;stop-opacity:1" />
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7f6f2"/>
+      <stop offset="1" stop-color="#ece8de"/>
     </linearGradient>
-    
-    <!-- Degradê secundário para texto -->
-    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#0a8fa3;stop-opacity:1" />
+    <linearGradient id="premium" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#01696F"/>
+      <stop offset="0.48" stop-color="#00A7B2"/>
+      <stop offset="1" stop-color="#D4A827"/>
     </linearGradient>
-
-    <!-- Sombra -->
-    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0c4e54" flood-opacity="0.16"/>
     </filter>
   </defs>
 
-  <!-- Fundo base -->
-  <rect width="1200" height="630" fill="#f7f6f2"/>
-  
-  <!-- Elemento decorativo de fundo (degradê suave) -->
-  <circle cx="1100" cy="100" r="400" fill="url(#premiumGradient)" opacity="0.08"/>
-  <circle cx="100" cy="580" r="350" fill="url(#premiumGradient)" opacity="0.08"/>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1040" cy="90" r="190" fill="#ffffff" opacity="0.24"/>
+  <circle cx="110" cy="560" r="170" fill="#ffffff" opacity="0.24"/>
 
-  <!-- Símbolo/Logo (quadrado com gradiente) -->
-  <g filter="url(#shadow)">
-    <!-- Quadrado principal com degradê -->
-    <rect x="80" y="150" width="260" height="260" rx="40" fill="url(#premiumGradient)" opacity="0.95"/>
-    
-    <!-- Livro aberto (ícone do StudyMaster) -->
-    <!-- Parte esquerda -->
-    <path d="M 160 220 L 160 340 Q 160 360 175 360 L 215 335 L 215 215 Z" fill="#f7f6f2" opacity="0.9"/>
-    <!-- Parte direita -->
-    <path d="M 240 215 L 240 335 Q 280 360 295 360 Q 310 360 310 340 L 310 220 Z" fill="#ffffff" opacity="0.85"/>
-    
-    <!-- Linhas do livro (folhas) -->
-    <line x1="190" y1="240" x2="190" y2="340" stroke="#f7f6f2" stroke-width="4" opacity="0.7"/>
-    <line x1="250" y1="240" x2="250" y2="340" stroke="#ffffff" stroke-width="4" opacity="0.6"/>
+  <g transform="translate(96 145)">
+    <rect x="0" y="0" width="118" height="118" rx="34" fill="url(#premium)" filter="url(#softShadow)"/>
+    <path d="M30 44h58M30 59h43M30 74h52" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="84" cy="74" r="14" fill="#ffffff"/>
+    <path d="M80 74l4 4 8-8" stroke="#0E4F56" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 
-  <!-- Texto Principal: StudyMaster -->
-  <text x="400" y="300" font-family="Inter, -apple-system, sans-serif" font-size="120" font-weight="800" letter-spacing="-3">
-    <tspan fill="url(#textGradient)">StudyMaster</tspan>
-  </text>
+  <text x="250" y="220" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" fill="url(#premium)">StudyMaster</text>
+  <text x="250" y="285" font-family="Inter, Arial, sans-serif" font-size="36" font-weight="600" fill="#2f302e">Agente de Estudo com IA</text>
 
-  <!-- Subtítulo -->
-  <text x="400" y="360" font-family="Inter, -apple-system, sans-serif" font-size="32" font-weight="500" fill="#6b6965" letter-spacing="0.5">
-    Agente de Estudo com IA
-  </text>
-
-  <!-- Badge/Label -->
-  <g>
-    <rect x="400" y="390" width="520" height="50" rx="25" fill="#e0eeec" opacity="0.8"/>
-    <text x="670" y="423" font-family="Inter, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#01696f" text-anchor="middle">⚡ Crie prompts personalizados em minutos</text>
-  </g>
-
-  <!-- Rodapé -->
-  <text x="1150" y="600" font-family="Inter, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#bab9b4" text-anchor="end">
-    studymaster-agent.pages.dev
-  </text>
-
-  <!-- Elementos decorativos (pontos de cor) -->
-  <circle cx="970" cy="180" r="12" fill="url(#premiumGradient)" opacity="0.7"/>
-  <circle cx="1030" cy="150" r="8" fill="url(#premiumGradient)" opacity="0.5"/>
-  <circle cx="1080" cy="200" r="10" fill="url(#premiumGradient)" opacity="0.6"/>
+  <rect x="96" y="355" width="1008" height="154" rx="26" fill="#ffffff" opacity="0.75"/>
+  <text x="136" y="420" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#1e1f1d">Monte prompts personalizados e estude com feedback imediato</text>
+  <text x="136" y="468" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#4a4c49">Dificuldade, tipo de questão, modo de sessão e revisão inteligente</text>
 </svg>
