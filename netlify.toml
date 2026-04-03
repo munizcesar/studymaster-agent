@@ -1,4 +1,2 @@
-[[redirects]]
-  from = "/*"
-  to = "/studymaster-agent.html"
-  status = 200
+[build]
+  publish = "."
