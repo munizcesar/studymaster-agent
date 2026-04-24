@@ -30,6 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
 :root,[data-theme="light"]{
   --color-bg:#f7f6f2;--color-surface:#ffffff;--color-surface-2:#f4f3ef;
@@ -165,50 +166,192 @@ header{position:sticky;top:0;z-index:100;background:color-mix(in oklch,var(--col
 
 .live-preview {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1.5px dashed var(--color-border);
   border-radius: var(--radius-2xl);
   overflow: hidden;
-  margin-bottom: var(--space-12);
-  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-8);
+  transition: border-color 0.3s ease;
+}
+.live-preview:has(.live-preview-body:not(:empty)) {
+  border-style: solid;
+  border-color: color-mix(in oklch, var(--color-primary) 35%, transparent);
 }
 .live-preview-header {
-  background: var(--color-surface-2);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-3) var(--space-5);
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-divider);
 }
-.live-preview-dot-wrap {
-  display: flex;
-  gap: 6px;
-}
+.live-preview-dot-wrap { display: flex; gap: 6px; }
 .live-preview-title {
   font-size: var(--text-xs);
+  font-weight: 700;
   color: var(--color-text-muted);
-  font-weight: 600;
   flex: 1;
 }
 .live-preview-badge {
-  font-size: .65rem;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: 600;
   color: var(--color-primary);
   background: var(--color-primary-highlight);
-  padding: 2px 8px;
+  padding: 2px 10px;
   border-radius: var(--radius-full);
 }
 .live-preview-body {
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4) var(--space-6);
   font-family: var(--font-mono);
-  font-size: .8rem;
+  font-size: 0.78rem;
+  line-height: 1.8;
   color: var(--color-text);
-  line-height: 1.6;
+  min-height: 120px;
   white-space: pre-wrap;
-  background: var(--color-surface);
 }
 .live-preview-placeholder {
   color: var(--color-text-faint);
   font-style: italic;
+}
+
+/* Quick Start, Compare, etc. */
+.quick-start-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+.btn-quick-start {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  background: transparent;
+  transition: all var(--transition);
+}
+.btn-quick-start:hover {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 8px 18px rgba(1,105,111,.22);
+}
+.quick-start-note {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.compare-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+@media (max-width: 640px) {
+  .compare-table { grid-template-columns: 1fr; }
+}
+.compare-col {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1.5px solid var(--color-border);
+}
+.compare-col-good {
+  border-color: color-mix(in oklch, var(--color-primary) 40%, transparent);
+  box-shadow: var(--shadow-md);
+}
+.compare-col-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-divider);
+  font-size: var(--text-sm);
+}
+.compare-col-good .compare-col-header {
+  background: var(--color-primary-highlight);
+  border-bottom-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
+}
+.compare-col-icon { font-size: 1.2rem; }
+.compare-badge {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+.compare-list {
+  list-style: none;
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface);
+}
+.compare-list li {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.compare-col-good .compare-list li {
+  color: var(--color-text);
+}
+
+.profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+.profile-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.profile-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.profile-icon {
+  font-size: 1.8rem;
+  margin-bottom: var(--space-3);
+}
+.profile-card h4 {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.profile-card p {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.btn-share-config {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  transition: all var(--transition);
+}
+.btn-share-config:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Chips de sugerir objetivo */
@@ -471,6 +614,13 @@ footer{border-top:1px solid var(--color-divider);padding:var(--space-8) 0;text-a
       </div>
       <a href="#configurar">Configurar agora</a>
     </div>
+    <div class="quick-start-wrap">
+      <button class="btn-quick-start" onclick="quickGenerate()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Testar agora com 1 clique
+      </button>
+      <span class="quick-start-note">Gera um prompt padrão sem configurar — só para ver como funciona</span>
+    </div>
     <span class="hero-features-label">Recursos incluídos (informativo)</span>
     <div class="hero-badges" aria-label="Lista de recursos inclusos">
       <span class="badge badge-green">✅ Múltipla escolha</span>
@@ -732,6 +882,14 @@ Quanto mais conteúdo você colar, mais questões relevantes serão geradas!" on
             <div class="instr-text"><strong>Cole e envie</strong>Cole o prompt no chat e pressione Enter — é só começar!</div>
           </div>
         </div>
+        <button class="btn-share-config" id="btnShareConfig" onclick="shareConfig()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Compartilhar esta configuração
+        </button>
       </div>
     </div><!-- /result-block -->
 
@@ -782,6 +940,78 @@ Quanto mais conteúdo você colar, mais questões relevantes serão geradas!" on
       <div class="feat"><div class="feat-icon-wrap" style="background:var(--color-warning-highlight)">⌨️</div><div><h4>Comandos especiais durante o estudo</h4><p>Digite DICA, PULAR, PLACAR, EXPLICAR ou PARAR a qualquer momento para controlar sua sessão.</p></div></div>
       <div class="feat"><div class="feat-icon-wrap" style="background:var(--color-primary-highlight)">📋</div><div><h4>Relatório completo ao final</h4><p>Nota final, % de acertos, pontos fortes, pontos a melhorar e sugestão do que estudar na sequência.</p></div></div>
     </div>
+  </div>
+</section>
+
+<!-- COMPARATIVO -->
+<section class="section">
+  <div class="container">
+    <span class="sec-label">Por que usar</span>
+    <h2 class="sec-title">Com ou sem o StudyMaster?</h2>
+    <p class="sec-sub">A diferença entre pedir questões numa IA na sorte e usar um agente estruturado.</p>
+    
+    <div class="compare-table">
+      <div class="compare-col compare-col-bad">
+        <div class="compare-col-header">
+          <span class="compare-col-icon">😓</span>
+          <strong>Sem o StudyMaster</strong>
+        </div>
+        <ul class="compare-list">
+          <li>❌ Pede questões sem estrutura e a IA improvisa</li>
+          <li>❌ Não tem dificuldade calibrada</li>
+          <li>❌ Sem feedback pedagógico real</li>
+          <li>❌ IA revela a resposta antes de você pensar</li>
+          <li>❌ Sem placar, sem progresso visível</li>
+          <li>❌ Sem revisão dos erros</li>
+          <li>❌ Cada sessão começa do zero</li>
+        </ul>
+      </div>
+      <div class="compare-col compare-col-good">
+        <div class="compare-col-header">
+          <span class="compare-col-icon">🎓</span>
+          <strong>Com o StudyMaster</strong>
+          <span class="compare-badge">Gratuito</span>
+        </div>
+        <ul class="compare-list">
+          <li>✅ Prompt estruturado com 7 etapas pedagógicas</li>
+          <li>✅ Dificuldade progressiva e calibrada</li>
+          <li>✅ Feedback imediato com explicação completa</li>
+          <li>✅ IA nunca revela resposta antes da hora</li>
+          <li>✅ Placar em tempo real + relatório final</li>
+          <li>✅ Modo revisão focado só nos erros</li>
+          <li>✅ Prompt personalizado por concurso/objetivo</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PARA QUEM É -->
+    <div style="margin-top: var(--space-12)">
+      <span class="sec-label">Para quem é</span>
+      <h2 class="sec-title" style="margin-top: var(--space-3)">Funciona para qualquer objetivo</h2>
+      <div class="profiles-grid">
+        <div class="profile-card">
+          <div class="profile-icon">⚖️</div>
+          <h4>Concurseiro</h4>
+          <p>Simula bancas como CESPE, FCC e Vunesp com questões no estilo exato da prova real.</p>
+        </div>
+        <div class="profile-card">
+          <div class="profile-icon">📚</div>
+          <h4>Vestibulandos / ENEM</h4>
+          <p>Questões contextualizadas e interdisciplinares no formato ENEM, com feedback interpretativo.</p>
+        </div>
+        <div class="profile-card">
+          <div class="profile-icon">⚕️</div>
+          <h4>Residência Médica</h4>
+          <p>Estuda protocolos, farmacologia e casos clínicos com feedback embasado em evidências.</p>
+        </div>
+        <div class="profile-card">
+          <div class="profile-icon">🏛️</div>
+          <h4>OAB e pós-graduação</h4>
+          <p>Questões baseadas em legislação, jurisprudência e doutrina com gabarito fundamentado.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -1346,10 +1576,66 @@ function highlightError(id){
   setTimeout(()=>el.style.border='',2000);
 }
 
+// ─── Quick Generate ────────────────────────────────────────
+function quickGenerate(){
+  state.mode = 'pdf';
+  state.diff = 'medium';
+  state.qty = 10;
+  state.type = 'mc';
+  state.modeSession = 'normal';
+  state.targetGoal = '';
+  
+  // Atualiza visual interface
+  document.getElementById('modePDF').classList.add('selected');
+  document.getElementById('modeText').classList.remove('selected');
+  
+  const syncBtn = (group, val) => {
+    const btn = document.querySelector(`button[onclick*="'${group}','${val}'"]`) || 
+                document.querySelector(`button[onclick*='"${group}","${val}"']`);
+    if (btn) {
+      const parent = btn.parentElement;
+      parent.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  };
+  syncBtn('diff', state.diff);
+  syncBtn('type', state.type);
+  syncBtn('mode', state.modeSession);
+  
+  const slider = document.getElementById('qtySlider');
+  const display = document.getElementById('qtyDisplay');
+  if (slider) slider.value = state.qty;
+  if (display) display.textContent = state.qty;
+  
+  const targetGoalInput = document.getElementById('targetGoal');
+  if (targetGoalInput) targetGoalInput.value = '';
+  document.querySelectorAll('.target-chip').forEach(b => b.classList.remove('active'));
+
+  updateProgress();
+  updateLivePreview();
+  generatePrompt();
+  
+  setTimeout(() => {
+    const block = document.getElementById('resultBlock');
+    if (block) block.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 150);
+}
+
 // ─── Copiar resultado ──────────────────────────────────────
 function copyResult(btn){
   const text = document.getElementById('resultContent').textContent;
   navigator.clipboard.writeText(text).then(()=>{
+    if (typeof confetti !== 'undefined') {
+      confetti({
+        particleCount: 60,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#01696f', '#00a7b2', '#d4a827', '#ffffff'],
+        scalar: 0.9,
+        gravity: 1.2
+      });
+    }
+
     btn.classList.add('copied');
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copiado!';
     setTimeout(()=>{
@@ -1358,6 +1644,81 @@ function copyResult(btn){
     }, 2500);
   });
 }
+
+// ─── Compartilhar Configuração ─────────────────────────────
+function shareConfig() {
+  const params = new URLSearchParams({
+    diff: state.diff,
+    qty: state.qty,
+    type: state.type,
+    mode: state.modeSession,
+    goal: state.targetGoal || ''
+  });
+  if (state.mode) params.set('content', state.mode);
+
+  const url = `${location.origin}${location.pathname}?${params.toString()}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('btnShareConfig');
+    if (!btn) return;
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '✓ Link copiado!';
+    setTimeout(() => btn.innerHTML = oldText, 2500);
+  });
+}
+
+// ─── Carregar Config via URL ───────────────────────────────
+(function loadFromURL() {
+  const p = new URLSearchParams(location.search);
+  let hasParams = false;
+  if (p.get('content')) { state.mode = p.get('content'); hasParams = true; }
+  if (p.get('diff')) { state.diff = p.get('diff'); hasParams = true; }
+  if (p.get('qty'))  { state.qty  = parseInt(p.get('qty')); hasParams = true; }
+  if (p.get('type')) { state.type = p.get('type'); hasParams = true; }
+  if (p.get('mode')) { state.modeSession = p.get('mode'); hasParams = true; }
+  if (p.has('goal')) { state.targetGoal = p.get('goal'); hasParams = true; }
+
+  if (hasParams) {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Sync inputs
+      if (state.targetGoal) {
+        const input = document.getElementById('targetGoal');
+        if (input) input.value = state.targetGoal;
+      }
+      if (state.qty) {
+        const slider = document.getElementById('qtySlider');
+        const display = document.getElementById('qtyDisplay');
+        if (slider) slider.value = state.qty;
+        if (display) display.textContent = state.qty;
+      }
+      // Sync material buttons
+      if (state.mode) {
+        const tMode = document.getElementById('modeText');
+        const pMode = document.getElementById('modePDF');
+        if (tMode && state.mode === 'text') tMode.classList.add('selected');
+        if (pMode && state.mode === 'pdf') pMode.classList.add('selected');
+        const wrap = document.getElementById('contentAreaWrap');
+        if (wrap) wrap.classList.toggle('visible', state.mode === 'text');
+      }
+
+      // Sync Option buttons
+      const syncBtn = (group, val) => {
+        const btn = document.querySelector(`button[onclick*="'${group}','${val}'"]`) || 
+                    document.querySelector(`button[onclick*='"${group}","${val}"']`);
+        if (btn) {
+          const parent = btn.parentElement;
+          parent.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+      };
+      syncBtn('diff', state.diff);
+      syncBtn('type', state.type);
+      syncBtn('mode', state.modeSession);
+
+      updateProgress();
+      updateLivePreview();
+    });
+  }
+})();
 
 // ─── Scroll suave para links ───────────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
