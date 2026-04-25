@@ -76,6 +76,7 @@
     .site-header { padding: var(--space-4) 0; border-bottom: 1px solid var(--color-divider); background: var(--color-bg); }
     .header-inner { display: flex; justify-content: space-between; align-items: center; }
     .logo { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800; color: var(--color-text); }
+    .logo-icon { width: 32px; height: 32px; flex-shrink: 0; }
     .theme-toggle { padding: var(--space-2); color: var(--color-text-muted); border-radius: var(--radius-full); transition: background var(--transition); }
     .theme-toggle:hover { background: var(--color-surface-offset); }
 
@@ -134,7 +135,7 @@
     .categoria-btn { padding: var(--space-4); text-align: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .categoria-btn:hover { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.05); }
 
-    /* Step 4 — Questões geradas */
+    /* Step 4 */
     .summary-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-6); }
     .summary-chips .chip { background: oklch(from var(--color-primary) l c h / 0.1); border-color: transparent; color: var(--color-primary); pointer-events: none; }
 
@@ -170,7 +171,7 @@
     .score-progress { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); margin: 0 var(--space-4); overflow: hidden; }
     .score-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
 
-    /* Botões finais */
+    /* Botões */
     .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); width: 100%; padding: var(--space-3); background: var(--color-primary); color: white; font-weight: 700; border-radius: var(--radius-md); font-size: var(--text-base); transition: all var(--transition); margin-top: var(--space-4); }
     .btn-primary:hover { background: var(--color-primary-hover); }
     .btn-ghost { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); font-weight: 500; transition: color var(--transition); width: 100%; justify-content: center; }
@@ -182,7 +183,7 @@
     .error-icon { font-size: 3rem; margin-bottom: var(--space-4); }
     .error-msg { color: var(--color-text-muted); margin-bottom: var(--space-6); font-size: var(--text-sm); }
 
-    /* Nav Buttons */
+    /* Nav */
     .wizard-nav { display: flex; justify-content: space-between; margin-top: var(--space-6); }
     .wizard-nav button { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-weight: 600; font-size: var(--text-sm); transition: all var(--transition); }
     .btn-back { color: var(--color-text-muted); }
@@ -233,7 +234,19 @@
     <div class="container">
       <div class="header-inner">
         <a href="#" class="logo" aria-label="StudyMaster início">
-          <i data-lucide="book-open" width="24" height="24"></i>
+          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="logoGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#01696F"/>
+                <stop offset="0.5" stop-color="#00A7B2"/>
+                <stop offset="1" stop-color="#D4A827"/>
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="18" fill="url(#logoGrad)"/>
+            <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="46" cy="40" r="11" fill="#ffffff"/>
+            <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#01696F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
           <span>StudyMaster</span>
         </a>
         <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
@@ -245,9 +258,9 @@
 
   <section class="hero">
     <div class="container">
-      <span class="hero-badge">✦ IA Real · Questões geradas na hora · Gabarito comentado</span>
-      <h1 class="hero-title">Questões geradas por IA<br>para o seu objetivo</h1>
-      <p class="hero-subtitle">Configure sua sessão, clique em Gerar e a IA cria as questões direto na tela — com gabarito comentado.</p>
+      <span class="hero-badge">✦ Questões personalizadas · Gabarito comentado · 100% gratuito</span>
+      <h1 class="hero-title">Prepare-se com questões<br>geradas por IA para o seu objetivo</h1>
+      <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as questões na hora — com gabarito comentado para cada resposta.</p>
     </div>
   </section>
 
@@ -358,17 +371,13 @@
           </div>
         </div>
 
-        <!-- STEP 4 — Questões geradas pela IA -->
+        <!-- STEP 4 -->
         <div class="wizard-step" id="step-4" data-step="4">
-
-          <!-- Gerando... -->
           <div class="generating-screen" id="generating-screen">
             <div class="spinner"></div>
             <p class="generating-label">Gerando suas questões com IA…</p>
             <p class="generating-sub">Isso leva alguns segundos</p>
           </div>
-
-          <!-- Erro -->
           <div class="error-screen" id="error-screen">
             <div class="error-icon">⚠️</div>
             <h3 style="margin-bottom:var(--space-2)">Erro ao gerar questões</h3>
@@ -378,8 +387,6 @@
               Tentar novamente
             </button>
           </div>
-
-          <!-- Questões -->
           <div class="questions-container" id="questions-container">
             <div class="summary-chips" id="summary-chips"></div>
             <div class="score-bar" id="score-bar">
@@ -393,7 +400,6 @@
               Nova sessão
             </button>
           </div>
-
         </div>
       </div>
 
@@ -427,7 +433,7 @@
           </div>
           <div class="how-step">
             <span class="how-number">03</span>
-            <div><strong>A IA gera na hora</strong><p>O Gemini cria as questões diretamente na tela — com gabarito comentado para cada resposta.</p></div>
+            <div><strong>A IA gera na hora</strong><p>Questões criadas diretamente na tela — com gabarito comentado para cada resposta.</p></div>
           </div>
         </div>
       </div>
@@ -460,19 +466,13 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>StudyMaster · Powered by Google Gemini · Gratuito e sem cadastro</p>
+      <p>StudyMaster · Powered by Groq AI · Gratuito e sem cadastro</p>
     </div>
   </footer>
 
 <script>
-// ==========================================
-// CONFIG — URL do Worker (fixo)
-// ==========================================
 const WORKER_URL = 'https://studymaster-worker.cesarmuniz0816.workers.dev';
 
-// ==========================================
-// DADOS
-// ==========================================
 const academicData = {
   'Direito': {
     'Direito Constitucional': ['Teoria da Constituição','Direitos Fundamentais','Organização do Estado','Poder Executivo','Poder Legislativo','Poder Judiciário','Controle de Constitucionalidade'],
@@ -557,9 +557,6 @@ const concursoData = {
   ]},
 };
 
-// ==========================================
-// ESTADO
-// ==========================================
 const state = {
   currentStep: 1, direction: 'forward', mode: null,
   area: null, subject: null, topic: null,
@@ -570,9 +567,6 @@ const state = {
   concursoSubStep: 'a', advancedOpen: false,
 };
 
-// ==========================================
-// SCROLL SUAVE PARA O WIZARD
-// ==========================================
 function scrollToWizard(delay = 0) {
   setTimeout(() => {
     const wizardCard = document.getElementById('wizard-card');
@@ -580,21 +574,13 @@ function scrollToWizard(delay = 0) {
     const rect = wizardCard.getBoundingClientRect();
     const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
     const targetY = window.scrollY + rect.top - headerHeight - 16;
-    // Só scrola se o card não estiver totalmente visível na viewport
     const isVisible = rect.top >= headerHeight && rect.bottom <= window.innerHeight;
-    if (!isVisible) {
-      window.scrollTo({ top: targetY, behavior: 'smooth' });
-    }
+    if (!isVisible) window.scrollTo({ top: targetY, behavior: 'smooth' });
   }, delay);
 }
 
-// ==========================================
-// INIT
-// ==========================================
 function init() {
   lucide.createIcons();
-
-  // Tema
   document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
     const root = document.documentElement;
     const isDark = root.getAttribute('data-theme') === 'dark';
@@ -602,13 +588,9 @@ function init() {
     document.getElementById('theme-icon').setAttribute('data-lucide', isDark ? 'moon' : 'sun');
     lucide.createIcons();
   });
-
-  // Step 1
   document.querySelectorAll('.mode-card').forEach(btn => {
     btn.addEventListener('click', e => selectMode(e.currentTarget.dataset.mode));
   });
-
-  // Config chips
   const setupChips = (group, key) => {
     document.querySelectorAll(`.chip[data-${group}]`).forEach(btn => {
       btn.addEventListener('click', e => {
@@ -621,31 +603,24 @@ function init() {
   setupChips('difficulty', 'difficulty');
   setupChips('qtype', 'questionType');
   setupChips('session', 'sessionMode');
-
   const slider = document.getElementById('qty-slider');
   slider.addEventListener('input', e => {
     state.quantity = parseInt(e.target.value);
     document.getElementById('qty-display').textContent = state.quantity;
   });
-
   document.getElementById('advanced-btn').addEventListener('click', e => {
     state.advancedOpen = !state.advancedOpen;
     e.currentTarget.setAttribute('aria-expanded', state.advancedOpen);
     document.getElementById('advanced-config').classList.toggle('hidden');
     document.getElementById('advanced-config').classList.toggle('open', state.advancedOpen);
   });
-
   document.getElementById('next-btn').addEventListener('click', () => goToStep(state.currentStep + 1));
   document.getElementById('back-btn').addEventListener('click', () => goToStep(state.currentStep - 1));
   document.getElementById('restart-btn').addEventListener('click', () => { resetState(); goToStep(1); });
   document.getElementById('retry-btn').addEventListener('click', () => callWorkerAndRender());
-
   updateNavButtons();
 }
 
-// ==========================================
-// FLUXO
-// ==========================================
 function selectMode(mode) {
   if (state.mode && state.mode !== mode) resetState();
   state.mode = mode;
@@ -669,7 +644,6 @@ function goToStep(target) {
     state.currentStep = target;
     updateStepBar(target);
     updateNavButtons();
-    // Scroll suave para o wizard-card após a transição de step
     scrollToWizard(50);
     if (target === 4) callWorkerAndRender();
   }, 250);
@@ -713,9 +687,6 @@ function resetState() {
   state.mode = null;
 }
 
-// ==========================================
-// STEP 2 — RENDERIZADORES
-// ==========================================
 function renderStep2() {
   const container = document.getElementById('step-2');
   container.innerHTML = '';
@@ -787,7 +758,6 @@ function renderStep2Concurso(container) {
         state.concursoCategory = e.currentTarget.dataset.cat;
         state.concursoSubStep = 'b';
         renderStep2Concurso(container);
-        // Scroll ao mudar sub-passo dentro do step 2
         scrollToWizard(50);
       });
     });
@@ -849,32 +819,19 @@ function renderStep2Livre(container) {
   });
 }
 
-// ==========================================
-// CHAMADA AO WORKER + RENDER
-// ==========================================
 async function callWorkerAndRender() {
   const genScreen = document.getElementById('generating-screen');
   const errScreen = document.getElementById('error-screen');
   const qContainer = document.getElementById('questions-container');
-
   genScreen.classList.remove('hidden');
   errScreen.classList.remove('visible');
   qContainer.classList.remove('visible');
-
   const payload = {
-    mode: state.mode,
-    area: state.area,
-    subject: state.subject,
-    topic: state.topic,
-    concurso: state.concurso?.label,
-    banca: state.bancaInferida,
-    freeText: state.freeText,
-    editalText: state.editalText,
-    difficulty: state.difficulty,
-    quantity: state.quantity,
-    questionType: state.questionType,
+    mode: state.mode, area: state.area, subject: state.subject, topic: state.topic,
+    concurso: state.concurso?.label, banca: state.bancaInferida,
+    freeText: state.freeText, editalText: state.editalText,
+    difficulty: state.difficulty, quantity: state.quantity, questionType: state.questionType,
   };
-
   try {
     const res = await fetch(WORKER_URL, {
       method: 'POST',
@@ -882,7 +839,6 @@ async function callWorkerAndRender() {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    // Usa a mensagem amigável do Worker se disponível
     if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
     if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
     state.generatedQuestions = data.questions;
@@ -900,23 +856,17 @@ function showError(msg) {
   document.getElementById('error-screen').classList.add('visible');
 }
 
-// ==========================================
-// RENDER QUESTÕES
-// ==========================================
 function renderQuestions(questions) {
   const container = document.getElementById('questions-container');
   const list = document.getElementById('questions-list');
   const chips = document.getElementById('summary-chips');
   const scoreTotal = document.getElementById('score-total');
-
   scoreTotal.textContent = questions.length;
   updateScore();
-
   chips.innerHTML = `
     <div class="chip">${{easy:'🟢 Fácil',medium:'🟡 Médio',hard:'🔴 Difícil',extreme:'🔥 Extremo'}[state.difficulty]}</div>
     <div class="chip">${questions.length} Questões</div>
     <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>`;
-
   list.innerHTML = '';
   questions.forEach((q, idx) => {
     const card = document.createElement('div');
@@ -937,7 +887,6 @@ function renderQuestions(questions) {
       </div>`;
     list.appendChild(card);
   });
-
   list.querySelectorAll('.option-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       const qIdx = parseInt(e.currentTarget.dataset.qidx);
@@ -945,11 +894,8 @@ function renderQuestions(questions) {
       handleAnswer(qIdx, key);
     });
   });
-
   container.classList.add('visible');
   lucide.createIcons();
-
-  // Scroll para o topo do wizard ao exibir as questões
   scrollToWizard(100);
 }
 
@@ -958,23 +904,18 @@ function handleAnswer(qIdx, selectedKey) {
   const card = document.getElementById(`q-${qIdx}`);
   const btns = card.querySelectorAll('.option-btn');
   const expBox = document.getElementById(`exp-${qIdx}`);
-
   if (card.dataset.answered) return;
   card.dataset.answered = '1';
-
   const isCorrect = selectedKey === q.correctAnswer;
   if (isCorrect) state.correct++;
   state.answered++;
-
   btns.forEach(btn => {
     btn.disabled = true;
     if (btn.dataset.key === q.correctAnswer) btn.classList.add('correct');
     else if (btn.dataset.key === selectedKey && !isCorrect) btn.classList.add('wrong');
   });
-
   expBox.classList.add('visible');
   updateScore();
-
   if (isCorrect) {
     confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
   }
@@ -984,18 +925,8 @@ function updateScore() {
   const fill = document.getElementById('score-fill');
   const value = document.getElementById('score-value');
   const total = state.generatedQuestions.length;
-  const pct = total > 0 ? (state.correct / total) * 100 : 0;
   fill.style.width = `${(state.answered / total) * 100}%`;
   value.innerHTML = `${state.correct}/<span id="score-total">${total}</span>`;
-}
-
-function showToast(msg) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-  const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2500);
 }
 
 document.addEventListener('DOMContentLoaded', init);
