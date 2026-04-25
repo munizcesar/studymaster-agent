@@ -22,7 +22,7 @@ export default {
     }
 
     // Verifica se a chave está configurada
-    if (!env.GEMINI_API_KEY) {
+    if (!env.AIzaSyCL5XiqJJtk1BNCfXq9fv8n5oO2i9grZkY) {
       return new Response(JSON.stringify({
         error: 'Configuração incompleta',
         userMessage: 'A chave da API não está configurada no servidor. Configure GEMINI_API_KEY nas variáveis do Worker.',
@@ -93,7 +93,7 @@ Regras obrigatórias:
 6. Varie a posição da alternativa correta entre as questões.
 7. Escreva tudo em português do Brasil.`;
 
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.AIzaSyBxZcyKzi4Dznk09EYldsFdpMVn8exT0q8}`;
 
       const geminiResponse = await fetch(geminiUrl, {
         method: 'POST',
