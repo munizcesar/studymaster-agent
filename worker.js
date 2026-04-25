@@ -1,6 +1,6 @@
-// StudyMaster AI Worker — Cloudflare Worker + Google Gemini API
+// StudyMaster AI Worker — Cloudflare Worker + Groq API
 // Deploy: wrangler deploy
-// Env var necessária: GEMINI_API_KEY
+// Env var necessária: GROQ_API_KEY
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +12,6 @@ const corsHeaders = {
 export default {
   async fetch(request, env) {
 
-    // Responde preflight OPTIONS com CORS imediatamente
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
@@ -21,11 +20,10 @@ export default {
       return new Response('Method not allowed', { status: 405, headers: corsHeaders });
     }
 
-    // Verifica se a chave está configurada
-    if (!env.GEMINI_API_KEY) {
+    if (!env.GROQ_API_KEY) {
       return new Response(JSON.stringify({
         error: 'Configuração incompleta',
-        userMessage: 'A chave da API não está configurada no servidor. Configure GEMINI_API_KEY nas variáveis do Worker.',
+        userMessage: 'A chave da API não está configurada no servidor. Configure GROQ_API_KEY nas variáveis do Worker.',
       }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -93,54 +91,50 @@ Regras obrigatórias:
 6. Varie a posição da alternativa correta entre as questões.
 7. Escreva tudo em português do Brasil.`;
 
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
-
-      const geminiResponse = await fetch(geminiUrl, {
+      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 8192,
-            responseMimeType: 'application/json',
-          },
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: 'Você é um gerador de questões acadêmicas. Retorne APENAS JSON válido, sem nenhum texto extra.' },
+            { role: 'user', content: prompt },
+          ],
+          temperature: 0.7,
+          max_tokens: 8192,
+          response_format: { type: 'json_object' },
         }),
       });
 
-      if (!geminiResponse.ok) {
-        const err = await geminiResponse.text();
+      if (!groqResponse.ok) {
+        const err = await groqResponse.text();
         let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
 
-        if (geminiResponse.status === 429) {
+        if (groqResponse.status === 429) {
           userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
-        } else if (geminiResponse.status === 400) {
+        } else if (groqResponse.status === 400) {
           userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
-        } else if (geminiResponse.status === 403) {
-          userMessage = 'Chave da API inválida ou sem permissão. Entre em contato com o suporte.';
+        } else if (groqResponse.status === 401) {
+          userMessage = 'Chave da API inválida. Verifique o GROQ_API_KEY nas configurações do Worker.';
         }
 
-        return new Response(JSON.stringify({ error: 'Gemini API error', details: err, userMessage }), {
+        return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
           status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      const geminiData = await geminiResponse.json();
-
-      // Verifica se a resposta foi bloqueada por safety
-      if (geminiData?.promptFeedback?.blockReason) {
-        return new Response(JSON.stringify({
-          error: 'Conteúdo bloqueado',
-          userMessage: 'O conteúdo foi bloqueado pelo filtro de segurança da IA. Tente um tópico diferente.',
-        }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-
-      const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+      const groqData = await groqResponse.json();
+      const rawText = groqData?.choices?.[0]?.message?.content || '{}';
 
       let questions;
       try {
-        questions = JSON.parse(rawText);
+        const parsed = JSON.parse(rawText);
+        // Groq com json_object retorna { questions: [...] } ou diretamente [...]
+        questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
       } catch {
         const match = rawText.match(/\[.*\]/s);
         try {
