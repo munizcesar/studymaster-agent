@@ -18,9 +18,17 @@ export default {
       return new Response('Method not allowed', { status: 405, headers: corsHeaders });
     }
 
+    // Verifica se a chave está configurada
+    if (!env.GEMINI_API_KEY) {
+      return new Response(JSON.stringify({
+        error: 'Configuração incompleta',
+        userMessage: 'A chave da API não está configurada no servidor. Configure GEMINI_API_KEY nas variáveis do Worker.',
+      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     try {
       const body = await request.json();
-      const { topic, subject, area, mode, difficulty, quantity, questionType, concurso, banca } = body;
+      const { topic, subject, area, mode, difficulty, quantity, questionType, concurso, banca, freeText, editalText } = body;
 
       const difficultyMap = {
         easy: 'fácil (nível iniciante, conceitos básicos)',
@@ -41,10 +49,15 @@ export default {
       let contextInfo = '';
       if (mode === 'concurso' && concurso) {
         contextInfo = `Concurso: ${concurso}. Banca: ${banca || 'CESPE/CEBRASPE'}. As questões devem seguir o estilo e padrão dessa banca.`;
+        if (editalText && editalText.length > 0) {
+          contextInfo += `\n\nConteúdo programático do edital:\n${editalText.slice(0, 3000)}`;
+        }
       } else if (mode === 'academic') {
-        contextInfo = `Área: ${area}. Disciplina: ${subject}. Tópico: ${topic}.`;
+        contextInfo = `Área: ${area}. Disciplina: ${subject}. Tópico: ${topic || 'Matéria completa'}.`;
+      } else if (mode === 'livre' && freeText) {
+        contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 4000)}`;
       } else {
-        contextInfo = `Tópico livre: ${topic || subject || area}.`;
+        contextInfo = `Tópico livre: ${topic || subject || area || 'Conhecimentos gerais'}.`;
       }
 
       const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.
@@ -94,22 +107,51 @@ Regras obrigatórias:
 
       if (!geminiResponse.ok) {
         const err = await geminiResponse.text();
-        return new Response(JSON.stringify({ error: 'Gemini API error', details: err }), {
+        let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
+
+        if (geminiResponse.status === 429) {
+          userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
+        } else if (geminiResponse.status === 400) {
+          userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
+        } else if (geminiResponse.status === 403) {
+          userMessage = 'Chave da API inválida ou sem permissão. Entre em contato com o suporte.';
+        }
+
+        return new Response(JSON.stringify({ error: 'Gemini API error', details: err, userMessage }), {
           status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
       const geminiData = await geminiResponse.json();
+
+      // Verifica se a resposta foi bloqueada por safety
+      if (geminiData?.promptFeedback?.blockReason) {
+        return new Response(JSON.stringify({
+          error: 'Conteúdo bloqueado',
+          userMessage: 'O conteúdo foi bloqueado pelo filtro de segurança da IA. Tente um tópico diferente.',
+        }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
       const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
 
       let questions;
       try {
         questions = JSON.parse(rawText);
       } catch {
-        // tenta extrair JSON do texto
         const match = rawText.match(/\[.*\]/s);
-        questions = match ? JSON.parse(match[0]) : [];
+        try {
+          questions = match ? JSON.parse(match[0]) : [];
+        } catch {
+          questions = [];
+        }
+      }
+
+      if (!Array.isArray(questions) || questions.length === 0) {
+        return new Response(JSON.stringify({
+          error: 'Resposta vazia',
+          userMessage: 'A IA não conseguiu gerar questões para esse conteúdo. Tente ajustar o tópico ou o nível de dificuldade.',
+        }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       return new Response(JSON.stringify({ questions }), {
@@ -118,7 +160,10 @@ Regras obrigatórias:
       });
 
     } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), {
+      return new Response(JSON.stringify({
+        error: err.message,
+        userMessage: 'Ocorreu um erro inesperado. Tente novamente em instantes.',
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

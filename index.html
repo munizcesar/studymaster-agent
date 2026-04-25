@@ -276,7 +276,7 @@
         </button>
       </nav>
 
-      <div class="wizard-card" role="region" aria-live="polite">
+      <div class="wizard-card" id="wizard-card" role="region" aria-live="polite">
 
         <!-- STEP 1 -->
         <div class="wizard-step active" id="step-1" data-step="1">
@@ -571,6 +571,24 @@ const state = {
 };
 
 // ==========================================
+// SCROLL SUAVE PARA O WIZARD
+// ==========================================
+function scrollToWizard(delay = 0) {
+  setTimeout(() => {
+    const wizardCard = document.getElementById('wizard-card');
+    if (!wizardCard) return;
+    const rect = wizardCard.getBoundingClientRect();
+    const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
+    const targetY = window.scrollY + rect.top - headerHeight - 16;
+    // Só scrola se o card não estiver totalmente visível na viewport
+    const isVisible = rect.top >= headerHeight && rect.bottom <= window.innerHeight;
+    if (!isVisible) {
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+  }, delay);
+}
+
+// ==========================================
 // INIT
 // ==========================================
 function init() {
@@ -651,6 +669,8 @@ function goToStep(target) {
     state.currentStep = target;
     updateStepBar(target);
     updateNavButtons();
+    // Scroll suave para o wizard-card após a transição de step
+    scrollToWizard(50);
     if (target === 4) callWorkerAndRender();
   }, 250);
 }
@@ -767,6 +787,8 @@ function renderStep2Concurso(container) {
         state.concursoCategory = e.currentTarget.dataset.cat;
         state.concursoSubStep = 'b';
         renderStep2Concurso(container);
+        // Scroll ao mudar sub-passo dentro do step 2
+        scrollToWizard(50);
       });
     });
   } else {
@@ -788,6 +810,7 @@ function renderStep2Concurso(container) {
     document.getElementById('back-cat').addEventListener('click', () => {
       state.concursoSubStep = 'a'; state.concurso = null; state.editalText = '';
       updateNavButtons(); renderStep2Concurso(container);
+      scrollToWizard(50);
     });
     document.querySelectorAll('.chip[data-cid]').forEach(btn => {
       btn.addEventListener('click', e => {
@@ -858,9 +881,10 @@ async function callWorkerAndRender() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (!data.questions || !data.questions.length) throw new Error('Nenhuma questão retornada.');
+    // Usa a mensagem amigável do Worker se disponível
+    if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
+    if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
     state.generatedQuestions = data.questions;
     state.answered = 0; state.correct = 0;
     genScreen.classList.add('hidden');
@@ -924,6 +948,9 @@ function renderQuestions(questions) {
 
   container.classList.add('visible');
   lucide.createIcons();
+
+  // Scroll para o topo do wizard ao exibir as questões
+  scrollToWizard(100);
 }
 
 function handleAnswer(qIdx, selectedKey) {
