@@ -9,6 +9,15 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
+function extractQuestions(parsed) {
+  if (Array.isArray(parsed)) return parsed;
+  // Tenta encontrar um array em qualquer chave do objeto
+  for (const key of Object.keys(parsed)) {
+    if (Array.isArray(parsed[key])) return parsed[key];
+  }
+  return [];
+}
+
 export default {
   async fetch(request, env) {
 
@@ -68,28 +77,31 @@ ${contextInfo}
 
 Nível de dificuldade: ${diffLabel}.
 
-Regras obrigatórias:
-1. Retorne APENAS um JSON válido, sem markdown, sem texto antes ou depois.
-2. O JSON deve ser um array de objetos com esta estrutura exata:
-[
-  {
-    "id": 1,
-    "statement": "Enunciado completo da questão aqui.",
-    "options": [
-      { "key": "A", "text": "Texto da alternativa A" },
-      { "key": "B", "text": "Texto da alternativa B" },
-      { "key": "C", "text": "Texto da alternativa C" },
-      { "key": "D", "text": "Texto da alternativa D" }
-    ],
-    "correctAnswer": "A",
-    "explanation": "Explicação detalhada do porquê a alternativa A está correta e as demais estão erradas."
-  }
-]
-3. Para questões de verdadeiro/falso, use apenas 2 opções: A (Verdadeiro) e B (Falso).
-4. As questões devem ser tecnicamente corretas, sem ambiguidades.
-5. As explicações devem ser didáticas e claras.
-6. Varie a posição da alternativa correta entre as questões.
-7. Escreva tudo em português do Brasil.`;
+Você DEVE retornar um objeto JSON com a chave "questions" contendo um array de questões.
+Estrutura obrigatória:
+{
+  "questions": [
+    {
+      "id": 1,
+      "statement": "Enunciado completo da questão aqui.",
+      "options": [
+        { "key": "A", "text": "Texto da alternativa A" },
+        { "key": "B", "text": "Texto da alternativa B" },
+        { "key": "C", "text": "Texto da alternativa C" },
+        { "key": "D", "text": "Texto da alternativa D" }
+      ],
+      "correctAnswer": "A",
+      "explanation": "Explicação detalhada do porquê a alternativa A está correta e as demais estão erradas."
+    }
+  ]
+}
+
+Regras:
+1. Para questões de verdadeiro/falso, use apenas 2 opções: A (Verdadeiro) e B (Falso).
+2. As questões devem ser tecnicamente corretas, sem ambiguidades.
+3. As explicações devem ser didáticas e claras.
+4. Varie a posição da alternativa correta entre as questões.
+5. Escreva tudo em português do Brasil.`;
 
       const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -100,7 +112,7 @@ Regras obrigatórias:
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
-            { role: 'system', content: 'Você é um gerador de questões acadêmicas. Retorne APENAS JSON válido, sem nenhum texto extra.' },
+            { role: 'system', content: 'Você é um gerador de questões acadêmicas. Retorne APENAS JSON válido com a chave "questions" contendo o array de questões.' },
             { role: 'user', content: prompt },
           ],
           temperature: 0.7,
@@ -112,14 +124,9 @@ Regras obrigatórias:
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
         let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
-
-        if (groqResponse.status === 429) {
-          userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
-        } else if (groqResponse.status === 400) {
-          userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
-        } else if (groqResponse.status === 401) {
-          userMessage = 'Chave da API inválida. Verifique o GROQ_API_KEY nas configurações do Worker.';
-        }
+        if (groqResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
+        else if (groqResponse.status === 400) userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
+        else if (groqResponse.status === 401) userMessage = 'Chave da API inválida. Verifique o GROQ_API_KEY nas configurações do Worker.';
 
         return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
           status: 502,
@@ -130,23 +137,19 @@ Regras obrigatórias:
       const groqData = await groqResponse.json();
       const rawText = groqData?.choices?.[0]?.message?.content || '{}';
 
-      let questions;
+      let questions = [];
       try {
         const parsed = JSON.parse(rawText);
-        // Groq com json_object retorna { questions: [...] } ou diretamente [...]
-        questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+        questions = extractQuestions(parsed);
       } catch {
         const match = rawText.match(/\[.*\]/s);
-        try {
-          questions = match ? JSON.parse(match[0]) : [];
-        } catch {
-          questions = [];
-        }
+        try { questions = match ? JSON.parse(match[0]) : []; } catch { questions = []; }
       }
 
       if (!Array.isArray(questions) || questions.length === 0) {
         return new Response(JSON.stringify({
           error: 'Resposta vazia',
+          rawText,
           userMessage: 'A IA não conseguiu gerar questões para esse conteúdo. Tente ajustar o tópico ou o nível de dificuldade.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
