@@ -182,11 +182,6 @@
     .error-icon { font-size: 3rem; margin-bottom: var(--space-4); }
     .error-msg { color: var(--color-text-muted); margin-bottom: var(--space-6); font-size: var(--text-sm); }
 
-    /* Worker URL input */
-    .worker-config { background: oklch(from var(--color-primary) l c h / 0.06); border: 1px solid oklch(from var(--color-primary) l c h / 0.2); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-6); }
-    .worker-config label { font-size: var(--text-xs); font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: var(--space-2); }
-    .worker-config input { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid oklch(from var(--color-primary) l c h / 0.3); border-radius: var(--radius-sm); background: var(--color-bg); color: var(--color-text); font-size: var(--text-sm); }
-
     /* Nav Buttons */
     .wizard-nav { display: flex; justify-content: space-between; margin-top: var(--space-6); }
     .wizard-nav button { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-weight: 600; font-size: var(--text-sm); transition: all var(--transition); }
@@ -258,13 +253,6 @@
 
   <main id="wizard" class="wizard-section">
     <div class="container">
-
-      <!-- Worker URL config (aparece se não estiver configurado) -->
-      <div class="worker-config" id="worker-config-box">
-        <label>🔧 URL do seu Cloudflare Worker</label>
-        <input type="url" id="worker-url-input" placeholder="https://studymaster-worker.SEU-SUBDOMINIO.workers.dev" />
-        <p style="font-size:11px; color:var(--color-text-faint); margin-top:6px;">Cole a URL do worker. Você encontra no painel Cloudflare → Workers & Pages → studymaster-worker.</p>
-      </div>
 
       <nav class="steps-bar" aria-label="Progresso do configurador">
         <button class="step-indicator active" data-step="1" aria-label="Passo 1: Modo">
@@ -384,7 +372,7 @@
           <div class="error-screen" id="error-screen">
             <div class="error-icon">⚠️</div>
             <h3 style="margin-bottom:var(--space-2)">Erro ao gerar questões</h3>
-            <p class="error-msg" id="error-msg">Não foi possível conectar ao worker. Verifique a URL e a chave API.</p>
+            <p class="error-msg" id="error-msg">Não foi possível conectar ao servidor. Tente novamente em instantes.</p>
             <button class="btn-primary" id="retry-btn" style="max-width:300px;margin:0 auto;">
               <i data-lucide="refresh-cw" width="16" height="16"></i>
               Tentar novamente
@@ -477,6 +465,11 @@
   </footer>
 
 <script>
+// ==========================================
+// CONFIG — URL do Worker (fixo)
+// ==========================================
+const WORKER_URL = 'https://studymaster-worker.cesarmuniz0816.workers.dev';
+
 // ==========================================
 // DADOS
 // ==========================================
@@ -575,7 +568,6 @@ const state = {
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   generatedQuestions: [], answered: 0, correct: 0,
   concursoSubStep: 'a', advancedOpen: false,
-  workerUrl: ''
 };
 
 // ==========================================
@@ -592,10 +584,6 @@ function init() {
     document.getElementById('theme-icon').setAttribute('data-lucide', isDark ? 'moon' : 'sun');
     lucide.createIcons();
   });
-
-  // Worker URL
-  const workerInput = document.getElementById('worker-url-input');
-  workerInput.addEventListener('input', e => { state.workerUrl = e.target.value.trim(); });
 
   // Step 1
   document.querySelectorAll('.mode-card').forEach(btn => {
@@ -850,12 +838,6 @@ async function callWorkerAndRender() {
   errScreen.classList.remove('visible');
   qContainer.classList.remove('visible');
 
-  const workerUrl = state.workerUrl || document.getElementById('worker-url-input').value.trim();
-  if (!workerUrl) {
-    showError('Cole a URL do seu Cloudflare Worker no campo acima antes de gerar.');
-    return;
-  }
-
   const payload = {
     mode: state.mode,
     area: state.area,
@@ -871,7 +853,7 @@ async function callWorkerAndRender() {
   };
 
   try {
-    const res = await fetch(workerUrl, {
+    const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -884,7 +866,7 @@ async function callWorkerAndRender() {
     genScreen.classList.add('hidden');
     renderQuestions(data.questions);
   } catch (err) {
-    showError(err.message || 'Erro desconhecido. Verifique a URL do worker e a chave API.');
+    showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
   }
 }
 
@@ -932,7 +914,6 @@ function renderQuestions(questions) {
     list.appendChild(card);
   });
 
-  // Eventos de resposta
   list.querySelectorAll('.option-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       const qIdx = parseInt(e.currentTarget.dataset.qidx);
@@ -951,7 +932,6 @@ function handleAnswer(qIdx, selectedKey) {
   const btns = card.querySelectorAll('.option-btn');
   const expBox = document.getElementById(`exp-${qIdx}`);
 
-  // Já respondida
   if (card.dataset.answered) return;
   card.dataset.answered = '1';
 
