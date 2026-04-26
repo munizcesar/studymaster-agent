@@ -18,22 +18,19 @@ function extractQuestions(parsed) {
 }
 
 // ── Wikipedia context fetch ────────────────────────────────────────────────────
-// Usada apenas no modo academic e fallback geral.
-// Modos concurso e livre têm contexto próprio (edital / freeText).
 async function fetchWikipediaContext(query, lang = 'pt') {
   try {
     const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
     const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`;
     const res = await fetch(url, {
       headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
-      signal: AbortSignal.timeout(4000), // 4s timeout — não trava o Worker
+      signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return null;
     const data = await res.json();
-    // extract retorna o resumo em texto puro, sem HTML
     return data?.extract ? data.extract.slice(0, 1500) : null;
   } catch {
-    return null; // falha silenciosa — não quebra a geração
+    return null;
   }
 }
 
@@ -127,26 +124,19 @@ export default {
       let wikiContext = '';
 
       if (mode === 'concurso' && concurso) {
-        // Modo concurso: edital/banca como contexto — sem Wikipedia
         contextInfo = `Concurso: ${concurso}.`;
         if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
         if (editalText && editalText.length > 0) {
           contextInfo += `\n\nConteúdo programático do edital:\n${editalText.slice(0, 3000)}`;
         }
-
       } else if (mode === 'academic') {
-        // Modo acadêmico: busca Wikipedia pelo tópico mais específico disponível
         contextInfo = `Área: ${area}. Disciplina: ${subject}.${topic ? ` Tópico: ${topic}.` : ' (Matéria completa)'}`;
         const wikiQuery = topic || subject || area;
         const wikiLang  = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
         wikiContext = await fetchWikipediaContext(wikiQuery, wikiLang);
-
       } else if (mode === 'livre' && freeText) {
-        // Modo livre: conteúdo do usuário como contexto — sem Wikipedia
         contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 4000)}`;
-
       } else {
-        // Fallback geral: busca Wikipedia pelo termo disponível
         const fallbackQuery = topic || subject || area || '';
         contextInfo = `Tópico: ${fallbackQuery || 'Conhecimentos gerais'}.`;
         if (fallbackQuery) {
@@ -155,12 +145,11 @@ export default {
         }
       }
 
-      // Bloco de referência Wikipedia inserido no contextInfo
       const wikiBlock = wikiContext
         ? `\n\nReferência Wikipedia (use como base factual, não reproduza literalmente):\n"""\n${wikiContext}\n"""`
         : '';
 
-      // ── Construção do prompt ──────────────────────────────────────────────────
+      // ── Instruções do prompt ──────────────────────────────────────────────────
       const langInstruction = isPortugues
         ? 'Escreva todas as questões, alternativas e explicações em português do Brasil.'
         : `Write all questions, options and explanations in ${idiomaLabel}. The entire response must be in ${idiomaLabel}.`;
@@ -174,6 +163,13 @@ export default {
       const altInstruction = questionType === 'vf'
         ? 'Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso).'
         : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
+
+      // Instrução de fonte adaptada por modo
+      const fonteInstruction = mode === 'concurso'
+        ? 'Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula, decreto ou tema do edital que fundamenta a questão (ex: "Art. 37, CF/88", "Súmula 331 TST", "Lei 8.112/90, Art. 9º"). Nunca deixe vazio.'
+        : mode === 'academic'
+        ? 'Para cada questão, preencha o campo "fonte" com o conceito, teoria, lei ou autor de referência que fundamenta a questão (ex: "Teoria de Piaget — Desenvolvimento Cognitivo", "Lei de Ohm — Física", "Art. 5º, CF/88"). Nunca deixe vazio.'
+        : 'Para cada questão, preencha o campo "fonte" com a base conceitual ou legal que fundamenta a resposta correta. Nunca deixe vazio.';
 
       const exampleOptions = numAlts === 4
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
@@ -196,7 +192,8 @@ Retorne APENAS um objeto JSON com a chave "questions":
 ${exampleOptions}
       ],
       "correctAnswer": "A",
-      "explanation": "Explicação didática do gabarito."
+      "explanation": "Explicação didática do gabarito.",
+      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"
     }
   ]
 }
@@ -207,7 +204,8 @@ Regras obrigatórias:
 3. Explicações didáticas e claras.
 4. Varie a posição da alternativa correta entre as questões.
 5. ${langInstruction}
-6. Nenhum texto fora do JSON.`;
+6. ${fonteInstruction}
+7. Nenhum texto fora do JSON.`;
 
       // ── Chamada Groq ──────────────────────────────────────────────────────────
       const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -237,7 +235,6 @@ Regras obrigatórias:
         if (groqResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
         else if (groqResponse.status === 400) userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
         else if (groqResponse.status === 401) userMessage = 'Chave da API inválida. Verifique o GROQ_API_KEY nas configurações do Worker.';
-
         return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
           status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
