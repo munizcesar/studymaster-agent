@@ -1290,20 +1290,61 @@ async function extractTextFromFile(file, onProgress = () => {}) {
   if (extension === 'pdf' || file.type === 'application/pdf') {
     onProgress({ percent: 20, label: 'Carregando leitor de PDF…' });
     await loadScriptOnce([
-      'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.min.js',
-      'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js',
+      'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     ], 'pdfjs-lib', 'o leitor de PDF');
     if (!window.pdfjsLib) throw new Error('Leitor de PDF indisponível no momento.');
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.js';
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
     const bytes = await file.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+    let pdf;
+    try {
+      pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+    } catch {
+      // Fallback quando o worker externo falha (CORS/CDN/adblock).
+      pdf = await window.pdfjsLib.getDocument({ data: bytes, disableWorker: true }).promise;
+    }
     let collected = '';
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       const page = await pdf.getPage(pageNum);
       const content = await page.getTextContent();
       collected += `${content.items.map(item => item.str).join(' ')}\n`;
       onProgress({ percent: 20 + Math.round((pageNum / pdf.numPages) * 70), label: 'Extraindo texto do PDF…' });
+    }
+    if (!collected.trim()) {
+      if (!window.Tesseract) {
+        onProgress({ percent: 15, label: 'Carregando OCR para PDF escaneado…', loading: true });
+        await loadScriptOnce([
+          'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
+          'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
+        ], 'tesseract-lib', 'o OCR (Tesseract)');
+      }
+
+      let ocrCollected = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.8 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (!context) continue;
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        onProgress({
+          percent: 20 + Math.round((pageNum / pdf.numPages) * 70),
+          label: `PDF escaneado detectado: OCR da página ${pageNum}/${pdf.numPages}…`,
+          loading: true,
+        });
+
+        const result = await window.Tesseract.recognize(canvas, 'por+eng');
+        ocrCollected += `${result?.data?.text || ''}\n`;
+      }
+
+      if (!ocrCollected.trim()) {
+        throw new Error('Não foi possível extrair texto deste PDF escaneado. Tente enviar imagens com melhor qualidade ou colar o texto manualmente.');
+      }
+      return ocrCollected;
     }
     return collected;
   }
