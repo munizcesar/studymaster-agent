@@ -1254,17 +1254,26 @@ function getFileExtension(fileName = '') {
   return parts.length > 1 ? parts.pop() : '';
 }
 
-function loadScriptOnce(url, id) {
+function loadScriptOnce(urls, id, libLabel = 'biblioteca de extração') {
+  const candidates = Array.isArray(urls) ? urls : [urls];
   if (scriptPromises[id]) return scriptPromises[id];
   scriptPromises[id] = new Promise((resolve, reject) => {
     if (document.getElementById(id)) return resolve();
-    const script = document.createElement('script');
-    script.src = url;
-    script.id = id;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Falha ao carregar biblioteca de extração.'));
-    document.head.appendChild(script);
+    let idx = 0;
+    const tryNext = () => {
+      const url = candidates[idx++];
+      if (!url) return reject(new Error(`Falha ao carregar ${libLabel}. Verifique sua conexão e tente novamente.`));
+      const script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        script.remove();
+        tryNext();
+      };
+      document.head.appendChild(script);
+    };
+    tryNext();
   });
   return scriptPromises[id];
 }
@@ -1280,9 +1289,13 @@ async function extractTextFromFile(file, onProgress = () => {}) {
 
   if (extension === 'pdf' || file.type === 'application/pdf') {
     onProgress({ percent: 20, label: 'Carregando leitor de PDF…' });
-    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js', 'pdfjs-lib');
+    await loadScriptOnce([
+      'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.min.js',
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js',
+    ], 'pdfjs-lib', 'o leitor de PDF');
     if (!window.pdfjsLib) throw new Error('Leitor de PDF indisponível no momento.');
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.js';
     const bytes = await file.arrayBuffer();
     const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
     let collected = '';
@@ -1297,7 +1310,10 @@ async function extractTextFromFile(file, onProgress = () => {}) {
 
   if (extension === 'docx' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     onProgress({ percent: 20, label: 'Carregando leitor de DOCX…' });
-    await loadScriptOnce('https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js', 'mammoth-lib');
+    await loadScriptOnce([
+      'https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js',
+      'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js',
+    ], 'mammoth-lib', 'o leitor de DOCX');
     if (!window.mammoth) throw new Error('Leitor de DOCX indisponível no momento.');
     const buffer = await file.arrayBuffer();
     const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
@@ -1308,7 +1324,10 @@ async function extractTextFromFile(file, onProgress = () => {}) {
   if (isImage) {
     if (!window.Tesseract) {
       onProgress({ percent: 15, label: 'Realizando OCR na imagem…', loading: true });
-      await loadScriptOnce('https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js', 'tesseract-lib');
+      await loadScriptOnce([
+        'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
+        'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
+      ], 'tesseract-lib', 'o OCR (Tesseract)');
     }
     onProgress({ percent: 30, label: 'Realizando OCR na imagem…', loading: true });
     const result = await window.Tesseract.recognize(file, 'por+eng', {
