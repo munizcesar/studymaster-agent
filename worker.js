@@ -34,6 +34,28 @@ async function fetchWikipediaContext(query, lang = 'pt') {
   }
 }
 
+// ── Instruções anti-alucinação por área ───────────────────────────────────
+function getAreaSafetyInstruction(area, mode, subject) {
+  if (mode === 'concurso') {
+    return 'Cite apenas artigos de lei, súmulas e decretos que realmente existem e estão em vigor. Nunca crie números de artigos, leis ou súmulas fictícios. Em caso de dúvida sobre um artigo específico, elabore a questão com base no princípio jurídico geral sem citar o número.';
+  }
+  if (mode === 'livre') {
+    return 'As questões devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usuário. Não adicione informações externas que não estejam no texto.';
+  }
+  // Modo acadêmico — por área
+  const areaMap = {
+    'Direito': 'Cite apenas artigos, incisos e parágrafos que realmente existem na Constituição Federal, Código Civil, Código Penal e demais diplomas legais brasileiros. Nunca invente números de artigos ou leis fictícias. Em caso de dúvida sobre um artigo específico, baseie a questão no princípio jurídico sem citar o número.',
+    'Saúde': 'Use apenas terminologia médica, protocolos clínicos, nomes de medicamentos, síndromes e doenças que realmente existem e são reconhecidos pela comunidade médica e CID. Nunca invente nomes de fármacos, exámes ou procedimentos.',
+    'Tecnologia': 'Use apenas linguagens de programação, frameworks, protocolos, comandos, padrões e conceitos de TI que realmente existem e são documentados. Nunca invente nomes de funções, bibliotecas, comandos ou protocolos.',
+    'Exatas': 'Use apenas fórmulas, teoremas, leis físicas e químicas matematicamente corretos e verificados. Nunca invente constantes, fórmulas ou resultados numéricos incorretos.',
+    'Humanas': 'Use apenas eventos históricos, datas, personagens e conceitos filosóficos/sociológicos reais e documentados. Nunca invente datas, nomes de tratados ou autores fictícios.',
+    'Negócios': 'Use apenas conceitos de administração, contabilidade, economia e finanças consolidados e reconhecidos. Nunca invente siglas, normas contábeis ou índices econômicos fictícios.',
+    'ENEM': 'Use apenas conteúdos do currículo oficial do ENEM conforme a matriz de referência do INEP. Baseie-se em conhecimentos factícios consolidados e verificados.',
+    'Concursos — Matérias Comuns': 'Cite apenas artigos de lei e conceitos que realmente existem. Para Português, use apenas regras gramaticais da norma culta brasileira consagradas. Para Matemática, garanta que todos os cálculos e respostas estejam matematicamente corretos antes de incluir a questão.',
+  };
+  return areaMap[area] || 'Use apenas conhecimento factício consolidado e verificado. Nunca invente dados, nomes, leis ou conceitos.';
+}
+
 export default {
   async fetch(request, env) {
 
@@ -119,6 +141,9 @@ export default {
         ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca organizadora.`)
         : null;
 
+      // ── Instrução de segurança por área ───────────────────────────────────────
+      const areaSafetyInstruction = getAreaSafetyInstruction(area, mode, subject);
+
       // ── Contexto do conteúdo + Wikipedia ─────────────────────────────────────
       let contextInfo = '';
       let wikiContext = '';
@@ -174,13 +199,56 @@ export default {
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
         : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
 
-      const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${contextInfo}${wikiBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Varie a posição da alternativa correta entre as questões.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. Nenhum texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos ou dados que não existem. Use apenas conhecimento factício consolidado.\n9. Se não tiver certeza absoluta sobre um dado, não o inclua na questão.`;
+      const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
+
+Gere exatamente ${quantity} questões de ${typeLabel} sobre:
+${contextInfo}${wikiBlock}
+
+Nível de dificuldade: ${diffLabel}.
+
+Retorne APENAS um objeto JSON com a chave "questions":
+{
+  "questions": [
+    {
+      "id": 1,
+      "statement": "Enunciado completo da questão.",
+      "options": [
+${exampleOptions}
+      ],
+      "correctAnswer": "A",
+      "explanation": "Explicação didática do gabarito.",
+      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"
+    }
+  ]
+}
+
+Regras obrigatórias:
+1. ${altInstruction}
+2. Questões tecnicamente corretas e sem ambiguidades.
+3. Explicações didáticas e claras.
+4. Varie a posição da alternativa correta entre as questões.
+5. ${langInstruction}
+6. ${fonteInstruction}
+7. Nenhum texto fora do JSON.
+8. NUNCA invente leis, artigos, conceitos, nomes ou dados que não existem na realidade.
+9. Se não tiver certeza absoluta sobre um dado específico, elabore a questão sem citar esse dado.
+10. Regra de segurança por área: ${areaSafetyInstruction}`;
+
+      // ── System instruction reforçada ─────────────────────────────────────────────
+      const systemText = `Você é um examinador acadêmico rigoroso especializado em concursos públicos e ensino superior brasileiro.
+Retorne APENAS JSON válido com a chave "questions".
+${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}
+
+PRINCÍPIOS INEGOCIÁVEIS:
+- Use APENAS conhecimento factício consolidado e verificado.
+- NUNCA invente leis, artigos, números, nomes de medicamentos, comandos de TI, fórmulas ou qualquer dado.
+- Em caso de dúvida sobre um detalhe específico, elabore a questão em torno do conceito geral sem o detalhe duvidoso.
+- Cada gabarito deve ser inquestionável e defensavél tecnicamente.
+- ${areaSafetyInstruction}`;
 
       // ── Chamada Gemini ────────────────────────────────────────────────────────
       const geminiModel = 'gemini-2.0-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
-
-      // Temperature: 0.3 para simulado (máxima exatidão), 0.4 para normal/revisão (exatidão com leve variedade)
       const temperature = sessionMode === 'concurso' ? 0.3 : 0.4;
 
       const geminiResponse = await fetch(
@@ -191,9 +259,7 @@ export default {
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             systemInstruction: {
-              parts: [{
-                text: `Você é um gerador de questões acadêmicas e de concursos. Retorne APENAS JSON válido com a chave "questions". ${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`} Use apenas conhecimento factício consolidado. Não invente leis, artigos ou dados.`,
-              }],
+              parts: [{ text: systemText }],
             },
             generationConfig: {
               temperature,
