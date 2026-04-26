@@ -174,11 +174,14 @@ export default {
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
         : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
 
-      const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${contextInfo}${wikiBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Varie a posição da alternativa correta entre as questões.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. Nenhum texto fora do JSON.`;
+      const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${contextInfo}${wikiBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Varie a posição da alternativa correta entre as questões.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. Nenhum texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos ou dados que não existem. Use apenas conhecimento factício consolidado.\n9. Se não tiver certeza absoluta sobre um dado, não o inclua na questão.`;
 
       // ── Chamada Gemini ────────────────────────────────────────────────────────
       const geminiModel = 'gemini-2.0-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
+
+      // Temperature: 0.3 para simulado (máxima exatidão), 0.4 para normal/revisão (exatidão com leve variedade)
+      const temperature = sessionMode === 'concurso' ? 0.3 : 0.4;
 
       const geminiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
@@ -189,11 +192,11 @@ export default {
             contents: [{ parts: [{ text: prompt }] }],
             systemInstruction: {
               parts: [{
-                text: `Você é um gerador de questões acadêmicas e de concursos. Retorne APENAS JSON válido com a chave "questions". ${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}`,
+                text: `Você é um gerador de questões acadêmicas e de concursos. Retorne APENAS JSON válido com a chave "questions". ${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`} Use apenas conhecimento factício consolidado. Não invente leis, artigos ou dados.`,
               }],
             },
             generationConfig: {
-              temperature: sessionMode === 'concurso' ? 0.5 : 0.7,
+              temperature,
               maxOutputTokens: maxTokens,
               responseMimeType: 'application/json',
             },
