@@ -1,6 +1,6 @@
-// StudyMaster AI Worker — Cloudflare Worker + Groq API
+// StudyMaster AI Worker — Cloudflare Worker + Gemini API
 // Deploy: wrangler deploy
-// Env var necessária: GROQ_API_KEY
+// Env var necessária: GEMINI_API_KEY
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,10 +45,10 @@ export default {
       return new Response('Method not allowed', { status: 405, headers: corsHeaders });
     }
 
-    if (!env.GROQ_API_KEY) {
+    if (!env.GEMINI_API_KEY) {
       return new Response(JSON.stringify({
         error: 'Configuração incompleta',
-        userMessage: 'A chave da API não está configurada no servidor. Configure GROQ_API_KEY nas variáveis do Worker.',
+        userMessage: 'A chave da API não está configurada no servidor. Configure GEMINI_API_KEY nas variáveis do Worker.',
       }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -119,7 +119,7 @@ export default {
         ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca organizadora.`)
         : null;
 
-      // ── Contexto do conteúdo + Wikipedia (apenas academic e fallback) ─────────
+      // ── Contexto do conteúdo + Wikipedia ─────────────────────────────────────
       let contextInfo = '';
       let wikiContext = '';
 
@@ -164,7 +164,6 @@ export default {
         ? 'Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso).'
         : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
 
-      // Instrução de fonte adaptada por modo
       const fonteInstruction = mode === 'concurso'
         ? 'Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula, decreto ou tema do edital que fundamenta a questão (ex: "Art. 37, CF/88", "Súmula 331 TST", "Lei 8.112/90, Art. 9º"). Nunca deixe vazio.'
         : mode === 'academic'
@@ -175,74 +174,47 @@ export default {
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
         : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
 
-      const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
+      const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${contextInfo}${wikiBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Varie a posição da alternativa correta entre as questões.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. Nenhum texto fora do JSON.`;
 
-Gere exatamente ${quantity} questões de ${typeLabel} sobre:
-${contextInfo}${wikiBlock}
+      // ── Chamada Gemini ────────────────────────────────────────────────────────
+      const geminiModel = 'gemini-2.0-flash';
+      const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
 
-Nível de dificuldade: ${diffLabel}.
-
-Retorne APENAS um objeto JSON com a chave "questions":
-{
-  "questions": [
-    {
-      "id": 1,
-      "statement": "Enunciado completo da questão.",
-      "options": [
-${exampleOptions}
-      ],
-      "correctAnswer": "A",
-      "explanation": "Explicação didática do gabarito.",
-      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"
-    }
-  ]
-}
-
-Regras obrigatórias:
-1. ${altInstruction}
-2. Questões tecnicamente corretas e sem ambiguidades.
-3. Explicações didáticas e claras.
-4. Varie a posição da alternativa correta entre as questões.
-5. ${langInstruction}
-6. ${fonteInstruction}
-7. Nenhum texto fora do JSON.`;
-
-      // ── Chamada Groq ──────────────────────────────────────────────────────────
-      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            {
-              role: 'system',
-              content: `Você é um gerador de questões acadêmicas e de concursos. Retorne APENAS JSON válido com a chave "questions". ${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}`,
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: {
+              parts: [{
+                text: `Você é um gerador de questões acadêmicas e de concursos. Retorne APENAS JSON válido com a chave "questions". ${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}`,
+              }],
             },
-            { role: 'user', content: prompt },
-          ],
-          temperature: sessionMode === 'concurso' ? 0.5 : 0.7,
-          max_tokens: quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192,
-          response_format: { type: 'json_object' },
-        }),
-      });
+            generationConfig: {
+              temperature: sessionMode === 'concurso' ? 0.5 : 0.7,
+              maxOutputTokens: maxTokens,
+              responseMimeType: 'application/json',
+            },
+          }),
+        }
+      );
 
-      if (!groqResponse.ok) {
-        const err = await groqResponse.text();
+      if (!geminiResponse.ok) {
+        const err = await geminiResponse.text();
         let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
-        if (groqResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
-        else if (groqResponse.status === 400) userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
-        else if (groqResponse.status === 401) userMessage = 'Chave da API inválida. Verifique o GROQ_API_KEY nas configurações do Worker.';
-        return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
+        if (geminiResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
+        else if (geminiResponse.status === 400) userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
+        else if (geminiResponse.status === 401 || geminiResponse.status === 403) userMessage = 'Chave da API inválida. Verifique o GEMINI_API_KEY nas configurações do Worker.';
+        return new Response(JSON.stringify({ error: 'Gemini API error', details: err, userMessage }), {
           status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      const groqData = await groqResponse.json();
-      const rawText = groqData?.choices?.[0]?.message?.content || '{}';
+      const geminiData = await geminiResponse.json();
+      const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
       let questions = [];
       try {
