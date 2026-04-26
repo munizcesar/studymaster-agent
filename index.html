@@ -167,6 +167,38 @@
     .categorias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3); }
     .categoria-btn { padding: var(--space-4); text-align: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .categoria-btn:hover { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.05); }
+    .upload-area {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      margin-top: var(--space-4);
+    }
+    .upload-area:hover { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.03); }
+    .upload-area.dragging { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.06); }
+    .upload-progress { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--color-text-muted); display: none; }
+    .upload-progress.visible { display: block; }
+    .upload-progress-bar { height: 4px; background: var(--color-divider); border-radius: var(--radius-full); margin-top: var(--space-2); overflow: hidden; }
+    .upload-progress-fill { height: 100%; background: var(--grad-brand); border-radius: var(--radius-full); transition: width 0.3s ease; width: 0%; }
+    .upload-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--color-divider);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: -2px;
+      margin-right: var(--space-2);
+    }
+    .upload-error {
+      margin-top: var(--space-2);
+      font-size: var(--text-sm);
+      color: var(--color-error);
+      min-height: 1.2em;
+    }
 
     /* Step 4 */
     .summary-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-6); }
@@ -246,9 +278,29 @@
     .compare-table th, .compare-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--color-divider); }
     .compare-table th { background: var(--color-surface-offset); font-weight: 700; }
     .profiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
-    .profile-card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); transition: border-color var(--transition), box-shadow var(--transition); }
-    .profile-card:hover { border-color: var(--color-primary-mid); box-shadow: var(--shadow-md); }
-    .profile-emoji { font-size: 2rem; display: block; margin-bottom: var(--space-2); }
+    .profile-card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); transition: border-color var(--transition), box-shadow var(--transition); cursor: default; }
+    .profile-card:hover { border-color: var(--color-border); box-shadow: none; }
+    .profile-tag {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-faint);
+      margin-bottom: var(--space-3);
+    }
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
+      color: var(--color-primary);
+    }
+    .profile-header strong {
+      font-size: var(--text-base);
+      color: var(--color-text);
+    }
     .site-footer { text-align: center; padding: var(--space-8); border-top: 1px solid var(--color-divider); font-size: var(--text-sm); color: var(--color-text-faint); }
 
     /* Animations */
@@ -536,12 +588,54 @@
       <div class="profile-cards">
         <h2>Para quem é o StudyMaster?</h2>
         <div class="profiles-grid">
-          <div class="profile-card"><span class="profile-emoji">🎓</span><strong>Universitários</strong><p>Gere questões de qualquer matéria do seu curso por tópico específico.</p></div>
-          <div class="profile-card"><span class="profile-emoji">📋</span><strong>Concurseiros</strong><p>Simule bancas como CESPE, VUNESP e FCC com questões no estilo real.</p></div>
-          <div class="profile-card"><span class="profile-emoji">⚖️</span><strong>Advogados / OAB</strong><p>Prepare-se para a 1ª e 2ª fase com prompts no padrão FGV.</p></div>
-          <div class="profile-card"><span class="profile-emoji">👮</span><strong>Segurança Pública</strong><p>PC, PM, GCM, Bombeiros — questões por cargo e legislação específica.</p></div>
-          <div class="profile-card"><span class="profile-emoji">🏥</span><strong>Área da Saúde</strong><p>Residências médicas, concursos de enfermagem e farmácia com foco clínico.</p></div>
-          <div class="profile-card"><span class="profile-emoji">💻</span><strong>TI &amp; Tecnologia</strong><p>Certificações, concursos de TI e provas acadêmicas de ciência da computação.</p></div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="graduation-cap" width="22" height="22"></i>
+              <strong>Universitários</strong>
+            </div>
+            <p>Gere questões de qualquer matéria do seu curso por tópico específico.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="clipboard-list" width="22" height="22"></i>
+              <strong>Concurseiros</strong>
+            </div>
+            <p>Simule bancas como CESPE, VUNESP e FCC com questões no estilo real.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="scale" width="22" height="22"></i>
+              <strong>Advogados / OAB</strong>
+            </div>
+            <p>Prepare-se para a 1ª e 2ª fase com prompts no padrão FGV.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="shield" width="22" height="22"></i>
+              <strong>Segurança Pública</strong>
+            </div>
+            <p>PC, PM, GCM, Bombeiros — questões por cargo e legislação específica.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="heart-pulse" width="22" height="22"></i>
+              <strong>Área da Saúde</strong>
+            </div>
+            <p>Residências médicas, concursos de enfermagem e farmácia com foco clínico.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="monitor" width="22" height="22"></i>
+              <strong>TI &amp; Tecnologia</strong>
+            </div>
+            <p>Certificações, concursos de TI e provas acadêmicas de ciência da computação.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -764,6 +858,8 @@ const state = {
   generatedQuestions: [], answered: 0, correct: 0,
   concursoSubStep: 'a', advancedOpen: false,
 };
+const MAX_EXTRACTED_CHARS = 8000;
+const scriptPromises = {};
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1049,13 +1145,187 @@ function renderStep2Livre(container) {
     <h2 class="step-title">Cole seu material de estudo</h2>
     <p class="step-subtitle">Cole textos, PDFs ou qualquer anotação para gerar questões focadas.</p>
     <textarea id="free-txt" placeholder="Cole o texto aqui (mínimo de 50 caracteres)...">${state.freeText}</textarea>
-    <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px" id="free-counter">Caracteres: ${state.freeText.length}</div>`;
-  document.getElementById('free-txt').addEventListener('input', e => {
+    <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px" id="free-counter">Caracteres: ${state.freeText.length}</div>
+    <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
+    <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
+      <strong>Arraste e solte o arquivo aqui</strong>
+      <p style="margin-top:var(--space-2);color:var(--color-text-muted)">ou clique para selecionar (PDF, DOCX, TXT, MD, JPG, PNG, WEBP)</p>
+    </div>
+    <div class="upload-progress" id="upload-progress">
+      <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
+      <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
+    </div>
+    <p class="upload-error" id="upload-error" aria-live="polite"></p>`;
+
+  const freeTextArea = document.getElementById('free-txt');
+  const freeCounter = document.getElementById('free-counter');
+  const fileInput = document.getElementById('free-file-input');
+  const uploadArea = document.getElementById('free-upload-area');
+
+  const updateCounter = () => {
+    freeCounter.textContent = `Caracteres: ${state.freeText.length}`;
+    freeCounter.style.color = state.freeText.length < 50 && state.freeText.length > 0 ? 'var(--color-error)' : 'var(--color-text-muted)';
+  };
+
+  freeTextArea.addEventListener('input', e => {
     state.freeText = e.target.value;
-    document.getElementById('free-counter').textContent = `Caracteres: ${state.freeText.length}`;
-    document.getElementById('free-counter').style.color = state.freeText.length < 50 && state.freeText.length > 0 ? 'var(--color-error)' : 'var(--color-text-muted)';
+    updateCounter();
     updateNavButtons();
   });
+
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.classList.add('dragging');
+  });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragging'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragging');
+    const droppedFile = e.dataTransfer?.files?.[0];
+    if (droppedFile) handleFreeFileUpload(droppedFile);
+  });
+  fileInput.addEventListener('change', e => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) handleFreeFileUpload(selectedFile);
+    fileInput.value = '';
+  });
+
+  async function handleFreeFileUpload(file) {
+    const progressRoot = document.getElementById('upload-progress');
+    const progressText = document.getElementById('upload-progress-text');
+    const progressFill = document.getElementById('upload-progress-fill');
+    const errorEl = document.getElementById('upload-error');
+    const formatChars = value => value.toLocaleString('pt-BR');
+
+    const setProgress = (visible, label, percent = 0, showSpinner = false) => {
+      progressRoot.classList.toggle('visible', visible);
+      progressText.innerHTML = `${showSpinner ? '<span class="upload-spinner"></span>' : ''}${label}`;
+      progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    };
+    const showToast = message => {
+      const currentToast = document.querySelector('.toast');
+      if (currentToast) currentToast.remove();
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
+    };
+
+    errorEl.textContent = '';
+    setProgress(true, 'Extraindo conteúdo do arquivo…', 10);
+
+    try {
+      const extracted = await extractTextFromFile(file, ({ percent, label, loading }) => {
+        setProgress(true, label || 'Extraindo conteúdo do arquivo…', percent ?? 0, !!loading);
+      });
+
+      if (!extracted || !extracted.trim()) throw new Error('Não foi possível extrair texto deste arquivo.');
+
+      let finalText = extracted.trim();
+      const wasTruncated = finalText.length > MAX_EXTRACTED_CHARS;
+      if (wasTruncated) {
+        finalText = finalText.slice(0, MAX_EXTRACTED_CHARS);
+        showToast('⚠️ Texto truncado para 8.000 caracteres.');
+      }
+
+      state.freeText = finalText;
+      freeTextArea.value = finalText;
+      updateCounter();
+      updateNavButtons();
+      showToast(`✅ Texto extraído com sucesso! (${formatChars(finalText.length)} caracteres)`);
+      setProgress(false, '', 0);
+    } catch (error) {
+      setProgress(false, '', 0);
+      errorEl.textContent = error.message || 'Erro ao processar arquivo. Tente novamente.';
+    }
+  }
+}
+
+function getFileExtension(fileName = '') {
+  const parts = fileName.toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+}
+
+function loadScriptOnce(url, id) {
+  if (scriptPromises[id]) return scriptPromises[id];
+  scriptPromises[id] = new Promise((resolve, reject) => {
+    if (document.getElementById(id)) return resolve();
+    const script = document.createElement('script');
+    script.src = url;
+    script.id = id;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Falha ao carregar biblioteca de extração.'));
+    document.head.appendChild(script);
+  });
+  return scriptPromises[id];
+}
+
+async function extractTextFromFile(file, onProgress = () => {}) {
+  const extension = getFileExtension(file.name);
+  const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(extension) || file.type.startsWith('image/');
+
+  if (extension === 'txt' || extension === 'md' || file.type === 'text/plain' || file.type === 'text/markdown') {
+    onProgress({ percent: 45, label: 'Lendo arquivo de texto…' });
+    return file.text();
+  }
+
+  if (extension === 'pdf' || file.type === 'application/pdf') {
+    onProgress({ percent: 20, label: 'Carregando leitor de PDF…' });
+    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js', 'pdfjs-lib');
+    if (!window.pdfjsLib) throw new Error('Leitor de PDF indisponível no momento.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
+    const bytes = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+    let collected = '';
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+      collected += `${content.items.map(item => item.str).join(' ')}\n`;
+      onProgress({ percent: 20 + Math.round((pageNum / pdf.numPages) * 70), label: 'Extraindo texto do PDF…' });
+    }
+    return collected;
+  }
+
+  if (extension === 'docx' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    onProgress({ percent: 20, label: 'Carregando leitor de DOCX…' });
+    await loadScriptOnce('https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js', 'mammoth-lib');
+    if (!window.mammoth) throw new Error('Leitor de DOCX indisponível no momento.');
+    const buffer = await file.arrayBuffer();
+    const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
+    onProgress({ percent: 90, label: 'Finalizando extração do DOCX…' });
+    return result.value || '';
+  }
+
+  if (isImage) {
+    if (!window.Tesseract) {
+      onProgress({ percent: 15, label: 'Realizando OCR na imagem…', loading: true });
+      await loadScriptOnce('https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js', 'tesseract-lib');
+    }
+    onProgress({ percent: 30, label: 'Realizando OCR na imagem…', loading: true });
+    const result = await window.Tesseract.recognize(file, 'por+eng', {
+      logger: message => {
+        if (message?.status === 'recognizing text') {
+          onProgress({
+            percent: 30 + Math.round((message.progress || 0) * 65),
+            label: 'Realizando OCR na imagem…',
+            loading: true,
+          });
+        }
+      },
+    });
+    return result?.data?.text || '';
+  }
+
+  throw new Error('Formato de arquivo não suportado para extração.');
 }
 
 async function callWorkerAndRender() {
