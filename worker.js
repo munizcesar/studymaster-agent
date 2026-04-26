@@ -17,6 +17,26 @@ function extractQuestions(parsed) {
   return [];
 }
 
+// ── Wikipedia context fetch ────────────────────────────────────────────────────
+// Usada apenas no modo academic e fallback geral.
+// Modos concurso e livre têm contexto próprio (edital / freeText).
+async function fetchWikipediaContext(query, lang = 'pt') {
+  try {
+    const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+      signal: AbortSignal.timeout(4000), // 4s timeout — não trava o Worker
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // extract retorna o resumo em texto puro, sem HTML
+    return data?.extract ? data.extract.slice(0, 1500) : null;
+  } catch {
+    return null; // falha silenciosa — não quebra a geração
+  }
+}
+
 export default {
   async fetch(request, env) {
 
@@ -102,21 +122,43 @@ export default {
         ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca organizadora.`)
         : null;
 
-      // ── Contexto do conteúdo ──────────────────────────────────────────────────
+      // ── Contexto do conteúdo + Wikipedia (apenas academic e fallback) ─────────
       let contextInfo = '';
+      let wikiContext = '';
+
       if (mode === 'concurso' && concurso) {
+        // Modo concurso: edital/banca como contexto — sem Wikipedia
         contextInfo = `Concurso: ${concurso}.`;
         if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
         if (editalText && editalText.length > 0) {
           contextInfo += `\n\nConteúdo programático do edital:\n${editalText.slice(0, 3000)}`;
         }
+
       } else if (mode === 'academic') {
+        // Modo acadêmico: busca Wikipedia pelo tópico mais específico disponível
         contextInfo = `Área: ${area}. Disciplina: ${subject}.${topic ? ` Tópico: ${topic}.` : ' (Matéria completa)'}`;
+        const wikiQuery = topic || subject || area;
+        const wikiLang  = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
+        wikiContext = await fetchWikipediaContext(wikiQuery, wikiLang);
+
       } else if (mode === 'livre' && freeText) {
+        // Modo livre: conteúdo do usuário como contexto — sem Wikipedia
         contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 4000)}`;
+
       } else {
-        contextInfo = `Tópico: ${topic || subject || area || 'Conhecimentos gerais'}.`;
+        // Fallback geral: busca Wikipedia pelo termo disponível
+        const fallbackQuery = topic || subject || area || '';
+        contextInfo = `Tópico: ${fallbackQuery || 'Conhecimentos gerais'}.`;
+        if (fallbackQuery) {
+          const wikiLang = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
+          wikiContext = await fetchWikipediaContext(fallbackQuery, wikiLang);
+        }
       }
+
+      // Bloco de referência Wikipedia inserido no contextInfo
+      const wikiBlock = wikiContext
+        ? `\n\nReferência Wikipedia (use como base factual, não reproduza literalmente):\n"""\n${wikiContext}\n"""`
+        : '';
 
       // ── Construção do prompt ──────────────────────────────────────────────────
       const langInstruction = isPortugues
@@ -140,7 +182,7 @@ export default {
       const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
 
 Gere exatamente ${quantity} questões de ${typeLabel} sobre:
-${contextInfo}
+${contextInfo}${wikiBlock}
 
 Nível de dificuldade: ${diffLabel}.
 
