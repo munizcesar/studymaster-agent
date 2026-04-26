@@ -17,7 +17,7 @@ function extractQuestions(parsed) {
   return [];
 }
 
-// ── Wikipedia context fetch ────────────────────────────────────────────────────
+// ── Wikipedia — fallback geral ────────────────────────────────────────────────
 async function fetchWikipediaContext(query, lang = 'pt') {
   try {
     const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
@@ -34,24 +34,80 @@ async function fetchWikipediaContext(query, lang = 'pt') {
   }
 }
 
-// ── Instruções anti-alucinação por área ───────────────────────────────────
-function getAreaSafetyInstruction(area, mode, subject) {
-  if (mode === 'concurso') {
-    return 'Cite apenas artigos de lei, súmulas e decretos que realmente existem e estão em vigor. Nunca crie números de artigos, leis ou súmulas fictícios. Em caso de dúvida sobre um artigo específico, elabore a questão com base no princípio jurídico geral sem citar o número.';
+// ── LexML — Vade Mêcum Digital (Senado Federal) ───────────────────────────────
+// Fonte oficial: https://www.lexml.gov.br — legislação federal brasileira em vigor
+async function fetchLexML(query) {
+  try {
+    const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei Código Constituição Medida-Provisória"`;
+    const url = `https://www.lexml.gov.br/busca/SRU?operation=searchRetrieve&version=1.1&query=${encodeURIComponent(cql)}&maximumRecords=5&recordSchema=dc`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const xml = await res.text();
+
+    const titles = [...xml.matchAll(/<dc:title>([^<]+)<\/dc:title>/g)].map((m) => m[1]);
+    const descriptions = [...xml.matchAll(/<dc:description>([^<]+)<\/dc:description>/g)].map((m) => m[1]);
+    const dates = [...xml.matchAll(/<dc:date>([^<]+)<\/dc:date>/g)].map((m) => m[1]);
+
+    if (titles.length === 0) return null;
+
+    let ctx = 'LEGISLAÇÃO VERIFICADA — LEXML/SENADO FEDERAL:\n';
+    titles.slice(0, 5).forEach((title, i) => {
+      ctx += `\n[${i + 1}] ${title}`;
+      if (dates[i]) ctx += ` (${dates[i]})`;
+      if (descriptions[i]) ctx += `\n    Ementa: ${descriptions[i]}`;
+    });
+    return ctx.slice(0, 2000);
+  } catch {
+    return null;
+  }
+}
+
+// ── Contexto combinado por área ───────────────────────────────────────────────
+async function fetchContext(area, mode, topic, subject, idioma) {
+  const isPortugues = !idioma || idioma === 'pt-BR';
+  const isDireito = area === 'Direito' || mode === 'concurso';
+  const query = topic || subject || area || '';
+
+  if (isDireito && query) {
+    const lexml = await fetchLexML(query);
+    if (lexml) return { text: lexml, source: 'LexML/Senado Federal (Vade Mêcum Digital)' };
+  }
+
+  if (query) {
+    const lang = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
+    const wiki = await fetchWikipediaContext(query, lang);
+    if (wiki) return { text: wiki, source: 'Wikipedia' };
+  }
+
+  return null;
+}
+
+// ── Instruções anti-alucinação por área ──────────────────────────────────────
+function getAreaSafetyInstruction(area, mode) {
+  if (mode === 'concurso' || area === 'Direito') {
+    return `PROTOCOLO VADE MÊCUM ATIVO:
+• Use APENAS artigos, incisos e parágrafos confirmados no contexto legislativo fornecido (LexML/Senado Federal).
+• Diplomas válidos: CF/88 (até EC 136/2023), CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).
+• Súmulas: cite SOMENTE com número e tribunal confirmados (STF, STJ, TST).
+• Se NÃO tiver certeza absoluta do número do artigo → use o PRINCÍPIO JURÍDICO sem citar o número.
+• Temas doutrinários divergentes → baseie-se em texto de lei, nunca em posição doutrinária.
+• NUNCA invente: artigos fictícios, súmulas com números errados, leis inexistentes, ementas fabricadas.
+• Gabarito deve ser defensável perante banca real de concurso.`;
   }
   if (mode === 'livre') {
-    return 'As questões devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usuário. Não adicione informações externas que não estejam no texto.';
+    return 'As questões devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usuário. Não adicione informações externas.';
   }
-  // Modo acadêmico — por área
   const areaMap = {
-    'Direito': 'Cite apenas artigos, incisos e parágrafos que realmente existem na Constituição Federal, Código Civil, Código Penal e demais diplomas legais brasileiros. Nunca invente números de artigos ou leis fictícias. Em caso de dúvida sobre um artigo específico, baseie a questão no princípio jurídico sem citar o número.',
-    'Saúde': 'Use apenas terminologia médica, protocolos clínicos, nomes de medicamentos, síndromes e doenças que realmente existem e são reconhecidos pela comunidade médica e CID. Nunca invente nomes de fármacos, exámes ou procedimentos.',
-    'Tecnologia': 'Use apenas linguagens de programação, frameworks, protocolos, comandos, padrões e conceitos de TI que realmente existem e são documentados. Nunca invente nomes de funções, bibliotecas, comandos ou protocolos.',
-    'Exatas': 'Use apenas fórmulas, teoremas, leis físicas e químicas matematicamente corretos e verificados. Nunca invente constantes, fórmulas ou resultados numéricos incorretos.',
-    'Humanas': 'Use apenas eventos históricos, datas, personagens e conceitos filosóficos/sociológicos reais e documentados. Nunca invente datas, nomes de tratados ou autores fictícios.',
-    'Negócios': 'Use apenas conceitos de administração, contabilidade, economia e finanças consolidados e reconhecidos. Nunca invente siglas, normas contábeis ou índices econômicos fictícios.',
-    'ENEM': 'Use apenas conteúdos do currículo oficial do ENEM conforme a matriz de referência do INEP. Baseie-se em conhecimentos factícios consolidados e verificados.',
-    'Concursos — Matérias Comuns': 'Cite apenas artigos de lei e conceitos que realmente existem. Para Português, use apenas regras gramaticais da norma culta brasileira consagradas. Para Matemática, garanta que todos os cálculos e respostas estejam matematicamente corretos antes de incluir a questão.',
+    'Saúde': 'Use apenas terminologia médica, protocolos clínicos, fármacos e síndromes reconhecidos pela CID e comunidade médica. Nunca invente nomes de medicamentos, exames ou procedimentos.',
+    'Tecnologia': 'Use apenas linguagens, frameworks, comandos e protocolos documentados e existentes. Nunca invente funções, bibliotecas ou sintaxes.',
+    'Exatas': 'Use apenas fórmulas, teoremas e constantes físicas/químicas verificados. Nunca invente resultados numéricos ou fórmulas incorretas.',
+    'Humanas': 'Use apenas eventos históricos, datas, personagens e conceitos filosóficos/sociológicos reais e documentados. Nunca invente datas ou autores.',
+    'Negócios': 'Use apenas conceitos de administração, contabilidade e finanças consolidados. Nunca invente siglas, normas contábeis ou índices econômicos fictícios.',
+    'ENEM': 'Use apenas conteúdos da matriz de referência oficial do ENEM (INEP). Nunca invente dados fora do currículo.',
+    'Concursos — Matérias Comuns': 'Cite apenas artigos e conceitos existentes. Para Português, use apenas regras da norma culta consagradas. Para Matemática, garanta que todos os cálculos e respostas estejam corretos.',
   };
   return areaMap[area] || 'Use apenas conhecimento factício consolidado e verificado. Nunca invente dados, nomes, leis ou conceitos.';
 }
@@ -93,10 +149,9 @@ export default {
       };
       const diffLabel = difficultyMap[difficulty] || 'médio';
 
-      // ── Número de alternativas ─────────────────────────────────────────────────
+      // ── Alternativas ─────────────────────────────────────────────────────────
       const numAlts = (questionType === 'vf') ? 2 : (parseInt(alternativas) === 4 ? 4 : 5);
-      const altKeys  = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
-
+      const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
       const typeMap = {
         mc:  `múltipla escolha com ${numAlts} alternativas (${altKeys})`,
         vf:  'verdadeiro ou falso (A = Verdadeiro, B = Falso)',
@@ -121,78 +176,76 @@ export default {
       };
       const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
 
-      // ── Banca efetiva ─────────────────────────────────────────────────────────
+      // ── Banca ────────────────────────────────────────────────────────────────
       const bancaEfetiva = (bancaFoco && bancaFoco !== 'auto') ? bancaFoco : (banca || null);
-
       const bancaStyleMap = {
-        'CEBRASPE':       'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação. Questões onde uma única palavra muda o sentido.',
+        'CEBRASPE':       'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação. Uma única palavra muda o sentido.',
         'CESPE':          'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.',
         'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.',
-        'FCC':            'FCC (Fundação Carlos Chagas): enunciados mais extensos e formais, questões literais baseadas em lei seca, doutrina e jurisprudência.',
-        'VUNESP':         'VUNESP: linguagem clara e objetiva, questões bem estruturadas com foco em aplicação prática e casos concretos.',
-        'FGV':            'FGV: enunciados elaborados com casos práticos, questões interdisciplinares, textos-base interpretativos e raciocínio aplicado.',
-        'CESGRANRIO':     'CESGRANRIO: questões técnicas e bem elaboradas, frequentemente com tabelas, gráficos e contexto profissional/corporativo.',
-        'IDECAN':         'IDECAN: questões objetivas com enunciados moderados, foco em lei e doutrina, linguagem direta.',
-        'IBFC':           'IBFC: questões práticas e diretas, enunciados claros sem excesso de interpretação.',
-        'AOCP':           'AOCP: questões regionais com foco em conteúdo programático específico, enunciados de extensão média.',
-        'FEPESE':         'FEPESE: questões objetivas focadas em conceitos e aplicação, frequentemente usada em concursos do Sul do Brasil.',
+        'FCC':            'FCC: enunciados extensos e formais, questões literais baseadas em lei seca, doutrina e jurisprudência.',
+        'VUNESP':         'VUNESP: linguagem clara e objetiva, foco em aplicação prática e casos concretos.',
+        'FGV':            'FGV: enunciados elaborados com casos práticos, questões interdisciplinares e raciocínio aplicado.',
+        'CESGRANRIO':     'CESGRANRIO: questões técnicas, frequentemente com tabelas, gráficos e contexto corporativo.',
+        'IDECAN':         'IDECAN: questões objetivas, foco em lei e doutrina, linguagem direta.',
+        'IBFC':           'IBFC: questões práticas e diretas, enunciados claros.',
+        'AOCP':           'AOCP: questões regionais, foco em conteúdo programático específico.',
+        'FEPESE':         'FEPESE: questões objetivas, usada principalmente em concursos do Sul do Brasil.',
       };
       const bancaStyle = bancaEfetiva
-        ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca organizadora.`)
+        ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca.`)
         : null;
 
-      // ── Instrução de segurança por área ───────────────────────────────────────
-      const areaSafetyInstruction = getAreaSafetyInstruction(area, mode, subject);
+      // ── Instrução de segurança por área ──────────────────────────────────────
+      const areaSafetyInstruction = getAreaSafetyInstruction(area, mode);
 
-      // ── Contexto do conteúdo + Wikipedia ─────────────────────────────────────
+      // ── Contexto externo (LexML para Direito/Concurso, Wikipedia para demais) ─
       let contextInfo = '';
-      let wikiContext = '';
+      let externalContext = null;
 
       if (mode === 'concurso' && concurso) {
         contextInfo = `Concurso: ${concurso}.`;
         if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
-        if (editalText && editalText.length > 0) {
+        if (editalText?.length > 0) {
           contextInfo += `\n\nConteúdo programático do edital:\n${editalText.slice(0, 3000)}`;
         }
+        // Busca LexML pelo tópico mesmo no modo concurso
+        externalContext = await fetchContext(area, mode, topic, subject, idioma);
       } else if (mode === 'academic') {
         contextInfo = `Área: ${area}. Disciplina: ${subject}.${topic ? ` Tópico: ${topic}.` : ' (Matéria completa)'}`;
-        const wikiQuery = topic || subject || area;
-        const wikiLang  = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
-        wikiContext = await fetchWikipediaContext(wikiQuery, wikiLang);
+        externalContext = await fetchContext(area, mode, topic, subject, idioma);
       } else if (mode === 'livre' && freeText) {
         contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 4000)}`;
       } else {
-        const fallbackQuery = topic || subject || area || '';
-        contextInfo = `Tópico: ${fallbackQuery || 'Conhecimentos gerais'}.`;
-        if (fallbackQuery) {
-          const wikiLang = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
-          wikiContext = await fetchWikipediaContext(fallbackQuery, wikiLang);
-        }
+        const fallback = topic || subject || area || '';
+        contextInfo = `Tópico: ${fallback || 'Conhecimentos gerais'}.`;
+        if (fallback) externalContext = await fetchContext(area, mode, fallback, subject, idioma);
       }
 
-      const wikiBlock = wikiContext
-        ? `\n\nReferência Wikipedia (use como base factual, não reproduza literalmente):\n"""\n${wikiContext}\n"""`
+      // ── Bloco de contexto externo para o prompt ───────────────────────────────
+      const contextSourceLabel = externalContext?.source || null;
+      const externalBlock = externalContext?.text
+        ? `\n\nContexto verificado (${externalContext.source}) — use como base factual prioritária:\n"""\n${externalContext.text}\n"""`
         : '';
 
       // ── Instruções do prompt ──────────────────────────────────────────────────
       const langInstruction = isPortugues
         ? 'Escreva todas as questões, alternativas e explicações em português do Brasil.'
         : `Write all questions, options and explanations in ${idiomaLabel}. The entire response must be in ${idiomaLabel}.`;
-
-      const bancaInstruction = bancaStyle
-        ? `\n\nEstilo de banca obrigatório: ${bancaStyle}`
-        : '';
-
+      const bancaInstruction = bancaStyle ? `\n\nEstilo de banca obrigatório: ${bancaStyle}` : '';
       const sessionInstruction = `\nModo de sessão: ${sessionLabel}.`;
-
       const altInstruction = questionType === 'vf'
         ? 'Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso).'
         : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
 
-      const fonteInstruction = mode === 'concurso'
-        ? 'Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula, decreto ou tema do edital que fundamenta a questão (ex: "Art. 37, CF/88", "Súmula 331 TST", "Lei 8.112/90, Art. 9º"). Nunca deixe vazio.'
+      const isDireitoOuConcurso = area === 'Direito' || mode === 'concurso';
+      const fonteInstruction = isDireitoOuConcurso
+        ? `Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula ou decreto que fundamenta a questão.
+Formato obrigatório: "Art. XX, NomeDaLei/Ano — Tema" ou "Súmula NNN, Tribunal — Tema".
+Exemplos válidos: "Art. 37, caput, CF/88 — Princípios da Administração Pública" | "Súmula 331, TST — Terceirização" | "Art. 186, CC/2002 — Ato Ilícito".
+${contextSourceLabel ? `Fonte consultada: ${contextSourceLabel}.` : ''}
+NUNCA deixe vazio. NUNCA invente número de artigo ou súmula.`
         : mode === 'academic'
-        ? 'Para cada questão, preencha o campo "fonte" com o conceito, teoria, lei ou autor de referência que fundamenta a questão (ex: "Teoria de Piaget — Desenvolvimento Cognitivo", "Lei de Ohm — Física", "Art. 5º, CF/88"). Nunca deixe vazio.'
+        ? 'Para cada questão, preencha o campo "fonte" com o conceito, teoria, lei ou autor de referência (ex: "Teoria de Piaget — Desenvolvimento Cognitivo", "Lei de Ohm — Física"). Nunca deixe vazio.'
         : 'Para cada questão, preencha o campo "fonte" com a base conceitual ou legal que fundamenta a resposta correta. Nunca deixe vazio.';
 
       const exampleOptions = numAlts === 4
@@ -202,7 +255,7 @@ export default {
       const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
 
 Gere exatamente ${quantity} questões de ${typeLabel} sobre:
-${contextInfo}${wikiBlock}
+${contextInfo}${externalBlock}
 
 Nível de dificuldade: ${diffLabel}.
 
@@ -217,7 +270,7 @@ ${exampleOptions}
       ],
       "correctAnswer": "A",
       "explanation": "Explicação didática do gabarito.",
-      "fonte": "Base legal ou conceitual da questão (ex: Art. 5º, CF/88)"
+      "fonte": "Base legal ou conceitual verificada (ex: Art. 5º, CF/88)"
     }
   ]
 }
@@ -234,7 +287,7 @@ Regras obrigatórias:
 9. Se não tiver certeza absoluta sobre um dado específico, elabore a questão sem citar esse dado.
 10. Regra de segurança por área: ${areaSafetyInstruction}`;
 
-      // ── System instruction reforçada ─────────────────────────────────────────────
+      // ── SYSTEM INSTRUCTION ────────────────────────────────────────────────────
       const systemText = `Você é um examinador acadêmico rigoroso especializado em concursos públicos e ensino superior brasileiro.
 Retorne APENAS JSON válido com a chave "questions".
 ${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}
@@ -243,7 +296,7 @@ PRINCÍPIOS INEGOCIÁVEIS:
 - Use APENAS conhecimento factício consolidado e verificado.
 - NUNCA invente leis, artigos, números, nomes de medicamentos, comandos de TI, fórmulas ou qualquer dado.
 - Em caso de dúvida sobre um detalhe específico, elabore a questão em torno do conceito geral sem o detalhe duvidoso.
-- Cada gabarito deve ser inquestionável e defensavél tecnicamente.
+- Cada gabarito deve ser inquestionável e defensável tecnicamente perante qualquer banca examinadora.
 - ${areaSafetyInstruction}`;
 
       // ── Chamada Gemini ────────────────────────────────────────────────────────
