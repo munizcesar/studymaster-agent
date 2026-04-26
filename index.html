@@ -858,7 +858,7 @@ const state = {
   generatedQuestions: [], answered: 0, correct: 0,
   concursoSubStep: 'a', advancedOpen: false,
 };
-const MAX_EXTRACTED_CHARS = 8000;
+const MAX_EXTRACTED_CHARS = 30000;
 const scriptPromises = {};
 
 function scrollToTop() {
@@ -1233,7 +1233,7 @@ function renderStep2Livre(container) {
       const wasTruncated = finalText.length > MAX_EXTRACTED_CHARS;
       if (wasTruncated) {
         finalText = finalText.slice(0, MAX_EXTRACTED_CHARS);
-        showToast('⚠️ Texto truncado para 8.000 caracteres.');
+        showToast(`⚠️ Texto truncado para ${formatChars(MAX_EXTRACTED_CHARS)} caracteres.`);
       }
 
       state.freeText = finalText;
