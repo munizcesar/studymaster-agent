@@ -96,9 +96,43 @@
     /* Hero */
     .hero {
       padding: var(--space-12) 0 var(--space-8);
-      text-align: center;
       background: linear-gradient(160deg, oklch(from var(--color-primary) l c h / 0.06) 0%, transparent 60%);
     }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+      gap: var(--space-8);
+      align-items: center;
+    }
+    .hero-col-text { text-align: left; }
+    .hero-col-text .hero-subtitle { margin-left: 0; margin-right: 0; max-width: 34rem; }
+    .hero-preview-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      box-shadow: var(--shadow-lg);
+      font-size: var(--text-sm);
+    }
+    .hero-preview-label {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-primary);
+      margin-bottom: var(--space-3);
+    }
+    .hero-preview-q { font-weight: 600; margin-bottom: var(--space-4); line-height: 1.45; color: var(--color-text); }
+    .hero-preview-options { display: flex; flex-direction: column; gap: var(--space-2); }
+    .hero-preview-opt {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      font-size: var(--text-xs);
+    }
+    .hero-preview-opt strong { color: var(--color-primary); min-width: 1.25rem; }
     .hero-badge {
       display: inline-block;
       padding: var(--space-1) var(--space-3);
@@ -111,13 +145,8 @@
       letter-spacing: 0.01em;
     }
     .hero-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800; margin-bottom: var(--space-4); line-height: 1.1; }
-    .hero-title span {
-      background: var(--grad-brand);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero-subtitle { font-size: var(--text-lg); color: var(--color-text-muted); max-width: 600px; margin: 0 auto; }
+    .hero-title span { color: var(--color-primary); }
+    .hero-subtitle { font-size: var(--text-lg); color: var(--color-text-muted); max-width: 600px; margin: 0; }
 
     /* Wizard */
     .wizard-section { padding: var(--space-4) 0 var(--space-12); }
@@ -126,7 +155,7 @@
     .step-indicator { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); opacity: 0.5; transition: opacity var(--transition); }
     .step-indicator.active, .step-indicator.complete { opacity: 1; }
     .step-number { width: 32px; height: 32px; border-radius: 50%; background: var(--color-surface-offset); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--text-sm); border: 2px solid var(--color-border); transition: all var(--transition); }
-    .step-indicator.active .step-number { background: var(--grad-brand); border-color: transparent; color: white; }
+    .step-indicator.active .step-number { background: var(--color-primary); border-color: var(--color-primary); color: white; }
     .step-indicator.complete .step-number { background: var(--color-success); border-color: var(--color-success); color: white; }
     .step-label { font-size: var(--text-xs); font-weight: 500; }
     .step-connector { flex: 1; height: 2px; background: var(--color-divider); margin: 0 var(--space-2); transform: translateY(-100%); transition: background var(--transition); }
@@ -162,7 +191,7 @@
       flex-shrink: 0;
     }
     .chip:hover { border-color: var(--color-primary); }
-    .chip.active { background: var(--grad-brand); color: white; border-color: transparent; }
+    .chip.active { background: var(--color-primary); color: white; border-color: transparent; }
     .slider-wrapper { display: flex; align-items: center; gap: var(--space-3); }
     input[type=range] { flex: 1; accent-color: var(--color-primary); }
     .advanced-toggle-wrapper { margin-top: var(--space-4); border-top: 1px solid var(--color-divider); padding-top: var(--space-4); }
@@ -239,20 +268,19 @@
     /* Score */
     .score-bar { display: flex; align-items: center; justify-content: space-between; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-6); margin-bottom: var(--space-6); }
     .score-label { font-size: var(--text-sm); color: var(--color-text-muted); }
-    .score-value { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800; background: var(--grad-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .score-value { font-family: var(--font-display); font-size: var(--text-xl); color: var(--color-primary); font-weight: 800; }
     .score-progress { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); margin: 0 var(--space-4); overflow: hidden; }
     .score-fill { height: 100%; background: var(--grad-brand); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
 
-    /* Botões primários com degradê */
     .btn-primary {
       display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
       width: 100%; padding: var(--space-3);
-      background: var(--grad-brand);
+      background: var(--color-primary);
       color: white; font-weight: 700; border-radius: var(--radius-md);
       font-size: var(--text-base); transition: all var(--transition); margin-top: var(--space-4);
       box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25);
     }
-    .btn-primary:hover { background: var(--grad-brand-h); box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.35); transform: translateY(-1px); }
+    .btn-primary:hover { background: var(--color-primary-hover); box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.35); transform: translateY(-1px); }
     .btn-ghost { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); font-weight: 500; transition: color var(--transition); width: 100%; justify-content: center; }
     .btn-ghost:hover { color: var(--color-text); }
 
@@ -267,8 +295,8 @@
     .wizard-nav button { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-weight: 600; font-size: var(--text-sm); transition: all var(--transition); }
     .btn-back { color: var(--color-text-muted); }
     .btn-back:hover { background: var(--color-surface-offset); color: var(--color-text); }
-    .btn-next { background: var(--grad-brand); color: white; box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.2); }
-    .btn-next:hover { background: var(--grad-brand-h); transform: translateY(-1px); box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3); }
+    .btn-next { background: var(--color-primary); color: white; box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.2); }
+    .btn-next:hover { background: var(--color-primary-hover); transform: translateY(-1px); box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3); }
     .btn-next:disabled { opacity: 0.45; cursor: not-allowed; background: var(--color-text-muted); box-shadow: none; transform: none; }
     .hidden { display: none !important; }
 
@@ -276,7 +304,16 @@
     .banca-badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: oklch(from var(--color-accent) l c h / 0.15); border: 1px solid oklch(from var(--color-accent) l c h / 0.35); color: var(--color-accent); font-size: var(--text-xs); font-weight: 600; margin-top: var(--space-2); }
 
     /* Marketing */
-    .marketing-section { padding: var(--space-12) 0; border-top: 1px solid var(--color-divider); background: var(--color-surface-2); }
+    .marketing-section { padding: 0; border-top: 1px solid var(--color-divider); background: transparent; }
+    .how-it-works,
+    .compare-table-wrapper,
+    .profile-cards {
+      padding-top: clamp(var(--space-10), 5vw, var(--space-16));
+      padding-bottom: clamp(var(--space-10), 5vw, var(--space-16));
+    }
+    .how-it-works { background: var(--color-bg); }
+    .compare-table-wrapper { background: var(--color-surface); }
+    .profile-cards { background: var(--color-bg); }
     .how-it-works h2, .compare-table-wrapper h2, .profile-cards h2 { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: var(--space-6); }
     .steps-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-12); }
     .how-step { display: flex; gap: var(--space-4); }
@@ -284,9 +321,17 @@
     .compare-table { width: 100%; border-collapse: collapse; margin-bottom: var(--space-12); background: var(--color-surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
     .compare-table th, .compare-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--color-divider); }
     .compare-table th { background: var(--color-surface-offset); font-weight: 700; }
+    .compare-table th:nth-child(2),
+    .compare-table td:nth-child(2) {
+      background: oklch(from var(--color-primary) l c h / 0.05);
+    }
+    .compare-table th:nth-child(2) {
+      color: var(--color-primary);
+      font-weight: 800;
+    }
     .profiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
-    .profile-card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); transition: border-color var(--transition), box-shadow var(--transition); cursor: default; }
-    .profile-card:hover { border-color: var(--color-border); box-shadow: none; }
+    .profile-card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition); cursor: default; }
+    .profile-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
     .profile-tag {
       font-size: var(--text-xs);
       font-weight: 600;
@@ -308,7 +353,17 @@
       font-size: var(--text-base);
       color: var(--color-text);
     }
-    .site-footer { text-align: center; padding: var(--space-8); border-top: 1px solid var(--color-divider); font-size: var(--text-sm); color: var(--color-text-faint); }
+    .site-footer { border-top: 1px solid var(--color-divider); padding: var(--space-12) 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+    .footer-inner { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--space-8); align-items: start; }
+    .footer-brand { display: flex; flex-direction: column; gap: var(--space-3); }
+    .footer-brand .logo-icon { width: 36px; height: 36px; }
+    .footer-tagline { color: var(--color-text-muted); line-height: 1.5; max-width: 18rem; }
+    .footer-links { display: flex; flex-direction: column; gap: var(--space-2); }
+    .footer-links a { font-weight: 600; color: var(--color-text); }
+    .footer-links a:hover { color: var(--color-primary); }
+    .footer-meta { color: var(--color-text-faint); line-height: 1.6; }
+    .footer-meta a { color: var(--color-primary); font-weight: 600; }
+    .footer-meta a:hover { text-decoration: underline; }
 
     /* Animations */
     @keyframes slideInRight  { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
@@ -323,6 +378,14 @@
     .toast { position: fixed; bottom: var(--space-6); left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-3) var(--space-6); border-radius: var(--radius-full); font-size: var(--text-sm); animation: toastIn 200ms ease forwards; z-index: 1000; box-shadow: var(--shadow-lg); }
 
     @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-col-text { text-align: center; }
+      .hero-col-text .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .hero-preview-card { max-width: 22rem; margin: 0 auto; }
+      .footer-inner { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+      .footer-brand { align-items: center; }
+      .footer-links { align-items: center; }
+      .footer-meta { text-align: center; }
       .wizard-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--color-surface); border-top: 1px solid var(--color-divider); padding: var(--space-4) var(--space-6); display: flex; justify-content: space-between; z-index: 100; box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05); }
       .wizard-card { padding-bottom: var(--space-8); margin-bottom: var(--space-16); }
       .steps-bar { display: none; }
@@ -360,10 +423,25 @@
   </header>
 
   <section class="hero">
-    <div class="container">
-      <span class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Questões personalizadas · Gabarito comentado · 100% gratuito</span>
-      <h1 class="hero-title">Prepare-se com questões<br><span>geradas por IA</span> para o seu objetivo</h1>
-      <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as questões na hora — com gabarito comentado para cada resposta.</p>
+    <div class="container hero-inner">
+      <div class="hero-col hero-col-text">
+        <span class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Questões personalizadas · Gabarito comentado · 100% gratuito</span>
+        <h1 class="hero-title">Prepare-se com questões<br><span>geradas por IA</span> para o seu objetivo</h1>
+        <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as questões na hora — com gabarito comentado para cada resposta.</p>
+      </div>
+      <div class="hero-col hero-col-preview" aria-hidden="true">
+        <div class="hero-preview-card">
+          <div class="hero-preview-label">Prévia do estudo</div>
+          <p class="hero-preview-q">Qual princípio da Administração Pública exige que o ato administrativo seja concluído no menor tempo possível?</p>
+          <div class="hero-preview-options">
+            <div class="hero-preview-opt"><strong>A</strong> Impessoalidade</div>
+            <div class="hero-preview-opt"><strong>B</strong> Legalidade</div>
+            <div class="hero-preview-opt"><strong>C</strong> Eficiência</div>
+            <div class="hero-preview-opt"><strong>D</strong> Publicidade</div>
+            <div class="hero-preview-opt"><strong>E</strong> Moralidade</div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -567,7 +645,7 @@
   <!-- MARKETING -->
   <section class="marketing-section">
     <div class="container">
-      <div class="how-it-works">
+      <div class="how-it-works" id="como-funciona">
         <h2>Como funciona</h2>
         <div class="steps-list">
           <div class="how-step">
@@ -588,18 +666,18 @@
         <h2>Com StudyMaster vs. Sem StudyMaster</h2>
         <table class="compare-table">
           <thead>
-            <tr><th>Situação</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th></tr>
+            <tr><th>Situação</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th></tr>
           </thead>
           <tbody>
-            <tr><td>Criar questões</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
-            <tr><td>Relevância</td><td>Genérico e vago</td><td>Específico para seu concurso/matéria</td></tr>
-            <tr><td>Nível das questões</td><td>Aleatório</td><td>Calibrado pela dificuldade escolhida</td></tr>
-            <tr><td>Gabarito</td><td>Sem explicação</td><td>Comentado com justificativa</td></tr>
-            <tr><td>Custo</td><td>Pago (cursinhos)</td><td>100% gratuito</td></tr>
+            <tr><td>Criar questões</td><td>Menos de 10 segundos</td><td>15-30 min pensando</td></tr>
+            <tr><td>Relevância</td><td>Específico para seu concurso/matéria</td><td>Genérico e vago</td></tr>
+            <tr><td>Nível das questões</td><td>Calibrado pela dificuldade escolhida</td><td>Aleatório</td></tr>
+            <tr><td>Gabarito</td><td>Comentado com justificativa</td><td>Sem explicação</td></tr>
+            <tr><td>Custo</td><td>100% gratuito</td><td>Pago (cursinhos)</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="profile-cards">
+      <div class="profile-cards" id="para-quem">
         <h2>Para quem é o StudyMaster?</h2>
         <div class="profiles-grid">
           <div class="profile-card">
@@ -656,8 +734,32 @@
   </section>
 
   <footer class="site-footer">
-    <div class="container">
-      <p>StudyMaster · Powered by Groq AI · Gratuito e sem cadastro</p>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="footerLogoGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#01696F"/>
+              <stop offset="0.5" stop-color="#00A7B2"/>
+              <stop offset="1" stop-color="#D4A827"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="18" fill="url(#footerLogoGrad)"/>
+          <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+          <circle cx="46" cy="40" r="11" fill="#ffffff"/>
+          <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#01696F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <p class="footer-tagline">Questões com IA para o seu objetivo</p>
+      </div>
+      <nav class="footer-links" aria-label="Links rápidos">
+        <a href="#wizard">Início</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#para-quem">Para quem é</a>
+      </nav>
+      <div class="footer-meta">
+        <p>© 2026 StudyMaster. Todos os direitos reservados.</p>
+        <p><a href="mailto:contato@studymaster.app">contato@studymaster.app</a></p>
+      </div>
     </div>
   </footer>
 
@@ -1405,6 +1507,38 @@ async function extractTextFromFile(file, onProgress = () => {}) {
   throw new Error('Formato de arquivo não suportado para extração.');
 }
 
+/** Normaliza itens retornados pela API para o formato esperado pelo renderizador. */
+function normalizeQuestionsArray(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const q of raw) {
+    if (!q || typeof q !== 'object') continue;
+    const statement = typeof q.statement === 'string' ? q.statement
+      : (typeof q.enunciado === 'string' ? q.enunciado : '');
+    let options = q.options ?? q.alternativas ?? q.choices;
+    if (!Array.isArray(options) || !options.length) continue;
+    const normOpts = [];
+    for (let i = 0; i < options.length; i++) {
+      const o = options[i];
+      if (o && typeof o === 'object' && o.text != null) {
+        const key = String(o.key != null ? o.key : o.letra ?? '').trim().toUpperCase().charAt(0) || String.fromCharCode(65 + i);
+        normOpts.push({ key, text: String(o.text) });
+      }
+    }
+    if (!statement.trim() || !normOpts.length) continue;
+    const ans = String(q.correctAnswer ?? q.gabarito ?? q.answer ?? '').trim().toUpperCase().charAt(0);
+    if (!ans || !normOpts.some((o) => o.key === ans)) continue;
+    out.push({
+      ...q,
+      statement: statement.trim(),
+      options: normOpts,
+      correctAnswer: ans,
+      explanation: q.explanation != null ? String(q.explanation) : (q.justificativa != null ? String(q.justificativa) : ''),
+    });
+  }
+  return out;
+}
+
 async function callWorkerAndRender() {
   const genScreen = document.getElementById('generating-screen');
   const errScreen = document.getElementById('error-screen');
@@ -1431,10 +1565,12 @@ async function callWorkerAndRender() {
     difficulty: state.difficulty,
     quantity: state.quantity,
     questionType: state.questionType,
-    alternativas: parseInt(state.alternativas),
+    alternativas: parseInt(state.alternativas, 10),
     idioma: state.idioma,
     sessionMode: state.sessionMode,
   };
+
+  console.log('[StudyMaster] Payload:', payload);
 
   try {
     const res = await fetch(WORKER_URL, {
@@ -1442,15 +1578,48 @@ async function callWorkerAndRender() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
-    if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
-    state.generatedQuestions = data.questions;
+
+    const rawBody = await res.text();
+    let data;
+    try {
+      data = rawBody ? JSON.parse(rawBody) : {};
+    } catch (parseErr) {
+      console.error('[StudyMaster] JSON inválido na resposta HTTP', parseErr, rawBody);
+      throw new Error(
+        res.status === 404
+          ? 'Serviço de geração não encontrado (404). Verifique o endpoint configurado.'
+          : 'Resposta do servidor não é JSON válido. Pode ser erro de rede ou CORS.',
+      );
+    }
+
+    console.log('[StudyMaster] Response raw:', data);
+
+    if (!res.ok) {
+      const detail = data.userMessage || data.error || data.details;
+      const msg = typeof detail === 'string' && detail.trim()
+        ? detail
+        : `Erro HTTP ${res.status}${res.statusText ? ` (${res.statusText})` : ''}`;
+      throw new Error(msg);
+    }
+
+    const questions = normalizeQuestionsArray(data.questions);
+    if (!questions.length) {
+      console.error('[StudyMaster] Nenhuma questão válida após normalização', data);
+      throw new Error(
+        data.userMessage || 'A IA não retornou questões válidas. Tente reformular o conteúdo.',
+      );
+    }
+
+    state.generatedQuestions = questions;
     state.answered = 0; state.correct = 0;
     genScreen.classList.add('hidden');
-    renderQuestions(data.questions);
+    renderQuestions(questions);
   } catch (err) {
-    showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
+    console.error('[StudyMaster] Erro na geração', err);
+    const fallback = err && err.name === 'TypeError' && String(err.message).includes('fetch')
+      ? 'Falha de rede ao contatar o servidor. Verifique sua conexão ou bloqueio de CORS.'
+      : 'Erro desconhecido. Tente novamente em instantes.';
+    showError(err?.message || fallback);
   }
 }
 

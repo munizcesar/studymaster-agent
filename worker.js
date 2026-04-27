@@ -391,7 +391,17 @@ Regras obrigatórias:
       }
 
       const geminiData = await geminiResponse.json();
-      const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+      let rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+
+      // Alguns modelos ainda envolvem o JSON em ```json ... ``` apesar do MIME type
+      function stripJsonFence(s) {
+        let t = String(s || '').trim();
+        if (t.startsWith('```')) {
+          t = t.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
+        }
+        return t.trim();
+      }
+      rawText = stripJsonFence(rawText);
 
       // FIX #5: remove fallback regex frágil — responseMimeType:'application/json'
       // garante JSON válido; extractQuestions cobre array direto sem chave wrapper
