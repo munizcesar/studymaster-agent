@@ -528,6 +528,13 @@
               <span class="score-value" id="score-value">0/<span id="score-total">0</span></span>
             </div>
             <div id="questions-list"></div>
+            <div class="hidden" id="session-result" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
+              <div style="font-weight:700;margin-bottom:6px">Resultado da sessão</div>
+              <div id="session-stats" style="color:var(--color-text-muted)"></div>
+              <button class="btn-primary hidden" id="retry-wrong-btn" style="margin-top:10px;max-width:320px">
+                Refazer somente as erradas
+              </button>
+            </div>
             <button class="btn-ghost" id="restart-btn">
               <i data-lucide="rotate-ccw" width="16" height="16"></i>
               Nova sessão
@@ -679,6 +686,7 @@ const academicData = {
     'Enfermagem': ['Sistematização da Assistência de Enfermagem','Semiologia e Semiotécnica','Enfermagem em UTI','Enfermagem Cirúrgica','Enfermagem em Saúde Mental','Legislação e Ética em Enfermagem'],
     'Nutrição': ['Nutrição Clínica','Nutrição Esportiva','Nutrição em Saúde Pública','Dietoterapia','Bromatologia','Bioquímica Nutricional'],
     'Psicologia': ['Psicologia Clínica','Psicologia Organizacional','Psicopatologia','Avaliação Psicológica','Teorias da Personalidade','Neuropsicologia'],
+    'Psicanálise': ['Fundamentos e História da Psicanálise (Freud)','Determinismo Psíquico','Primeira Tópica: Inconsciente, Pré-consciente e Consciente','Segunda Tópica: Id, Ego e Superego','Recalque, Repressão e Outros Mecanismos de Defesa','Pulsão — Eros e Tânatos','Angústia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de Édipo e Complexo de Castração','Interpretação dos Sonhos e Formações do Inconsciente','Transferência e Contratransferência','Neurose, Psicose e Perversão — Estruturas Clínicas','Psicanálise Kleiniana — Posições e Relações de Objeto','Psicanálise Winnicottiana — Objeto Transicional e Holding','Psicologia Analítica (Jung) — Inconsciente Coletivo e Arquétipos','Processo de Individuação (Jung)','Psicanálise Lacaniana — Linguagem, Sujeito e Desejo','Real, Simbólico e Imaginário — RSI (Lacan)','Comparativo: Freud × Jung × Lacan','Psicoterapia Breve Psicanalítica','Psicanálise e Cultura (Freud — Mal-Estar na Civilização)','Ética em Psicanálise','Psicanálise para Concursos (CFP, Residência, Pós-graduação)'],
     'Fisioterapia': ['Fisioterapia Respiratória','Fisioterapia Ortopédica','Fisioterapia Neurológica','Reabilitação Cardiovascular','Fisioterapia em UTI'],
     'Odontologia': ['Clínica Odontológica','Periodontia','Endodontia','Cirurgia Bucomaxilofacial','Saúde Bucal Coletiva'],
     'Medicina Veterinária': ['Clínica de Pequenos Animais','Clínica de Grandes Animais','Zoonoses','Saúde Animal e Inspeção','Anestesiologia Veterinária'],
@@ -720,6 +728,7 @@ const academicData = {
     'Antropologia': ['Antropologia Cultural','Antropologia Física','Etnologia Brasileira','Antropologia Urbana','Povos Indígenas no Brasil','Cultura e Simbolismo'],
     'Ciência Política': ['Teoria Política Clássica','Sistemas de Governo','Partidos e Eleições','Relações Internacionais','Democracia e Autoritarismo','Política Brasileira Contemporânea'],
     'Psicologia Social': ['Cognição Social','Atitudes e Preconceito','Influência Social','Grupos e Dinâmicas de Grupo','Identidade Social','Psicologia das Massas'],
+    'Psicanálise': ['Fundamentos e História da Psicanálise (Freud)','Determinismo Psíquico','Primeira Tópica: Inconsciente, Pré-consciente e Consciente','Segunda Tópica: Id, Ego e Superego','Recalque, Repressão e Outros Mecanismos de Defesa','Pulsão — Eros e Tânatos','Angústia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de Édipo e Complexo de Castração','Interpretação dos Sonhos e Formações do Inconsciente','Transferência e Contratransferência','Neurose, Psicose e Perversão — Estruturas Clínicas','Psicanálise Kleiniana — Posições e Relações de Objeto','Psicanálise Winnicottiana — Objeto Transicional e Holding','Psicologia Analítica (Jung) — Inconsciente Coletivo e Arquétipos','Processo de Individuação (Jung)','Psicanálise Lacaniana — Linguagem, Sujeito e Desejo','Real, Simbólico e Imaginário — RSI (Lacan)','Comparativo: Freud × Jung × Lacan','Psicoterapia Breve Psicanalítica','Psicanálise e Cultura (Freud — Mal-Estar na Civilização)','Ética em Psicanálise','Psicanálise para Concursos (CFP, Residência, Pós-graduação)'],
     'Direitos Humanos': ['Histórico e Fundamentos dos Direitos Humanos','Sistemas Internacionais de Proteção','Direitos Humanos no Brasil','Grupos Vulneráveis','Direito Humanitário Internacional','Mecanismos da ONU'],
     'Português': ['Morfologia e Sintaxe','Concordância e Regência','Crase e Pontuação','Interpretação e Tipologia Textual','Redação Oficial','Literatura Brasileira e Portuguesa'],
     'Atualidades': ['Geopolítica e Conflitos Internacionais','Eleições e Democracia no Mundo','Crise Climática e COP','Inteligência Artificial e Sociedade','Economia Global e Inflação','Saúde Global e Pandemias','Direitos Civis e Movimentos Sociais','Brasil: Política e Economia Recente','Tecnologia e Privacidade de Dados','Segurança Pública e Legislação'],
@@ -855,7 +864,7 @@ const state = {
   editalText: '', freeText: '',
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
-  generatedQuestions: [], answered: 0, correct: 0,
+  generatedQuestions: [], answered: 0, correct: 0, answerResults: [],
   concursoSubStep: 'a', advancedOpen: false,
 };
 const MAX_EXTRACTED_CHARS = 30000;
@@ -1016,7 +1025,7 @@ function resetState() {
   state.area = null; state.subject = null; state.topic = null;
   state.concurso = null; state.concursoCategory = null; state.concursoSubStep = 'a';
   state.freeText = ''; state.editalText = ''; state.bancaInferida = null;
-  state.generatedQuestions = []; state.answered = 0; state.correct = 0;
+  state.generatedQuestions = []; state.answered = 0; state.correct = 0; state.answerResults = [];
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   state.mode = null;
 }
@@ -1447,8 +1456,13 @@ function renderQuestions(questions) {
   const container = document.getElementById('questions-container');
   const list = document.getElementById('questions-list');
   const chips = document.getElementById('summary-chips');
+  const sessionResult = document.getElementById('session-result');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
   const scoreTotal = document.getElementById('score-total');
   scoreTotal.textContent = questions.length;
+  state.answerResults = new Array(questions.length).fill(null);
+  sessionResult.classList.add('hidden');
+  retryWrongBtn.classList.add('hidden');
   updateScore();
 
   const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto')
@@ -1493,6 +1507,16 @@ function renderQuestions(questions) {
     });
   });
 
+  retryWrongBtn.onclick = () => {
+    const wrongQuestions = state.generatedQuestions.filter((_, idx) => state.answerResults[idx] === false);
+    if (!wrongQuestions.length) return;
+    state.generatedQuestions = wrongQuestions;
+    state.answered = 0;
+    state.correct = 0;
+    state.answerResults = [];
+    renderQuestions(wrongQuestions);
+  };
+
   container.classList.add('visible');
   lucide.createIcons();
   scrollToWizard(100);
@@ -1506,6 +1530,7 @@ function handleAnswer(qIdx, selectedKey) {
   if (card.dataset.answered) return;
   card.dataset.answered = '1';
   const isCorrect = selectedKey === q.correctAnswer;
+  state.answerResults[qIdx] = isCorrect;
   if (isCorrect) state.correct++;
   state.answered++;
   btns.forEach(btn => {
@@ -1515,17 +1540,32 @@ function handleAnswer(qIdx, selectedKey) {
   });
   expBox.classList.add('visible');
   updateScore();
+  if (state.answered === state.generatedQuestions.length) showSessionResult();
   if (isCorrect) {
     confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
   }
+}
+
+function showSessionResult() {
+  const resultBox = document.getElementById('session-result');
+  const stats = document.getElementById('session-stats');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
+  const total = state.generatedQuestions.length;
+  const correct = state.correct;
+  const wrong = total - correct;
+  stats.textContent = `Você respondeu ${total} questões: ${correct} acertos e ${wrong} erros.`;
+  if (wrong > 0) retryWrongBtn.classList.remove('hidden');
+  else retryWrongBtn.classList.add('hidden');
+  resultBox.classList.remove('hidden');
 }
 
 function updateScore() {
   const fill = document.getElementById('score-fill');
   const value = document.getElementById('score-value');
   const total = state.generatedQuestions.length;
-  fill.style.width = `${(state.answered / total) * 100}%`;
-  value.innerHTML = `${state.correct}/<span id="score-total">${total}</span>`;
+  const progress = total > 0 ? (state.answered / total) * 100 : 0;
+  fill.style.width = `${progress}%`;
+  value.innerHTML = `${state.answered}/<span id="score-total">${total}</span>`;
 }
 
 document.addEventListener('DOMContentLoaded', init);
