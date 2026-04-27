@@ -112,6 +112,28 @@ function getAreaSafetyInstruction(area, mode) {
   return areaMap[area] || 'Use apenas conhecimento factício consolidado e verificado. Nunca invente dados, nomes, leis ou conceitos.';
 }
 
+// ── FIX #1: Guarda de tamanho do prompt — evita estouro silencioso de contexto ─
+// Gemini 2.0 Flash suporta ~1M tokens, mas prompts > ~28.000 chars começam a
+// degradar a qualidade da resposta. Truncamos o contextInfo e externalBlock se
+// a soma ultrapassar esse limiar.
+function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 28000) {
+  const overhead = systemText.length + 2000; // espaço para regras + schema
+  const available = maxChars - overhead;
+  const combined = contextInfo + externalBlock;
+  if (combined.length <= available) return { contextInfo, externalBlock };
+
+  // Tenta preservar contextInfo e truncar apenas o bloco externo
+  const spaceForExternal = available - contextInfo.length;
+  if (spaceForExternal > 300 && externalBlock.length > 0) {
+    return { contextInfo, externalBlock: externalBlock.slice(0, spaceForExternal) + '\n[contexto truncado]' };
+  }
+  // Se ainda assim não couber, trunca o próprio contextInfo
+  return {
+    contextInfo: contextInfo.slice(0, available - 200),
+    externalBlock: '',
+  };
+}
+
 export default {
   async fetch(request, env) {
 
@@ -208,7 +230,6 @@ export default {
         if (editalText?.length > 0) {
           contextInfo += `\n\nConteúdo programático do edital:\n${editalText.slice(0, 3000)}`;
         }
-        // Busca LexML pelo tópico mesmo no modo concurso
         externalContext = await fetchContext(area, mode, topic, subject, idioma);
       } else if (mode === 'academic') {
         contextInfo = `Área: ${area}. Disciplina: ${subject}.${topic ? ` Tópico: ${topic}.` : ' (Matéria completa)'}`;
@@ -223,7 +244,7 @@ export default {
 
       // ── Bloco de contexto externo para o prompt ───────────────────────────────
       const contextSourceLabel = externalContext?.source || null;
-      const externalBlock = externalContext?.text
+      const rawExternalBlock = externalContext?.text
         ? `\n\nContexto verificado (${externalContext.source}) — use como base factual prioritária:\n"""\n${externalContext.text}\n"""`
         : '';
 
@@ -231,6 +252,8 @@ export default {
       const langInstruction = isPortugues
         ? 'Escreva todas as questões, alternativas e explicações em português do Brasil.'
         : `Write all questions, options and explanations in ${idiomaLabel}. The entire response must be in ${idiomaLabel}.`;
+
+      // FIX #5: bancaInstruction aparece APENAS no prompt, removida duplicação
       const bancaInstruction = bancaStyle ? `\n\nEstilo de banca obrigatório: ${bancaStyle}` : '';
       const sessionInstruction = `\nModo de sessão: ${sessionLabel}.`;
       const altInstruction = questionType === 'vf'
@@ -238,6 +261,9 @@ export default {
         : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
 
       const isDireitoOuConcurso = area === 'Direito' || mode === 'concurso';
+
+      // FIX #2: fonte nunca vazia — instrução mais específica para modo livre,
+      // com exemplo concreto baseado no próprio material fornecido
       const fonteInstruction = isDireitoOuConcurso
         ? `Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula ou decreto que fundamenta a questão.
 Formato obrigatório: "Art. XX, NomeDaLei/Ano — Tema" ou "Súmula NNN, Tribunal — Tema".
@@ -246,16 +272,39 @@ ${contextSourceLabel ? `Fonte consultada: ${contextSourceLabel}.` : ''}
 NUNCA deixe vazio. NUNCA invente número de artigo ou súmula.`
         : mode === 'academic'
         ? 'Para cada questão, preencha o campo "fonte" com o conceito, teoria, lei ou autor de referência (ex: "Teoria de Piaget — Desenvolvimento Cognitivo", "Lei de Ohm — Física"). Nunca deixe vazio.'
-        : 'Para cada questão, preencha o campo "fonte" com a base conceitual ou legal que fundamenta a resposta correta. Nunca deixe vazio.';
+        : `Para cada questão, preencha o campo "fonte" com o trecho ou conceito do material fornecido que embasou a questão.
+Formato: "Material do usuário — [tema ou conceito central da questão]".
+Exemplo: "Material do usuário — Ciclo de Krebs" ou "Material do usuário — Capítulo 3: Contratos".
+NUNCA deixe o campo "fonte" vazio ou com string em branco.`;
 
       const exampleOptions = numAlts === 4
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
         : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
 
+      // ── SYSTEM INSTRUCTION ────────────────────────────────────────────────────
+      const systemText = `Você é um examinador acadêmico rigoroso especializado em concursos públicos e ensino superior brasileiro.
+Retorne APENAS JSON válido com a chave "questions".
+${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}
+
+PRINCÍPIOS INEGOCIÁVEIS:
+- Use APENAS conhecimento factício consolidado e verificado.
+- NUNCA invente leis, artigos, números, nomes de medicamentos, comandos de TI, fórmulas ou qualquer dado.
+- Em caso de dúvida sobre um detalhe específico, elabore a questão em torno do conceito geral sem o detalhe duvidoso.
+- Cada gabarito deve ser inquestionável e defensável tecnicamente perante qualquer banca examinadora.
+- O campo "fonte" de CADA questão deve ser preenchido — NUNCA retorne "fonte": "" ou "fonte": null.
+- ${areaSafetyInstruction}`;
+
+      // FIX #1: Guarda de tamanho — aplica após construir systemText
+      const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(
+        contextInfo,
+        rawExternalBlock,
+        systemText,
+      );
+
       const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
 
 Gere exatamente ${quantity} questões de ${typeLabel} sobre:
-${contextInfo}${externalBlock}
+${safeContextInfo}${externalBlock}
 
 Nível de dificuldade: ${diffLabel}.
 
@@ -270,7 +319,7 @@ ${exampleOptions}
       ],
       "correctAnswer": "A",
       "explanation": "Explicação didática do gabarito.",
-      "fonte": "Base legal ou conceitual verificada (ex: Art. 5º, CF/88)"
+      "fonte": "Base legal ou conceitual verificada — nunca deixe vazio (ex: Art. 5º, CF/88)"
     }
   ]
 }
@@ -279,7 +328,7 @@ Regras obrigatórias:
 1. ${altInstruction}
 2. Questões tecnicamente corretas e sem ambiguidades.
 3. Explicações didáticas e claras.
-4. Varie a posição da alternativa correta entre as questões.
+4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} — sem repetir a mesma letra mais de 2 vezes seguidas.
 5. ${langInstruction}
 6. ${fonteInstruction}
 7. Nenhum texto fora do JSON.
@@ -287,41 +336,47 @@ Regras obrigatórias:
 9. Se não tiver certeza absoluta sobre um dado específico, elabore a questão sem citar esse dado.
 10. Regra de segurança por área: ${areaSafetyInstruction}`;
 
-      // ── SYSTEM INSTRUCTION ────────────────────────────────────────────────────
-      const systemText = `Você é um examinador acadêmico rigoroso especializado em concursos públicos e ensino superior brasileiro.
-Retorne APENAS JSON válido com a chave "questions".
-${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}
-
-PRINCÍPIOS INEGOCIÁVEIS:
-- Use APENAS conhecimento factício consolidado e verificado.
-- NUNCA invente leis, artigos, números, nomes de medicamentos, comandos de TI, fórmulas ou qualquer dado.
-- Em caso de dúvida sobre um detalhe específico, elabore a questão em torno do conceito geral sem o detalhe duvidoso.
-- Cada gabarito deve ser inquestionável e defensável tecnicamente perante qualquer banca examinadora.
-- ${areaSafetyInstruction}`;
-
       // ── Chamada Gemini ────────────────────────────────────────────────────────
       const geminiModel = 'gemini-2.0-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
-      const temperature = sessionMode === 'concurso' ? 0.3 : 0.4;
 
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: {
-              parts: [{ text: systemText }],
-            },
-            generationConfig: {
-              temperature,
-              maxOutputTokens: maxTokens,
-              responseMimeType: 'application/json',
-            },
-          }),
-        }
-      );
+      // FIX #3: temperatura calibrada por modo de sessão
+      // concurso/simulado → 0.30 (máximo rigor)
+      // revisao → 0.25 (questões curtas e objetivas, menos variação)
+      // normal → 0.40
+      const temperature = sessionMode === 'concurso' ? 0.30
+        : sessionMode === 'revisao' ? 0.25
+        : 0.40;
+
+      // FIX #4: retry automático em caso de 429 (rate limit)
+      async function callGemini() {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              systemInstruction: { parts: [{ text: systemText }] },
+              generationConfig: {
+                temperature,
+                maxOutputTokens: maxTokens,
+                topP: 0.9,
+                responseMimeType: 'application/json',
+              },
+            }),
+          }
+        );
+        return res;
+      }
+
+      let geminiResponse = await callGemini();
+
+      // Retry único após 1.5s se rate-limited
+      if (geminiResponse.status === 429) {
+        await new Promise((r) => setTimeout(r, 1500));
+        geminiResponse = await callGemini();
+      }
 
       if (!geminiResponse.ok) {
         const err = await geminiResponse.text();
@@ -338,13 +393,14 @@ PRINCÍPIOS INEGOCIÁVEIS:
       const geminiData = await geminiResponse.json();
       const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
+      // FIX #5: remove fallback regex frágil — responseMimeType:'application/json'
+      // garante JSON válido; extractQuestions cobre array direto sem chave wrapper
       let questions = [];
       try {
         const parsed = JSON.parse(rawText);
         questions = extractQuestions(parsed);
       } catch {
-        const match = rawText.match(/\[.*\]/s);
-        try { questions = match ? JSON.parse(match[0]) : []; } catch { questions = []; }
+        questions = [];
       }
 
       if (!Array.isArray(questions) || questions.length === 0) {
