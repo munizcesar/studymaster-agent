@@ -154,6 +154,13 @@
     textarea { min-height: 120px; resize: vertical; }
     .chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
     .chip { padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid var(--color-border); background: var(--color-surface); font-size: var(--text-sm); cursor: pointer; transition: all var(--transition); font-weight: 500; }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
     .chip:hover { border-color: var(--color-primary); }
     .chip.active { background: var(--grad-brand); color: white; border-color: transparent; }
     .slider-wrapper { display: flex; align-items: center; gap: var(--space-3); }
@@ -354,7 +361,7 @@
 
   <section class="hero">
     <div class="container">
-      <span class="hero-badge">✦ Questões personalizadas · Gabarito comentado · 100% gratuito</span>
+      <span class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Questões personalizadas · Gabarito comentado · 100% gratuito</span>
       <h1 class="hero-title">Prepare-se com questões<br><span>geradas por IA</span> para o seu objetivo</h1>
       <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as questões na hora — com gabarito comentado para cada resposta.</p>
     </div>
@@ -393,21 +400,21 @@
           <p class="step-subtitle">Escolha o modo para personalizar sua sessão</p>
           <div class="mode-grid">
             <button class="mode-card" data-mode="academic" aria-label="Modo Acadêmico">
-              <div class="mode-icon">🎓</div>
+              <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
               <div class="mode-info">
                 <strong>Acadêmico</strong>
                 <span>Faculdade, ENEM, graduação por área e matéria</span>
               </div>
             </button>
             <button class="mode-card" data-mode="concurso" aria-label="Modo Concurso">
-              <div class="mode-icon">📋</div>
+              <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
               <div class="mode-info">
                 <strong>Concurso Público</strong>
                 <span>Selecione o concurso ou cole o edital</span>
               </div>
             </button>
             <button class="mode-card" data-mode="livre" aria-label="Modo Livre">
-              <div class="mode-icon">📄</div>
+              <div class="mode-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
               <div class="mode-info">
                 <strong>Material Livre</strong>
                 <span>Cole qualquer texto, apostila ou resumo</span>
@@ -427,10 +434,10 @@
           <div class="config-group" id="config-difficulty">
             <label class="config-label">Dificuldade</label>
             <div class="chip-group" role="group">
-              <button class="chip" data-difficulty="easy">🟢 Fácil</button>
-              <button class="chip active" data-difficulty="medium">🟡 Médio</button>
-              <button class="chip" data-difficulty="hard">🔴 Difícil</button>
-              <button class="chip" data-difficulty="extreme">🔥 Extremo</button>
+              <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> Fácil</button>
+              <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> Médio</button>
+              <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Difícil</button>
+              <button class="chip" data-difficulty="extreme"><span class="dot" style="background:#8b0000"></span> Extremo</button>
             </div>
           </div>
 
@@ -463,9 +470,9 @@
           <div class="config-group" id="config-idioma">
             <label class="config-label">Idioma das questões</label>
             <div class="chip-group" role="group">
-              <button class="chip active" data-idioma="pt-BR">🇧🇷 Português</button>
-              <button class="chip" data-idioma="en">🇺🇸 English</button>
-              <button class="chip" data-idioma="es">🇪🇸 Español</button>
+              <button class="chip active" data-idioma="pt-BR">Português (BR)</button>
+              <button class="chip" data-idioma="en">English (EN)</button>
+              <button class="chip" data-idioma="es">Español (ES)</button>
             </div>
           </div>
 
@@ -480,15 +487,15 @@
             <div class="config-group">
               <label class="config-label">Modo da sessão</label>
               <div class="chip-group" role="group">
-                <button class="chip active" data-session="normal">📚 Estudo Normal</button>
-                <button class="chip" data-session="concurso">🏆 Simulado</button>
-                <button class="chip" data-session="revisao">🔄 Revisão Rápida</button>
+                <button class="chip active" data-session="normal"><i data-lucide="book-open" width="14" height="14"></i> Estudo Normal</button>
+                <button class="chip" data-session="concurso"><i data-lucide="trophy" width="14" height="14"></i> Simulado</button>
+                <button class="chip" data-session="revisao"><i data-lucide="refresh-cw" width="14" height="14"></i> Revisão Rápida</button>
               </div>
             </div>
             <div class="config-group" id="config-banca-focus">
               <label class="config-label">Foco em banca <span style="font-weight:400;color:var(--color-text-muted)">(estilo da prova)</span></label>
               <div class="chip-group" role="group">
-                <button class="chip active" data-banca="auto">🤖 Automático</button>
+                <button class="chip active" data-banca="auto"><i data-lucide="bot" width="14" height="14"></i> Automático</button>
                 <button class="chip" data-banca="CEBRASPE">CEBRASPE / CESPE</button>
                 <button class="chip" data-banca="FCC">FCC</button>
                 <button class="chip" data-banca="VUNESP">VUNESP</button>
@@ -512,7 +519,7 @@
             <p class="generating-sub">Isso leva alguns segundos</p>
           </div>
           <div class="error-screen" id="error-screen">
-            <div class="error-icon">⚠️</div>
+            <div class="error-icon"><i data-lucide="alert-triangle" width="48" height="48" style="color:var(--color-error)"></i></div>
             <h3 style="margin-bottom:var(--space-2)">Erro ao gerar questões</h3>
             <p class="error-msg" id="error-msg">Não foi possível conectar ao servidor. Tente novamente em instantes.</p>
             <button class="btn-primary" id="retry-btn" style="max-width:300px;margin:0 auto;">
@@ -581,7 +588,7 @@
         <h2>Com StudyMaster vs. Sem StudyMaster</h2>
         <table class="compare-table">
           <thead>
-            <tr><th>Situação</th><th>❌ Sem StudyMaster</th><th>✅ Com StudyMaster</th></tr>
+            <tr><th>Situação</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th></tr>
           </thead>
           <tbody>
             <tr><td>Criar questões</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
@@ -817,7 +824,7 @@ const concursoData = {
     { id: 'cgu', label: 'CGU — Auditor Federal', banca: 'CEBRASPE/CESPE' },
     { id: 'iphan', label: 'IPHAN — Especialista', banca: 'FCC' },
     { id: 'mec', label: 'MEC / FNDE — Analista', banca: 'CEBRASPE/CESPE' },
-    { id: 'outro-edital', label: '📋 Outro — colar edital', banca: 'A definir' },
+    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro — colar edital', banca: 'A definir' },
   ]},
   'Saúde / Residência': { concursos: [
     { id: 'revalida', label: 'Revalida — Revalidação de Diploma Médico', banca: 'INEP/MEC' },
@@ -853,7 +860,7 @@ const concursoData = {
     { id: 'camara-municipal', label: 'Câmara Municipal — Diversas Cidades', banca: 'VUNESP' },
     { id: 'mun-fiscal', label: 'Fiscal de Obras / Tributos Municipal', banca: 'VUNESP' },
     { id: 'mun-assistente', label: 'Assistente Social / Psicólogo Municipal', banca: 'IBFC' },
-    { id: 'outro-edital', label: '📋 Outro município — colar edital', banca: 'A definir' },
+    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro município — colar edital', banca: 'A definir' },
   ]},
 };
 
@@ -961,7 +968,8 @@ function updateBancaBadge(banca) {
   const wrapper = document.getElementById('banca-badge-wrapper');
   if (!wrapper) return;
   if (!banca || banca === 'auto') { wrapper.innerHTML = ''; return; }
-  wrapper.innerHTML = `<span class="banca-badge">🏛️ Foco: ${banca}</span>`;
+  wrapper.innerHTML = `<span class="banca-badge"><i data-lucide="landmark" width="13" height="13"></i> Foco: ${banca}</span>`;
+  lucide.createIcons();
 }
 
 function selectMode(mode) {
@@ -1242,14 +1250,14 @@ function renderStep2Livre(container) {
       const wasTruncated = finalText.length > MAX_EXTRACTED_CHARS;
       if (wasTruncated) {
         finalText = finalText.slice(0, MAX_EXTRACTED_CHARS);
-        showToast(`⚠️ Texto truncado para ${formatChars(MAX_EXTRACTED_CHARS)} caracteres.`);
+        showToast(`Texto truncado para ${formatChars(MAX_EXTRACTED_CHARS)} caracteres.`);
       }
 
       state.freeText = finalText;
       freeTextArea.value = finalText;
       updateCounter();
       updateNavButtons();
-      showToast(`✅ Texto extraído com sucesso! (${formatChars(finalText.length)} caracteres)`);
+      showToast(`Texto extraído com sucesso! (${formatChars(finalText.length)} caracteres)`);
       setProgress(false, '', 0);
     } catch (error) {
       setProgress(false, '', 0);
@@ -1469,14 +1477,14 @@ function renderQuestions(questions) {
     ? state.bancaFoco
     : state.bancaInferida;
 
-  const idiomaLabel = { 'pt-BR': '🇧🇷 PT', 'en': '🇺🇸 EN', 'es': '🇪🇸 ES' };
+  const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
-    <div class="chip">${{easy:'🟢 Fácil',medium:'🟡 Médio',hard:'🔴 Difícil',extreme:'🔥 Extremo'}[state.difficulty]}</div>
+    <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
     <div class="chip">${questions.length} Questões</div>
     <div class="chip">${state.alternativas} alternativas</div>
     <div class="chip">${idiomaLabel[state.idioma] || state.idioma}</div>
     <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
-    ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip">🏛️ ${bancaEfetiva}</div>` : ''}`;
+    ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip"><i data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
 
   list.innerHTML = '';
   questions.forEach((q, idx) => {
@@ -1494,7 +1502,7 @@ function renderQuestions(questions) {
           </button>`).join('')}
       </div>
       <div class="explanation-box" id="exp-${idx}">
-        <strong>💡 Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
       </div>`;
     list.appendChild(card);
   });
