@@ -113,7 +113,7 @@ function getAreaSafetyInstruction(area, mode) {
 }
 
 // ── FIX #1: Guarda de tamanho do prompt — evita estouro silencioso de contexto ─
-// Gemini 2.0 Flash suporta ~1M tokens, mas prompts > ~28.000 chars começam a
+// Modelos Flash suportam contexto grande, mas prompts > ~28.000 chars começam a
 // degradar a qualidade da resposta. Truncamos o contextInfo e externalBlock se
 // a soma ultrapassar esse limiar.
 function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 28000) {
@@ -337,7 +337,8 @@ Regras obrigatórias:
 10. Regra de segurança por área: ${areaSafetyInstruction}`;
 
       // ── Chamada Gemini ────────────────────────────────────────────────────────
-      const geminiModel = 'gemini-2.0-flash';
+      // gemini-2.0-* está deprecado (substituição oficial: gemini-2.5-flash).
+      const geminiModel = 'gemini-2.5-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
 
       // FIX #3: temperatura calibrada por modo de sessão
@@ -391,7 +392,36 @@ Regras obrigatórias:
       }
 
       const geminiData = await geminiResponse.json();
-      let rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+
+      // Modelos com raciocínio podem colocar o pensamento em parts[0] e o JSON em parts[1+].
+      // Só ler parts[0] quebra a geração (parse falha ou objeto vazio).
+      function extractJsonTextFromGeminiData(data) {
+        const c0 = data?.candidates?.[0];
+        if (c0?.finishReason === 'SAFETY' || c0?.finishReason === 'BLOCKLIST') {
+          return null;
+        }
+        const parts = c0?.content?.parts;
+        if (!Array.isArray(parts) || parts.length === 0) {
+          return data?.promptFeedback?.blockReason ? null : '';
+        }
+        const withText = parts.filter((p) => p && typeof p.text === 'string' && p.text.trim());
+        const nonThought = withText.filter((p) => !p.thought);
+        const ordered = nonThought.length ? nonThought : withText;
+        for (let i = ordered.length - 1; i >= 0; i--) {
+          const t = String(ordered[i].text).trim();
+          if (t.startsWith('{') || t.startsWith('[')) return t;
+        }
+        return String(ordered[ordered.length - 1]?.text || '').trim();
+      }
+
+      let rawText = extractJsonTextFromGeminiData(geminiData);
+      if (rawText === null) {
+        return new Response(JSON.stringify({
+          error: 'Conteúdo bloqueado',
+          userMessage: 'A IA não pôde gerar questões para este pedido (filtro de segurança). Tente reformular o tema ou reduzir trechos sensíveis.',
+        }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      if (!rawText) rawText = '{}';
 
       // Alguns modelos ainda envolvem o JSON em ```json ... ``` apesar do MIME type
       function stripJsonFence(s) {
