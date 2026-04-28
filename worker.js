@@ -1,4 +1,4 @@
-// StudyMaster AI Worker — Cloudflare Worker + Gemini API
+﻿// StudyMaster AI Worker — Cloudflare Worker + Gemini API
 // Deploy: wrangler deploy
 // Env var necessária: GEMINI_API_KEY
 
@@ -440,7 +440,14 @@ Regras obrigatórias:
         const parsed = JSON.parse(rawText);
         questions = extractQuestions(parsed);
       } catch {
-        questions = [];
+        const match = rawText.match(/\[[\s\S]*\]/);
+        if (match) {
+          try {
+            questions = extractQuestions(JSON.parse(match[0]));
+          } catch {
+            questions = [];
+          }
+        }
       }
 
       if (!Array.isArray(questions) || questions.length === 0) {
@@ -467,3 +474,5 @@ Regras obrigatórias:
     }
   },
 };
+
+
