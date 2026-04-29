@@ -11,7 +11,10 @@ const corsHeaders = {
 
 function extractQuestions(parsed) {
   if (Array.isArray(parsed)) return parsed;
-  for (const key of Object.keys(parsed)) {
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) return parsed.questions;
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.data)) return parsed.data;
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.result)) return parsed.result;
+  for (const key of Object.keys(parsed || {})) {
     if (Array.isArray(parsed[key])) return parsed[key];
   }
   return [];
@@ -338,7 +341,7 @@ Regras obrigatórias:
 
       // -- Chamada Gemini --------------------------------------------------------
       // gemini-2.0-* está deprecado (substituição oficial: gemini-1.5-flash).
-      const geminiModel = 'gemini-1.5-flash';
+      const geminiModel = 'gemini-2.5-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
 
       // FIX #3: temperatura calibrada por modo de sessão
@@ -474,5 +477,9 @@ Regras obrigatórias:
     }
   },
 };
+
+
+
+
 
 
