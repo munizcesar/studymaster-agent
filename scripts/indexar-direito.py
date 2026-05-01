@@ -7,7 +7,7 @@ Pré-requisitos:
 
 Uso:
   1. Configure CLOUDFLARE_ACCOUNT_ID e CLOUDFLARE_API_TOKEN como variáveis de ambiente
-  2. Crie o índice: wrangler vectorize create studymaster-knowledge --dimensions=768 --metric=cosine
+  2. Crie o índice: wrangler vectorize create studymaster-knowledge --dimensions=1024 --metric=cosine
   3. Execute: python scripts/indexar-direito.py
 """
 
@@ -19,16 +19,9 @@ import hashlib
 import requests
 from bs4 import BeautifulSoup
 
-# ─── Configuração ────────────────────────────────────────────────────────────
-
 ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
 API_TOKEN  = os.environ.get("CLOUDFLARE_API_TOKEN", "")
 INDEX_NAME = "studymaster-knowledge"
-
-HEADERS_CF = {
-    "Authorization": f"Bearer {API_TOKEN}",
-    "Content-Type": "application/json",
-}
 
 HEADERS_PLANALTO = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -37,8 +30,6 @@ HEADERS_PLANALTO = {
     "Accept-Encoding": "gzip, deflate",
     "Connection": "keep-alive",
 }
-
-# ─── Leis para indexar ───────────────────────────────────────────────────────
 
 LEIS = [
     {"url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm", "area": "constitucional", "lei": "CF/1988", "sigla": "cf88"},
@@ -56,7 +47,6 @@ LEIS = [
     {"url": "https://www.planalto.gov.br/ccivil_03/leis/l8666compilado.htm", "area": "administrativo", "lei": "Lei 8.666/93", "sigla": "lei866693"},
 ]
 
-# ─── Funções de extração ─────────────────────────────────────────────────────
 
 def baixar_lei(url: str, tentativas: int = 3) -> str:
     print(f"  Baixando: {url}")
@@ -78,176 +68,121 @@ def extrair_artigos(html: str, lei: str, area: str) -> list:
     soup = BeautifulSoup(html, "lxml")
     for tag in soup(["script", "style", "sup", "a"]):
         tag.decompose()
-    texto_completo = soup.get_text(separator="\n", strip=True)
-    linhas = texto_completo.splitlines()
+    linhas = soup.get_text(separator="\n", strip=True).splitlines()
 
-    artigos = []
-    artigo_atual = None
-    linhas_artigo = []
-
+    artigos, artigo_atual, linhas_artigo = [], None, []
     RE_ARTIGO = re.compile(
         r'^\s*Art\.?\s*(\d+[°º]?(?:-[A-Z])?)(?:[\s\-–—]+|\.)\s*(.{0,300})',
         re.IGNORECASE
     )
-
     for linha in linhas:
         linha = linha.strip()
         if not linha:
             continue
         match = RE_ARTIGO.match(linha)
         if match:
-            if artigo_atual is not None and linhas_artigo:
+            if artigo_atual and linhas_artigo:
                 texto = " ".join(linhas_artigo).strip()
                 if len(texto) > 30:
                     artigos.append({"numero": artigo_atual, "texto": f"Art. {artigo_atual} — {lei}: {texto}", "lei": lei, "area": area})
             artigo_atual = match.group(1)
             linhas_artigo = [linha]
-        elif artigo_atual is not None:
+        elif artigo_atual:
             if len(" ".join(linhas_artigo)) < 1500:
                 linhas_artigo.append(linha)
-
     if artigo_atual and linhas_artigo:
         texto = " ".join(linhas_artigo).strip()
         if len(texto) > 30:
             artigos.append({"numero": artigo_atual, "texto": f"Art. {artigo_atual} — {lei}: {texto}", "lei": lei, "area": area})
-
     print(f"  → {len(artigos)} artigos extraídos de {lei}")
     return artigos
 
 
-# ─── Funções Cloudflare ──────────────────────────────────────────────────────
-
 def gerar_embedding(texto: str) -> list:
-    """Gera embedding via Cloudflare AI. Tenta BGE-M3 (768 dims), fallback para bge-base-en-v1.5 (768 dims)."""
-    # Recria headers com token atualizado (caso mude durante a sessão)
-    headers = {
-        "Authorization": f"Bearer {os.environ.get('CLOUDFLARE_API_TOKEN', API_TOKEN)}",
-        "Content-Type": "application/json",
-    }
-    account = os.environ.get('CLOUDFLARE_ACCOUNT_ID', ACCOUNT_ID)
+    """Gera embedding via BGE-M3 (1024 dims). Índice deve ser criado com --dimensions=1024."""
+    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ACCOUNT_ID)
+    token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    # Tenta @cf/baai/bge-m3 primeiro
     url = f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/@cf/baai/bge-m3"
-    try:
-        res = requests.post(url, headers=headers, json={"text": [texto[:512]]}, timeout=20)
-        res.raise_for_status()
-        data = res.json()
-        if data.get("success") and data["result"].get("data"):
-            emb = data["result"]["data"][0]
-            if len(emb) == 768:
-                return emb
-            print(f"  ⚠️ BGE-M3 retornou {len(emb)} dims (esperado 768), tentando modelo alternativo")
-    except Exception as e:
-        print(f"  ⚠️ BGE-M3 falhou: {e}")
-
-    # Fallback: @cf/baai/bge-base-en-v1.5 (768 dims, multilingual)
-    url2 = f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/@cf/baai/bge-base-en-v1.5"
-    res2 = requests.post(url2, headers=headers, json={"text": [texto[:512]]}, timeout=20)
-    res2.raise_for_status()
-    data2 = res2.json()
-    if data2.get("success") and data2["result"].get("data"):
-        emb2 = data2["result"]["data"][0]
-        return emb2
-
-    raise RuntimeError(f"Falha ao gerar embedding: {res2.text}")
+    res = requests.post(url, headers=headers, json={"text": [texto[:512]]}, timeout=20)
+    res.raise_for_status()
+    data = res.json()
+    if data.get("success") and data["result"].get("data"):
+        return data["result"]["data"][0]
+    raise RuntimeError(f"Resposta inesperada da API: {data}")
 
 
 def upsert_vetores(vetores: list) -> dict:
-    """Faz upsert de um batch de vetores no Vectorize v2."""
-    # Recria headers com token atualizado
-    account = os.environ.get('CLOUDFLARE_ACCOUNT_ID', ACCOUNT_ID)
-    token = os.environ.get('CLOUDFLARE_API_TOKEN', API_TOKEN)
-
+    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ACCOUNT_ID)
+    token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
     url = f"https://api.cloudflare.com/client/v4/accounts/{account}/vectorize/v2/indexes/{INDEX_NAME}/upsert"
     ndjson = "\n".join(json.dumps(v, ensure_ascii=False) for v in vetores)
-
     res = requests.post(
         url,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/x-ndjson",
-        },
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/x-ndjson"},
         data=ndjson.encode("utf-8"),
         timeout=60,
     )
-
     if not res.ok:
-        print(f"  ❌ Upsert HTTP {res.status_code}: {res.text[:300]}")
+        print(f"  ❌ Upsert HTTP {res.status_code}: {res.text[:400]}")
     res.raise_for_status()
     return res.json()
 
-
-# ─── Pipeline principal ──────────────────────────────────────────────────────
 
 def indexar_lei(config: dict):
     print(f"\n{'='*60}")
     print(f"Indexando: {config['lei']} ({config['area']})")
     print(f"{'='*60}")
-
     html = baixar_lei(config["url"])
     artigos = extrair_artigos(html, config["lei"], config["area"])
-
     if not artigos:
         print(f"  ⚠️  Nenhum artigo extraído de {config['lei']}.")
         return
 
-    batch = []
-    total_indexados = 0
-    BATCH_SIZE = 25  # reduzido para evitar payload grande no upsert
-
+    batch, total, BATCH_SIZE = [], 0, 25
     for i, artigo in enumerate(artigos):
         chunk_id = f"{config['sigla']}-art{artigo['numero']}-{hashlib.md5(artigo['texto'].encode()).hexdigest()[:8]}"
-
         try:
-            embedding = gerar_embedding(artigo["texto"])
+            emb = gerar_embedding(artigo["texto"])
         except Exception as e:
-            print(f"  ⚠️  Embedding Art. {artigo['numero']} falhou: {e}")
+            print(f"  ⚠️  Embedding Art.{artigo['numero']} falhou: {e}")
             time.sleep(3)
             continue
-
-        batch.append({
-            "id": chunk_id,
-            "values": embedding,
-            "metadata": {
-                "text": artigo["texto"][:1000],  # limita metadata a 1000 chars
-                "area": artigo["area"],
-                "lei": artigo["lei"],
-                "artigo": artigo["numero"],
-            }
-        })
-
+        batch.append({"id": chunk_id, "values": emb, "metadata": {
+            "text": artigo["texto"][:1000], "area": artigo["area"],
+            "lei": artigo["lei"], "artigo": artigo["numero"]
+        }})
         if len(batch) >= BATCH_SIZE or i == len(artigos) - 1:
             try:
-                result = upsert_vetores(batch)
-                total_indexados += len(batch)
-                print(f"  ✅ Batch enviado: {total_indexados}/{len(artigos)} artigos")
+                upsert_vetores(batch)
+                total += len(batch)
+                print(f"  ✅ Batch: {total}/{len(artigos)} artigos")
             except Exception as e:
-                print(f"  ❌ Erro no upsert: {e}")
+                print(f"  ❌ Upsert falhou: {e}")
             batch = []
             time.sleep(1)
-
-    print(f"\n  ✅ {config['lei']} indexada: {total_indexados} artigos")
+    print(f"\n  ✅ {config['lei']}: {total} artigos indexados")
 
 
 def main():
-    if not ACCOUNT_ID or not API_TOKEN:
+    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ACCOUNT_ID)
+    token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
+    if not account or not token:
         print("❌ Configure as variáveis de ambiente:")
-        print('   $env:CLOUDFLARE_ACCOUNT_ID="seu_account_id"')
+        print('   $env:CLOUDFLARE_ACCOUNT_ID="seu_id"')
         print('   $env:CLOUDFLARE_API_TOKEN="seu_token"')
         return
 
-    print("StudyMaster — Indexador do Vade Mecum")
-    print(f"Account ID: {ACCOUNT_ID[:8]}...")
-    print(f"Indexando {len(LEIS)} leis no Cloudflare Vectorize...\n")
-
-    # Teste rápido de conectividade com a API antes de começar
-    print("Testando conexão com Cloudflare AI...")
+    print("StudyMaster — Indexador Vade Mecum")
+    print(f"Account: {account[:8]}...")
+    print("Testando API Cloudflare AI...")
     try:
-        emb_teste = gerar_embedding("teste de conexão")
-        print(f"  ✅ API OK! Embedding gerado com {len(emb_teste)} dimensões\n")
+        emb = gerar_embedding("teste")
+        print(f"  ✅ API OK — BGE-M3 retornou {len(emb)} dimensões\n")
     except Exception as e:
-        print(f"  ❌ Falha na API Cloudflare AI: {e}")
-        print("  Verifique se o token tem permissão 'Workers AI' (Edit)")
+        print(f"  ❌ Falha: {e}")
+        print("  Verifique permissão 'Workers AI (Edit)' no token")
         return
 
     log = []
@@ -256,18 +191,15 @@ def main():
             indexar_lei(config)
             log.append({"lei": config["lei"], "status": "ok"})
         except Exception as e:
-            print(f"  ❌ Erro ao indexar {config['lei']}: {e}")
+            print(f"  ❌ {config['lei']}: {e}")
             log.append({"lei": config["lei"], "status": "erro", "erro": str(e)})
         time.sleep(3)
 
     with open("scripts/indexacao-log.json", "w", encoding="utf-8") as f:
         json.dump(log, f, ensure_ascii=False, indent=2)
 
-    print("\n" + "="*60)
-    print("Indexação concluída!")
-    print("="*60)
     sucessos = sum(1 for l in log if l["status"] == "ok")
-    print(f"✅ {sucessos}/{len(LEIS)} leis indexadas com sucesso")
+    print(f"\n✅ Concluído: {sucessos}/{len(LEIS)} leis indexadas")
 
 
 if __name__ == "__main__":
