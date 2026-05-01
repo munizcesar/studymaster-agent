@@ -30,6 +30,15 @@ HEADERS_CF = {
     "Content-Type": "application/json",
 }
 
+# User-Agent de navegador real para evitar bloqueio do Planalto.gov.br
+HEADERS_PLANALTO = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "pt-BR,pt;q=0.9",
+    "Accept-Encoding": "gzip, deflate",
+    "Connection": "keep-alive",
+}
+
 # ─── Leis para indexar ───────────────────────────────────────────────────────
 
 LEIS = [
@@ -96,7 +105,7 @@ LEIS = [
         "lei": "CTN",
         "sigla": "ctn"
     },
-    # Licitações
+    # Licitações — Nova Lei
     {
         "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm",
         "area": "administrativo",
@@ -128,20 +137,31 @@ LEIS = [
 
 # ─── Funções de extração ─────────────────────────────────────────────────────
 
-def baixar_lei(url: str) -> str:
-    """Baixa o HTML da lei do Planalto."""
+def baixar_lei(url: str, tentativas: int = 3) -> str:
+    """Baixa o HTML da lei do Planalto com User-Agent de navegador real."""
     print(f"  Baixando: {url}")
-    res = requests.get(url, timeout=30, headers={"User-Agent": "StudyMaster/1.0 (educational indexer)"})
-    res.raise_for_status()
-    res.encoding = res.apparent_encoding or "utf-8"
-    return res.text
+    for i in range(tentativas):
+        try:
+            res = requests.get(
+                url,
+                timeout=45,
+                headers=HEADERS_PLANALTO,
+            )
+            res.raise_for_status()
+            res.encoding = res.apparent_encoding or "utf-8"
+            print(f"  ✅ Download OK ({len(res.text):,} chars)")
+            return res.text
+        except Exception as e:
+            print(f"  ⚠️  Tentativa {i+1}/{tentativas} falhou: {e}")
+            if i < tentativas - 1:
+                time.sleep(5 * (i + 1))  # backoff: 5s, 10s
+    raise RuntimeError(f"Falha ao baixar {url} após {tentativas} tentativas")
 
 
 def extrair_artigos(html: str, lei: str, area: str) -> list[dict]:
     """Extrai artigos individuais do HTML do Planalto."""
     soup = BeautifulSoup(html, "lxml")
 
-    # Remove scripts, styles e notas de rodapé
     for tag in soup(["script", "style", "sup", "a"]):
         tag.decompose()
 
@@ -152,7 +172,6 @@ def extrair_artigos(html: str, lei: str, area: str) -> list[dict]:
     artigo_atual = None
     linhas_artigo = []
 
-    # Regex para detectar início de artigo
     RE_ARTIGO = re.compile(
         r'^\s*Art\.?\s*(\d+[°º]?(?:-[A-Z])?)'
         r'(?:[\s\-–—]+|\.)\s*(.{0,300})',
@@ -166,25 +185,21 @@ def extrair_artigos(html: str, lei: str, area: str) -> list[dict]:
 
         match = RE_ARTIGO.match(linha)
         if match:
-            # Salva artigo anterior
             if artigo_atual is not None and linhas_artigo:
                 texto = " ".join(linhas_artigo).strip()
-                if len(texto) > 30:  # descarta artigos vazios/revogados
+                if len(texto) > 30:
                     artigos.append({
                         "numero": artigo_atual,
                         "texto": f"Art. {artigo_atual} — {lei}: {texto}",
                         "lei": lei,
                         "area": area,
                     })
-
             artigo_atual = match.group(1)
             linhas_artigo = [linha]
         elif artigo_atual is not None:
-            # Limita o tamanho do chunk (evita artigos gigantes)
             if len(" ".join(linhas_artigo)) < 1500:
                 linhas_artigo.append(linha)
 
-    # Salva o último artigo
     if artigo_atual and linhas_artigo:
         texto = " ".join(linhas_artigo).strip()
         if len(texto) > 30:
@@ -207,8 +222,8 @@ def gerar_embedding(texto: str) -> list[float]:
     res = requests.post(
         url,
         headers=HEADERS_CF,
-        json={"text": [texto[:512]]},  # BGE-M3 aceita até 512 tokens
-        timeout=15
+        json={"text": [texto[:512]]},
+        timeout=20
     )
     res.raise_for_status()
     data = res.json()
@@ -218,10 +233,7 @@ def gerar_embedding(texto: str) -> list[float]:
 def upsert_vetores(vetores: list[dict]) -> dict:
     """Faz upsert de um batch de vetores no Vectorize."""
     url = f"https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/upsert"
-
-    # Monta NDJSON (formato exigido pelo Vectorize v2)
     ndjson = "\n".join(json.dumps(v) for v in vetores)
-
     res = requests.post(
         url,
         headers={
@@ -252,10 +264,9 @@ def indexar_lei(config: dict):
 
     batch = []
     total_indexados = 0
-    BATCH_SIZE = 50  # Vectorize aceita até 1000 por batch, usamos 50 para segurança
+    BATCH_SIZE = 50
 
     for i, artigo in enumerate(artigos):
-        # ID único e reproduzível para cada artigo
         chunk_id = f"{config['sigla']}-art{artigo['numero']}-{hashlib.md5(artigo['texto'].encode()).hexdigest()[:8]}"
 
         try:
@@ -276,7 +287,6 @@ def indexar_lei(config: dict):
             }
         })
 
-        # Envia batch quando atinge o tamanho ou é o último
         if len(batch) >= BATCH_SIZE or i == len(artigos) - 1:
             try:
                 result = upsert_vetores(batch)
@@ -285,7 +295,7 @@ def indexar_lei(config: dict):
             except Exception as e:
                 print(f"  ❌ Erro no upsert: {e}")
             batch = []
-            time.sleep(0.5)  # Rate limiting gentil
+            time.sleep(1)  # delay entre batches
 
     print(f"\n  ✅ {config['lei']} indexada: {total_indexados} artigos no Vectorize")
 
@@ -293,8 +303,8 @@ def indexar_lei(config: dict):
 def main():
     if not ACCOUNT_ID or not API_TOKEN:
         print("❌ Configure as variáveis de ambiente:")
-        print("   export CLOUDFLARE_ACCOUNT_ID=seu_account_id")
-        print("   export CLOUDFLARE_API_TOKEN=seu_api_token")
+        print("   $env:CLOUDFLARE_ACCOUNT_ID='seu_account_id'")
+        print("   $env:CLOUDFLARE_API_TOKEN='seu_api_token'")
         return
 
     print("StudyMaster — Indexador do Vade Mecum")
@@ -308,9 +318,8 @@ def main():
         except Exception as e:
             print(f"  ❌ Erro ao indexar {config['lei']}: {e}")
             log.append({"lei": config["lei"], "status": "erro", "erro": str(e)})
-        time.sleep(1)
+        time.sleep(3)  # pausa entre leis para não sobrecarregar o Planalto
 
-    # Salva log de indexação
     with open("scripts/indexacao-log.json", "w", encoding="utf-8") as f:
         json.dump(log, f, ensure_ascii=False, indent=2)
 
