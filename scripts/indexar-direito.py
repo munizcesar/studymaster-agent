@@ -43,8 +43,9 @@ LEIS = [
     {"url": "https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm", "area": "tributario", "lei": "CTN", "sigla": "ctn"},
     {"url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm", "area": "administrativo", "lei": "Lei 14.133/21", "sigla": "lei1413321"},
     {"url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm", "area": "administrativo", "lei": "LGPD — Lei 13.709/18", "sigla": "lgpd"},
-    {"url": "https://www.planalto.gov.br/ccivil_03/leis/l8429compilado.htm", "area": "administrativo", "lei": "Lei 8.429/92", "sigla": "lei842992"},
-    {"url": "https://www.planalto.gov.br/ccivil_03/leis/l8666compilado.htm", "area": "administrativo", "lei": "Lei 8.666/93", "sigla": "lei866693"},
+    # URLs corrigidas (antigas retornavam 404)
+    {"url": "https://www.planalto.gov.br/ccivil_03/leis/l8429.htm", "area": "administrativo", "lei": "Lei 8.429/92", "sigla": "lei842992"},
+    {"url": "https://www.planalto.gov.br/ccivil_03/leis/l8666cons.htm", "area": "administrativo", "lei": "Lei 8.666/93", "sigla": "lei866693"},
 ]
 
 
@@ -99,11 +100,10 @@ def extrair_artigos(html: str, lei: str, area: str) -> list:
 
 
 def gerar_embedding(texto: str) -> list:
-    """Gera embedding via BGE-M3 (1024 dims). Índice deve ser criado com --dimensions=1024."""
+    """Gera embedding via BGE-M3 (1024 dims)."""
     account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ACCOUNT_ID)
     token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-
     url = f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/@cf/baai/bge-m3"
     res = requests.post(url, headers=headers, json={"text": [texto[:512]]}, timeout=20)
     res.raise_for_status()
@@ -179,14 +179,26 @@ def main():
     print("Testando API Cloudflare AI...")
     try:
         emb = gerar_embedding("teste")
-        print(f"  ✅ API OK — BGE-M3 retornou {len(emb)} dimensões\n")
+        print(f"  ✅ API OK — BGE-M3 {len(emb)} dims\n")
     except Exception as e:
         print(f"  ❌ Falha: {e}")
         print("  Verifique permissão 'Workers AI (Edit)' no token")
         return
 
-    log = []
-    for config in LEIS:
+    # Indexa apenas as leis com falha se o log existir
+    log_path = "scripts/indexacao-log.json"
+    leis_com_falha = set()
+    if os.path.exists(log_path):
+        with open(log_path, encoding="utf-8") as f:
+            log_anterior = json.load(f)
+        leis_com_falha = {l["lei"] for l in log_anterior if l["status"] != "ok"}
+        if leis_com_falha:
+            print(f"Reindexando apenas leis com falha: {leis_com_falha}\n")
+
+    leis_para_indexar = [c for c in LEIS if not leis_com_falha or c["lei"] in leis_com_falha]
+
+    log = [l for l in (log_anterior if leis_com_falha else []) if l["status"] == "ok"]
+    for config in leis_para_indexar:
         try:
             indexar_lei(config)
             log.append({"lei": config["lei"], "status": "ok"})
@@ -195,7 +207,7 @@ def main():
             log.append({"lei": config["lei"], "status": "erro", "erro": str(e)})
         time.sleep(3)
 
-    with open("scripts/indexacao-log.json", "w", encoding="utf-8") as f:
+    with open(log_path, "w", encoding="utf-8") as f:
         json.dump(log, f, ensure_ascii=False, indent=2)
 
     sucessos = sum(1 for l in log if l["status"] == "ok")
