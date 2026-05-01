@@ -17,11 +17,30 @@ import json
 import time
 import hashlib
 import requests
+from requests.adapters import HTTPAdapter, Retry
 from bs4 import BeautifulSoup
 
 ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
 API_TOKEN  = os.environ.get("CLOUDFLARE_API_TOKEN", "")
 INDEX_NAME = "studymaster-knowledge"
+
+try:
+    RETRY_STRATEGY = Retry(
+        total=3,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET", "POST"],
+        backoff_factor=1,
+    )
+except TypeError:
+    RETRY_STRATEGY = Retry(
+        total=3,
+        status_forcelist=[429, 500, 502, 503, 504],
+        method_whitelist=["GET", "POST"],
+        backoff_factor=1,
+    )
+SESSION = requests.Session()
+SESSION.mount("https://", HTTPAdapter(max_retries=RETRY_STRATEGY))
+SESSION.mount("http://", HTTPAdapter(max_retries=RETRY_STRATEGY))
 
 HEADERS_PLANALTO = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -53,7 +72,7 @@ def baixar_lei(url: str, tentativas: int = 3) -> str:
     print(f"  Baixando: {url}")
     for i in range(tentativas):
         try:
-            res = requests.get(url, timeout=45, headers=HEADERS_PLANALTO)
+            res = SESSION.get(url, timeout=45, headers=HEADERS_PLANALTO)
             res.raise_for_status()
             res.encoding = res.apparent_encoding or "utf-8"
             print(f"  ✅ Download OK ({len(res.text):,} chars)")
@@ -105,12 +124,34 @@ def gerar_embedding(texto: str) -> list:
     token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     url = f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/@cf/baai/bge-m3"
-    res = requests.post(url, headers=headers, json={"text": [texto[:512]]}, timeout=20)
-    res.raise_for_status()
-    data = res.json()
-    if data.get("success") and data["result"].get("data"):
-        return data["result"]["data"][0]
-    raise RuntimeError(f"Resposta inesperada da API: {data}")
+    for attempt in range(1, 4):
+        try:
+            res = SESSION.post(url, headers=headers, json={"text": [texto[:512]]}, timeout=30)
+            res.raise_for_status()
+            data = res.json()
+            if data.get("success") and data["result"].get("data"):
+                result = data["result"]["data"][0]
+                if isinstance(result, dict):
+                    if "embedding" in result:
+                        emb = result["embedding"]
+                    elif "values" in result:
+                        emb = result["values"]
+                    else:
+                        raise RuntimeError(f"Formato de embedding inesperado: {result}")
+                else:
+                    emb = result
+                if not isinstance(emb, list):
+                    raise RuntimeError(f"Embedding retornado não é lista: {type(emb)}")
+                if len(emb) != 1024:
+                    raise RuntimeError(f"Embedding retornado com dimensões inesperadas: {len(emb)}")
+                return emb
+            raise RuntimeError(f"Resposta inesperada da API: {data}")
+        except Exception as e:
+            if attempt < 4 and isinstance(e, (requests.exceptions.RequestException, RuntimeError)):
+                print(f"  ⚠️  Embedding tentativa {attempt}/3 falhou: {e}")
+                time.sleep(2 ** attempt)
+                continue
+            raise
 
 
 def upsert_vetores(vetores: list) -> dict:
@@ -118,16 +159,21 @@ def upsert_vetores(vetores: list) -> dict:
     token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
     url = f"https://api.cloudflare.com/client/v4/accounts/{account}/vectorize/v2/indexes/{INDEX_NAME}/upsert"
     ndjson = "\n".join(json.dumps(v, ensure_ascii=False) for v in vetores)
-    res = requests.post(
-        url,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/x-ndjson"},
-        data=ndjson.encode("utf-8"),
-        timeout=60,
-    )
-    if not res.ok:
+    for attempt in range(1, 4):
+        res = SESSION.post(
+            url,
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/x-ndjson"},
+            data=ndjson.encode("utf-8"),
+            timeout=60,
+        )
+        if res.ok:
+            return res.json()
         print(f"  ❌ Upsert HTTP {res.status_code}: {res.text[:400]}")
-    res.raise_for_status()
-    return res.json()
+        if res.status_code in {429, 500, 502, 503, 504} and attempt < 3:
+            time.sleep(2 ** attempt)
+            continue
+        res.raise_for_status()
+    raise RuntimeError("Falha no upsert após várias tentativas")
 
 
 def indexar_lei(config: dict):

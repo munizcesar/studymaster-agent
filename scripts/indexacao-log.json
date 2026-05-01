@@ -1,0 +1,56 @@
+[
+  {
+    "lei": "CF/1988",
+    "status": "ok"
+  },
+  {
+    "lei": "CC/2002",
+    "status": "ok"
+  },
+  {
+    "lei": "CPC/2015",
+    "status": "ok"
+  },
+  {
+    "lei": "CP",
+    "status": "ok"
+  },
+  {
+    "lei": "CPP",
+    "status": "ok"
+  },
+  {
+    "lei": "CLT",
+    "status": "ok"
+  },
+  {
+    "lei": "Lei 9.784/99",
+    "status": "ok"
+  },
+  {
+    "lei": "Lei 8.112/90",
+    "status": "ok"
+  },
+  {
+    "lei": "CTN",
+    "status": "ok"
+  },
+  {
+    "lei": "Lei 14.133/21",
+    "status": "ok"
+  },
+  {
+    "lei": "LGPD — Lei 13.709/18",
+    "status": "ok"
+  },
+  {
+    "lei": "Lei 8.429/92",
+    "status": "erro",
+    "erro": "Falha ao baixar https://www.planalto.gov.br/ccivil_03/leis/l8429compilado.htm após 3 tentativas"
+  },
+  {
+    "lei": "Lei 8.666/93",
+    "status": "erro",
+    "erro": "Falha ao baixar https://www.planalto.gov.br/ccivil_03/leis/l8666compilado.htm após 3 tentativas"
+  }
+]
