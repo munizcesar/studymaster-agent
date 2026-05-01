@@ -1,6 +1,6 @@
-// StudyMaster AI Worker ó Cloudflare Worker + Gemini API
+// StudyMaster AI Worker ‚Äî Cloudflare Worker + Gemini API
 // Deploy: wrangler deploy
-// Env var necess·ria: GEMINI_API_KEY
+// Env var necess√°ria: GEMINI_API_KEY
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,7 +20,7 @@ function extractQuestions(parsed) {
   return [];
 }
 
-// -- Wikipedia ó fallback geral ------------------------------------------------
+// -- Wikipedia ‚Äî fallback geral ------------------------------------------------
 async function fetchWikipediaContext(query, lang = 'pt') {
   try {
     const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
@@ -37,11 +37,10 @@ async function fetchWikipediaContext(query, lang = 'pt') {
   }
 }
 
-// -- LexML ó Vade MÍcum Digital (Senado Federal) -------------------------------
-// Fonte oficial: https://www.lexml.gov.br ó legislaÁ„o federal brasileira em vigor
+// -- LexML ‚Äî Vade M√™cum Digital (Senado Federal) -------------------------------
 async function fetchLexML(query) {
   try {
-    const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei CÛdigo ConstituiÁ„o Medida-ProvisÛria"`;
+    const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei C√≥digo Constitui√ß√£o Medida-Provis√≥ria"`;
     const url = `https://www.lexml.gov.br/busca/SRU?operation=searchRetrieve&version=1.1&query=${encodeURIComponent(cql)}&maximumRecords=5&recordSchema=dc`;
     const res = await fetch(url, {
       headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
@@ -49,14 +48,11 @@ async function fetchLexML(query) {
     });
     if (!res.ok) return null;
     const xml = await res.text();
-
     const titles = [...xml.matchAll(/<dc:title>([^<]+)<\/dc:title>/g)].map((m) => m[1]);
     const descriptions = [...xml.matchAll(/<dc:description>([^<]+)<\/dc:description>/g)].map((m) => m[1]);
     const dates = [...xml.matchAll(/<dc:date>([^<]+)<\/dc:date>/g)].map((m) => m[1]);
-
     if (titles.length === 0) return null;
-
-    let ctx = 'LEGISLA«√O VERIFICADA ó LEXML/SENADO FEDERAL:\n';
+    let ctx = 'LEGISLA√á√ÉO VERIFICADA ‚Äî LEXML/SENADO FEDERAL:\n';
     titles.slice(0, 5).forEach((title, i) => {
       ctx += `\n[${i + 1}] ${title}`;
       if (dates[i]) ctx += ` (${dates[i]})`;
@@ -68,69 +64,52 @@ async function fetchLexML(query) {
   }
 }
 
-// -- Contexto combinado por ·rea -----------------------------------------------
+// -- Contexto combinado por √°rea -----------------------------------------------
 async function fetchContext(area, mode, topic, subject, idioma) {
   const isPortugues = !idioma || idioma === 'pt-BR';
   const isDireito = area === 'Direito' || mode === 'concurso';
   const query = topic || subject || area || '';
-
   if (isDireito && query) {
     const lexml = await fetchLexML(query);
-    if (lexml) return { text: lexml, source: 'LexML/Senado Federal (Vade MÍcum Digital)' };
+    if (lexml) return { text: lexml, source: 'LexML/Senado Federal (Vade M√™cum Digital)' };
   }
-
   if (query) {
     const lang = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
     const wiki = await fetchWikipediaContext(query, lang);
     if (wiki) return { text: wiki, source: 'Wikipedia' };
   }
-
   return null;
 }
 
-// -- InstruÁıes anti-alucinaÁ„o por ·rea --------------------------------------
+// -- Instru√ß√µes anti-alucina√ß√£o por √°rea --------------------------------------
 function getAreaSafetyInstruction(area, mode) {
   if (mode === 'concurso' || area === 'Direito') {
-    return `PROTOCOLO VADE M CUM ATIVO:
-ï Use APENAS artigos, incisos e par·grafos confirmados no contexto legislativo fornecido (LexML/Senado Federal).
-ï Diplomas v·lidos: CF/88 (atÈ EC 136/2023), CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).
-ï S˙mulas: cite SOMENTE com n˙mero e tribunal confirmados (STF, STJ, TST).
-ï Se N√O tiver certeza absoluta do n˙mero do artigo ? use o PRINCÕPIO JURÕDICO sem citar o n˙mero.
-ï Temas doutrin·rios divergentes ? baseie-se em texto de lei, nunca em posiÁ„o doutrin·ria.
-ï NUNCA invente: artigos fictÌcios, s˙mulas com n˙meros errados, leis inexistentes, ementas fabricadas.
-ï Gabarito deve ser defens·vel perante banca real de concurso.`;
+    return `PROTOCOLO VADE M√äCUM ATIVO:\n‚Ä¢ Use APENAS artigos, incisos e par√°grafos confirmados no contexto legislativo fornecido (LexML/Senado Federal).\n‚Ä¢ Diplomas v√°lidos: CF/88 (at√© EC 136/2023), CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).\n‚Ä¢ S√∫mulas: cite SOMENTE com n√∫mero e tribunal confirmados (STF, STJ, TST).\n‚Ä¢ Se N√ÉO tiver certeza absoluta do n√∫mero do artigo ‚Äî use o PRINC√çPIO JUR√çDICO sem citar o n√∫mero.\n‚Ä¢ Temas doutrin√°rios divergentes ‚Äî baseie-se em texto de lei, nunca em posi√ß√£o doutrin√°ria.\n‚Ä¢ NUNCA invente: artigos fict√≠cios, s√∫mulas com n√∫meros errados, leis inexistentes, ementas fabricadas.\n‚Ä¢ Gabarito deve ser defens√°vel perante banca real de concurso.`;
   }
   if (mode === 'livre') {
-    return 'As questıes devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usu·rio. N„o adicione informaÁıes externas.';
+    return 'As quest√µes devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usu√°rio. N√£o adicione informa√ß√µes externas.';
   }
   const areaMap = {
-    'Sa˙de': 'Use apenas terminologia mÈdica, protocolos clÌnicos, f·rmacos e sÌndromes reconhecidos pela CID e comunidade mÈdica. Nunca invente nomes de medicamentos, exames ou procedimentos.',
-    'Tecnologia': 'Use apenas linguagens, frameworks, comandos e protocolos documentados e existentes. Nunca invente funÁıes, bibliotecas ou sintaxes.',
-    'Exatas': 'Use apenas fÛrmulas, teoremas e constantes fÌsicas/quÌmicas verificados. Nunca invente resultados numÈricos ou fÛrmulas incorretas.',
-    'Humanas': 'Use apenas eventos histÛricos, datas, personagens e conceitos filosÛficos/sociolÛgicos reais e documentados. Nunca invente datas ou autores.',
-    'NegÛcios': 'Use apenas conceitos de administraÁ„o, contabilidade e finanÁas consolidados. Nunca invente siglas, normas cont·beis ou Ìndices econÙmicos fictÌcios.',
-    'ENEM': 'Use apenas conte˙dos da matriz de referÍncia oficial do ENEM (INEP). Nunca invente dados fora do currÌculo.',
-    'Concursos ó MatÈrias Comuns': 'Cite apenas artigos e conceitos existentes. Para PortuguÍs, use apenas regras da norma culta consagradas. Para Matem·tica, garanta que todos os c·lculos e respostas estejam corretos.',
+    'Sa√∫de': 'Use apenas terminologia m√©dica, protocolos cl√≠nicos, f√°rmacos e s√≠ndromes reconhecidos pela CID e comunidade m√©dica. Nunca invente nomes de medicamentos, exames ou procedimentos.',
+    'Tecnologia': 'Use apenas linguagens, frameworks, comandos e protocolos documentados e existentes. Nunca invente fun√ß√µes, bibliotecas ou sintaxes.',
+    'Exatas': 'Use apenas f√≥rmulas, teoremas e constantes f√≠sicas/qu√≠micas verificados. Nunca invente resultados num√©ricos ou f√≥rmulas incorretas.',
+    'Humanas': 'Use apenas eventos hist√≥ricos, datas, personagens e conceitos filos√≥ficos/sociol√≥gicos reais e documentados. Nunca invente datas ou autores.',
+    'Neg√≥cios': 'Use apenas conceitos de administra√ß√£o, contabilidade e finan√ßas consolidados. Nunca invente siglas, normas cont√°beis ou √≠ndices econ√¥micos fict√≠cios.',
+    'ENEM': 'Use apenas conte√∫dos da matriz de refer√™ncia oficial do ENEM (INEP). Nunca invente dados fora do curr√≠culo.',
+    'Concursos ‚Äî Mat√©rias Comuns': 'Cite apenas artigos e conceitos existentes. Para Portugu√™s, use apenas regras da norma culta consagradas. Para Matem√°tica, garanta que todos os c√°lculos e respostas estejam corretos.',
   };
-  return areaMap[area] || 'Use apenas conhecimento factÌcio consolidado e verificado. Nunca invente dados, nomes, leis ou conceitos.';
+  return areaMap[area] || 'Use apenas conhecimento fact√≠cio consolidado e verificado. Nunca invente dados, nomes, leis ou conceitos.';
 }
 
-// -- FIX #1: Guarda de tamanho do prompt ó evita estouro silencioso de contexto -
-// Modelos Flash suportam contexto grande, mas prompts > ~28.000 chars comeÁam a
-// degradar a qualidade da resposta. Truncamos o contextInfo e externalBlock se
-// a soma ultrapassar esse limiar.
 function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 28000) {
-  const overhead = systemText.length + 2000; // espaÁo para regras + schema
+  const overhead = systemText.length + 2000;
   const available = maxChars - overhead;
   const combined = contextInfo + externalBlock;
   if (combined.length <= available) return { contextInfo, externalBlock };
-
-  // Tenta preservar contextInfo e truncar apenas o bloco externo
   const spaceForExternal = available - contextInfo.length;
   if (spaceForExternal > 300 && externalBlock.length > 0) {
     return { contextInfo, externalBlock: externalBlock.slice(0, spaceForExternal) + '\n[contexto truncado]' };
   }
-  // Se ainda assim n„o couber, trunca o prÛprio contextInfo
   return {
     contextInfo: contextInfo.slice(0, available - 200),
     externalBlock: '',
@@ -150,8 +129,8 @@ export default {
 
     if (!env.GEMINI_API_KEY) {
       return new Response(JSON.stringify({
-        error: 'ConfiguraÁ„o incompleta',
-        userMessage: 'A chave da API n„o est· configurada no servidor. Configure GEMINI_API_KEY nas vari·veis do Worker.',
+        error: 'Configura√ß√£o incompleta',
+        userMessage: 'A chave da API n√£o est√° configurada no servidor. Configure GEMINI_API_KEY nas vari√°veis do Worker.',
       }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -165,65 +144,58 @@ export default {
         alternativas, idioma, sessionMode,
       } = body;
 
-      // -- Dificuldade ------------------------------------------------------------
       const difficultyMap = {
-        easy:    'f·cil (nÌvel iniciante, conceitos b·sicos)',
-        medium:  'mÈdio (nÌvel intermedi·rio, aplicaÁ„o de conceitos)',
-        hard:    'difÌcil (nÌvel avanÁado, an·lise e interpretaÁ„o)',
-        extreme: 'extremo (nÌvel especialista, questıes de prova real de alto nÌvel)',
+        easy:    'f√°cil (n√≠vel iniciante, conceitos b√°sicos)',
+        medium:  'm√©dio (n√≠vel intermedi√°rio, aplica√ß√£o de conceitos)',
+        hard:    'dif√≠cil (n√≠vel avan√ßado, an√°lise e interpreta√ß√£o)',
+        extreme: 'extremo (n√≠vel especialista, quest√µes de prova real de alto n√≠vel)',
       };
-      const diffLabel = difficultyMap[difficulty] || 'mÈdio';
+      const diffLabel = difficultyMap[difficulty] || 'm√©dio';
 
-      // -- Alternativas ---------------------------------------------------------
       const numAlts = (questionType === 'vf') ? 2 : (parseInt(alternativas) === 4 ? 4 : 5);
       const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
       const typeMap = {
-        mc:  `m˙ltipla escolha com ${numAlts} alternativas (${altKeys})`,
+        mc:  `m√∫ltipla escolha com ${numAlts} alternativas (${altKeys})`,
         vf:  'verdadeiro ou falso (A = Verdadeiro, B = Falso)',
-        mix: `misto ó alternando entre m˙ltipla escolha com ${numAlts} alternativas (${altKeys}) e verdadeiro/falso`,
+        mix: `misto ‚Äî alternando entre m√∫ltipla escolha com ${numAlts} alternativas (${altKeys}) e verdadeiro/falso`,
       };
       const typeLabel = typeMap[questionType] || typeMap.mc;
 
-      // -- Idioma -----------------------------------------------------------------
       const idiomaMap = {
-        'pt-BR': 'portuguÍs do Brasil',
+        'pt-BR': 'portugu√™s do Brasil',
         'en':    'English (American)',
-        'es':    'espaÒol (castellano)',
+        'es':    'espa√±ol (castellano)',
       };
-      const idiomaLabel = idiomaMap[idioma] || 'portuguÍs do Brasil';
+      const idiomaLabel = idiomaMap[idioma] || 'portugu√™s do Brasil';
       const isPortugues = !idioma || idioma === 'pt-BR';
 
-      // -- Modo de sess„o ---------------------------------------------------------
       const sessionMap = {
-        normal:   'Estudo Normal ó questıes did·ticas com foco em aprendizado e fixaÁ„o de conte˙do',
-        concurso: 'Simulado ó questıes no estilo e rigor de prova real, sem dicas pedagÛgicas no enunciado',
-        revisao:  'Revis„o R·pida ó questıes curtas e objetivas para revis„o veloz do conte˙do',
+        normal:   'Estudo Normal ‚Äî quest√µes did√°ticas com foco em aprendizado e fixa√ß√£o de conte√∫do',
+        concurso: 'Simulado ‚Äî quest√µes no estilo e rigor de prova real, sem dicas pedag√≥gicas no enunciado',
+        revisao:  'Revis√£o R√°pida ‚Äî quest√µes curtas e objetivas para revis√£o veloz do conte√∫do',
       };
       const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
 
-      // -- Banca ----------------------------------------------------------------
       const bancaEfetiva = (bancaFoco && bancaFoco !== 'auto') ? bancaFoco : (banca || null);
       const bancaStyleMap = {
-        'CEBRASPE':       'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretaÁ„o. Uma ˙nica palavra muda o sentido.',
-        'CESPE':          'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretaÁ„o.',
-        'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretaÁ„o.',
-        'FCC':            'FCC: enunciados extensos e formais, questıes literais baseadas em lei seca, doutrina e jurisprudÍncia.',
-        'VUNESP':         'VUNESP: linguagem clara e objetiva, foco em aplicaÁ„o pr·tica e casos concretos.',
-        'FGV':            'FGV: enunciados elaborados com casos pr·ticos, questıes interdisciplinares e raciocÌnio aplicado.',
-        'CESGRANRIO':     'CESGRANRIO: questıes tÈcnicas, frequentemente com tabelas, gr·ficos e contexto corporativo.',
-        'IDECAN':         'IDECAN: questıes objetivas, foco em lei e doutrina, linguagem direta.',
-        'IBFC':           'IBFC: questıes pr·ticas e diretas, enunciados claros.',
-        'AOCP':           'AOCP: questıes regionais, foco em conte˙do program·tico especÌfico.',
-        'FEPESE':         'FEPESE: questıes objetivas, usada principalmente em concursos do Sul do Brasil.',
+        'CEBRASPE':       'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpreta√ß√£o.',
+        'CESPE':          'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpreta√ß√£o.',
+        'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpreta√ß√£o.',
+        'FCC':            'FCC: enunciados extensos e formais, quest√µes literais baseadas em lei seca, doutrina e jurisprud√™ncia.',
+        'VUNESP':         'VUNESP: linguagem clara e objetiva, foco em aplica√ß√£o pr√°tica e casos concretos.',
+        'FGV':            'FGV: enunciados elaborados com casos pr√°ticos, quest√µes interdisciplinares e racioc√≠nio aplicado.',
+        'CESGRANRIO':     'CESGRANRIO: quest√µes t√©cnicas, frequentemente com tabelas, gr√°ficos e contexto corporativo.',
+        'IDECAN':         'IDECAN: quest√µes objetivas, foco em lei e doutrina, linguagem direta.',
+        'IBFC':           'IBFC: quest√µes pr√°ticas e diretas, enunciados claros.',
+        'AOCP':           'AOCP: quest√µes regionais, foco em conte√∫do program√°tico espec√≠fico.',
+        'FEPESE':         'FEPESE: quest√µes objetivas, usada principalmente em concursos do Sul do Brasil.',
       };
       const bancaStyle = bancaEfetiva
-        ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo tÌpico dessa banca.`)
+        ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo t√≠pico dessa banca.`)
         : null;
 
-      // -- InstruÁ„o de seguranÁa por ·rea --------------------------------------
       const areaSafetyInstruction = getAreaSafetyInstruction(area, mode);
 
-      // -- Contexto externo (LexML para Direito/Concurso, Wikipedia para demais) -
       let contextInfo = '';
       let externalContext = null;
 
@@ -231,128 +203,65 @@ export default {
         contextInfo = `Concurso: ${concurso}.`;
         if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
         if (editalText?.length > 0) {
-          contextInfo += `\n\nConte˙do program·tico do edital:\n${editalText.slice(0, 3000)}`;
+          contextInfo += `\n\nConte√∫do program√°tico do edital:\n${editalText.slice(0, 3000)}`;
         }
         externalContext = await fetchContext(area, mode, topic, subject, idioma);
       } else if (mode === 'academic') {
-        contextInfo = `¡rea: ${area}. Disciplina: ${subject}.${topic ? ` TÛpico: ${topic}.` : ' (MatÈria completa)'}`;
+        contextInfo = `√Årea: ${area}. Disciplina: ${subject}.${topic ? ` T√≥pico: ${topic}.` : ' (Mat√©ria completa)'}`;
         externalContext = await fetchContext(area, mode, topic, subject, idioma);
       } else if (mode === 'livre' && freeText) {
-        contextInfo = `Material de estudo fornecido pelo usu·rio:\n${freeText.slice(0, 4000)}`;
+        contextInfo = `Material de estudo fornecido pelo usu√°rio:\n${freeText.slice(0, 4000)}`;
       } else {
         const fallback = topic || subject || area || '';
-        contextInfo = `TÛpico: ${fallback || 'Conhecimentos gerais'}.`;
+        contextInfo = `T√≥pico: ${fallback || 'Conhecimentos gerais'}.`;
         if (fallback) externalContext = await fetchContext(area, mode, fallback, subject, idioma);
       }
 
-      // -- Bloco de contexto externo para o prompt -------------------------------
       const contextSourceLabel = externalContext?.source || null;
       const rawExternalBlock = externalContext?.text
-        ? `\n\nContexto verificado (${externalContext.source}) ó use como base factual priorit·ria:\n"""\n${externalContext.text}\n"""`
+        ? `\n\nContexto verificado (${externalContext.source}) ‚Äî use como base factual priorit√°ria:\n"""\n${externalContext.text}\n"""`
         : '';
 
-      // -- InstruÁıes do prompt --------------------------------------------------
       const langInstruction = isPortugues
-        ? 'Escreva todas as questıes, alternativas e explicaÁıes em portuguÍs do Brasil.'
+        ? 'Escreva todas as quest√µes, alternativas e explica√ß√µes em portugu√™s do Brasil.'
         : `Write all questions, options and explanations in ${idiomaLabel}. The entire response must be in ${idiomaLabel}.`;
 
-      // FIX #5: bancaInstruction aparece APENAS no prompt, removida duplicaÁ„o
-      const bancaInstruction = bancaStyle ? `\n\nEstilo de banca obrigatÛrio: ${bancaStyle}` : '';
-      const sessionInstruction = `\nModo de sess„o: ${sessionLabel}.`;
+      const bancaInstruction = bancaStyle ? `\n\nEstilo de banca obrigat√≥rio: ${bancaStyle}` : '';
+      const sessionInstruction = `\nModo de sess√£o: ${sessionLabel}.`;
       const altInstruction = questionType === 'vf'
-        ? 'Para questıes V/F, use apenas 2 opÁıes: A (Verdadeiro) e B (Falso).'
-        : `Gere exatamente ${numAlts} alternativas por quest„o usando as chaves ${altKeys}.`;
+        ? 'Para quest√µes V/F, use apenas 2 op√ß√µes: A (Verdadeiro) e B (Falso).'
+        : `Gere exatamente ${numAlts} alternativas por quest√£o usando as chaves ${altKeys}.`;
 
       const isDireitoOuConcurso = area === 'Direito' || mode === 'concurso';
 
-      // FIX #2: fonte nunca vazia ó instruÁ„o mais especÌfica para modo livre,
-      // com exemplo concreto baseado no prÛprio material fornecido
       const fonteInstruction = isDireitoOuConcurso
-        ? `Para cada quest„o, preencha o campo "fonte" com o artigo de lei, s˙mula ou decreto que fundamenta a quest„o.
-Formato obrigatÛrio: "Art. XX, NomeDaLei/Ano ó Tema" ou "S˙mula NNN, Tribunal ó Tema".
-Exemplos v·lidos: "Art. 37, caput, CF/88 ó PrincÌpios da AdministraÁ„o P˙blica" | "S˙mula 331, TST ó TerceirizaÁ„o" | "Art. 186, CC/2002 ó Ato IlÌcito".
-${contextSourceLabel ? `Fonte consultada: ${contextSourceLabel}.` : ''}
-NUNCA deixe vazio. NUNCA invente n˙mero de artigo ou s˙mula.`
+        ? `Para cada quest√£o, preencha o campo "fonte" com o artigo de lei, s√∫mula ou decreto que fundamenta a quest√£o.\nFormato obrigat√≥rio: "Art. XX, NomeDaLei/Ano ‚Äî Tema" ou "S√∫mula NNN, Tribunal ‚Äî Tema".\nExemplos v√°lidos: "Art. 37, caput, CF/88 ‚Äî Princ√≠pios da Administra√ß√£o P√∫blica" | "S√∫mula 331, TST ‚Äî Terceiriza√ß√£o" | "Art. 186, CC/2002 ‚Äî Ato Il√≠cito".\n${contextSourceLabel ? `Fonte consultada: ${contextSourceLabel}.` : ''}\nNUNCA deixe vazio. NUNCA invente n√∫mero de artigo ou s√∫mula.`
         : mode === 'academic'
-        ? 'Para cada quest„o, preencha o campo "fonte" com o conceito, teoria, lei ou autor de referÍncia (ex: "Teoria de Piaget ó Desenvolvimento Cognitivo", "Lei de Ohm ó FÌsica"). Nunca deixe vazio.'
-        : `Para cada quest„o, preencha o campo "fonte" com o trecho ou conceito do material fornecido que embasou a quest„o.
-Formato: "Material do usu·rio ó [tema ou conceito central da quest„o]".
-Exemplo: "Material do usu·rio ó Ciclo de Krebs" ou "Material do usu·rio ó CapÌtulo 3: Contratos".
-NUNCA deixe o campo "fonte" vazio ou com string em branco.`;
+        ? 'Para cada quest√£o, preencha o campo "fonte" com o conceito, teoria, lei ou autor de refer√™ncia (ex: "Teoria de Piaget ‚Äî Desenvolvimento Cognitivo", "Lei de Ohm ‚Äî F√≠sica"). Nunca deixe vazio.'
+        : `Para cada quest√£o, preencha o campo "fonte" com o trecho ou conceito do material fornecido que embasou a quest√£o.\nFormato: "Material do usu√°rio ‚Äî [tema ou conceito central da quest√£o]".\nNUNCA deixe o campo "fonte" vazio ou com string em branco.`;
 
       const exampleOptions = numAlts === 4
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
         : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
 
-      // -- SYSTEM INSTRUCTION ----------------------------------------------------
-      const systemText = `VocÍ È um examinador acadÍmico rigoroso especializado em concursos p˙blicos e ensino superior brasileiro.
-Retorne APENAS JSON v·lido com a chave "questions".
-${isPortugues ? 'Responda em portuguÍs do Brasil.' : `Respond entirely in ${idiomaLabel}.`}
+      const systemText = `Voc√™ √© um examinador acad√™mico rigoroso especializado em concursos p√∫blicos e ensino superior brasileiro.\nRetorne APENAS JSON v√°lido com a chave "questions".\n${isPortugues ? 'Responda em portugu√™s do Brasil.' : `Respond entirely in ${idiomaLabel}.`}\n\nPRINC√çPIOS INEGOCI√ÅVEIS:\n- Use APENAS conhecimento fact√≠cio consolidado e verificado.\n- NUNCA invente leis, artigos, n√∫meros, nomes de medicamentos, comandos de TI, f√≥rmulas ou qualquer dado.\n- Em caso de d√∫vida sobre um detalhe espec√≠fico, elabore a quest√£o em torno do conceito geral sem o detalhe duvidoso.\n- Cada gabarito deve ser inquestion√°vel e defens√°vel tecnicamente perante qualquer banca examinadora.\n- O campo "fonte" de CADA quest√£o deve ser preenchido ‚Äî NUNCA retorne "fonte": "" ou "fonte": null.\n- ${areaSafetyInstruction}`;
 
-PRINCÕPIOS INEGOCI¡VEIS:
-- Use APENAS conhecimento factÌcio consolidado e verificado.
-- NUNCA invente leis, artigos, n˙meros, nomes de medicamentos, comandos de TI, fÛrmulas ou qualquer dado.
-- Em caso de d˙vida sobre um detalhe especÌfico, elabore a quest„o em torno do conceito geral sem o detalhe duvidoso.
-- Cada gabarito deve ser inquestion·vel e defens·vel tecnicamente perante qualquer banca examinadora.
-- O campo "fonte" de CADA quest„o deve ser preenchido ó NUNCA retorne "fonte": "" ou "fonte": null.
-- ${areaSafetyInstruction}`;
-
-      // FIX #1: Guarda de tamanho ó aplica apÛs construir systemText
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(
         contextInfo,
         rawExternalBlock,
         systemText,
       );
 
-      const prompt = `VocÍ È um professor especialista em concursos p˙blicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
+      const prompt = `Voc√™ √© um professor especialista em concursos p√∫blicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} quest√µes de ${typeLabel} sobre:\n${safeContextInfo}${externalBlock}\n\nN√≠vel de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da quest√£o.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explica√ß√£o did√°tica do gabarito.",\n      "fonte": "Base legal ou conceitual verificada ‚Äî nunca deixe vazio (ex: Art. 5¬∫, CF/88)"\n    }\n  ]\n}\n\nRegras obrigat√≥rias:\n1. ${altInstruction}\n2. Quest√µes tecnicamente corretas e sem ambiguidades.\n3. Explica√ß√µes did√°ticas e claras.\n4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} ‚Äî sem repetir a mesma letra mais de 2 vezes seguidas.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. Nenhum texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos, nomes ou dados que n√£o existem na realidade.\n9. Se n√£o tiver certeza absoluta sobre um dado espec√≠fico, elabore a quest√£o sem citar esse dado.\n10. Regra de seguran√ßa por √°rea: ${areaSafetyInstruction}`;
 
-Gere exatamente ${quantity} questıes de ${typeLabel} sobre:
-${safeContextInfo}${externalBlock}
-
-NÌvel de dificuldade: ${diffLabel}.
-
-Retorne APENAS um objeto JSON com a chave "questions":
-{
-  "questions": [
-    {
-      "id": 1,
-      "statement": "Enunciado completo da quest„o.",
-      "options": [
-${exampleOptions}
-      ],
-      "correctAnswer": "A",
-      "explanation": "ExplicaÁ„o did·tica do gabarito.",
-      "fonte": "Base legal ou conceitual verificada ó nunca deixe vazio (ex: Art. 5∫, CF/88)"
-    }
-  ]
-}
-
-Regras obrigatÛrias:
-1. ${altInstruction}
-2. Questıes tecnicamente corretas e sem ambiguidades.
-3. ExplicaÁıes did·ticas e claras.
-4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} ó sem repetir a mesma letra mais de 2 vezes seguidas.
-5. ${langInstruction}
-6. ${fonteInstruction}
-7. Nenhum texto fora do JSON.
-8. NUNCA invente leis, artigos, conceitos, nomes ou dados que n„o existem na realidade.
-9. Se n„o tiver certeza absoluta sobre um dado especÌfico, elabore a quest„o sem citar esse dado.
-10. Regra de seguranÁa por ·rea: ${areaSafetyInstruction}`;
-
-      // -- Chamada Gemini --------------------------------------------------------
-      // gemini-2.0-* est· deprecado (substituiÁ„o oficial: gemini-1.5-flash).
-      const geminiModel = 'gemini-2.5-flash';
+      // CORRE√á√ÉO PRINCIPAL: gemini-1.5-flash ‚Äî est√°vel, sem thinking, sem conflito com responseMimeType
+      const geminiModel = 'gemini-1.5-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
 
-      // FIX #3: temperatura calibrada por modo de sess„o
-      // concurso/simulado ? 0.30 (m·ximo rigor)
-      // revisao ? 0.25 (questıes curtas e objetivas, menos variaÁ„o)
-      // normal ? 0.40
       const temperature = sessionMode === 'concurso' ? 0.30
         : sessionMode === 'revisao' ? 0.25
         : 0.40;
 
-      // FIX #4: retry autom·tico em caso de 429 (rate limit)
       async function callGemini() {
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
@@ -376,7 +285,6 @@ Regras obrigatÛrias:
 
       let geminiResponse = await callGemini();
 
-      // Retry ˙nico apÛs 1.5s se rate-limited
       if (geminiResponse.status === 429) {
         await new Promise((r) => setTimeout(r, 1500));
         geminiResponse = await callGemini();
@@ -386,8 +294,8 @@ Regras obrigatÛrias:
         const err = await geminiResponse.text();
         let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
         if (geminiResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
-        else if (geminiResponse.status === 400) userMessage = 'RequisiÁ„o inv·lida. Verifique as configuraÁıes e tente novamente.';
-        else if (geminiResponse.status === 401 || geminiResponse.status === 403) userMessage = 'Chave da API inv·lida. Verifique o GEMINI_API_KEY nas configuraÁıes do Worker.';
+        else if (geminiResponse.status === 400) userMessage = 'Requisi√ß√£o inv√°lida. Verifique as configura√ß√µes e tente novamente.';
+        else if (geminiResponse.status === 401 || geminiResponse.status === 403) userMessage = 'Chave da API inv√°lida. Verifique o GEMINI_API_KEY nas configura√ß√µes do Worker.';
         return new Response(JSON.stringify({ error: 'Gemini API error', details: err, userMessage }), {
           status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -396,37 +304,51 @@ Regras obrigatÛrias:
 
       const geminiData = await geminiResponse.json();
 
-      // Modelos com raciocÌnio podem colocar o pensamento em parts[0] e o JSON em parts[1+].
-      // SÛ ler parts[0] quebra a geraÁ„o (parse falha ou objeto vazio).
+      // Extra√ß√£o robusta: gemini-1.5-flash n√£o usa thinking,
+      // mas mantemos fallback para qualquer varia√ß√£o de formato
       function extractJsonTextFromGeminiData(data) {
         const c0 = data?.candidates?.[0];
-        if (c0?.finishReason === 'SAFETY' || c0?.finishReason === 'BLOCKLIST') {
-          return null;
-        }
+        if (c0?.finishReason === 'SAFETY' || c0?.finishReason === 'BLOCKLIST') return null;
+
         const parts = c0?.content?.parts;
         if (!Array.isArray(parts) || parts.length === 0) {
           return data?.promptFeedback?.blockReason ? null : '';
         }
-        const withText = parts.filter((p) => p && typeof p.text === 'string' && p.text.trim());
-        const nonThought = withText.filter((p) => !p.thought);
-        const ordered = nonThought.length ? nonThought : withText;
-        for (let i = ordered.length - 1; i >= 0; i--) {
-          const t = String(ordered[i].text).trim();
-          if (t.startsWith('{') || t.startsWith('[')) return t;
+
+        // Coleta todos os parts com texto, ignora thoughts
+        const textParts = parts
+          .filter((p) => p && typeof p.text === 'string' && p.text.trim() && !p.thought)
+          .map((p) => p.text.trim());
+
+        if (textParts.length === 0) {
+          // fallback: inclui thoughts se n√£o houver mais nada
+          const all = parts.filter((p) => p && typeof p.text === 'string' && p.text.trim());
+          if (all.length === 0) return '';
+          textParts.push(...all.map((p) => p.text.trim()));
         }
-        return String(ordered[ordered.length - 1]?.text || '').trim();
+
+        // Procura o part que cont√©m JSON v√°lido com a chave "questions"
+        for (let i = textParts.length - 1; i >= 0; i--) {
+          const t = textParts[i];
+          if (t.includes('"questions"') || t.startsWith('{') || t.startsWith('[')) return t;
+        }
+
+        // Concatena tudo como √∫ltimo recurso
+        return textParts.join('');
       }
 
       let rawText = extractJsonTextFromGeminiData(geminiData);
+
       if (rawText === null) {
         return new Response(JSON.stringify({
-          error: 'Conte˙do bloqueado',
-          userMessage: 'A IA n„o pÙde gerar questıes para este pedido (filtro de seguranÁa). Tente reformular o tema ou reduzir trechos sensÌveis.',
+          error: 'Conte√∫do bloqueado',
+          userMessage: 'A IA n√£o p√¥de gerar quest√µes para este pedido (filtro de seguran√ßa). Tente reformular o tema ou reduzir trechos sens√≠veis.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
+
       if (!rawText) rawText = '{}';
 
-      // Alguns modelos ainda envolvem o JSON em ```json ... ``` apesar do MIME type
+      // Remove markdown code fences se presentes
       function stripJsonFence(s) {
         let t = String(s || '').trim();
         if (t.startsWith('```')) {
@@ -436,19 +358,20 @@ Regras obrigatÛrias:
       }
       rawText = stripJsonFence(rawText);
 
-      // FIX #5: remove fallback regex fr·gil ó responseMimeType:'application/json'
-      // garante JSON v·lido; extractQuestions cobre array direto sem chave wrapper
       let questions = [];
       try {
         const parsed = JSON.parse(rawText);
         questions = extractQuestions(parsed);
       } catch {
-        const match = rawText.match(/\[[\s\S]*\]/);
-        if (match) {
-          try {
-            questions = extractQuestions(JSON.parse(match[0]));
-          } catch {
-            questions = [];
+        // Fallback: tenta extrair array JSON do texto bruto
+        const matchObj = rawText.match(/\{[\s\S]*\}/);
+        if (matchObj) {
+          try { questions = extractQuestions(JSON.parse(matchObj[0])); } catch { /* continua */ }
+        }
+        if (questions.length === 0) {
+          const matchArr = rawText.match(/\[[\s\S]*\]/);
+          if (matchArr) {
+            try { questions = extractQuestions(JSON.parse(matchArr[0])); } catch { /* continua */ }
           }
         }
       }
@@ -457,7 +380,7 @@ Regras obrigatÛrias:
         return new Response(JSON.stringify({
           error: 'Resposta vazia',
           rawText,
-          userMessage: 'A IA n„o conseguiu gerar questıes para esse conte˙do. Tente ajustar o tÛpico ou o nÌvel de dificuldade.',
+          userMessage: 'A IA n√£o conseguiu gerar quest√µes para esse conte√∫do. Tente ajustar o t√≥pico ou o n√≠vel de dificuldade.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
@@ -477,9 +400,3 @@ Regras obrigatÛrias:
     }
   },
 };
-
-
-
-
-
-
