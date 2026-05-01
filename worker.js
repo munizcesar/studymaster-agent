@@ -20,7 +20,6 @@ function extractQuestions(parsed) {
   return [];
 }
 
-// -- Wikipedia — fallback geral ------------------------------------------------
 async function fetchWikipediaContext(query, lang = 'pt') {
   try {
     const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
@@ -37,7 +36,6 @@ async function fetchWikipediaContext(query, lang = 'pt') {
   }
 }
 
-// -- LexML — Vade Mêcum Digital (Senado Federal) -------------------------------
 async function fetchLexML(query) {
   try {
     const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei Código Constituição Medida-Provisória"`;
@@ -64,7 +62,6 @@ async function fetchLexML(query) {
   }
 }
 
-// -- Contexto combinado por área -----------------------------------------------
 async function fetchContext(area, mode, topic, subject, idioma) {
   const isPortugues = !idioma || idioma === 'pt-BR';
   const isDireito = area === 'Direito' || mode === 'concurso';
@@ -81,7 +78,6 @@ async function fetchContext(area, mode, topic, subject, idioma) {
   return null;
 }
 
-// -- Instruções anti-alucinação por área --------------------------------------
 function getAreaSafetyInstruction(area, mode) {
   if (mode === 'concurso' || area === 'Direito') {
     return `PROTOCOLO VADE MÊCUM ATIVO:\n• Use APENAS artigos, incisos e parágrafos confirmados no contexto legislativo fornecido (LexML/Senado Federal).\n• Diplomas válidos: CF/88 (até EC 136/2023), CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).\n• Súmulas: cite SOMENTE com número e tribunal confirmados (STF, STJ, TST).\n• Se NÃO tiver certeza absoluta do número do artigo — use o PRINCÍPIO JURÍDICO sem citar o número.\n• Temas doutrinários divergentes — baseie-se em texto de lei, nunca em posição doutrinária.\n• NUNCA invente: artigos fictícios, súmulas com números errados, leis inexistentes, ementas fabricadas.\n• Gabarito deve ser defensável perante banca real de concurso.`;
@@ -254,7 +250,6 @@ export default {
 
       const prompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${safeContextInfo}${externalBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual verificada — nunca deixe vazio (ex: Art. 5º, CF/88)"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} — sem repetir a mesma letra mais de 2 vezes seguidas.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. Nenhum texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos, nomes ou dados que não existem na realidade.\n9. Se não tiver certeza absoluta sobre um dado específico, elabore a questão sem citar esse dado.\n10. Regra de segurança por área: ${areaSafetyInstruction}`;
 
-      // CORREÇÃO PRINCIPAL: gemini-1.5-flash — estável, sem thinking, sem conflito com responseMimeType
       const geminiModel = 'gemini-1.5-flash';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
 
@@ -262,38 +257,51 @@ export default {
         : sessionMode === 'revisao' ? 0.25
         : 0.40;
 
-      async function callGemini() {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              systemInstruction: { parts: [{ text: systemText }] },
-              generationConfig: {
-                temperature,
-                maxOutputTokens: maxTokens,
-                topP: 0.9,
-                responseMimeType: 'application/json',
-              },
-            }),
+      // Retry com exponential backoff para 429 (rate limit) e 503 (UNAVAILABLE/alta demanda)
+      // Tentativas: imediata → 2s → 4s → desiste
+      async function callGeminiWithRetry() {
+        const retryDelays = [0, 2000, 4000];
+        let lastResponse = null;
+
+        for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+          if (retryDelays[attempt] > 0) {
+            await new Promise((r) => setTimeout(r, retryDelays[attempt]));
           }
-        );
-        return res;
+
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${env.GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemText }] },
+                generationConfig: {
+                  temperature,
+                  maxOutputTokens: maxTokens,
+                  topP: 0.9,
+                  responseMimeType: 'application/json',
+                },
+              }),
+            }
+          );
+
+          lastResponse = res;
+
+          // Sucesso ou erro não-retriável — para aqui
+          if (res.ok || (res.status !== 429 && res.status !== 503)) break;
+        }
+
+        return lastResponse;
       }
 
-      let geminiResponse = await callGemini();
-
-      if (geminiResponse.status === 429) {
-        await new Promise((r) => setTimeout(r, 1500));
-        geminiResponse = await callGemini();
-      }
+      const geminiResponse = await callGeminiWithRetry();
 
       if (!geminiResponse.ok) {
         const err = await geminiResponse.text();
         let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
         if (geminiResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
+        else if (geminiResponse.status === 503) userMessage = 'A IA está com alta demanda no momento. Tente novamente em alguns segundos.';
         else if (geminiResponse.status === 400) userMessage = 'Requisição inválida. Verifique as configurações e tente novamente.';
         else if (geminiResponse.status === 401 || geminiResponse.status === 403) userMessage = 'Chave da API inválida. Verifique o GEMINI_API_KEY nas configurações do Worker.';
         return new Response(JSON.stringify({ error: 'Gemini API error', details: err, userMessage }), {
@@ -304,36 +312,25 @@ export default {
 
       const geminiData = await geminiResponse.json();
 
-      // Extração robusta: gemini-1.5-flash não usa thinking,
-      // mas mantemos fallback para qualquer variação de formato
       function extractJsonTextFromGeminiData(data) {
         const c0 = data?.candidates?.[0];
         if (c0?.finishReason === 'SAFETY' || c0?.finishReason === 'BLOCKLIST') return null;
-
         const parts = c0?.content?.parts;
         if (!Array.isArray(parts) || parts.length === 0) {
           return data?.promptFeedback?.blockReason ? null : '';
         }
-
-        // Coleta todos os parts com texto, ignora thoughts
         const textParts = parts
           .filter((p) => p && typeof p.text === 'string' && p.text.trim() && !p.thought)
           .map((p) => p.text.trim());
-
         if (textParts.length === 0) {
-          // fallback: inclui thoughts se não houver mais nada
           const all = parts.filter((p) => p && typeof p.text === 'string' && p.text.trim());
           if (all.length === 0) return '';
           textParts.push(...all.map((p) => p.text.trim()));
         }
-
-        // Procura o part que contém JSON válido com a chave "questions"
         for (let i = textParts.length - 1; i >= 0; i--) {
           const t = textParts[i];
           if (t.includes('"questions"') || t.startsWith('{') || t.startsWith('[')) return t;
         }
-
-        // Concatena tudo como último recurso
         return textParts.join('');
       }
 
@@ -348,7 +345,6 @@ export default {
 
       if (!rawText) rawText = '{}';
 
-      // Remove markdown code fences se presentes
       function stripJsonFence(s) {
         let t = String(s || '').trim();
         if (t.startsWith('```')) {
@@ -363,7 +359,6 @@ export default {
         const parsed = JSON.parse(rawText);
         questions = extractQuestions(parsed);
       } catch {
-        // Fallback: tenta extrair array JSON do texto bruto
         const matchObj = rawText.match(/\{[\s\S]*\}/);
         if (matchObj) {
           try { questions = extractQuestions(JSON.parse(matchObj[0])); } catch { /* continua */ }
