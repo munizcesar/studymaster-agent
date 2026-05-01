@@ -45,12 +45,10 @@
   },
   {
     "lei": "Lei 8.429/92",
-    "status": "erro",
-    "erro": "Falha ao baixar https://www.planalto.gov.br/ccivil_03/leis/l8429compilado.htm após 3 tentativas"
+    "status": "ok"
   },
   {
     "lei": "Lei 8.666/93",
-    "status": "erro",
-    "erro": "Falha ao baixar https://www.planalto.gov.br/ccivil_03/leis/l8666compilado.htm após 3 tentativas"
+    "status": "ok"
   }
 ]
