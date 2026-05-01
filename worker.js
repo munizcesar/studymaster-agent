@@ -1,6 +1,7 @@
-// StudyMaster AI Worker — Cloudflare Worker + Groq API
+// StudyMaster AI Worker — Cloudflare Worker + Groq API + Vectorize RAG
 // Deploy: wrangler deploy
 // Env var necessária: GROQ_API_KEY
+// Bindings necessários: AI (Cloudflare AI), KNOWLEDGE_INDEX (Vectorize)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,50 +16,76 @@ const GROQ_MODELS = [
   'llama-3.1-70b-versatile',
 ];
 
-function extractQuestions(parsed) {
-  if (Array.isArray(parsed)) return parsed;
-  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) return parsed.questions;
-  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.data)) return parsed.data;
-  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.result)) return parsed.result;
-  for (const key of Object.keys(parsed || {})) {
-    if (Array.isArray(parsed[key])) return parsed[key];
-  }
-  return [];
+// Mapeamento de área do StudyMaster para área no Vectorize
+const AREA_MAP_VECTORIZE = {
+  'Direito': null,          // null = busca em todas as subáreas jurídicas
+  'constitucional': 'constitucional',
+  'civil': 'civil',
+  'penal': 'penal',
+  'trabalhista': 'trabalhista',
+  'administrativo': 'administrativo',
+  'tributario': 'tributario',
+};
+
+// Detecta subárea jurídica pelo tópico/disciplina informado pelo usuário
+function detectarSubareaJuridica(topic, subject) {
+  const texto = `${topic || ''} ${subject || ''}`.toLowerCase();
+  if (/constitui|cf.?88|mandado|habeas|direito fundamental|controle de constitucional/i.test(texto)) return 'constitucional';
+  if (/penal|crime|delito|pena|prescrição penal|cpp|processo penal|tipicidade|culpabilidade/i.test(texto)) return 'penal';
+  if (/trabalhista|clt|empregado|empregador|rescisão|fgts|aviso prévio|jornada|salário/i.test(texto)) return 'trabalhista';
+  if (/administrativo|improbidade|licitação|concurso público|servidor|lei 8\.112|lei 9\.784|lei 14\.133|lei 8\.666/i.test(texto)) return 'administrativo';
+  if (/tribut|imposto|taxa|contribuição|ctn|icms|iss|ir|iptu|itbi|decadência fiscal|prescrição tributária/i.test(texto)) return 'tributario';
+  if (/civil|cc.?2002|contrato|responsabilidade civil|prescrição civil|família|herança|posse|propriedade|cpc/i.test(texto)) return 'civil';
+  return null; // busca sem filtro de área
 }
 
-// Valida e descarta questões incompletas silenciosamente
-function validateQuestions(questions) {
-  return questions.filter((q) => {
-    if (!q || typeof q !== 'object') return false;
-    if (!q.statement || typeof q.statement !== 'string' || q.statement.trim().length < 10) return false;
-    if (!Array.isArray(q.options) || q.options.length < 2) return false;
-    if (!q.correctAnswer || typeof q.correctAnswer !== 'string') return false;
-    const validKeys = q.options.map((o) => o?.key).filter(Boolean);
-    if (!validKeys.includes(q.correctAnswer)) return false;
-    // Garante campo fonte preenchido
-    if (!q.fonte || String(q.fonte).trim().length === 0) {
-      q.fonte = 'Conhecimento acadêmico consolidado';
-    }
-    return true;
-  });
-}
+// ─── RAG: busca vetorial no Vade Mecum ──────────────────────────────────────
+async function fetchVademecumRAG(query, subarea, env) {
+  // Retorna null silenciosamente se os bindings não estiverem disponíveis
+  if (!env.AI || !env.KNOWLEDGE_INDEX) return null;
 
-async function fetchWikipediaContext(query, lang = 'pt') {
   try {
-    const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
-    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
-      signal: AbortSignal.timeout(4000),
+    // 1. Gera embedding da query via Cloudflare AI (BGE-M3)
+    const embeddingRes = await env.AI.run('@cf/baai/bge-m3', {
+      text: [query.slice(0, 512)],
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.extract ? data.extract.slice(0, 1500) : null;
+    const vector = embeddingRes?.data?.[0];
+    if (!vector || !Array.isArray(vector)) return null;
+
+    // 2. Busca os chunks mais relevantes no Vectorize
+    const queryOptions = {
+      topK: 8,
+      returnMetadata: 'all',
+    };
+    // Filtra por subárea se detectada
+    if (subarea) {
+      queryOptions.filter = { area: { $eq: subarea } };
+    }
+
+    const results = await env.KNOWLEDGE_INDEX.query(vector, queryOptions);
+    if (!results?.matches?.length) return null;
+
+    // 3. Filtra por score de relevância e monta contexto
+    const artigosRelevantes = results.matches
+      .filter((m) => m.score >= 0.70)
+      .slice(0, 8)
+      .map((m) => m.metadata?.text || '')
+      .filter(Boolean);
+
+    if (artigosRelevantes.length === 0) return null;
+
+    const contexto = artigosRelevantes.join('\n\n');
+    return {
+      text: contexto,
+      source: 'Vade Mecum Digital — Planalto.gov.br (Vectorize RAG)',
+      artigos: artigosRelevantes.length,
+    };
   } catch {
     return null;
   }
 }
 
+// ─── Fallback: LexML (mantido para quando RAG não estiver disponível) ────────
 async function fetchLexML(query) {
   try {
     const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei Código Constituição Medida-Provisória"`;
@@ -85,20 +112,71 @@ async function fetchLexML(query) {
   }
 }
 
-async function fetchContext(area, mode, topic, subject, idioma) {
+async function fetchWikipediaContext(query, lang = 'pt') {
+  try {
+    const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.extract ? data.extract.slice(0, 1500) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchContext(area, mode, topic, subject, idioma, env) {
   const isPortugues = !idioma || idioma === 'pt-BR';
   const isDireito = area === 'Direito' || mode === 'concurso';
   const query = topic || subject || area || '';
+
   if (isDireito && query) {
+    // 1ª tentativa: RAG vetorial (Vade Mecum completo)
+    const subarea = detectarSubareaJuridica(topic, subject);
+    const rag = await fetchVademecumRAG(query, subarea, env);
+    if (rag) return { text: rag.text, source: rag.source };
+
+    // 2ª tentativa: LexML (fallback)
     const lexml = await fetchLexML(query);
     if (lexml) return { text: lexml, source: 'LexML/Senado Federal (Vade Mêcum Digital)' };
   }
+
   if (query) {
     const lang = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
     const wiki = await fetchWikipediaContext(query, lang);
     if (wiki) return { text: wiki, source: 'Wikipedia' };
   }
+
   return null;
+}
+
+function extractQuestions(parsed) {
+  if (Array.isArray(parsed)) return parsed;
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) return parsed.questions;
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.data)) return parsed.data;
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.result)) return parsed.result;
+  for (const key of Object.keys(parsed || {})) {
+    if (Array.isArray(parsed[key])) return parsed[key];
+  }
+  return [];
+}
+
+function validateQuestions(questions) {
+  return questions.filter((q) => {
+    if (!q || typeof q !== 'object') return false;
+    if (!q.statement || typeof q.statement !== 'string' || q.statement.trim().length < 10) return false;
+    if (!Array.isArray(q.options) || q.options.length < 2) return false;
+    if (!q.correctAnswer || typeof q.correctAnswer !== 'string') return false;
+    const validKeys = q.options.map((o) => o?.key).filter(Boolean);
+    if (!validKeys.includes(q.correctAnswer)) return false;
+    if (!q.fonte || String(q.fonte).trim().length === 0) {
+      q.fonte = 'Conhecimento acadêmico consolidado';
+    }
+    return true;
+  });
 }
 
 function getAreaSafetyInstruction(area, mode) {
@@ -222,21 +300,27 @@ export default {
         contextInfo = `Concurso: ${concurso}.`;
         if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
         if (editalText?.length > 0) contextInfo += `\n\nConteúdo programático do edital:\n${editalText.slice(0, 3000)}`;
-        externalContext = await fetchContext(area, mode, topic, subject, idioma);
+        externalContext = await fetchContext(area, mode, topic, subject, idioma, env);
       } else if (mode === 'academic') {
         contextInfo = `Área: ${area}. Disciplina: ${subject}.${topic ? ` Tópico: ${topic}.` : ' (Matéria completa)'}`;
-        externalContext = await fetchContext(area, mode, topic, subject, idioma);
+        externalContext = await fetchContext(area, mode, topic, subject, idioma, env);
       } else if (mode === 'livre' && freeText) {
         contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 4000)}`;
       } else {
         const fallback = topic || subject || area || '';
         contextInfo = `Tópico: ${fallback || 'Conhecimentos gerais'}.`;
-        if (fallback) externalContext = await fetchContext(area, mode, fallback, subject, idioma);
+        if (fallback) externalContext = await fetchContext(area, mode, fallback, subject, idioma, env);
       }
 
       const contextSourceLabel = externalContext?.source || null;
+      const isRAG = contextSourceLabel?.includes('Vectorize') || false;
+
       const rawExternalBlock = externalContext?.text
-        ? `\n\nContexto verificado (${externalContext.source}) — use como base factual prioritária:\n"""\n${externalContext.text}\n"""`
+        ? isRAG
+          // RAG: instrução de prioridade absoluta
+          ? `\n\nVADE MECUM VERIFICADO — PRIORIDADE ABSOLUTA (Fonte: ${externalContext.source}):\nOs artigos abaixo foram extraídos diretamente da legislação oficial (Planalto.gov.br) via busca semântica.\nEles SUBSTITUEM qualquer conhecimento interno que você tenha sobre o tema.\nUse-os LITERALMENTE. Não altere números, prazos, incisos ou redações.\n\n"""\n${externalContext.text}\n"""\n\nFIM DO VADE MECUM — use apenas os artigos acima para fundamentar o gabarito.`
+          // Fallback LexML/Wikipedia
+          : `\n\nContexto verificado (${externalContext.source}) — use como base factual prioritária:\n"""\n${externalContext.text}\n"""`
         : '';
 
       const langInstruction = isPortugues
@@ -269,7 +353,6 @@ export default {
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
       const temperature = sessionMode === 'concurso' ? 0.30 : sessionMode === 'revisao' ? 0.25 : 0.40;
 
-      // Tenta cada modelo em ordem. Se 429/503, retry com backoff e depois tenta o próximo modelo.
       async function callGroqWithFallback() {
         const delays = [0, 2000, 4000];
         let lastRes = null;
@@ -294,14 +377,10 @@ export default {
                 response_format: { type: 'json_object' },
               }),
             });
-            // Sucesso ou erro não-retriável neste modelo — para o loop de delays
             if (lastRes.ok || (lastRes.status !== 429 && lastRes.status !== 503)) break;
           }
-          // Se foi bem-sucedido, retorna imediatamente
           if (lastRes.ok) return lastRes;
-          // Se 401/403/400, não adianta tentar outro modelo
           if (lastRes.status === 401 || lastRes.status === 403 || lastRes.status === 400) return lastRes;
-          // 429/503: tenta próximo modelo da lista
         }
         return lastRes;
       }
@@ -340,7 +419,6 @@ export default {
         }
       }
 
-      // Valida e descarta questões malformadas
       questions = validateQuestions(questions);
 
       if (questions.length === 0) {
