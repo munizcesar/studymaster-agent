@@ -1,6 +1,6 @@
 // StudyMaster AI Worker — Cloudflare Worker + Groq API
 // Deploy: wrangler deploy
-// Env vars necessárias: GROQ_API_KEY
+// Env var necessária: GROQ_API_KEY
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,6 +8,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Max-Age': '86400',
 };
+
+// Modelos em ordem de preferência — fallback automático se o primeiro atingir limite
+const GROQ_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-70b-versatile',
+];
 
 function extractQuestions(parsed) {
   if (Array.isArray(parsed)) return parsed;
@@ -18,6 +24,23 @@ function extractQuestions(parsed) {
     if (Array.isArray(parsed[key])) return parsed[key];
   }
   return [];
+}
+
+// Valida e descarta questões incompletas silenciosamente
+function validateQuestions(questions) {
+  return questions.filter((q) => {
+    if (!q || typeof q !== 'object') return false;
+    if (!q.statement || typeof q.statement !== 'string' || q.statement.trim().length < 10) return false;
+    if (!Array.isArray(q.options) || q.options.length < 2) return false;
+    if (!q.correctAnswer || typeof q.correctAnswer !== 'string') return false;
+    const validKeys = q.options.map((o) => o?.key).filter(Boolean);
+    if (!validKeys.includes(q.correctAnswer)) return false;
+    // Garante campo fonte preenchido
+    if (!q.fonte || String(q.fonte).trim().length === 0) {
+      q.fonte = 'Conhecimento acadêmico consolidado';
+    }
+    return true;
+  });
 }
 
 async function fetchWikipediaContext(query, lang = 'pt') {
@@ -107,16 +130,12 @@ function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 2400
   return { contextInfo: contextInfo.slice(0, available - 200), externalBlock: '' };
 }
 
-// Extrai JSON do texto da resposta Groq
 function extractJsonFromText(text) {
   let t = String(text || '').trim();
-  // Remove markdown fences
   if (t.startsWith('```')) {
     t = t.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
   }
-  // Já é JSON válido
   if (t.startsWith('{') || t.startsWith('[')) return t;
-  // Tenta extrair objeto JSON do meio do texto
   const matchObj = t.match(/\{[\s\S]*\}/);
   if (matchObj) return matchObj[0];
   const matchArr = t.match(/\[[\s\S]*\]/);
@@ -247,46 +266,53 @@ export default {
 
       const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${safeContextInfo}${externalBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual verificada"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} — sem repetir a mesma letra mais de 2 vezes seguidas.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. NENHUM texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos ou dados que não existem.\n9. Regra de segurança por área: ${areaSafetyInstruction}`;
 
-      // Groq API — llama-3.3-70b-versatile: rápido, estável, excelente qualidade
-      const groqModel = 'llama-3.3-70b-versatile';
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
       const temperature = sessionMode === 'concurso' ? 0.30 : sessionMode === 'revisao' ? 0.25 : 0.40;
 
-      // Retry com exponential backoff para 429 e 503
-      async function callGroqWithRetry() {
+      // Tenta cada modelo em ordem. Se 429/503, retry com backoff e depois tenta o próximo modelo.
+      async function callGroqWithFallback() {
         const delays = [0, 2000, 4000];
         let lastRes = null;
-        for (let i = 0; i < delays.length; i++) {
-          if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
-          lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${env.GROQ_API_KEY}`,
-            },
-            body: JSON.stringify({
-              model: groqModel,
-              messages: [
-                { role: 'system', content: systemText },
-                { role: 'user',   content: userPrompt },
-              ],
-              temperature,
-              max_tokens: maxTokens,
-              response_format: { type: 'json_object' },
-            }),
-          });
-          if (lastRes.ok || (lastRes.status !== 429 && lastRes.status !== 503)) break;
+
+        for (const model of GROQ_MODELS) {
+          for (let i = 0; i < delays.length; i++) {
+            if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
+            lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model,
+                messages: [
+                  { role: 'system', content: systemText },
+                  { role: 'user',   content: userPrompt },
+                ],
+                temperature,
+                max_tokens: maxTokens,
+                response_format: { type: 'json_object' },
+              }),
+            });
+            // Sucesso ou erro não-retriável neste modelo — para o loop de delays
+            if (lastRes.ok || (lastRes.status !== 429 && lastRes.status !== 503)) break;
+          }
+          // Se foi bem-sucedido, retorna imediatamente
+          if (lastRes.ok) return lastRes;
+          // Se 401/403/400, não adianta tentar outro modelo
+          if (lastRes.status === 401 || lastRes.status === 403 || lastRes.status === 400) return lastRes;
+          // 429/503: tenta próximo modelo da lista
         }
         return lastRes;
       }
 
-      const groqResponse = await callGroqWithRetry();
+      const groqResponse = await callGroqWithFallback();
 
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
         let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
         if (groqResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
-        else if (groqResponse.status === 503) userMessage = 'A IA está com alta demanda no momento. Tente novamente em segundos.';
+        else if (groqResponse.status === 503) userMessage = 'A IA está com alta demanda. Tente novamente em segundos.';
         else if (groqResponse.status === 401 || groqResponse.status === 403) userMessage = 'Chave da API inválida. Verifique GROQ_API_KEY nas configurações do Worker.';
         return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
           status: 502,
@@ -314,11 +340,14 @@ export default {
         }
       }
 
-      if (!Array.isArray(questions) || questions.length === 0) {
+      // Valida e descarta questões malformadas
+      questions = validateQuestions(questions);
+
+      if (questions.length === 0) {
         return new Response(JSON.stringify({
           error: 'Resposta vazia',
           rawText,
-          userMessage: 'A IA não conseguiu gerar questões. Tente ajustar o tópico ou o nível de dificuldade.',
+          userMessage: 'A IA não conseguiu gerar questões válidas. Tente ajustar o tópico ou o nível de dificuldade.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
