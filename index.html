@@ -375,9 +375,10 @@
       .mode-card { flex-direction: row; align-items: center; gap: var(--space-3); padding: var(--space-4); }
       .mode-icon { margin-bottom: 0; font-size: 1.5rem; }
 
-      .chip-group { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--space-2); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-      .chip-group::-webkit-scrollbar { display: none; }
-      .chip { flex-shrink: 0; }
+      .chip-group { flex-wrap: wrap; }
+      .chip-group--scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--space-2); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .chip-group--scroll::-webkit-scrollbar { display: none; }
+      .chip-group--scroll .chip { flex-shrink: 0; }
 
       textarea { min-height: 100px; font-size: 16px; }
       select, .text-input { font-size: 16px; }
