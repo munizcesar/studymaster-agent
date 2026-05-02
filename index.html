@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
@@ -394,7 +394,18 @@
       .site-footer { padding: var(--space-8) 0 var(--space-6); }
       .footer-inner { gap: var(--space-6); }
     }
-  </style>
+  
+    /* Quiz Mode — Questão por vez */
+    .quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-6); gap: var(--space-4); }
+    .quiz-progress-label { font-size: var(--text-sm); color: var(--color-text-muted); font-weight: 600; white-space: nowrap; }
+    .btn-next-question { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-6); background: var(--color-primary); color: white; font-weight: 700; border-radius: var(--radius-md); font-size: var(--text-base); transition: all var(--transition); box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25); }
+    .btn-next-question:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); }
+    .btn-next-question:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .quiz-dot-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-4); }
+    .quiz-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-divider); transition: background 0.3s; flex-shrink: 0; }
+    .quiz-dot.current { background: var(--color-primary); }
+    .quiz-dot.correct { background: var(--color-success); }
+    .quiz-dot.wrong { background: var(--color-error); }</style>
 </head>
 <body>
 
@@ -532,6 +543,7 @@
               <button class="chip active" data-qtype="mc">Múltipla Escolha</button>
               <button class="chip" data-qtype="vf">Verdadeiro/Falso</button>
               <button class="chip" data-qtype="mix">Misto</button>
+              <button class="chip" data-qtype="quiz">Questão por vez</button>
             </div>
           </div>
 
@@ -1746,7 +1758,122 @@ function updateScore() {
   value.innerHTML = `${state.answered}/<span id="score-total">${total}</span>`;
 }
 
+
+// ── QUIZ MODE: questão por vez ───────────────────────────────────────────────
+function renderQuizMode(questions) {
+  const container = document.getElementById('questions-container');
+  const list      = document.getElementById('questions-list');
+  const chips     = document.getElementById('summary-chips');
+  const sessionResult  = document.getElementById('session-result');
+  const retryWrongBtn  = document.getElementById('retry-wrong-btn');
+  const scoreTotal     = document.getElementById('score-total');
+
+  scoreTotal.textContent = questions.length;
+  state.answerResults = new Array(questions.length).fill(null);
+  state.quizCurrentIdx = 0;
+  sessionResult.classList.add('hidden');
+  retryWrongBtn.classList.add('hidden');
+  updateScore();
+
+  chips.innerHTML = `
+    <div class="chip">🎯 Questão por vez</div>
+    <div class="chip">${questions.length} Questões</div>
+    <div class="chip">${{easy:'Fácil',medium:'Médio',hard:'Difícil',extreme:'Extremo'}[state.difficulty]}</div>
+    <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>`;
+
+  function renderCurrentQuestion() {
+    const idx = state.quizCurrentIdx;
+    const q   = questions[idx];
+    list.innerHTML = '';
+
+    // Dots de progresso
+    const dotRow = document.createElement('div');
+    dotRow.className = 'quiz-dot-row';
+    questions.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'quiz-dot' + (i === idx ? ' current' : state.answerResults[i] === true ? ' correct' : state.answerResults[i] === false ? ' wrong' : '');
+      dotRow.appendChild(dot);
+    });
+    list.appendChild(dotRow);
+
+    // Card da questão
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-${idx}`;
+    card.innerHTML = `
+      <div class="question-number">Questão ${idx + 1} de ${questions.length}</div>
+      <div class="question-statement">${q.statement}</div>
+      <div class="options-list">
+        ${(q.options || []).map(opt => `
+          <button class="option-btn" data-qidx="${idx}" data-key="${opt.key}">
+            <span class="option-key">${opt.key}</span>
+            <span>${opt.text}</span>
+          </button>`).join('')}
+      </div>
+      <div class="explanation-box" id="exp-${idx}">
+        <strong>Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      </div>`;
+    list.appendChild(card);
+
+    // Botão de navegação
+    const nav = document.createElement('div');
+    nav.className = 'quiz-nav';
+    nav.innerHTML = `
+      <span class="quiz-progress-label">${idx + 1} / ${questions.length}</span>
+      <button class="btn-next-question" id="quiz-next-btn" disabled>
+        ${idx + 1 < questions.length ? 'Próxima <span>→</span>' : 'Ver resultado'}
+      </button>`;
+    list.appendChild(nav);
+
+    // Listeners das opções
+    card.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        if (card.dataset.answered) return;
+        card.dataset.answered = '1';
+        const key = e.currentTarget.dataset.key;
+        const isCorrect = key === q.correctAnswer;
+        state.answerResults[idx] = isCorrect;
+        if (isCorrect) state.correct++;
+        state.answered++;
+        card.querySelectorAll('.option-btn').forEach(b => {
+          b.disabled = true;
+          if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+          else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
+        });
+        document.getElementById(`exp-${idx}`).classList.add('visible');
+        document.getElementById('quiz-next-btn').disabled = false;
+        updateScore();
+        if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+      });
+    });
+
+    // Listener do botão próxima
+    document.getElementById('quiz-next-btn').addEventListener('click', () => {
+      if (idx + 1 < questions.length) {
+        state.quizCurrentIdx++;
+        renderCurrentQuestion();
+      } else {
+        showSessionResult();
+      }
+    });
+
+    lucide.createIcons();
+    scrollToWizard(50);
+  }
+
+  renderCurrentQuestion();
+  container.classList.add('visible');
+
+  retryWrongBtn.onclick = () => {
+    const wrong = state.generatedQuestions.filter((_, i) => state.answerResults[i] === false);
+    if (!wrong.length) return;
+    state.generatedQuestions = wrong;
+    state.answered = 0; state.correct = 0; state.answerResults = [];
+    renderQuizMode(wrong);
+  };
+}
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
+
