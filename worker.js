@@ -13,7 +13,8 @@ const corsHeaders = {
 // Modelos em ordem de preferência — fallback automático se o primeiro atingir limite
 const GROQ_MODELS = [
   'llama-3.3-70b-versatile',
-  'llama-3.1-70b-versatile',
+  'llama3-70b-8192',
+  'mixtral-8x7b-32768',
 ];
 
 // Mapeamento de área do StudyMaster para área no Vectorize
@@ -380,7 +381,14 @@ export default {
             if (lastRes.ok || (lastRes.status !== 429 && lastRes.status !== 503)) break;
           }
           if (lastRes.ok) return lastRes;
-          if (lastRes.status === 401 || lastRes.status === 403 || lastRes.status === 400) return lastRes;
+          // Tenta próximo modelo apenas em erros de rate-limit, sobrecarga ou modelo descontinuado
+          if (lastRes.status === 401 || lastRes.status === 403) return lastRes;
+          // status 400 com model_decommissioned → tenta próximo modelo
+          if (lastRes.status === 400) {
+            const errText = await lastRes.clone().text();
+            if (!errText.includes('model_decommissioned') && !errText.includes('decommissioned')) return lastRes;
+            // continua para o próximo modelo
+          }
         }
         return lastRes;
       }
