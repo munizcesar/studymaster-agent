@@ -133,6 +133,7 @@
     .step-label { font-size: var(--text-xs); font-weight: 500; }
     .step-connector { flex: 1; height: 2px; background: var(--color-divider); margin: 0 var(--space-2); transform: translateY(-100%); transition: background var(--transition); }
     .step-indicator.complete + .step-connector { background: var(--color-success); }
+    .mobile-progress { display: none; }
     .wizard-step { display: none; }
     .wizard-step.active { display: block; }
     .step-title { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: var(--space-1); }
@@ -350,7 +351,12 @@
     @keyframes toastIn  { from { opacity: 0; transform: translateY(16px) translateX(-50%); } to { opacity: 1; transform: translateY(0) translateX(-50%); } }
     .toast { position: fixed; bottom: var(--space-6); left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-3) var(--space-6); border-radius: var(--radius-full); font-size: var(--text-sm); animation: toastIn 200ms ease forwards; z-index: 1000; box-shadow: var(--shadow-lg); }
 
-    @media (max-width: 768px) {
+        @media (max-width: 768px) {
+      .hero { padding: var(--space-8) 0 var(--space-6); }
+      .hero-badge { font-size: 0.75rem; padding: 6px 12px; white-space: normal; text-align: center; line-height: 1.4; }
+      .hero-title { font-size: clamp(1.75rem, 7vw, 2.5rem); margin-bottom: var(--space-3); }
+      .hero-subtitle { font-size: var(--text-base); }
+
       .hero-inner { grid-template-columns: 1fr; text-align: center; }
       .hero-col-text { text-align: center; }
       .hero-col-text .hero-subtitle { margin-left: auto; margin-right: auto; }
@@ -358,9 +364,34 @@
       .footer-brand { align-items: center; }
       .footer-links { align-items: center; }
       .footer-meta { text-align: center; }
-      .wizard-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--color-surface); border-top: 1px solid var(--color-divider); padding: var(--space-4) var(--space-6); display: flex; justify-content: space-between; z-index: 100; box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05); }
-      .wizard-card { padding-bottom: var(--space-8); margin-bottom: var(--space-16); }
+      .wizard-card { padding: var(--space-6) var(--space-4); padding-bottom: 100px; margin-bottom: 0; border-radius: var(--radius-lg); }
+      .wizard-section { padding: var(--space-3) 0 var(--space-8); }
+      .wizard-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--color-surface); border-top: 1px solid var(--color-divider); padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); padding-left: var(--space-4); padding-right: var(--space-4); display: flex; justify-content: space-between; z-index: 100; box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05); }
+      .btn-next { flex: 1; justify-content: center; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-base); }
+      .btn-back { padding: var(--space-3) var(--space-4); }
       .steps-bar { display: none; }
+
+      .mode-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+      .mode-card { flex-direction: row; align-items: center; gap: var(--space-3); padding: var(--space-4); }
+      .mode-icon { margin-bottom: 0; font-size: 1.5rem; }
+
+      .chip-group { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--space-2); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .chip-group::-webkit-scrollbar { display: none; }
+      .chip { flex-shrink: 0; }
+
+      textarea { min-height: 100px; font-size: 16px; }
+      select, .text-input { font-size: 16px; }
+
+      .score-bar { flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
+      .score-progress { width: 100%; margin: 0; }
+      .score-value { font-size: var(--text-lg); }
+
+      .question-card { padding: var(--space-4); }
+      .option-btn { padding: var(--space-3); font-size: var(--text-sm); min-height: 44px; }
+      .question-statement { font-size: var(--text-base); line-height: 1.65; }
+
+      .site-footer { padding: var(--space-8) 0 var(--space-6); }
+      .footer-inner { gap: var(--space-6); }
     }
   </style>
 </head>
@@ -409,6 +440,12 @@
     <div class="container">
 
       <nav class="steps-bar" aria-label="Progresso do configurador">
+        <div class="mobile-progress" id="mobile-progress" aria-hidden="true">
+          <div class="mobile-progress-bar">
+            <div class="mobile-progress-fill" id="mobile-progress-fill"></div>
+          </div>
+          <span class="mobile-progress-label" id="mobile-progress-label">Passo 1 de 4</span>
+        </div>
         <button class="step-indicator active" data-step="1" aria-label="Passo 1: Modo">
           <span class="step-number">1</span>
           <span class="step-label">Modo</span>
@@ -1067,6 +1104,10 @@ function updateStepBar(target) {
     if (idx + 1 < target) ind.classList.add('complete');
     if (idx + 1 === target) ind.classList.add('active');
   });
+  const fill = document.getElementById('mobile-progress-fill');
+  const label = document.getElementById('mobile-progress-label');
+  if (fill) fill.style.width = `${(target / 4) * 100}%`;
+  if (label) label.textContent = `Passo ${target} de 4`;
 }
 
 function isStepValid(step) {
