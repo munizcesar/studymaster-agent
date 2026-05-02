@@ -1670,7 +1670,7 @@ function renderQuestions(questions) {
 
   const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
-    <div class="chip">🎯 Questão por vez</div>
+    <div class="chip"><span aria-hidden="true">🎯</span> Questão por vez</div>
     <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
     <div class="chip">${questions.length} Questões</div>
     <div class="chip">${state.alternativas} alternativas</div>
