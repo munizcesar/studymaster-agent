@@ -300,24 +300,36 @@
     .score-progress { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); margin: 0 var(--space-4); overflow: hidden; }
     .score-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
 
-    .streak-badge {
+    .daily-perf {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      background: oklch(from var(--color-accent) l c h / 0.15);
-      color: var(--color-accent);
-      font-size: var(--text-sm);
-      font-weight: 700;
+      gap: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.05);
+      font-size: 13px;
+      font-weight: 600;
       line-height: 1;
-      border: 1px solid oklch(from var(--color-accent) l c h / 0.35);
       white-space: nowrap;
     }
-    [data-theme="dark"] .streak-badge {
-      background: oklch(from var(--color-accent) l c h / 0.15);
-      color: var(--color-accent);
-      border-color: oklch(from var(--color-accent) l c h / 0.35);
+    [data-theme="dark"] .daily-perf {
+      background: rgba(255,255,255,0.08);
+    }
+    .daily-correct {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #22c55e;
+    }
+    .daily-wrong {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #ef4444;
+    }
+    .daily-hoje {
+      color: #9ca3af;
+      font-size: 12px;
     }
 
     /* Botões primários */
@@ -417,8 +429,8 @@
       .wizard-card { padding-bottom: var(--space-8); margin-bottom: var(--space-16); }
       .steps-bar { display: none; }
     }
-    @media (max-width: 399px) {
-      .streak-badge .streak-text { display: none; }
+    @media (max-width: 480px) {
+      .daily-perf .daily-hoje { display: none; }
     }
   </style>
 </head>
@@ -446,7 +458,17 @@
           <span>StudyMaster</span>
         </a>
         <div class="header-actions">
-          <span class="streak-badge" id="streak-badge" aria-live="polite"><span class="streak-emoji">🔥</span> <span class="streak-text" id="streak-text">0</span></span>
+          <div class="daily-perf" id="daily-perf" aria-live="polite">
+            <span class="daily-correct">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span id="dp-correct">0</span>
+            </span>
+            <span class="daily-wrong">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span id="dp-wrong">0</span>
+            </span>
+            <span class="daily-hoje">hoje</span>
+          </div>
           <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
             <i data-lucide="moon" width="20" height="20" id="theme-icon"></i>
           </button>
@@ -1063,6 +1085,66 @@ function incrementTodayCount(step = 1) {
   setTodayCount(current + step);
 }
 
+function ensureTodayReset() {
+  const today = getDateStamp();
+  const savedDate = safeStorageGet('sm_last_date');
+  if (savedDate !== today) {
+    safeStorageSet('sm_last_date', today);
+    safeStorageSet('sm_correct_today', '0');
+    safeStorageSet('sm_wrong_today', '0');
+  }
+}
+
+function getCorrectToday() {
+  ensureTodayReset();
+  const raw = safeStorageGet('sm_correct_today');
+  const parsed = Number.parseInt(raw || '0', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function getWrongToday() {
+  ensureTodayReset();
+  const raw = safeStorageGet('sm_wrong_today');
+  const parsed = Number.parseInt(raw || '0', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function incrementCorrectToday() {
+  ensureTodayReset();
+  const current = Number.parseInt(safeStorageGet('sm_correct_today') || '0', 10) || 0;
+  safeStorageSet('sm_correct_today', String(current + 1));
+  updateDailyPerf();
+}
+
+function incrementWrongToday() {
+  ensureTodayReset();
+  const current = Number.parseInt(safeStorageGet('sm_wrong_today') || '0', 10) || 0;
+  safeStorageSet('sm_wrong_today', String(current + 1));
+  updateDailyPerf();
+}
+
+function updateDailyPerf() {
+  const correctEl = document.getElementById('dp-correct');
+  const wrongEl = document.getElementById('dp-wrong');
+  if (!correctEl || !wrongEl) return;
+  ensureTodayReset();
+  correctEl.textContent = String(Number.parseInt(safeStorageGet('sm_correct_today') || '0', 10) || 0);
+  wrongEl.textContent = String(Number.parseInt(safeStorageGet('sm_wrong_today') || '0', 10) || 0);
+}
+
+function scheduleMidnightReset() {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+  const msUntilMidnight = next - now;
+  setTimeout(() => {
+    safeStorageSet('sm_last_date', getDateStamp());
+    safeStorageSet('sm_correct_today', '0');
+    safeStorageSet('sm_wrong_today', '0');
+    updateDailyPerf();
+    scheduleMidnightReset();
+  }, msUntilMidnight);
+}
+
 function getDailyGoal() {
   const raw = safeStorageGet(STORAGE_KEYS.dailyGoal);
   if (raw === 'none') return null;
@@ -1168,6 +1250,8 @@ function init() {
   state.dailyGoal = getDailyGoal();
   getTodayCount();
   updateStreakBadge();
+  updateDailyPerf();
+  scheduleMidnightReset();
 
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();
@@ -1862,6 +1946,11 @@ function handleAnswer(qIdx, selectedKey) {
   if (isCorrect) state.correct++;
   state.answered++;
   incrementTodayCount(1);
+  if (isCorrect) {
+    incrementCorrectToday();
+  } else {
+    incrementWrongToday();
+  }
   btns.forEach(btn => {
     btn.disabled = true;
     if (btn.dataset.key === q.correctAnswer) btn.classList.add('correct');
