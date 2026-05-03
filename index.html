@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
@@ -388,7 +388,7 @@
       .score-value { font-size: var(--text-lg); }
 
       .question-card { padding: var(--space-4); }
-      .option-btn { padding: var(--space-3); font-size: var(--text-sm); min-height: 52px; }
+      .option-btn { padding: var(--space-3); font-size: var(--text-sm); min-height: 44px; }
       .question-statement { font-size: var(--text-base); line-height: 1.65; }
 
       .site-footer { padding: var(--space-8) 0 var(--space-6); }
@@ -401,18 +401,106 @@
     .btn-next-question { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-6); background: var(--color-primary); color: white; font-weight: 700; border-radius: var(--radius-md); font-size: var(--text-base); transition: all var(--transition); box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25); }
     .btn-next-question:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); }
     .btn-next-question:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .btn-quiz-prev { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1.5px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); transition: all var(--transition); }
-    .btn-quiz-prev:hover { border-color: var(--color-primary); color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.04); }
     .quiz-dot-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-4); }
     .quiz-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-divider); transition: background 0.3s; flex-shrink: 0; }
     .quiz-dot.current { background: var(--color-primary); }
     .quiz-dot.correct { background: var(--color-success); }
     .quiz-dot.wrong { background: var(--color-error); }
-    @media (max-width: 768px) {
-      .quiz-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--color-surface); border-top: 1px solid var(--color-divider); padding: var(--space-3) var(--space-4); padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); z-index: 101; margin-top: 0; }
-      .btn-next-question { flex: 1; justify-content: center; }
-      #questions-list { padding-bottom: 80px; }
-    }</style>
+    /* ── Quiz Fullscreen Overlay ─────────────────────────────────────── */
+    .quiz-fs-overlay {
+      position: fixed; inset: 0; z-index: 900;
+      background: var(--color-bg);
+      display: flex; flex-direction: column;
+      opacity: 0; pointer-events: none;
+      transition: opacity 300ms cubic-bezier(0.16,1,0.3,1);
+    }
+    .quiz-fs-overlay.open {
+      opacity: 1; pointer-events: auto;
+    }
+    .quiz-fs-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid var(--color-divider);
+      background: var(--color-surface);
+      flex-shrink: 0;
+    }
+    .quiz-fs-progress-bar-wrap {
+      flex: 1; height: 4px; background: var(--color-divider);
+      border-radius: var(--radius-full); margin: 0 var(--space-6); overflow: hidden;
+    }
+    .quiz-fs-progress-bar-fill {
+      height: 100%; background: var(--grad-brand);
+      border-radius: var(--radius-full);
+      transition: width 400ms cubic-bezier(0.16,1,0.3,1);
+      width: 0%;
+    }
+    .quiz-fs-counter {
+      font-size: var(--text-sm); font-weight: 700;
+      color: var(--color-text-muted); white-space: nowrap; min-width: 4.5rem; text-align: right;
+    }
+    .quiz-fs-close-btn {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      color: var(--color-text-muted); font-size: var(--text-sm); font-weight: 600;
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+      transition: background var(--transition), color var(--transition);
+    }
+    .quiz-fs-close-btn:hover { background: var(--color-surface-offset); color: var(--color-text); }
+
+    .quiz-fs-body {
+      flex: 1; overflow-y: auto;
+      display: flex; flex-direction: column; align-items: center;
+      padding: var(--space-8) var(--space-4);
+    }
+    .quiz-fs-card-wrap {
+      width: 100%; max-width: 720px;
+    }
+    @keyframes quiz-card-enter { from { opacity:0; transform: translateX(40px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes quiz-card-exit  { from { opacity:1; transform: translateX(0); }   to { opacity:0; transform: translateX(-40px); } }
+    .quiz-fs-card-wrap.entering { animation: quiz-card-enter 260ms cubic-bezier(0.16,1,0.3,1) forwards; }
+    .quiz-fs-card-wrap.exiting  { animation: quiz-card-exit  200ms cubic-bezier(0.16,1,0.3,1) forwards; }
+
+    .quiz-fs-dots {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-5);
+    }
+    .quiz-fs-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--color-divider); transition: background 0.3s; flex-shrink: 0;
+    }
+    .quiz-fs-dot.current { background: var(--color-primary); }
+    .quiz-fs-dot.correct { background: var(--color-success); }
+    .quiz-fs-dot.wrong   { background: var(--color-error); }
+
+    .quiz-fs-footer {
+      flex-shrink: 0;
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-6);
+      border-top: 1px solid var(--color-divider);
+      background: var(--color-surface);
+    }
+    .quiz-fs-score {
+      font-size: var(--text-sm); color: var(--color-text-muted); font-weight: 600;
+    }
+    .quiz-fs-next-btn {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-3) var(--space-6); background: var(--color-primary);
+      color: white; font-weight: 700; border-radius: var(--radius-md);
+      font-size: var(--text-base); transition: all var(--transition);
+      box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25);
+    }
+    .quiz-fs-next-btn:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); }
+    .quiz-fs-next-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    @media (max-width: 600px) {
+      .quiz-fs-header { padding: var(--space-3) var(--space-4); }
+      .quiz-fs-footer { padding: var(--space-3) var(--space-4); padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); }
+      .quiz-fs-body { padding: var(--space-5) var(--space-3); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .quiz-fs-overlay { transition: none; }
+      .quiz-fs-card-wrap.entering, .quiz-fs-card-wrap.exiting { animation: none; }
+    }
+</style>
 </head>
 <body>
 
@@ -989,8 +1077,8 @@ const state = {
   editalText: '', freeText: '',
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
-  generatedQuestions: [], answered: 0, correct: 0, answerResults: [], selectedAnswers: [],
-  quizCurrentIdx: 0, concursoSubStep: 'a', advancedOpen: false,
+  generatedQuestions: [], answered: 0, correct: 0, answerResults: [],
+  concursoSubStep: 'a', advancedOpen: false,
 };
 const MAX_EXTRACTED_CHARS = 30000;
 const scriptPromises = {};
@@ -1155,8 +1243,7 @@ function resetState() {
   state.area = null; state.subject = null; state.topic = null;
   state.concurso = null; state.concursoCategory = null; state.concursoSubStep = 'a';
   state.freeText = ''; state.editalText = ''; state.bancaInferida = null;
-  state.generatedQuestions = []; state.answered = 0; state.correct = 0;
-  state.answerResults = []; state.selectedAnswers = []; state.quizCurrentIdx = 0;
+  state.generatedQuestions = []; state.answered = 0; state.correct = 0; state.answerResults = [];
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   state.mode = null;
 }
@@ -1656,10 +1743,9 @@ function renderQuestions(questions) {
   const chips = document.getElementById('summary-chips');
   const sessionResult = document.getElementById('session-result');
   const retryWrongBtn = document.getElementById('retry-wrong-btn');
-
+  const scoreTotal = document.getElementById('score-total');
+  scoreTotal.textContent = questions.length;
   state.answerResults = new Array(questions.length).fill(null);
-  state.selectedAnswers = new Array(questions.length).fill(null);
-  state.quizCurrentIdx = 0;
   sessionResult.classList.add('hidden');
   retryWrongBtn.classList.add('hidden');
   updateScore();
@@ -1670,7 +1756,6 @@ function renderQuestions(questions) {
 
   const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
-    <div class="chip"><span aria-hidden="true">🎯</span> Questão por vez</div>
     <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
     <div class="chip">${questions.length} Questões</div>
     <div class="chip">${state.alternativas} alternativas</div>
@@ -1678,122 +1763,72 @@ function renderQuestions(questions) {
     <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
     ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip"><i data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
 
-  function renderCurrentQuestion() {
-    const idx = state.quizCurrentIdx;
-    const q = questions[idx];
-    list.innerHTML = '';
-
-    // Dots de progresso
-    const dotRow = document.createElement('div');
-    dotRow.className = 'quiz-dot-row';
-    questions.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'quiz-dot' + (i === idx ? ' current' : state.answerResults[i] === true ? ' correct' : state.answerResults[i] === false ? ' wrong' : '');
-      dotRow.appendChild(dot);
-    });
-    list.appendChild(dotRow);
-
-    // Card da questão
-    const alreadyAnswered = state.answerResults[idx] !== null;
-    const selectedKey = state.selectedAnswers[idx];
-    const isLast = idx + 1 >= questions.length;
-
+  list.innerHTML = '';
+  questions.forEach((q, idx) => {
     const card = document.createElement('div');
     card.className = 'question-card';
     card.id = `q-${idx}`;
-    if (alreadyAnswered) card.dataset.answered = '1';
     card.innerHTML = `
-      <div class="question-number">Questão ${idx + 1} de ${questions.length}</div>
+      <div class="question-number">Questão ${idx + 1}</div>
       <div class="question-statement">${q.statement}</div>
       <div class="options-list">
-        ${(q.options || []).map(opt => {
-          let cls = 'option-btn';
-          if (alreadyAnswered) {
-            if (opt.key === q.correctAnswer) cls += ' correct';
-            else if (opt.key === selectedKey && selectedKey !== q.correctAnswer) cls += ' wrong';
-          }
-          return `<button class="${cls}" data-qidx="${idx}" data-key="${opt.key}"${alreadyAnswered ? ' disabled' : ''}>
+        ${(q.options || []).map(opt => `
+          <button class="option-btn" data-qidx="${idx}" data-key="${opt.key}">
             <span class="option-key">${opt.key}</span>
             <span>${opt.text}</span>
-          </button>`;
-        }).join('')}
+          </button>`).join('')}
       </div>
-      <div class="explanation-box${alreadyAnswered ? ' visible' : ''}" id="exp-${idx}">
+      <div class="explanation-box" id="exp-${idx}">
         <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
       </div>`;
     list.appendChild(card);
+  });
 
-    // Botão de navegação
-    const nav = document.createElement('div');
-    nav.className = 'quiz-nav';
-    nav.innerHTML = `
-      <button class="btn-quiz-prev${idx === 0 ? ' hidden' : ''}" id="quiz-prev-btn">← Anterior</button>
-      <span class="quiz-progress-label">${idx + 1} / ${questions.length}</span>
-      <button class="btn-next-question" id="quiz-next-btn"${!alreadyAnswered ? ' disabled' : ''}>
-        ${isLast ? 'Ver resultado' : 'Próxima →'}
-      </button>`;
-    list.appendChild(nav);
-
-    // Listeners das opções
-    if (!alreadyAnswered) {
-      card.querySelectorAll('.option-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          if (card.dataset.answered) return;
-          card.dataset.answered = '1';
-          const key = e.currentTarget.dataset.key;
-          const isCorrect = key === q.correctAnswer;
-          state.answerResults[idx] = isCorrect;
-          state.selectedAnswers[idx] = key;
-          if (isCorrect) state.correct++;
-          state.answered++;
-          card.querySelectorAll('.option-btn').forEach(b => {
-            b.disabled = true;
-            if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
-            else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
-          });
-          document.getElementById(`exp-${idx}`).classList.add('visible');
-          document.getElementById('quiz-next-btn').disabled = false;
-          updateScore();
-          if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
-        });
-      });
-    }
-
-    // Listener do botão próxima
-    document.getElementById('quiz-next-btn').addEventListener('click', () => {
-      if (idx + 1 < questions.length) {
-        state.quizCurrentIdx++;
-        renderCurrentQuestion();
-      } else {
-        showSessionResult();
-      }
+  list.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const qIdx = parseInt(e.currentTarget.dataset.qidx);
+      const key = e.currentTarget.dataset.key;
+      handleAnswer(qIdx, key);
     });
-
-    // Listener do botão anterior
-    const prevBtn = document.getElementById('quiz-prev-btn');
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        if (idx > 0) {
-          state.quizCurrentIdx--;
-          renderCurrentQuestion();
-        }
-      });
-    }
-
-    lucide.createIcons();
-    scrollToWizard(50);
-  }
-
-  renderCurrentQuestion();
-  container.classList.add('visible');
+  });
 
   retryWrongBtn.onclick = () => {
-    const wrong = state.generatedQuestions.filter((_, i) => state.answerResults[i] === false);
-    if (!wrong.length) return;
-    state.generatedQuestions = wrong;
-    state.answered = 0; state.correct = 0; state.answerResults = []; state.selectedAnswers = [];
-    renderQuestions(wrong);
+    const wrongQuestions = state.generatedQuestions.filter((_, idx) => state.answerResults[idx] === false);
+    if (!wrongQuestions.length) return;
+    state.generatedQuestions = wrongQuestions;
+    state.answered = 0;
+    state.correct = 0;
+    state.answerResults = [];
+    renderQuestions(wrongQuestions);
   };
+
+  container.classList.add('visible');
+  lucide.createIcons();
+  scrollToWizard(100);
+}
+
+function handleAnswer(qIdx, selectedKey) {
+  const q = state.generatedQuestions[qIdx];
+  const card = document.getElementById(`q-${qIdx}`);
+  const btns = card.querySelectorAll('.option-btn');
+  const expBox = document.getElementById(`exp-${qIdx}`);
+  if (card.dataset.answered) return;
+  card.dataset.answered = '1';
+  const isCorrect = selectedKey === q.correctAnswer;
+  state.answerResults[qIdx] = isCorrect;
+  if (isCorrect) state.correct++;
+  state.answered++;
+  btns.forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.key === q.correctAnswer) btn.classList.add('correct');
+    else if (btn.dataset.key === selectedKey && !isCorrect) btn.classList.add('wrong');
+  });
+  expBox.classList.add('visible');
+  updateScore();
+  if (state.answered === state.generatedQuestions.length) showSessionResult();
+  if (isCorrect) {
+    confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+  }
 }
 
 function showSessionResult() {
@@ -1819,8 +1854,196 @@ function updateScore() {
 }
 
 
+// ── QUIZ MODE: questão por vez (Fullscreen) ─────────────────────────────────
+function renderQuizMode(questions) {
+  const container = document.getElementById('questions-container');
+  const chips     = document.getElementById('summary-chips');
+  const sessionResult  = document.getElementById('session-result');
+  const retryWrongBtn  = document.getElementById('retry-wrong-btn');
+  const scoreTotal     = document.getElementById('score-total');
+
+  scoreTotal.textContent = questions.length;
+  state.answerResults = new Array(questions.length).fill(null);
+  state.quizCurrentIdx = 0;
+  sessionResult.classList.add('hidden');
+  retryWrongBtn.classList.add('hidden');
+  updateScore();
+
+  chips.innerHTML = `
+    <div class="chip">🎯 Questão por vez</div>
+    <div class="chip">${questions.length} Questões</div>
+    <div class="chip">\${{'easy':'Fácil','medium':'Médio','hard':'Difícil','extreme':'Extremo'}[state.difficulty]}</div>
+    <div class="chip">\${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>`;
+
+  // ── Fullscreen elements
+  const overlay    = document.getElementById('quiz-fs-overlay');
+  const cardWrap   = document.getElementById('quiz-fs-card-wrap');
+  const counter    = document.getElementById('quiz-fs-counter');
+  const fill       = document.getElementById('quiz-fs-progress-fill');
+  const progressWrap = document.getElementById('quiz-fs-progress-bar-wrap');
+  const scoreEl    = document.getElementById('quiz-fs-score');
+  const nextBtn    = document.getElementById('quiz-fs-next-btn');
+  const nextArrow  = document.getElementById('quiz-fs-next-arrow');
+  const closeBtn   = document.getElementById('quiz-fs-close-btn');
+
+  function fsUpdateHeader(idx) {
+    const total = questions.length;
+    counter.textContent = `\${idx + 1} / \${total}`;
+    const pct = Math.round(((idx) / total) * 100);
+    fill.style.width = pct + '%';
+    progressWrap.setAttribute('aria-valuenow', pct);
+    const correct = state.answerResults.filter(r => r === true).length;
+    const wrong   = state.answerResults.filter(r => r === false).length;
+    scoreEl.innerHTML = `✓ \${correct} &nbsp; ✗ \${wrong}`;
+  }
+
+  function fsRenderDots(idx) {
+    const dotRow = document.createElement('div');
+    dotRow.className = 'quiz-fs-dots';
+    questions.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'quiz-fs-dot' + (i === idx ? ' current' : state.answerResults[i] === true ? ' correct' : state.answerResults[i] === false ? ' wrong' : '');
+      dotRow.appendChild(dot);
+    });
+    return dotRow;
+  }
+
+  function fsRenderQuestion(idx, direction = 'forward') {
+    const q = questions[idx];
+    nextBtn.disabled = true;
+    nextArrow.textContent = (idx + 1 < questions.length) ? '→' : '✓';
+    nextBtn.querySelector('span[id="quiz-fs-next-arrow"]');
+    nextBtn.lastChild.textContent = '';
+    nextBtn.innerHTML = `\${idx + 1 < questions.length ? 'Próxima' : 'Ver resultado'} <span id="quiz-fs-next-arrow">\${idx + 1 < questions.length ? '→' : '✓'}</span>`;
+    nextBtn.disabled = true;
+
+    fsUpdateHeader(idx);
+
+    // Animate exit if not first
+    const prevContent = cardWrap.innerHTML;
+
+    // Build new content
+    const frag = document.createDocumentFragment();
+    frag.appendChild(fsRenderDots(idx));
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `fsq-\${idx}`;
+    card.innerHTML = `
+      <div class="question-number">Questão \${idx + 1} de \${questions.length}</div>
+      <div class="question-statement">\${q.statement}</div>
+      <div class="options-list">
+        \${(q.options || []).map(opt => `
+          <button class="option-btn" data-qidx="\${idx}" data-key="\${opt.key}">
+            <span class="option-key">\${opt.key}</span>
+            <span>\${opt.text}</span>
+          </button>`).join('')}
+      </div>
+      <div class="explanation-box" id="fsexp-\${idx}">
+        <strong>Gabarito: \${q.correctAnswer}</strong><br>\${q.explanation}
+      </div>`;
+    frag.appendChild(card);
+
+    cardWrap.innerHTML = '';
+    cardWrap.appendChild(frag);
+    cardWrap.classList.remove('entering','exiting');
+    void cardWrap.offsetWidth;
+    cardWrap.classList.add('entering');
+
+    // Options listeners
+    card.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        if (card.dataset.answered) return;
+        card.dataset.answered = '1';
+        const key = e.currentTarget.dataset.key;
+        const isCorrect = key === q.correctAnswer;
+        state.answerResults[idx] = isCorrect;
+        if (isCorrect) state.correct++;
+        state.answered++;
+        card.querySelectorAll('.option-btn').forEach(b => {
+          b.disabled = true;
+          if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+          else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
+        });
+        document.getElementById(`fsexp-\${idx}`).classList.add('visible');
+        nextBtn.disabled = false;
+        fsUpdateHeader(idx);
+        updateScore();
+        // Rebuild dots with new state
+        const oldDots = cardWrap.querySelector('.quiz-fs-dots');
+        if (oldDots) oldDots.replaceWith(fsRenderDots(idx));
+        if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+      });
+    });
+
+    lucide.createIcons();
+    // Scroll body to top
+    document.getElementById('quiz-fs-body').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Next button
+  nextBtn.onclick = () => {
+    const idx = state.quizCurrentIdx;
+    if (idx + 1 < questions.length) {
+      state.quizCurrentIdx++;
+      fsRenderQuestion(state.quizCurrentIdx, 'forward');
+    } else {
+      // Close fullscreen, show result
+      closeFullscreen();
+      showSessionResult();
+    }
+  };
+
+  // Close / exit fullscreen
+  function closeFullscreen() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  closeBtn.onclick = () => {
+    closeFullscreen();
+    container.classList.add('visible');
+  };
+
+  // Open fullscreen
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  fsRenderQuestion(0);
+  container.classList.add('visible');
+
+  retryWrongBtn.onclick = () => {
+    const wrong = state.generatedQuestions.filter((_, i) => state.answerResults[i] === false);
+    if (!wrong.length) return;
+    state.generatedQuestions = wrong;
+    state.answered = 0; state.correct = 0; state.answerResults = [];
+    renderQuizMode(wrong);
+  };
+}
 document.addEventListener('DOMContentLoaded', init);
 </script>
+
+  <!-- Quiz Fullscreen Overlay -->
+  <div class="quiz-fs-overlay" id="quiz-fs-overlay" role="dialog" aria-modal="true" aria-label="Modo Quiz — Questão por vez">
+    <header class="quiz-fs-header">
+      <button class="quiz-fs-close-btn" id="quiz-fs-close-btn" aria-label="Sair do modo fullscreen">
+        <i data-lucide="x" width="16" height="16"></i> Sair
+      </button>
+      <div class="quiz-fs-progress-bar-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="quiz-fs-progress-bar-wrap">
+        <div class="quiz-fs-progress-bar-fill" id="quiz-fs-progress-fill"></div>
+      </div>
+      <span class="quiz-fs-counter" id="quiz-fs-counter">1 / 10</span>
+    </header>
+    <div class="quiz-fs-body" id="quiz-fs-body">
+      <div class="quiz-fs-card-wrap" id="quiz-fs-card-wrap">
+        <!-- question rendered here -->
+      </div>
+    </div>
+    <footer class="quiz-fs-footer">
+      <span class="quiz-fs-score" id="quiz-fs-score">✓ 0 &nbsp; ✗ 0</span>
+      <button class="quiz-fs-next-btn" id="quiz-fs-next-btn" disabled>
+        Próxima <span id="quiz-fs-next-arrow">→</span>
+      </button>
+    </footer>
+  </div>
 </body>
 </html>
 
