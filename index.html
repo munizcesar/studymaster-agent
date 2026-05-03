@@ -1,7 +1,6 @@
 ﻿<!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR" data-theme="light">
 <head>
-<<<<<<< Updated upstream
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyMaster — Gerador de Questões com IA</title>
@@ -84,6 +83,7 @@
     /* Header */
     .site-header { padding: var(--space-4) 0; border-bottom: 1px solid var(--color-divider); background: var(--color-bg); }
     .header-inner { display: flex; justify-content: space-between; align-items: center; }
+    .header-actions { display: inline-flex; align-items: center; gap: var(--space-2); }
     .logo {
       display: flex; align-items: center; gap: var(--space-2);
       font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800;
@@ -97,21 +97,18 @@
     /* Hero */
     .hero {
       padding: var(--space-12) 0 var(--space-8);
-      background: linear-gradient(160deg, oklch(from var(--color-primary) l c h / 0.06) 0%, transparent 60%);
+      padding-block: clamp(3rem, 6vw, 5rem);
+      text-align: left;
+      background: var(--color-bg);
     }
-    .hero-inner {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-8);
-      align-items: center;
-    }
-    .hero-col-text { text-align: center; }
-    .hero-col-text .hero-subtitle { margin-left: auto; margin-right: auto; }
     .hero-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
       padding: var(--space-1) var(--space-3);
-      background: var(--grad-brand);
-      color: white;
+      background: oklch(from var(--color-primary) l c h / 0.1);
+      color: var(--color-primary);
+      border: 1px solid oklch(from var(--color-primary) l c h / 0.25);
       border-radius: var(--radius-full);
       font-size: var(--text-sm);
       font-weight: 600;
@@ -119,22 +116,26 @@
       letter-spacing: 0.01em;
     }
     .hero-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800; margin-bottom: var(--space-4); line-height: 1.1; }
-    .hero-title span { color: var(--color-primary); }
-    .hero-subtitle { font-size: var(--text-lg); color: var(--color-text-muted); max-width: 600px; margin: 0; }
+    .hero-title span {
+      background: var(--grad-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle { font-size: var(--text-lg); color: var(--color-text-muted); max-width: 600px; }
 
     /* Wizard */
-    .wizard-section { padding: var(--space-4) 0 var(--space-12); }
+    .wizard-section { padding: var(--space-4) 0 var(--space-12); padding-block: clamp(3rem, 6vw, 5rem); background: var(--color-surface); }
     .wizard-card { min-height: 320px; position: relative; background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); padding: var(--space-8); border: 1px solid oklch(from var(--color-text) l c h / 0.08); overflow: hidden; }
     .steps-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); max-width: 600px; margin-left: auto; margin-right: auto; }
     .step-indicator { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); opacity: 0.5; transition: opacity var(--transition); }
     .step-indicator.active, .step-indicator.complete { opacity: 1; }
     .step-number { width: 32px; height: 32px; border-radius: 50%; background: var(--color-surface-offset); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--text-sm); border: 2px solid var(--color-border); transition: all var(--transition); }
-    .step-indicator.active .step-number { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+    .step-indicator.active .step-number { background: var(--color-primary); border-color: transparent; color: white; }
     .step-indicator.complete .step-number { background: var(--color-success); border-color: var(--color-success); color: white; }
     .step-label { font-size: var(--text-xs); font-weight: 500; }
     .step-connector { flex: 1; height: 2px; background: var(--color-divider); margin: 0 var(--space-2); transform: translateY(-100%); transition: background var(--transition); }
     .step-indicator.complete + .step-connector { background: var(--color-success); }
-    .mobile-progress { display: none; }
     .wizard-step { display: none; }
     .wizard-step.active { display: block; }
     .step-title { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: var(--space-1); }
@@ -153,8 +154,8 @@
     /* Forms */
     .config-group { margin-bottom: var(--space-6); }
     .config-label { display: block; font-weight: 700; font-size: var(--text-sm); margin-bottom: var(--space-2); }
-    select, .text-input, textarea, input[type="url"] { width: 100%; padding: var(--space-3); border: 1.5px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); color: var(--color-text); font-family: inherit; font-size: var(--text-sm); transition: border-color var(--transition); }
-    select:focus, .text-input:focus, textarea:focus, input[type="url"]:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15); }
+    select, .text-input, textarea { width: 100%; padding: var(--space-3); border: 1.5px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); color: var(--color-text); font-family: inherit; font-size: var(--text-sm); transition: border-color var(--transition); }
+    select:focus, .text-input:focus, textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15); }
     textarea { min-height: 120px; resize: vertical; }
     .chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
     .chip { padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid var(--color-border); background: var(--color-surface); font-size: var(--text-sm); cursor: pointer; transition: all var(--transition); font-weight: 500; }
@@ -167,6 +168,28 @@
     }
     .chip:hover { border-color: var(--color-primary); }
     .chip.active { background: var(--color-primary); color: white; border-color: transparent; }
+    .goal-chips .chip {
+      min-width: 52px;
+      text-align: center;
+      justify-content: center;
+    }
+    .goal-chips .chip[data-goal="none"] {
+      min-width: 92px;
+    }
+    .goal-chips .chip.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
+    }
+    .goal-chips .chip:hover {
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.05);
+    }
+    .goal-chips .chip.active:hover {
+      background: var(--color-primary-hover);
+      color: white;
+    }
     .slider-wrapper { display: flex; align-items: center; gap: var(--space-3); }
     input[type=range] { flex: 1; accent-color: var(--color-primary); }
     .advanced-toggle-wrapper { margin-top: var(--space-4); border-top: 1px solid var(--color-divider); padding-top: var(--space-4); }
@@ -192,7 +215,7 @@
     .upload-progress { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--color-text-muted); display: none; }
     .upload-progress.visible { display: block; }
     .upload-progress-bar { height: 4px; background: var(--color-divider); border-radius: var(--radius-full); margin-top: var(--space-2); overflow: hidden; }
-    .upload-progress-fill { height: 100%; background: var(--grad-brand); border-radius: var(--radius-full); transition: width 0.3s ease; width: 0%; }
+    .upload-progress-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.3s ease; width: 0%; }
     .upload-spinner {
       display: inline-block;
       width: 14px;
@@ -210,6 +233,36 @@
       color: var(--color-error);
       min-height: 1.2em;
     }
+
+    /* YouTube extract row */
+    .yt-extract-row { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); align-items: center; flex-wrap: wrap; }
+    .yt-url-field {
+      flex: 1; min-width: 0;
+      padding: var(--space-3) var(--space-4);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body); font-size: var(--text-sm);
+      background: var(--color-surface-2); color: var(--color-text);
+      transition: border-color var(--transition);
+    }
+    .yt-url-field:focus { outline: none; border-color: var(--color-primary); }
+    .yt-extract-btn {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-primary); color: white;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body); font-size: var(--text-sm); font-weight: 600;
+      white-space: nowrap;
+      transition: background var(--transition);
+    }
+    .yt-extract-btn:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .yt-extract-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .yt-btn-spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.35); border-top-color: white;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    .yt-error { margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-error); min-height: 1.2em; }
 
     /* Step 4 */
     .summary-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-6); }
@@ -243,11 +296,32 @@
     /* Score */
     .score-bar { display: flex; align-items: center; justify-content: space-between; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-6); margin-bottom: var(--space-6); }
     .score-label { font-size: var(--text-sm); color: var(--color-text-muted); }
-    .score-value { font-family: var(--font-display); font-size: var(--text-xl); color: var(--color-primary); font-weight: 800; }
+    .score-value { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800; color: var(--color-primary); }
     .score-progress { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); margin: 0 var(--space-4); overflow: hidden; }
-    .score-fill { height: 100%; background: var(--grad-brand); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
+    .score-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
 
-    .btn-primary {
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: oklch(from var(--color-accent) l c h / 0.15);
+      color: var(--color-accent);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      line-height: 1;
+      border: 1px solid oklch(from var(--color-accent) l c h / 0.35);
+      white-space: nowrap;
+    }
+    [data-theme="dark"] .streak-badge {
+      background: oklch(from var(--color-accent) l c h / 0.15);
+      color: var(--color-accent);
+      border-color: oklch(from var(--color-accent) l c h / 0.35);
+    }
+
+    /* Botões primários */
+    .btn-primary, .btn-restart {
       display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
       width: 100%; padding: var(--space-3);
       background: var(--color-primary);
@@ -255,7 +329,7 @@
       font-size: var(--text-base); transition: all var(--transition); margin-top: var(--space-4);
       box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25);
     }
-    .btn-primary:hover { background: var(--color-primary-hover); box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.35); transform: translateY(-1px); }
+    .btn-primary:hover, .btn-restart:hover { background: var(--color-primary-hover); box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.35); transform: translateY(-1px); }
     .btn-ghost { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); font-weight: 500; transition: color var(--transition); width: 100%; justify-content: center; }
     .btn-ghost:hover { color: var(--color-text); }
 
@@ -279,124 +353,1552 @@
     .banca-badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: oklch(from var(--color-accent) l c h / 0.15); border: 1px solid oklch(from var(--color-accent) l c h / 0.35); color: var(--color-accent); font-size: var(--text-xs); font-weight: 600; margin-top: var(--space-2); }
 
     /* Marketing */
-    .marketing-section { padding: 0; border-top: 1px solid var(--color-divider); background: transparent; }
-    .how-it-works,
-    .compare-table-wrapper,
-    .profile-cards {
-      padding-top: clamp(var(--space-10), 5vw, var(--space-16));
-      padding-bottom: clamp(var(--space-10), 5vw, var(--space-16));
+    .marketing-section { padding-block: clamp(3rem, 6vw, 5rem); border-top: 1px solid var(--color-divider); }
+    .marketing-section-bg { background: var(--color-bg); }
+    .marketing-section-surface { background: var(--color-surface); }
+    .how-it-works h2, .compare-table-wrapper h2, .profile-cards h2 { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: var(--space-2); }
+    .section-eyebrow { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); margin-bottom: var(--space-2); }
+    .section-header { margin-bottom: var(--space-8); }
+    .steps-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-12); }
+    .how-step { display: flex; gap: var(--space-4); }
+    .how-number { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800; line-height: 1; color: var(--color-primary); opacity: 0.35; }
+    .compare-table { width: 100%; border-collapse: collapse; margin-bottom: var(--space-12); background: var(--color-surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .compare-table th, .compare-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--color-divider); }
+    .compare-table th { background: var(--color-surface-offset); font-weight: 700; }
+    .compare-table th:last-child { background: oklch(from var(--color-primary) l c h / 0.07); color: var(--color-primary); }
+    .compare-table td:last-child { background: oklch(from var(--color-primary) l c h / 0.04); font-weight: 500; }
+    .profiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+    .profile-card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); transition: border-color var(--transition), box-shadow var(--transition); cursor: default; }
+    .profile-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); }
+    .profile-tag {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-faint);
+      margin-bottom: var(--space-3);
     }
-    .how-it-works { background: var(--color-bg); }
-    .compare-table-wrapper { background: var(--color-surface); }
-    .profile-cards { background: var(--color-bg); }
-    .how-it-works h2, .compare-table-wrapper%timeout  наск
-=======
-    <meta charset="UTF-8">
-    <title>Quiz Engine</title>
-    <style>
-        body.modal-open { overflow: hidden; }
-        #quiz-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; }
-        #quiz-overlay.open { display: block; overflow-y: auto; }
-    </style>
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
+      color: var(--color-primary);
+    }
+    .profile-header strong {
+      font-size: var(--text-base);
+      color: var(--color-text);
+    }
+    .site-footer { padding: var(--space-10) 0; border-top: 1px solid var(--color-divider); font-size: var(--text-sm); color: var(--color-text-muted); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); }
+    .footer-brand { display: flex; flex-direction: column; gap: var(--space-1); }
+    .footer-logo { font-family: var(--font-display); font-size: var(--text-base); font-weight: 800; color: var(--color-text); }
+    .footer-tagline { color: var(--color-text-faint); font-size: var(--text-xs); }
+    .footer-meta { display: flex; align-items: center; gap: var(--space-3); color: var(--color-text-faint); font-size: var(--text-xs); }
+    .footer-meta strong { color: var(--color-text-muted); }
+    .footer-divider { color: var(--color-divider); }
+
+    /* Animations */
+    @keyframes slideInRight  { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideInLeft   { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideOutLeft  { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-40px); } }
+    @keyframes slideOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+    .step-enter-forward  { animation: slideInRight  250ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .step-enter-backward { animation: slideInLeft   250ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .step-exit-forward   { animation: slideOutLeft  250ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .step-exit-backward  { animation: slideOutRight 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes toastIn  { from { opacity: 0; transform: translateY(16px) translateX(-50%); } to { opacity: 1; transform: translateY(0) translateX(-50%); } }
+    .toast { position: fixed; bottom: var(--space-6); left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-3) var(--space-6); border-radius: var(--radius-full); font-size: var(--text-sm); animation: toastIn 200ms ease forwards; z-index: 1000; box-shadow: var(--shadow-lg); }
+
+    @media (max-width: 768px) {
+      .wizard-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--color-surface); border-top: 1px solid var(--color-divider); padding: var(--space-4) var(--space-6); display: flex; justify-content: space-between; z-index: 100; box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05); }
+      .wizard-card { padding-bottom: var(--space-8); margin-bottom: var(--space-16); }
+      .steps-bar { display: none; }
+    }
+    @media (max-width: 399px) {
+      .streak-badge .streak-text { display: none; }
+    }
+  </style>
 </head>
 <body>
-    <div id="quiz-container"></div>
-    <div id="quiz-overlay">
-        <div id="fs-header"></div>
-        <div id="fs-content"></div>
-        <button id="close-fs">Fechar</button>
+
+  <a href="#wizard" class="skip-link">Pular para o configurador</a>
+
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <a href="#" class="logo" id="logo-home" aria-label="StudyMaster — Voltar ao início">
+          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="logoGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#01696F"/>
+                <stop offset="0.5" stop-color="#00A7B2"/>
+                <stop offset="1" stop-color="#D4A827"/>
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="18" fill="url(#logoGrad)"/>
+            <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="46" cy="40" r="11" fill="#ffffff"/>
+            <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#01696F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <span>StudyMaster</span>
+        </a>
+        <div class="header-actions">
+          <span class="streak-badge" id="streak-badge" aria-live="polite"><span class="streak-emoji">🔥</span> <span class="streak-text" id="streak-text">0</span></span>
+          <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
+            <i data-lucide="moon" width="20" height="20" id="theme-icon"></i>
+          </button>
+        </div>
+      </div>
     </div>
+  </header>
 
-    <script>
-    const state = { 
-        questionType: 'quiz', 
-        currentIdx: 0, 
-        questions: [], 
-        diffLabel: 'Médio', 
-        modeLabel: 'Simulado' 
-    };
+  <section class="hero">
+    <div class="container">
+      <span class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Questões personalizadas · Gabarito comentado · 100% gratuito</span>
+      <h1 class="hero-title">Prepare-se com questões<br><span>geradas por IA</span> para o seu objetivo</h1>
+      <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as questões na hora — com gabarito comentado para cada resposta.</p>
+    </div>
+  </section>
 
-    function renderQuestions(questions) {
-        // BUG 1: Guard clause para modo quiz
-        if (state.questionType === 'quiz') {
-            renderQuizMode(questions);
-            return;
-        }
-        // ... rest of logic
-    }
+  <main id="wizard" class="wizard-section">
+    <div class="container">
 
-    function renderQuizMode(questions) {
-        state.questions = questions;
-        const container = document.getElementById('quiz-container');
-        
-        // BUG 9: Registro do botão antes de abrir o overlay
-        const retryBtn = document.getElementById('retry-wrong-btn');
-        if(retryBtn) retryBtn.onclick = () => { console.log('Retry logic'); };
+      <nav class="steps-bar" aria-label="Progresso do configurador">
+        <button class="step-indicator active" data-step="1" aria-label="Passo 1: Modo">
+          <span class="step-number">1</span>
+          <span class="step-label">Modo</span>
+        </button>
+        <div class="step-connector"></div>
+        <button class="step-indicator" data-step="2" aria-label="Passo 2: Conteúdo">
+          <span class="step-number">2</span>
+          <span class="step-label">Conteúdo</span>
+        </button>
+        <div class="step-connector"></div>
+        <button class="step-indicator" data-step="3" aria-label="Passo 3: Config">
+          <span class="step-number">3</span>
+          <span class="step-label">Config</span>
+        </button>
+        <div class="step-connector"></div>
+        <button class="step-indicator" data-step="4" aria-label="Passo 4: Questões">
+          <span class="step-number">4</span>
+          <span class="step-label">Questões</span>
+        </button>
+      </nav>
 
-        // BUG 2: Sempre abre fullscreen (Mobile & Desktop)
-        const overlay = document.getElementById('quiz-overlay');
-        document.body.classList.add('modal-open');
-        overlay.classList.add('open');
-        fsRenderQuestion(0);
-    }
+      <div class="wizard-card" id="wizard-card" role="region" aria-live="polite">
 
-    function fsUpdateHeader() {
-        const header = document.getElementById('fs-header');
-        // BUG 3 & 4: Chips com labels reais e template literals corrigidos
-        header.innerHTML = `
-            <div class="chips">
-                <span>${state.diffLabel}</span>
-                <span>${state.modeLabel}</span>
+        <!-- STEP 1 -->
+        <div class="wizard-step active" id="step-1" data-step="1">
+          <h2 class="step-title">Como você quer estudar hoje?</h2>
+          <p class="step-subtitle">Escolha o modo para personalizar sua sessão</p>
+          <div class="mode-grid">
+            <button class="mode-card" data-mode="academic" aria-label="Modo Acadêmico">
+              <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
+              <div class="mode-info">
+                <strong>Acadêmico</strong>
+                <span>Faculdade, ENEM, graduação por área e matéria</span>
+              </div>
+            </button>
+            <button class="mode-card" data-mode="concurso" aria-label="Modo Concurso">
+              <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
+              <div class="mode-info">
+                <strong>Concurso Público</strong>
+                <span>Selecione o concurso ou cole o edital</span>
+              </div>
+            </button>
+            <button class="mode-card" data-mode="livre" aria-label="Modo Livre">
+              <div class="mode-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
+              <div class="mode-info">
+                <strong>Material Livre</strong>
+                <span>Cole qualquer texto, apostila ou resumo</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="wizard-step" id="step-2" data-step="2"></div>
+
+        <!-- STEP 3 -->
+        <div class="wizard-step" id="step-3" data-step="3">
+          <h2 class="step-title">Configure sua sessão</h2>
+          <p class="step-subtitle">Padrões já selecionados — ajuste se quiser</p>
+
+          <div class="config-group" id="config-difficulty">
+            <label class="config-label">Dificuldade</label>
+            <div class="chip-group" role="group">
+              <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> Fácil</button>
+              <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> Médio</button>
+              <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Difícil</button>
+              <button class="chip" data-difficulty="extreme"><span class="dot" style="background:#8b0000"></span> Extremo</button>
             </div>
-            <div class="progress">Questão ${state.currentIdx + 1} de ${state.questions.length}</div>
-        `;
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">Quantidade de questões: <strong id="qty-display">10</strong></label>
+            <div class="slider-wrapper">
+              <span>5</span>
+              <input type="range" id="qty-slider" min="5" max="50" step="5" value="10" aria-label="Quantidade de questões">
+              <span>50</span>
+            </div>
+          </div>
+          <div class="config-group">
+            <label class="config-label">🎯 Meta diária de questões</label>
+            <div class="chip-group goal-chips" role="group" id="daily-goal-group">
+              <button class="chip" data-goal="5">5</button>
+              <button class="chip active" data-goal="10">10</button>
+              <button class="chip" data-goal="20">20</button>
+              <button class="chip" data-goal="30">30</button>
+              <button class="chip" data-goal="none">Sem meta</button>
+            </div>
+          </div>
+
+          <div class="config-group" id="config-type">
+            <label class="config-label">Tipo de questão</label>
+            <div class="chip-group" role="group">
+              <button class="chip active" data-qtype="mc">Múltipla Escolha</button>
+              <button class="chip" data-qtype="vf">Verdadeiro/Falso</button>
+              <button class="chip" data-qtype="mix">Misto</button>
+            </div>
+          </div>
+
+          <div class="config-group" id="config-alternativas">
+            <label class="config-label">Formato de resposta</label>
+            <div class="chip-group" role="group">
+              <button class="chip" data-alternativas="4">4 alternativas</button>
+              <button class="chip active" data-alternativas="5">5 alternativas</button>
+            </div>
+          </div>
+
+          <div class="config-group" id="config-idioma">
+            <label class="config-label">Idioma das questões</label>
+            <div class="chip-group" role="group">
+              <button class="chip active" data-idioma="pt-BR">Português (BR)</button>
+              <button class="chip" data-idioma="en">English (EN)</button>
+              <button class="chip" data-idioma="es">Español (ES)</button>
+            </div>
+          </div>
+
+          <div class="advanced-toggle-wrapper">
+            <button class="advanced-toggle" id="advanced-btn" aria-expanded="false">
+              <i data-lucide="settings-2" width="16" height="16"></i>
+              Configurações avançadas
+              <i data-lucide="chevron-down" width="16" height="16" class="chevron"></i>
+            </button>
+          </div>
+          <div class="advanced-config hidden" id="advanced-config">
+            <div class="config-group">
+              <label class="config-label">Modo da sessão</label>
+              <div class="chip-group" role="group">
+                <button class="chip active" data-session="normal"><i data-lucide="book-open" width="14" height="14"></i> Estudo Normal</button>
+                <button class="chip" data-session="concurso"><i data-lucide="trophy" width="14" height="14"></i> Simulado</button>
+                <button class="chip" data-session="revisao"><i data-lucide="refresh-cw" width="14" height="14"></i> Revisão Rápida</button>
+              </div>
+            </div>
+            <div class="config-group" id="config-banca-focus">
+              <label class="config-label">Foco em banca <span style="font-weight:400;color:var(--color-text-muted)">(estilo da prova)</span></label>
+              <div class="chip-group" role="group">
+                <button class="chip active" data-banca="auto"><i data-lucide="bot" width="14" height="14"></i> Automático</button>
+                <button class="chip" data-banca="CEBRASPE">CEBRASPE / CESPE</button>
+                <button class="chip" data-banca="FCC">FCC</button>
+                <button class="chip" data-banca="VUNESP">VUNESP</button>
+                <button class="chip" data-banca="FGV">FGV</button>
+                <button class="chip" data-banca="CESGRANRIO">CESGRANRIO</button>
+                <button class="chip" data-banca="IDECAN">IDECAN</button>
+                <button class="chip" data-banca="IBFC">IBFC</button>
+                <button class="chip" data-banca="AOCP">AOCP</button>
+                <button class="chip" data-banca="FEPESE">FEPESE</button>
+              </div>
+              <div id="banca-badge-wrapper" style="margin-top:var(--space-2)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="wizard-step" id="step-4" data-step="4">
+          <div class="generating-screen" id="generating-screen">
+            <div class="spinner"></div>
+            <p class="generating-label">Gerando suas questões com IA…</p>
+            <p class="generating-sub">Isso leva alguns segundos</p>
+          </div>
+          <div class="error-screen" id="error-screen">
+            <div class="error-icon"><i data-lucide="alert-triangle" width="48" height="48" style="color:var(--color-error)"></i></div>
+            <h3 style="margin-bottom:var(--space-2)">Erro ao gerar questões</h3>
+            <p class="error-msg" id="error-msg">Não foi possível conectar ao servidor. Tente novamente em instantes.</p>
+            <button class="btn-primary" id="retry-btn" style="max-width:300px;margin:0 auto;">
+              <i data-lucide="refresh-cw" width="16" height="16"></i>
+              Tentar novamente
+            </button>
+          </div>
+          <div class="questions-container" id="questions-container">
+            <div class="summary-chips" id="summary-chips"></div>
+            <div class="score-bar" id="score-bar">
+              <span class="score-label">Progresso</span>
+              <div class="score-progress"><div class="score-fill" id="score-fill"></div></div>
+              <span class="score-value" id="score-value">0/<span id="score-total">0</span></span>
+            </div>
+            <div id="questions-list"></div>
+            <div class="hidden" id="session-result" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
+              <div style="font-weight:700;margin-bottom:6px">Resultado da sessão</div>
+              <div id="session-stats" style="color:var(--color-text-muted)"></div>
+              <button class="btn-primary hidden" id="retry-wrong-btn" style="margin-top:10px;max-width:320px">
+                Refazer somente as erradas
+              </button>
+            </div>
+            <button class="btn-ghost" id="restart-btn">
+              <i data-lucide="rotate-ccw" width="16" height="16"></i>
+              Novo Quiz
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-nav" id="wizard-nav">
+        <button class="btn-back hidden" id="back-btn">
+          <i data-lucide="arrow-left" width="18" height="18"></i>
+          Voltar
+        </button>
+        <button class="btn-next hidden" id="next-btn" disabled>
+          Continuar
+          <i data-lucide="arrow-right" width="18" height="18"></i>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MARKETING -->
+  <section class="marketing-section marketing-section-bg">
+    <div class="container">
+      <div class="how-it-works">
+        <div class="section-header">
+          <p class="section-eyebrow">Simples por design</p>
+          <h2>Como funciona</h2>
+        </div>
+        <div class="steps-list">
+          <div class="how-step">
+            <span class="how-number">01</span>
+            <div><strong>Escolha seu modo</strong><p>Acadêmico para faculdade, Concurso para editais, Livre para qualquer material.</p></div>
+          </div>
+          <div class="how-step">
+            <span class="how-number">02</span>
+            <div><strong>Configure a sessão</strong><p>Dificuldade, quantidade, idioma e banca em menos de 30 segundos.</p></div>
+          </div>
+          <div class="how-step">
+            <span class="how-number">03</span>
+            <div><strong>A IA gera na hora</strong><p>Questões criadas diretamente na tela — com gabarito comentado para cada resposta.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="marketing-section marketing-section-surface">
+    <div class="container">
+      <div class="profile-cards">
+        <div class="section-header">
+          <p class="section-eyebrow">Feito para quem estuda de verdade</p>
+          <h2>Para quem é?</h2>
+        </div>
+        <div class="profiles-grid">
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="graduation-cap" width="22" height="22"></i>
+              <strong>Universitários</strong>
+            </div>
+            <p>Gere questões de qualquer matéria do seu curso por tópico específico.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="clipboard-list" width="22" height="22"></i>
+              <strong>Concurseiros</strong>
+            </div>
+            <p>Simule bancas como CESPE, VUNESP e FCC com questões no estilo real.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="scale" width="22" height="22"></i>
+              <strong>Advogados / OAB</strong>
+            </div>
+            <p>Prepare-se para a 1ª e 2ª fase com prompts no padrão FGV.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="shield" width="22" height="22"></i>
+              <strong>Segurança Pública</strong>
+            </div>
+            <p>PC, PM, GCM, Bombeiros — questões por cargo e legislação específica.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="heart-pulse" width="22" height="22"></i>
+              <strong>Área da Saúde</strong>
+            </div>
+            <p>Residências médicas, concursos de enfermagem e farmácia com foco clínico.</p>
+          </div>
+          <div class="profile-card">
+            <p class="profile-tag">Para você se...</p>
+            <div class="profile-header">
+              <i data-lucide="monitor" width="22" height="22"></i>
+              <strong>TI &amp; Tecnologia</strong>
+            </div>
+            <p>Certificações, concursos de TI e provas acadêmicas de ciência da computação.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="marketing-section marketing-section-bg">
+    <div class="container">
+      <div class="compare-table-wrapper">
+        <div class="section-header">
+          <p class="section-eyebrow">Comparativo</p>
+          <h2>Com StudyMaster vs. Sem StudyMaster</h2>
+        </div>
+        <table class="compare-table">
+          <thead>
+            <tr><th>Situação</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Criar questões</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
+            <tr><td>Relevância</td><td>Genérico e vago</td><td>Específico para seu concurso/matéria</td></tr>
+            <tr><td>Nível das questões</td><td>Aleatório</td><td>Calibrado pela dificuldade escolhida</td></tr>
+            <tr><td>Gabarito</td><td>Sem explicação</td><td>Comentado com justificativa</td></tr>
+            <tr><td>Custo</td><td>Pago (cursinhos)</td><td>100% gratuito</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="footer-logo">StudyMaster</span>
+          <p class="footer-tagline">Gerador de questões com IA — gratuito e sem cadastro.</p>
+        </div>
+        <div class="footer-meta">
+          <span>Powered by <strong>Groq AI</strong></span>
+          <span class="footer-divider">·</span>
+          <span>© 2025 StudyMaster</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script>
+const WORKER_URL = 'https://studymaster-worker.cesarmuniz0816.workers.dev';
+
+// ─── ACADEMIC DATA (expandido) ───────────────────────────────────────────────
+const academicData = {
+  'Direito': {
+    'Direito Constitucional': ['Teoria da Constituição','Direitos Fundamentais','Organização do Estado','Poder Executivo','Poder Legislativo','Poder Judiciário','Controle de Constitucionalidade','Processo Constitucional'],
+    'Direito Civil': ['Pessoa Natural e Jurídica','Negócio Jurídico','Responsabilidade Civil','Contratos','Família','Sucessões','Direitos Reais','Obrigações'],
+    'Direito Penal': ['Teoria do Crime','Tipicidade','Culpabilidade','Penas e Medidas de Segurança','Crimes contra a Pessoa','Crimes contra o Patrimônio','Lei de Drogas','Crimes contra a Administração Pública'],
+    'Direito Administrativo': ['Atos Administrativos','Licitações e Contratos','Serviços Públicos','Improbidade Administrativa','Controle da Administração','Agentes Públicos','Processo Administrativo'],
+    'Direito do Trabalho': ['Contrato de Trabalho','Jornada e Salário','FGTS','Rescisão Contratual','Processo do Trabalho','Negociação Coletiva'],
+    'Direito Tributário': ['Sistema Tributário Nacional','Impostos Federais','Impostos Estaduais','Obrigação Tributária','Crédito Tributário','Execução Fiscal'],
+    'Direito Processual Civil': ['Jurisdição e Ação','Processo de Conhecimento','Tutelas Provisórias','Recursos','Execução Civil','Cumprimento de Sentença'],
+    'Direito Processual Penal': ['Inquérito Policial','Provas','Prisão e Liberdade','Procedimentos','Recursos Penais','Medidas Cautelares'],
+    'Direito Empresarial': ['Direito Societário','Títulos de Crédito','Recuperação Judicial','Propriedade Intelectual','Contratos Empresariais'],
+    'Direito Internacional': ['Direito Internacional Público','Direito Internacional Privado','Tratados e Convenções','Direitos Humanos Internacionais'],
+    'Direito Ambiental': ['Política Nacional do Meio Ambiente','Licenciamento Ambiental','Crimes Ambientais','Código Florestal','Unidades de Conservação'],
+  },
+  'Saúde': {
+    'Anatomia': ['Sistema Nervoso Central','Sistema Nervoso Periférico','Sistema Cardiovascular','Sistema Respiratório','Sistema Digestório','Sistema Musculoesquelético','Sistema Endócrino','Sistema Urinário','Sistema Reprodutor'],
+    'Fisiologia': ['Fisiologia Cardiovascular','Fisiologia Respiratória','Fisiologia Renal','Neurofisiologia','Fisiologia Gastrointestinal','Fisiologia Endócrina','Fisiologia do Exercício'],
+    'Bioquímica': ['Metabolismo de Carboidratos','Metabolismo Lipídico','Metabolismo de Proteínas','Enzimologia','Bioquímica Hormonal','Bases Moleculares da Doença'],
+    'Farmacologia': ['Farmacocinética','Farmacodinâmica','Analgésicos e Anti-inflamatórios','Antibióticos e Antimicrobianos','Fármacos Cardiovasculares','Fármacos do SNC','Fármacos do Sistema Endócrino','Quimioterapia'],
+    'Patologia': ['Inflamação','Neoplasias','Patologia Cardiovascular','Patologia Pulmonar','Patologia Renal','Patologia Hepática','Patologia do SNC'],
+    'Clínica Médica': ['Cardiologia','Pneumologia','Gastroenterologia','Nefrologia','Endocrinologia','Infectologia','Neurologia','Reumatologia','Hematologia','Oncologia Clínica'],
+    'Cirurgia': ['Cirurgia Geral','Trauma e Emergência','Cirurgia Cardiovascular','Cirurgia Digestiva','Neurocirurgia','Ortopedia e Traumatologia','Pré e Pós-operatório'],
+    'Pediatria': ['Crescimento e Desenvolvimento','Neonatologia','Imunizações','Emergências Pediátricas','Doenças Infectocontagiosas na Infância','Nutrição Infantil'],
+    'Ginecologia e Obstetrícia': ['Pré-natal','Parto e Puerpério','Ginecologia Oncológica','Infecções Ginecológicas','Planejamento Familiar','Climatério e Menopausa'],
+    'Saúde Coletiva': ['Epidemiologia','Vigilância Sanitária','Vigilância Epidemiológica','SUS — Legislação e Políticas','Atenção Básica','Saúde da Família'],
+    'Enfermagem': ['Sistematização da Assistência de Enfermagem','Semiologia e Semiotécnica','Enfermagem em UTI','Enfermagem Cirúrgica','Enfermagem em Saúde Mental','Legislação e Ética em Enfermagem'],
+    'Nutrição': ['Nutrição Clínica','Nutrição Esportiva','Nutrição em Saúde Pública','Dietoterapia','Bromatologia','Bioquímica Nutricional'],
+    'Psicologia': ['Psicologia Clínica','Psicologia Organizacional','Psicopatologia','Avaliação Psicológica','Teorias da Personalidade','Neuropsicologia'],
+    'Psicanálise': ['Fundamentos e História da Psicanálise (Freud)','Determinismo Psíquico','Primeira Tópica: Inconsciente, Pré-consciente e Consciente','Segunda Tópica: Id, Ego e Superego','Recalque, Repressão e Outros Mecanismos de Defesa','Pulsão — Eros e Tânatos','Angústia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de Édipo e Complexo de Castração','Interpretação dos Sonhos e Formações do Inconsciente','Transferência e Contratransferência','Neurose, Psicose e Perversão — Estruturas Clínicas','Psicanálise Kleiniana — Posições e Relações de Objeto','Psicanálise Winnicottiana — Objeto Transicional e Holding','Psicologia Analítica (Jung) — Inconsciente Coletivo e Arquétipos','Processo de Individuação (Jung)','Psicanálise Lacaniana — Linguagem, Sujeito e Desejo','Real, Simbólico e Imaginário — RSI (Lacan)','Comparativo: Freud × Jung × Lacan','Psicoterapia Breve Psicanalítica','Psicanálise e Cultura (Freud — Mal-Estar na Civilização)','Ética em Psicanálise','Psicanálise para Concursos (CFP, Residência, Pós-graduação)'],
+    'Fisioterapia': ['Fisioterapia Respiratória','Fisioterapia Ortopédica','Fisioterapia Neurológica','Reabilitação Cardiovascular','Fisioterapia em UTI'],
+    'Odontologia': ['Clínica Odontológica','Periodontia','Endodontia','Cirurgia Bucomaxilofacial','Saúde Bucal Coletiva'],
+    'Medicina Veterinária': ['Clínica de Pequenos Animais','Clínica de Grandes Animais','Zoonoses','Saúde Animal e Inspeção','Anestesiologia Veterinária'],
+  },
+  'Tecnologia': {
+    'Programação': ['Lógica de Programação','Algoritmos e Complexidade','Estruturas de Dados','Programação Orientada a Objetos','Programação Funcional','Design Patterns','Python','Java','C e C++','JavaScript','PHP','SQL','Go','Rust','Kotlin','Swift'],
+    'Linguagens de Programação': ['Python Fundamentos','Python Avançado','Java','C e C++','JavaScript','PHP','SQL e PL/SQL','Go (Golang)','Rust','Kotlin','Swift','Ruby','Scala'],
+    'Desenvolvimento Web': ['HTML5 e CSS3','JavaScript Moderno','TypeScript','React e Next.js','Vue.js','Node.js e Express','REST APIs','GraphQL'],
+    'Banco de Dados': ['Modelagem Relacional','SQL Avançado','MySQL e PostgreSQL','NoSQL (MongoDB, Redis)','Transações e ACID','Otimização de Queries'],
+    'Redes e Infraestrutura': ['Modelo OSI e TCP/IP','Protocolos de Rede','Roteamento e Switching','Segurança de Redes','Firewall e VPN','Protocolos Wireless'],
+    'Segurança da Informação': ['Criptografia','Gestão de Riscos','Ethical Hacking','OWASP Top 10','Forense Digital','LGPD e Compliance'],
+    'Cloud Computing': ['AWS Fundamentos','Azure Fundamentos','Google Cloud','Containers e Docker','Kubernetes','Serverless e FaaS'],
+    'Inteligência Artificial': ['Machine Learning','Deep Learning','Processamento de Linguagem Natural','Visão Computacional','MLOps','Ética em IA'],
+    'DevOps': ['CI/CD Pipelines','Git e Versionamento','Docker e Compose','Kubernetes Avançado','Monitoramento e Observabilidade','Infrastructure as Code'],
+    'Sistemas Operacionais': ['Linux Administração','Windows Server','Processos e Threads','Gerência de Memória','Sistema de Arquivos'],
+    'Engenharia de Software': ['Requisitos e UML','Metodologias Ágeis (Scrum/Kanban)','Arquitetura de Software','Testes de Software','Clean Code e Refactoring'],
+    'Certificações de TI': ['CompTIA A+','CompTIA Network+','CompTIA Security+','CCNA — Cisco','AWS Certified Solutions Architect','AWS Certified Developer','Microsoft Azure Fundamentals (AZ-900)','Google Cloud Associate','LPIC-1 e LPIC-2 (Linux)','Scrum Master (PSM/CSM)','ITIL Foundation','PMP — Gestão de Projetos'],
+    'TI para Concursos': ['Noções de Informática','Pacote Office e LibreOffice','Segurança da Informação Básica','Redes para Concursos','Sistemas Operacionais Básicos'],
+  },
+  'Exatas': {
+    'Cálculo': ['Limites e Continuidade','Derivadas','Aplicações de Derivadas','Integrais Definidas e Indefinidas','Séries e Sequências','Equações Diferenciais'],
+    'Álgebra Linear': ['Matrizes e Determinantes','Sistemas Lineares','Espaços Vetoriais','Transformações Lineares','Autovalores e Autovetores'],
+    'Física': ['Cinemática','Dinâmica e Leis de Newton','Trabalho e Energia','Termodinâmica','Eletrostática','Eletromagnetismo','Óptica Geométrica','Física Moderna','Física Quântica','Teoria da Relatividade','Acústica','Óptica Física','Física de Partículas','Astrofísica Básica'],
+    'Química': ['Química Geral','Estequiometria','Termoquímica','Equilíbrio Químico','Eletroquímica','Química Orgânica','Química Analítica','Bioquímica Aplicada','Físico-Química','Polímeros e Materiais','Química Ambiental','Espectroscopia'],
+    'Astronomia e Astrofísica': ['Sistema Solar','Estrelas e Ciclo Estelar','Galáxias e Cosmologia','Astrofísica de Partículas','Telescópios e Observação','Exoplanetas'],
+    'Ciência dos Materiais': ['Estrutura Cristalina','Propriedades Mecânicas','Metais e Ligas','Polímeros','Cerâmicas','Semicondutores','Nanomateriais'],
+    'Biofísica': ['Biofísica Celular','Biomecânica','Biofísica Molecular','Radiobiologia','Técnicas Biofísicas (RMN, Criomicroscopia)'],
+    'Estatística e Probabilidade': ['Probabilidade','Variáveis Aleatórias','Distribuições de Probabilidade','Inferência Estatística','Testes de Hipóteses','Regressão e Correlação'],
+    'Matemática Discreta': ['Teoria dos Conjuntos','Lógica Proposicional','Teoria dos Grafos','Combinatória','Teoria dos Números'],
+    'Matemática para Concursos': ['Aritmética e Porcentagem','Razão e Proporção','Equações e Inequações','Geometria Plana','Geometria Espacial','Raciocínio Lógico'],
+  },
+  'Humanas': {
+    'História do Brasil': ['Brasil Colonial','Período Joanino e Independência','Segundo Reinado','República Velha','Era Vargas','Redemocratização e Ditadura Militar','Nova República'],
+    'História Geral': ['Pré-História e Antiguidade','Grécia e Roma Antiga','Idade Média','Renascimento e Modernidade','Revoluções Industriais','Guerras Mundiais','Guerra Fria e Mundo Contemporâneo'],
+    'Geografia do Brasil': ['Geopolítica Brasileira','Biomas Brasileiros','Urbanização e Regiões Metropolitanas','Agropecuária e Recursos Naturais','Geopolítica Regional'],
+    'Geografia Geral': ['Cartografia e Coordenadas','Geopolítica Mundial','Climatologia e Hidrografia','População e Migrações','Globalização e Blocos Econômicos'],
+    'Filosofia': ['Filosofia Antiga (Sócrates, Platão, Aristóteles)','Filosofia Medieval','Filosofia Moderna (Descartes, Kant)','Ética e Filosofia Moral','Epistemologia','Filosofia Política'],
+    'Sociologia': ['Teorias Sociológicas Clássicas','Sociologia Brasileira','Movimentos Sociais','Trabalho e Sociedade','Cultura e Identidade'],
+    'Antropologia': ['Antropologia Cultural','Antropologia Física','Etnologia Brasileira','Antropologia Urbana','Povos Indígenas no Brasil','Cultura e Simbolismo'],
+    'Ciência Política': ['Teoria Política Clássica','Sistemas de Governo','Partidos e Eleições','Relações Internacionais','Democracia e Autoritarismo','Política Brasileira Contemporânea'],
+    'Psicologia Social': ['Cognição Social','Atitudes e Preconceito','Influência Social','Grupos e Dinâmicas de Grupo','Identidade Social','Psicologia das Massas'],
+    'Psicanálise': ['Fundamentos e História da Psicanálise (Freud)','Determinismo Psíquico','Primeira Tópica: Inconsciente, Pré-consciente e Consciente','Segunda Tópica: Id, Ego e Superego','Recalque, Repressão e Outros Mecanismos de Defesa','Pulsão — Eros e Tânatos','Angústia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de Édipo e Complexo de Castração','Interpretação dos Sonhos e Formações do Inconsciente','Transferência e Contratransferência','Neurose, Psicose e Perversão — Estruturas Clínicas','Psicanálise Kleiniana — Posições e Relações de Objeto','Psicanálise Winnicottiana — Objeto Transicional e Holding','Psicologia Analítica (Jung) — Inconsciente Coletivo e Arquétipos','Processo de Individuação (Jung)','Psicanálise Lacaniana — Linguagem, Sujeito e Desejo','Real, Simbólico e Imaginário — RSI (Lacan)','Comparativo: Freud × Jung × Lacan','Psicoterapia Breve Psicanalítica','Psicanálise e Cultura (Freud — Mal-Estar na Civilização)','Ética em Psicanálise','Psicanálise para Concursos (CFP, Residência, Pós-graduação)'],
+    'Direitos Humanos': ['Histórico e Fundamentos dos Direitos Humanos','Sistemas Internacionais de Proteção','Direitos Humanos no Brasil','Grupos Vulneráveis','Direito Humanitário Internacional','Mecanismos da ONU'],
+    'Português': ['Morfologia e Sintaxe','Concordância e Regência','Crase e Pontuação','Interpretação e Tipologia Textual','Redação Oficial','Literatura Brasileira e Portuguesa'],
+    'Atualidades': ['Geopolítica e Conflitos Internacionais','Eleições e Democracia no Mundo','Crise Climática e COP','Inteligência Artificial e Sociedade','Economia Global e Inflação','Saúde Global e Pandemias','Direitos Civis e Movimentos Sociais','Brasil: Política e Economia Recente','Tecnologia e Privacidade de Dados','Segurança Pública e Legislação'],
+  },
+  'Negócios': {
+    'Administração': ['Teoria das Organizações','Gestão de Pessoas (RH)','Marketing e Vendas','Planejamento Estratégico','Empreendedorismo e Inovação','Gestão de Projetos'],
+    'Contabilidade': ['Balanço Patrimonial','DRE e DVA','Análise de Balanços','Contabilidade de Custos','Contabilidade Pública','IFRS e CPC'],
+    'Economia': ['Microeconomia','Macroeconomia','Economia Brasileira','Política Fiscal e Monetária','Comércio Internacional'],
+    'Finanças': ['Matemática Financeira','Mercado Financeiro e de Capitais','Análise de Investimentos','Gestão de Risco','Derivativos e Opções'],
+    'Direito Empresarial Aplicado': ['Ética nos Negócios','Compliance e Governança','Legislação Trabalhista para Gestores','Direito do Consumidor'],
+    'Logística e Supply Chain': ['Gestão de Estoques','Logística de Transporte','Supply Chain Management','Lean Manufacturing','Gestão da Qualidade (ISO)'],
+    'Marketing Digital': ['SEO e Busca Orgânica','Google Ads e Meta Ads','Marketing de Conteúdo','E-mail Marketing','Redes Sociais e Influência','Analytics e Métricas','Funil de Vendas Digital','E-commerce e Marketplace','Branding Digital'],
+    'Gestão de Startups': ['Lean Startup e MVP','Pitch e Captação de Investimento','Venture Capital e Angel Investors','Product Market Fit','Growth Hacking','Cultura e People em Startups','Modelos de Negócio SaaS','Aceleradoras e Ecossistemas de Inovação'],
+    'Agronegócio': ['Cadeias Produtivas do Agronegócio','Commodities e Mercado Futuro','Tecnologia no Campo (AgTech)','Crédito Rural e Financiamento','Exportações do Agronegócio Brasileiro','Sustentabilidade e Agro','Legislação Rural e Ambiental'],
+  },
+  'ENEM': {
+    'Linguagens': ['Interpretação de Texto','Literatura Brasileira e Portuguesa','Gramática e Norma Culta','Artes e Cultura','Língua Estrangeira'],
+    'Matemática': ['Álgebra e Funções','Geometria Plana e Espacial','Estatística e Probabilidade','Matemática Financeira','Trigonometria'],
+    'Ciências da Natureza': ['Mecânica e Termodinâmica','Eletricidade e Óptica','Química Orgânica e Inorgânica','Biologia Celular e Molecular','Ecologia e Meio Ambiente'],
+    'Ciências Humanas': ['História do Brasil','História Geral','Geografia Física e Humana','Filosofia','Sociologia'],
+    'Redação ENEM': ['Estrutura da Redação','Repertório Cultural','Proposta de Intervenção','Coesão e Coerência','Temas Recorrentes'],
+  },
+  'Concursos — Matérias Comuns': {
+    'Língua Portuguesa': ['Compreensão e Interpretação de Texto','Tipologia e Gêneros Textuais','Ortografia e Acentuação','Concordância Nominal e Verbal','Regência Nominal e Verbal','Pontuação','Vocabulário e Semântica','Redação Oficial'],
+    'Raciocínio Lógico': ['Lógica Proposicional','Tabelas-Verdade','Diagramas Lógicos','Sequências e Padrões','Raciocínio Analítico'],
+    'Matemática para Concursos': ['Aritmética e Divisibilidade','Porcentagem e Juros','Razão, Proporção e Regra de Três','Probabilidade e Estatística','Geometria','Álgebra Básica'],
+    'Informática para Concursos': ['Noções de Hardware e Software','Windows e Linux','Pacote Office (Word, Excel, PowerPoint)','Internet e E-mail','Segurança da Informação Básica','Redes Básicas'],
+    'Legislação Geral': ['Constituição Federal — Principais Artigos','Lei 8.112/90 (Estatuto dos Servidores)','Lei 8.666/93 e Lei 14.133/21 (Licitações)','Lei de Responsabilidade Fiscal','Lei de Acesso à Informação'],
+    'Direito Constitucional Básico': ['Princípios Fundamentais','Direitos e Garantias Fundamentais','Administração Pública','Poder Executivo, Legislativo e Judiciário','Controle de Constitucionalidade'],
+  },
+};
+
+// ─── CONCURSO DATA (expandido) ─────────────────────────────────────────────
+const concursoData = {
+  'Segurança Pública': { concursos: [
+    { id: 'pf-agente', label: 'PF — Agente Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'pf-delegado', label: 'PF — Delegado', banca: 'CEBRASPE/CESPE' },
+    { id: 'prf', label: 'PRF — Policial Rodoviário Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'pc-sp', label: 'PC-SP — Investigador / Delegado', banca: 'VUNESP' },
+    { id: 'pc-rj', label: 'PC-RJ — Agente / Delegado', banca: 'CEBRASPE/CESPE' },
+    { id: 'pc-estados', label: 'PC — Outros Estados', banca: 'CEBRASPE/CESPE' },
+    { id: 'pm-sp', label: 'PM-SP — Soldado / Oficial', banca: 'VUNESP' },
+    { id: 'pm-estados', label: 'PM — Outros Estados', banca: 'CEBRASPE/CESPE' },
+    { id: 'depen', label: 'DEPEN / Agente Penitenciário Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'bombeiros', label: 'Corpo de Bombeiros', banca: 'CEBRASPE/CESPE' },
+    { id: 'gcm', label: 'Guarda Civil Municipal', banca: 'VUNESP' },
+  ]},
+  'Fiscal / Tributário': { concursos: [
+    { id: 'receita-auditor', label: 'Receita Federal — Auditor Fiscal', banca: 'CEBRASPE/CESPE' },
+    { id: 'receita-analista', label: 'Receita Federal — Analista Tributário', banca: 'CEBRASPE/CESPE' },
+    { id: 'inss-analista', label: 'INSS — Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'tcu', label: 'TCU — Auditor Federal de Controle Externo', banca: 'CEBRASPE/CESPE' },
+    { id: 'tce', label: 'TCE — Tribunais de Contas Estaduais', banca: 'FCC' },
+    { id: 'sefaz-sp', label: 'SEFAZ-SP — Agente Fiscal de Rendas', banca: 'FCC' },
+    { id: 'sefaz-rj', label: 'SEFAZ-RJ — Fiscal', banca: 'FGV' },
+    { id: 'pgfn', label: 'PGFN — Procurador', banca: 'CEBRASPE/CESPE' },
+    { id: 'agu', label: 'AGU — Advogado da União', banca: 'CEBRASPE/CESPE' },
+  ]},
+  'Jurídico': { concursos: [
+    { id: 'oab-1fase', label: 'OAB — 1ª Fase', banca: 'FGV' },
+    { id: 'oab-2fase', label: 'OAB — 2ª Fase', banca: 'FGV' },
+    { id: 'tj-sp', label: 'TJ-SP — Escrevente / Analista', banca: 'VUNESP' },
+    { id: 'tj-rj', label: 'TJ-RJ — Analista', banca: 'FGV' },
+    { id: 'trf', label: 'TRF — Analista e Técnico Judiciário', banca: 'CEBRASPE/CESPE' },
+    { id: 'tst', label: 'TST — Analista Judiciário', banca: 'FCC' },
+    { id: 'mp-estadual', label: 'Ministério Público Estadual', banca: 'CEBRASPE/CESPE' },
+    { id: 'mpu', label: 'MPU — Analista e Técnico', banca: 'CEBRASPE/CESPE' },
+    { id: 'defensoria-sp', label: 'Defensoria Pública SP', banca: 'FGV' },
+    { id: 'defensoria-federal', label: 'DPU — Defensor Público Federal', banca: 'CEBRASPE/CESPE' },
+  ]},
+  'Bancário': { concursos: [
+    { id: 'bb-escriturario', label: 'Banco do Brasil — Escriturário', banca: 'CESGRANRIO' },
+    { id: 'bb-analista', label: 'Banco do Brasil — Analista', banca: 'CESGRANRIO' },
+    { id: 'cef-tecnico', label: 'Caixa Econômica — Técnico Bancário', banca: 'CESGRANRIO' },
+    { id: 'cef-analista', label: 'Caixa Econômica — Analista', banca: 'CESGRANRIO' },
+    { id: 'bndes', label: 'BNDES — Analista', banca: 'CESGRANRIO' },
+    { id: 'bacen', label: 'Banco Central — Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'correios', label: 'Correios — Analista e Técnico', banca: 'CEBRASPE/CESPE' },
+    { id: 'cvm', label: 'CVM — Analista', banca: 'FGV' },
+  ]},
+  'Federal / Geral': { concursos: [
+    { id: 'anp', label: 'Petrobras / ANP — Nível Superior', banca: 'CESGRANRIO' },
+    { id: 'ibge', label: 'IBGE — Pesquisador / Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'anatel', label: 'ANATEL — Especialista', banca: 'FGV' },
+    { id: 'anvisa', label: 'ANVISA — Especialista em Regulação', banca: 'CEBRASPE/CESPE' },
+    { id: 'cgu', label: 'CGU — Auditor Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'iphan', label: 'IPHAN — Especialista', banca: 'FCC' },
+    { id: 'mec', label: 'MEC / FNDE — Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro — colar edital', banca: 'A definir' },
+  ]},
+  'Saúde / Residência': { concursos: [
+    { id: 'revalida', label: 'Revalida — Revalidação de Diploma Médico', banca: 'INEP/MEC' },
+    { id: 'residencia-medica', label: 'Residência Médica — USP / UNICAMP / UNIFESP', banca: 'FAMERP/VUNESP' },
+    { id: 'residencia-enf', label: 'Residência em Enfermagem', banca: 'CEBRASPE/CESPE' },
+    { id: 'sus-medico', label: 'SUS / SMS — Médico Clínico Geral', banca: 'VUNESP' },
+    { id: 'sus-enfermeiro', label: 'SUS / SMS — Enfermeiro', banca: 'VUNESP' },
+    { id: 'sus-farmaceutico', label: 'SUS / SMS — Farmacêutico', banca: 'FCC' },
+    { id: 'sus-fisioterapeuta', label: 'SUS / SMS — Fisioterapeuta', banca: 'VUNESP' },
+    { id: 'coren', label: 'COREN / CFM — Provas de Ética e Legislação', banca: 'Banca própria' },
+    { id: 'ebserh', label: 'EBSERH — Analista e Técnico em Saúde', banca: 'CEBRASPE/CESPE' },
+    { id: 'hcpa', label: 'HCPA — Hospital de Clínicas de Porto Alegre', banca: 'Banca própria' },
+  ]},
+  'Educação': { concursos: [
+    { id: 'prof-ef', label: 'Professor — Ensino Fundamental (Prefeituras)', banca: 'VUNESP' },
+    { id: 'prof-em', label: 'Professor — Ensino Médio (SEE Estadual)', banca: 'VUNESP/FCC' },
+    { id: 'prof-mat', label: 'Professor de Matemática', banca: 'CEBRASPE/CESPE' },
+    { id: 'prof-port', label: 'Professor de Português / Língua Portuguesa', banca: 'FCC' },
+    { id: 'prof-bio', label: 'Professor de Biologia / Ciências', banca: 'CEBRASPE/CESPE' },
+    { id: 'prof-hist', label: 'Professor de História', banca: 'CEBRASPE/CESPE' },
+    { id: 'prof-ed-fisica', label: 'Professor de Educação Física', banca: 'IBFC' },
+    { id: 'pedagogia', label: 'Pedagogo / Coordenador Pedagógico', banca: 'VUNESP' },
+    { id: 'if-federal', label: 'Instituto Federal — Professor', banca: 'CEBRASPE/CESPE' },
+    { id: 'mec-analista', label: 'MEC / Universidade Federal — Técnico Administrativo', banca: 'CEBRASPE/CESPE' },
+  ]},
+  'Municipal': { concursos: [
+    { id: 'pref-sp', label: 'Prefeitura de São Paulo — Diversas Áreas', banca: 'VUNESP' },
+    { id: 'pref-rj', label: 'Prefeitura do Rio de Janeiro', banca: 'FGV' },
+    { id: 'pref-bh', label: 'Prefeitura de Belo Horizonte', banca: 'FUNDEP' },
+    { id: 'pref-cwb', label: 'Prefeitura de Curitiba', banca: 'CEBRASPE/CESPE' },
+    { id: 'pref-poa', label: 'Prefeitura de Porto Alegre', banca: 'FUNDATEC' },
+    { id: 'pref-fortaleza', label: 'Prefeitura de Fortaleza', banca: 'CEBRASPE/CESPE' },
+    { id: 'camara-municipal', label: 'Câmara Municipal — Diversas Cidades', banca: 'VUNESP' },
+    { id: 'mun-fiscal', label: 'Fiscal de Obras / Tributos Municipal', banca: 'VUNESP' },
+    { id: 'mun-assistente', label: 'Assistente Social / Psicólogo Municipal', banca: 'IBFC' },
+    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro município — colar edital', banca: 'A definir' },
+  ]},
+};
+
+const state = {
+  currentStep: 1, direction: 'forward', mode: null,
+  area: null, subject: null, topic: null,
+  concursoCategory: null, concurso: null, bancaInferida: null,
+  editalText: '', freeText: '', youtubeUrl: '',
+  difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
+  alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
+  generatedQuestions: [], answered: 0, correct: 0, answerResults: [],
+  concursoSubStep: 'a', advancedOpen: false,
+  dailyGoal: 10,
+};
+const MAX_EXTRACTED_CHARS = 30000;
+const scriptPromises = {};
+const STORAGE_KEYS = {
+  streakDate: 'sm_streak_date',
+  streakCount: 'sm_streak_count',
+  dailyGoal: 'sm_daily_goal',
+  todayCount: 'sm_today_count',
+  todayDate: 'sm_today_date',
+};
+
+function safeStorageGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeStorageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    return;
+  }
+}
+
+function getDateStamp(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getTodayCount() {
+  const today = getDateStamp();
+  const savedDate = safeStorageGet(STORAGE_KEYS.todayDate);
+  if (savedDate !== today) {
+    safeStorageSet(STORAGE_KEYS.todayDate, today);
+    safeStorageSet(STORAGE_KEYS.todayCount, '0');
+    return 0;
+  }
+  const raw = safeStorageGet(STORAGE_KEYS.todayCount);
+  const parsed = Number.parseInt(raw || '0', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function setTodayCount(count) {
+  const normalized = Math.max(0, Number.parseInt(String(count), 10) || 0);
+  safeStorageSet(STORAGE_KEYS.todayDate, getDateStamp());
+  safeStorageSet(STORAGE_KEYS.todayCount, String(normalized));
+  updateStreakBadge();
+}
+
+function incrementTodayCount(step = 1) {
+  const current = getTodayCount();
+  setTodayCount(current + step);
+}
+
+function getDailyGoal() {
+  const raw = safeStorageGet(STORAGE_KEYS.dailyGoal);
+  if (raw === 'none') return null;
+  const parsed = Number.parseInt(raw || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
+}
+
+function setDailyGoal(goal) {
+  if (goal === null) {
+    safeStorageSet(STORAGE_KEYS.dailyGoal, 'none');
+    state.dailyGoal = null;
+  } else {
+    safeStorageSet(STORAGE_KEYS.dailyGoal, String(goal));
+    state.dailyGoal = goal;
+  }
+  updateDailyGoalUI();
+  updateStreakBadge();
+}
+
+function dateDiffInDays(fromDateStr, toDateStr) {
+  const from = new Date(`${fromDateStr}T00:00:00`);
+  const to = new Date(`${toDateStr}T00:00:00`);
+  const diff = Math.round((to - from) / (1000 * 60 * 60 * 24));
+  return Number.isFinite(diff) ? diff : 0;
+}
+
+function getStreakCount() {
+  const raw = safeStorageGet(STORAGE_KEYS.streakCount);
+  const parsed = Number.parseInt(raw || '0', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function handleQuizCompleted() {
+  const today = getDateStamp();
+  const lastDate = safeStorageGet(STORAGE_KEYS.streakDate);
+  let streak = getStreakCount();
+  if (!lastDate) {
+    streak = 1;
+  } else {
+    const dayDiff = dateDiffInDays(lastDate, today);
+    if (dayDiff === 0) {
+      streak = streak > 0 ? streak : 1;
+    } else if (dayDiff === 1) {
+      streak = streak + 1;
+    } else {
+      streak = 1;
     }
+  }
+  safeStorageSet(STORAGE_KEYS.streakDate, today);
+  safeStorageSet(STORAGE_KEYS.streakCount, String(streak));
+  updateStreakBadge();
+}
 
-    function fsRenderQuestion(idx) {
-        state.currentIdx = idx;
-        fsUpdateHeader();
-        const content = document.getElementById('fs-content');
-        const q = state.questions[idx];
-        
-        content.innerHTML = `<h3>${q.title}</h3><div id="options"></div><button id="next-btn"></button>`;
-        
-        const btn = document.getElementById('next-btn');
-        const isLast = idx === state.questions.length - 1;
+function updateStreakBadge() {
+  const text = document.getElementById('streak-text');
+  if (!text) return;
+  const streak = getStreakCount();
+  const todayCount = getTodayCount();
+  const goal = state.dailyGoal;
+  text.textContent = goal ? `${streak} | ${todayCount}/${goal} hoje` : `${streak} | ${todayCount} hoje`;
+}
 
-        // BUG 5 & 6: Limpeza de variáveis órfãs e pontos e vírgulas duplos
-        btn.innerHTML = isLast ? 'Finalizar' : 'Próxima';
-        
-        btn.onclick = () => {
-            if (isLast) {
-                // BUG 8: Fluxo de finalização
-                closeFullscreen();
-                renderInlineQuizMode();
-                showSessionResult();
-                scrollToWizard(100);
-            } else {
-                fsRenderQuestion(idx + 1);
-            }
-        };
+function updateDailyGoalUI() {
+  const chips = document.querySelectorAll('#daily-goal-group .chip[data-goal]');
+  if (!chips.length) return;
+  chips.forEach(chip => chip.classList.remove('active'));
+  const selector = state.dailyGoal === null ? '[data-goal="none"]' : `[data-goal="${state.dailyGoal}"]`;
+  const selected = document.querySelector(`#daily-goal-group .chip${selector}`);
+  if (selected) selected.classList.add('active');
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToWizard(delay = 0) {
+  setTimeout(() => {
+    const wizardCard = document.getElementById('wizard-card');
+    if (!wizardCard) return;
+    const rect = wizardCard.getBoundingClientRect();
+    const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
+    const targetY = window.scrollY + rect.top - headerHeight - 16;
+    const isVisible = rect.top >= headerHeight && rect.bottom <= window.innerHeight;
+    if (!isVisible) window.scrollTo({ top: targetY, behavior: 'smooth' });
+  }, delay);
+}
+
+function goHome() {
+  if (state.currentStep === 1 && !state.mode) { scrollToTop(); return; }
+  const currEl = document.getElementById(`step-${state.currentStep}`);
+  const step1El = document.getElementById('step-1');
+  currEl.classList.remove('active');
+  step1El.classList.add('active');
+  state.currentStep = 1;
+  resetState();
+  updateStepBar(1);
+  updateNavButtons();
+  scrollToTop();
+}
+
+function init() {
+  lucide.createIcons();
+  state.dailyGoal = getDailyGoal();
+  getTodayCount();
+  updateStreakBadge();
+
+  document.getElementById('logo-home').addEventListener('click', e => {
+    e.preventDefault();
+    goHome();
+  });
+
+  document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
+    const root = document.documentElement;
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-icon').setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+    lucide.createIcons();
+  });
+
+  document.querySelectorAll('.mode-card').forEach(btn => {
+    btn.addEventListener('click', e => selectMode(e.currentTarget.dataset.mode));
+  });
+
+  const setupChips = (group, key) => {
+    document.querySelectorAll(`.chip[data-${group}]`).forEach(btn => {
+      btn.addEventListener('click', e => {
+        document.querySelectorAll(`.chip[data-${group}]`).forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        state[key] = e.target.dataset[group];
+        if (group === 'banca') updateBancaBadge(state.bancaFoco);
+      });
+    });
+  };
+
+  setupChips('difficulty', 'difficulty');
+  setupChips('qtype', 'questionType');
+  setupChips('session', 'sessionMode');
+  setupChips('alternativas', 'alternativas');
+  setupChips('idioma', 'idioma');
+  setupChips('banca', 'bancaFoco');
+
+  const slider = document.getElementById('qty-slider');
+  slider.addEventListener('input', e => {
+    state.quantity = parseInt(e.target.value);
+    document.getElementById('qty-display').textContent = state.quantity;
+  });
+  document.querySelectorAll('#daily-goal-group .chip[data-goal]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const val = e.currentTarget.dataset.goal;
+      setDailyGoal(val === 'none' ? null : Number.parseInt(val, 10));
+    });
+  });
+  updateDailyGoalUI();
+
+  document.getElementById('advanced-btn').addEventListener('click', e => {
+    state.advancedOpen = !state.advancedOpen;
+    e.currentTarget.setAttribute('aria-expanded', state.advancedOpen);
+    document.getElementById('advanced-config').classList.toggle('hidden');
+    document.getElementById('advanced-config').classList.toggle('open', state.advancedOpen);
+  });
+
+  document.getElementById('next-btn').addEventListener('click', () => goToStep(state.currentStep + 1));
+  document.getElementById('back-btn').addEventListener('click', () => goToStep(state.currentStep - 1));
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
+    if (sessionCompleted) window.dispatchEvent(new CustomEvent('quizCompleted'));
+    resetState();
+    goToStep(1);
+  });
+  document.getElementById('retry-btn').addEventListener('click', () => callWorkerAndRender());
+  window.addEventListener('quizCompleted', handleQuizCompleted);
+  updateNavButtons();
+}
+
+function updateBancaBadge(banca) {
+  const wrapper = document.getElementById('banca-badge-wrapper');
+  if (!wrapper) return;
+  if (!banca || banca === 'auto') { wrapper.innerHTML = ''; return; }
+  wrapper.innerHTML = `<span class="banca-badge"><i data-lucide="landmark" width="13" height="13"></i> Foco: ${banca}</span>`;
+  lucide.createIcons();
+}
+
+function selectMode(mode) {
+  if (state.mode && state.mode !== mode) resetState();
+  state.mode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.mode-card[data-mode="${mode}"]`).classList.add('selected');
+  renderStep2();
+  setTimeout(() => goToStep(2), 150);
+}
+
+function goToStep(target) {
+  if (target < 1 || target > 4) return;
+  state.direction = target > state.currentStep ? 'forward' : 'backward';
+  const currEl = document.getElementById(`step-${state.currentStep}`);
+  const nextEl = document.getElementById(`step-${target}`);
+  currEl.style.animation = 'none'; nextEl.style.animation = 'none';
+  currEl.classList.remove('active', 'step-enter-forward', 'step-enter-backward');
+  currEl.classList.add(`step-exit-${state.direction}`);
+  setTimeout(() => {
+    currEl.classList.remove('active', `step-exit-${state.direction}`);
+    nextEl.classList.add('active', `step-enter-${state.direction}`);
+    state.currentStep = target;
+    updateStepBar(target);
+    updateNavButtons();
+    scrollToWizard(50);
+    if (target === 4) callWorkerAndRender();
+  }, 250);
+}
+
+function updateStepBar(target) {
+  document.querySelectorAll('.step-indicator').forEach((ind, idx) => {
+    ind.classList.remove('active', 'complete');
+    if (idx + 1 < target) ind.classList.add('complete');
+    if (idx + 1 === target) ind.classList.add('active');
+  });
+}
+
+function isStepValid(step) {
+  if (step === 1) return !!state.mode;
+  if (step === 2) {
+    if (state.mode === 'academic') return !!state.area && !!state.subject;
+    if (state.mode === 'concurso') return (!!state.concurso && state.concurso.id !== 'outro-edital' && !state.concurso.id.includes('outro')) || state.editalText.length >= 50;
+    if (state.mode === 'livre') return state.freeText.length >= 50;
+  }
+  return true;
+}
+
+function updateNavButtons() {
+  const bBtn = document.getElementById('back-btn');
+  const nBtn = document.getElementById('next-btn');
+  if (state.currentStep === 1 || state.currentStep === 4) {
+    bBtn.classList.add('hidden'); nBtn.classList.add('hidden');
+  } else {
+    bBtn.classList.remove('hidden'); nBtn.classList.remove('hidden');
+    nBtn.disabled = !isStepValid(state.currentStep);
+  }
+}
+
+function resetState() {
+  state.area = null; state.subject = null; state.topic = null;
+  state.concurso = null; state.concursoCategory = null; state.concursoSubStep = 'a';
+  state.freeText = ''; state.editalText = ''; state.bancaInferida = null;
+  state.generatedQuestions = []; state.answered = 0; state.correct = 0; state.answerResults = [];
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  state.mode = null;
+}
+
+function renderStep2() {
+  const container = document.getElementById('step-2');
+  container.innerHTML = '';
+  if (state.mode === 'academic') renderStep2Academic(container);
+  else if (state.mode === 'concurso') renderStep2Concurso(container);
+  else renderStep2Livre(container);
+}
+
+function renderStep2Academic(container) {
+  container.innerHTML = `
+    <h2 class="step-title">Selecione a matéria</h2>
+    <div class="config-group">
+      <label class="config-label">Área</label>
+      <select id="area-sel">
+        <option value="">Selecione...</option>
+        ${Object.keys(academicData).map(a => `<option value="${a}" ${state.area===a?'selected':''}>${a}</option>`).join('')}
+      </select>
+    </div>
+    <div class="config-group">
+      <label class="config-label">Matéria</label>
+      <select id="subj-sel" ${!state.area?'disabled style="opacity:0.5"':''}>
+        <option value="">Selecione a área primeiro...</option>
+      </select>
+    </div>
+    <div class="config-group">
+      <label class="config-label">Tópico (Opcional)</label>
+      <select id="topic-sel" ${!state.subject?'disabled style="opacity:0.5"':''}>
+        <option value="">Matéria completa</option>
+      </select>
+    </div>`;
+  const selArea = document.getElementById('area-sel');
+  const selSubj = document.getElementById('subj-sel');
+  const selTopic = document.getElementById('topic-sel');
+  if (state.area) populateSubj(selSubj, state.area);
+  if (state.subject) populateTopic(selTopic, state.area, state.subject);
+  selArea.addEventListener('change', e => {
+    state.area = e.target.value; state.subject = null; state.topic = null;
+    selSubj.disabled = !state.area; selSubj.style.opacity = state.area ? '1' : '0.5';
+    selTopic.disabled = true; selTopic.style.opacity = '0.5';
+    populateSubj(selSubj, state.area); updateNavButtons();
+  });
+  selSubj.addEventListener('change', e => {
+    state.subject = e.target.value; state.topic = null;
+    selTopic.disabled = !state.subject; selTopic.style.opacity = state.subject ? '1' : '0.5';
+    populateTopic(selTopic, state.area, state.subject); updateNavButtons();
+  });
+  selTopic.addEventListener('change', e => { state.topic = e.target.value; });
+}
+
+function populateSubj(el, area) {
+  if (!area) { el.innerHTML = '<option value="">Selecione a área primeiro...</option>'; return; }
+  el.innerHTML = '<option value="">Selecione a matéria...</option>' + Object.keys(academicData[area]).map(s => `<option value="${s}" ${state.subject===s?'selected':''}>${s}</option>`).join('');
+}
+function populateTopic(el, area, subj) {
+  if (!subj) { el.innerHTML = '<option value="">Matéria completa</option>'; return; }
+  el.innerHTML = '<option value="">Matéria completa</option>' + academicData[area][subj].map(t => `<option value="${t}" ${state.topic===t?'selected':''}>${t}</option>`).join('');
+}
+
+function renderStep2Concurso(container) {
+  if (state.concursoSubStep === 'a') {
+    container.innerHTML = `
+      <h2 class="step-title">Selecione a Categoria</h2>
+      <p class="step-subtitle">Para focar no estilo da prova e banca organizadora</p>
+      <div class="categorias-grid">
+        ${Object.keys(concursoData).map(cat => `<button class="categoria-btn" data-cat="${cat}">${cat}</button>`).join('')}
+      </div>`;
+    document.querySelectorAll('.categoria-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        state.concursoCategory = e.currentTarget.dataset.cat;
+        state.concursoSubStep = 'b';
+        renderStep2Concurso(container);
+        scrollToWizard(50);
+      });
+    });
+  } else {
+    const list = concursoData[state.concursoCategory].concursos;
+    const isOutro = state.concurso?.id?.includes('outro');
+    container.innerHTML = `
+      <h2 class="step-title">Selecione o Concurso</h2>
+      <div style="margin-bottom:var(--space-4)">
+        <button id="back-cat" class="btn-ghost" style="display:inline-flex;width:auto;margin:0"><i data-lucide="arrow-left" width="16" height="16"></i> Mudar categoria</button>
+      </div>
+      <div class="chip-group">
+        ${list.map(c => `<button class="chip ${state.concurso?.id===c.id?'active':''}" data-cid="${c.id}">${c.label}</button>`).join('')}
+      </div>
+      <div id="edital-box" class="${(isOutro||state.editalText)?'':'hidden'}" style="margin-top:var(--space-4)">
+        <label class="config-label">Cole o conteúdo programático do edital</label>
+        <textarea id="edital-text" placeholder="Cole o escopo de matérias do edital aqui (mínimo 50 caracteres)...">${state.editalText}</textarea>
+        <div style="font-size:12px;margin-top:4px" id="edital-counter">Caracteres: ${state.editalText.length}</div>
+      </div>`;
+    lucide.createIcons();
+    document.getElementById('back-cat').addEventListener('click', () => {
+      state.concursoSubStep = 'a'; state.concurso = null; state.editalText = '';
+      updateNavButtons(); renderStep2Concurso(container);
+      scrollToWizard(50);
+    });
+    document.querySelectorAll('.chip[data-cid]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        document.querySelectorAll('.chip[data-cid]').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        const conc = list.find(c => c.id === e.currentTarget.dataset.cid);
+        state.concurso = conc; state.bancaInferida = conc.banca;
+        const box = document.getElementById('edital-box');
+        if (conc.id.includes('outro')) box.classList.remove('hidden');
+        else box.classList.add('hidden');
+        updateNavButtons();
+      });
+    });
+    const dtxt = document.getElementById('edital-text');
+    if (dtxt) {
+      dtxt.addEventListener('input', e => {
+        state.editalText = e.target.value;
+        document.getElementById('edital-counter').textContent = `Caracteres: ${state.editalText.length}`;
+        updateNavButtons();
+      });
     }
+  }
+}
 
-    function closeFullscreen() {
-        const overlay = document.getElementById('quiz-overlay');
-        overlay.classList.remove('open');
-        document.body.classList.remove('modal-open');
+function renderStep2Livre(container) {
+  container.innerHTML = `
+    <h2 class="step-title">Cole seu material de estudo</h2>
+    <p class="step-subtitle">Cole textos, PDFs ou qualquer anotação para gerar questões focadas.</p>
+    <div class="yt-extract-row">
+      <input type="url" id="yt-url-input" class="yt-url-field" placeholder="Cole o link do YouTube aqui (ex: https://www.youtube.com/watch?v=...)" value="${state.youtubeUrl}">
+      <button id="yt-extract-btn" class="yt-extract-btn">
+        <span id="yt-btn-label">Extrair transcrição</span>
+      </button>
+    </div>
+    <p class="yt-error" id="yt-error" aria-live="polite"></p>
+    <textarea id="free-txt" placeholder="Cole o texto aqui (mínimo de 50 caracteres)...">${state.freeText}</textarea>
+    <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px" id="free-counter">Caracteres: ${state.freeText.length}</div>
+    <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
+    <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
+      <strong>Arraste e solte o arquivo aqui</strong>
+      <p style="margin-top:var(--space-2);color:var(--color-text-muted)">ou clique para selecionar (PDF, DOCX, TXT, MD, JPG, PNG, WEBP)</p>
+    </div>
+    <div class="upload-progress" id="upload-progress">
+      <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
+      <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
+    </div>
+    <p class="upload-error" id="upload-error" aria-live="polite"></p>`;
+
+  const freeTextArea = document.getElementById('free-txt');
+  const freeCounter = document.getElementById('free-counter');
+  const fileInput = document.getElementById('free-file-input');
+  const uploadArea = document.getElementById('free-upload-area');
+  const ytUrlInput = document.getElementById('yt-url-input');
+  const ytExtractBtn = document.getElementById('yt-extract-btn');
+  const ytBtnLabel = document.getElementById('yt-btn-label');
+  const ytError = document.getElementById('yt-error');
+
+  const updateCounter = () => {
+    freeCounter.textContent = `Caracteres: ${state.freeText.length}`;
+    freeCounter.style.color = state.freeText.length < 50 && state.freeText.length > 0 ? 'var(--color-error)' : 'var(--color-text-muted)';
+  };
+
+  ytUrlInput.addEventListener('input', e => {
+    state.youtubeUrl = e.target.value.trim();
+  });
+
+  ytExtractBtn.addEventListener('click', async () => {
+    const url = ytUrlInput.value.trim();
+    if (!url) { ytError.textContent = 'Cole um link do YouTube antes de extrair.'; return; }
+    ytError.textContent = '';
+    ytExtractBtn.disabled = true;
+    ytBtnLabel.textContent = 'Extraindo…';
+    ytExtractBtn.insertAdjacentHTML('beforeend', '<span class="yt-btn-spinner" id="yt-spinner"></span>');
+    try {
+      const res = await fetch(`${WORKER_URL}/youtube-transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ youtubeUrl: url }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Erro HTTP ${res.status}`);
+      if (!data.transcript) throw new Error('Transcrição não encontrada para este vídeo.');
+      state.freeText = data.transcript;
+      state.youtubeUrl = url;
+      freeTextArea.value = data.transcript;
+      updateCounter();
+      updateNavButtons();
+    } catch (err) {
+      ytError.textContent = err.message || 'Não foi possível extrair a transcrição. Verifique o link e tente novamente.';
+    } finally {
+      ytExtractBtn.disabled = false;
+      ytBtnLabel.textContent = 'Extrair transcrição';
+      const spinner = document.getElementById('yt-spinner');
+      if (spinner) spinner.remove();
     }
+  });
 
-    // BUG 7: Close button chama renderInline e scroll
-    document.getElementById('close-fs').onclick = () => {
-        closeFullscreen();
-        renderInlineQuizMode();
-        scrollToWizard(100);
+  freeTextArea.addEventListener('input', e => {
+    state.freeText = e.target.value;
+    updateCounter();
+    updateNavButtons();
+  });
+
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.classList.add('dragging');
+  });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragging'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragging');
+    const droppedFile = e.dataTransfer?.files?.[0];
+    if (droppedFile) handleFreeFileUpload(droppedFile);
+  });
+  fileInput.addEventListener('change', e => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) handleFreeFileUpload(selectedFile);
+    fileInput.value = '';
+  });
+
+  async function handleFreeFileUpload(file) {
+    const progressRoot = document.getElementById('upload-progress');
+    const progressText = document.getElementById('upload-progress-text');
+    const progressFill = document.getElementById('upload-progress-fill');
+    const errorEl = document.getElementById('upload-error');
+    const formatChars = value => value.toLocaleString('pt-BR');
+
+    const setProgress = (visible, label, percent = 0, showSpinner = false) => {
+      progressRoot.classList.toggle('visible', visible);
+      progressText.innerHTML = `${showSpinner ? '<span class="upload-spinner"></span>' : ''}${label}`;
+      progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    };
+    const showToast = message => {
+      const currentToast = document.querySelector('.toast');
+      if (currentToast) currentToast.remove();
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
     };
 
-    function renderInlineQuizMode() { console.log("Renderizando gabaritos inline..."); }
-    function showSessionResult() { console.log("Mostrando resultado..."); }
-    function scrollToWizard(val) { window.scrollTo(0, val); }
+    errorEl.textContent = '';
+    setProgress(true, 'Extraindo conteúdo do arquivo…', 10);
 
-    </script>
+    try {
+      const extracted = await extractTextFromFile(file, ({ percent, label, loading }) => {
+        setProgress(true, label || 'Extraindo conteúdo do arquivo…', percent ?? 0, !!loading);
+      });
+
+      if (!extracted || !extracted.trim()) throw new Error('Não foi possível extrair texto deste arquivo.');
+
+      let finalText = extracted.trim();
+      const wasTruncated = finalText.length > MAX_EXTRACTED_CHARS;
+      if (wasTruncated) {
+        finalText = finalText.slice(0, MAX_EXTRACTED_CHARS);
+        showToast(`Texto truncado para ${formatChars(MAX_EXTRACTED_CHARS)} caracteres.`);
+      }
+
+      state.freeText = finalText;
+      freeTextArea.value = finalText;
+      updateCounter();
+      updateNavButtons();
+      showToast(`Texto extraído com sucesso! (${formatChars(finalText.length)} caracteres)`);
+      setProgress(false, '', 0);
+    } catch (error) {
+      setProgress(false, '', 0);
+      errorEl.textContent = error.message || 'Erro ao processar arquivo. Tente novamente.';
+    }
+  }
+}
+
+function getFileExtension(fileName = '') {
+  const parts = fileName.toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+}
+
+function loadScriptOnce(urls, id, libLabel = 'biblioteca de extração') {
+  const candidates = Array.isArray(urls) ? urls : [urls];
+  if (scriptPromises[id]) return scriptPromises[id];
+  scriptPromises[id] = new Promise((resolve, reject) => {
+    if (document.getElementById(id)) return resolve();
+    let idx = 0;
+    const tryNext = () => {
+      const url = candidates[idx++];
+      if (!url) return reject(new Error(`Falha ao carregar ${libLabel}. Verifique sua conexão e tente novamente.`));
+      const script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        script.remove();
+        tryNext();
+      };
+      document.head.appendChild(script);
+    };
+    tryNext();
+  });
+  return scriptPromises[id];
+}
+
+async function extractTextFromFile(file, onProgress = () => {}) {
+  const extension = getFileExtension(file.name);
+  const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(extension) || file.type.startsWith('image/');
+
+  if (extension === 'txt' || extension === 'md' || file.type === 'text/plain' || file.type === 'text/markdown') {
+    onProgress({ percent: 45, label: 'Lendo arquivo de texto…' });
+    return file.text();
+  }
+
+  if (extension === 'pdf' || file.type === 'application/pdf') {
+    onProgress({ percent: 20, label: 'Carregando leitor de PDF…' });
+    await loadScriptOnce([
+      'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+    ], 'pdfjs-lib', 'o leitor de PDF');
+    if (!window.pdfjsLib) throw new Error('Leitor de PDF indisponível no momento.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    const bytes = await file.arrayBuffer();
+    let pdf;
+    try {
+      pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+    } catch {
+      // Fallback quando o worker externo falha (CORS/CDN/adblock).
+      pdf = await window.pdfjsLib.getDocument({ data: bytes, disableWorker: true }).promise;
+    }
+    let collected = '';
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+      collected += `${content.items.map(item => item.str).join(' ')}\n`;
+      onProgress({ percent: 20 + Math.round((pageNum / pdf.numPages) * 70), label: 'Extraindo texto do PDF…' });
+    }
+    if (!collected.trim()) {
+      if (!window.Tesseract) {
+        onProgress({ percent: 15, label: 'Carregando OCR para PDF escaneado…', loading: true });
+        await loadScriptOnce([
+          'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
+          'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
+        ], 'tesseract-lib', 'o OCR (Tesseract)');
+      }
+
+      let ocrCollected = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.8 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (!context) continue;
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        onProgress({
+          percent: 20 + Math.round((pageNum / pdf.numPages) * 70),
+          label: `PDF escaneado detectado: OCR da página ${pageNum}/${pdf.numPages}…`,
+          loading: true,
+        });
+
+        const result = await window.Tesseract.recognize(canvas, 'por+eng');
+        ocrCollected += `${result?.data?.text || ''}\n`;
+      }
+
+      if (!ocrCollected.trim()) {
+        throw new Error('Não foi possível extrair texto deste PDF escaneado. Tente enviar imagens com melhor qualidade ou colar o texto manualmente.');
+      }
+      return ocrCollected;
+    }
+    return collected;
+  }
+
+  if (extension === 'docx' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    onProgress({ percent: 20, label: 'Carregando leitor de DOCX…' });
+    await loadScriptOnce([
+      'https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js',
+      'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js',
+    ], 'mammoth-lib', 'o leitor de DOCX');
+    if (!window.mammoth) throw new Error('Leitor de DOCX indisponível no momento.');
+    const buffer = await file.arrayBuffer();
+    const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
+    onProgress({ percent: 90, label: 'Finalizando extração do DOCX…' });
+    return result.value || '';
+  }
+
+  if (isImage) {
+    if (!window.Tesseract) {
+      onProgress({ percent: 15, label: 'Realizando OCR na imagem…', loading: true });
+      await loadScriptOnce([
+        'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
+        'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
+      ], 'tesseract-lib', 'o OCR (Tesseract)');
+    }
+    onProgress({ percent: 30, label: 'Realizando OCR na imagem…', loading: true });
+    const result = await window.Tesseract.recognize(file, 'por+eng', {
+      logger: message => {
+        if (message?.status === 'recognizing text') {
+          onProgress({
+            percent: 30 + Math.round((message.progress || 0) * 65),
+            label: 'Realizando OCR na imagem…',
+            loading: true,
+          });
+        }
+      },
+    });
+    return result?.data?.text || '';
+  }
+
+  throw new Error('Formato de arquivo não suportado para extração.');
+}
+
+async function callWorkerAndRender() {
+  const genScreen = document.getElementById('generating-screen');
+  const errScreen = document.getElementById('error-screen');
+  const qContainer = document.getElementById('questions-container');
+  genScreen.classList.remove('hidden');
+  errScreen.classList.remove('visible');
+  qContainer.classList.remove('visible');
+
+  // Resolve banca efetiva: se foco manual definido, usa ele; senão usa banca inferida do concurso
+  const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto')
+    ? state.bancaFoco
+    : state.bancaInferida;
+
+  const payload = {
+    mode: state.mode,
+    area: state.area,
+    subject: state.subject,
+    topic: state.topic,
+    concurso: state.concurso?.label,
+    banca: bancaEfetiva,
+    bancaFoco: state.bancaFoco !== 'auto' ? state.bancaFoco : null,
+    freeText: state.freeText,
+    editalText: state.editalText,
+    youtubeUrl: state.youtubeUrl,
+    difficulty: state.difficulty,
+    quantity: state.quantity,
+    questionType: state.questionType,
+    alternativas: parseInt(state.alternativas),
+    idioma: state.idioma,
+    sessionMode: state.sessionMode,
+  };
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
+    if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
+    state.generatedQuestions = data.questions;
+    state.answered = 0; state.correct = 0;
+    genScreen.classList.add('hidden');
+    renderQuestions(data.questions);
+  } catch (err) {
+    showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('generating-screen').classList.add('hidden');
+  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('error-screen').classList.add('visible');
+}
+
+function renderQuestions(questions) {
+  const container = document.getElementById('questions-container');
+  const list = document.getElementById('questions-list');
+  const chips = document.getElementById('summary-chips');
+  const sessionResult = document.getElementById('session-result');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
+  const scoreTotal = document.getElementById('score-total');
+  scoreTotal.textContent = questions.length;
+  state.answerResults = new Array(questions.length).fill(null);
+  sessionResult.classList.add('hidden');
+  retryWrongBtn.classList.add('hidden');
+  updateScore();
+
+  const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto')
+    ? state.bancaFoco
+    : state.bancaInferida;
+
+  const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
+  chips.innerHTML = `
+    <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
+    <div class="chip">${questions.length} Questões</div>
+    <div class="chip">${state.alternativas} alternativas</div>
+    <div class="chip">${idiomaLabel[state.idioma] || state.idioma}</div>
+    <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
+    ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip"><i data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
+
+  list.innerHTML = '';
+  questions.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-${idx}`;
+    card.innerHTML = `
+      <div class="question-number">Questão ${idx + 1}</div>
+      <div class="question-statement">${q.statement}</div>
+      <div class="options-list">
+        ${(q.options || []).map(opt => `
+          <button class="option-btn" data-qidx="${idx}" data-key="${opt.key}">
+            <span class="option-key">${opt.key}</span>
+            <span>${opt.text}</span>
+          </button>`).join('')}
+      </div>
+      <div class="explanation-box" id="exp-${idx}">
+        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      </div>`;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const qIdx = parseInt(e.currentTarget.dataset.qidx);
+      const key = e.currentTarget.dataset.key;
+      handleAnswer(qIdx, key);
+    });
+  });
+
+  retryWrongBtn.onclick = () => {
+    const wrongQuestions = state.generatedQuestions.filter((_, idx) => state.answerResults[idx] === false);
+    if (!wrongQuestions.length) return;
+    state.generatedQuestions = wrongQuestions;
+    state.answered = 0;
+    state.correct = 0;
+    state.answerResults = [];
+    renderQuestions(wrongQuestions);
+  };
+
+  container.classList.add('visible');
+  lucide.createIcons();
+  scrollToWizard(100);
+}
+
+function handleAnswer(qIdx, selectedKey) {
+  const q = state.generatedQuestions[qIdx];
+  const card = document.getElementById(`q-${qIdx}`);
+  const btns = card.querySelectorAll('.option-btn');
+  const expBox = document.getElementById(`exp-${qIdx}`);
+  if (card.dataset.answered) return;
+  card.dataset.answered = '1';
+  const isCorrect = selectedKey === q.correctAnswer;
+  state.answerResults[qIdx] = isCorrect;
+  if (isCorrect) state.correct++;
+  state.answered++;
+  incrementTodayCount(1);
+  btns.forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.key === q.correctAnswer) btn.classList.add('correct');
+    else if (btn.dataset.key === selectedKey && !isCorrect) btn.classList.add('wrong');
+  });
+  expBox.classList.add('visible');
+  updateScore();
+  if (state.answered === state.generatedQuestions.length) showSessionResult();
+  if (isCorrect) {
+    confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+  }
+}
+
+function showSessionResult() {
+  const resultBox = document.getElementById('session-result');
+  const stats = document.getElementById('session-stats');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
+  const total = state.generatedQuestions.length;
+  const correct = state.correct;
+  const wrong = total - correct;
+  stats.textContent = `Você respondeu ${total} questões: ${correct} acertos e ${wrong} erros.`;
+  if (wrong > 0) retryWrongBtn.classList.remove('hidden');
+  else retryWrongBtn.classList.add('hidden');
+  resultBox.classList.remove('hidden');
+}
+
+function updateScore() {
+  const fill = document.getElementById('score-fill');
+  const value = document.getElementById('score-value');
+  const total = state.generatedQuestions.length;
+  const progress = total > 0 ? (state.answered / total) * 100 : 0;
+  fill.style.width = `${progress}%`;
+  value.innerHTML = `${state.answered}/<span id="score-total">${total}</span>`;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
->>>>>>> Stashed changes
+
