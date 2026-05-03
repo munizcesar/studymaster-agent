@@ -1855,230 +1855,189 @@ function updateScore() {
 }
 
 
-// ── QUIZ MODE: questão por vez (Fullscreen) ─────────────────────────────────
-// ── QUIZ MODE inline (mobile fallback) ──────────────────────────────────────
-function renderInlineQuizMode(questions, container) {
-  const list = document.getElementById('questions-list');
+
+// -- QUIZ MODE ----------------------------------------------------------
+function renderQuizMode(questions) {
+  var container   = document.getElementById('questions-container');
+  var chips       = document.getElementById('summary-chips');
+  var sessionResult = document.getElementById('session-result');
+  var retryWrongBtn = document.getElementById('retry-wrong-btn');
+  var scoreTotal  = document.getElementById('score-total');
+  scoreTotal.textContent = questions.length;
+  state.answerResults  = new Array(questions.length).fill(null);
+  state.quizCurrentIdx = 0;
+  state.answered = 0;
+  state.correct  = 0;
+  sessionResult.classList.add('hidden');
+  retryWrongBtn.classList.add('hidden');
+  updateScore();
+  var diffLabel = { easy: 'Facil', medium: 'Medio', hard: 'Dificil', extreme: 'Extremo' };
+  chips.innerHTML =
+    '<div class="chip">Questao por vez</div>' +
+    '<div class="chip">' + questions.length + ' Questoes</div>' +
+    '<div class="chip">' + (diffLabel[state.difficulty] || state.difficulty) + '</div>' +
+    '<div class="chip">' + (state.mode === 'academic' ? state.subject : (state.concurso && state.concurso.label) || 'Livre') + '</div>';
+  retryWrongBtn.onclick = function() {
+    var wrong = state.generatedQuestions.filter(function(_, i) { return state.answerResults[i] === false; });
+    if (!wrong.length) return;
+    state.generatedQuestions = wrong;
+    renderQuizMode(wrong);
+  };
+  var isMobile = window.matchMedia('(max-width: 768px)').matches;
+  if (isMobile) { renderFSQuiz(questions, container); }
+  else          { renderInlineQuiz(questions, container); }
+}
+
+function renderInlineQuiz(questions, container) {
+  var list = document.getElementById('questions-list');
   list.innerHTML = '';
-
-  questions.forEach((q, idx) => {
-    const card = document.createElement('div');
+  questions.forEach(function(q, idx) {
+    var card = document.createElement('div');
     card.className = 'question-card';
-    card.id = `q-${idx}`;
-    card.innerHTML = `
-      <div class="question-number">Questao ${idx + 1} de ${questions.length}</div>
-      <div class="question-statement">${q.statement}</div>
-      <div class="options-list">
-        ${(q.options || []).map(opt => `
-          <button class="option-btn" data-qidx="${idx}" data-key="${opt.key}">
-            <span class="option-key">${opt.key}</span>
-            <span>${opt.text}</span>
-          </button>`).join('')}
-      </div>
-      <div class="explanation-box" id="exp-${idx}">
-        <strong>Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
-      </div>`;
+    card.id = 'q-' + idx;
+    var optsHtml = (q.options || []).map(function(opt) {
+      return '<button class="option-btn" data-qidx="' + idx + '" data-key="' + opt.key + '">' +
+        '<span class="option-key">' + opt.key + '</span><span>' + opt.text + '</span></button>';
+    }).join('');
+    card.innerHTML =
+      '<div class="question-number">Questao ' + (idx+1) + ' de ' + questions.length + '</div>' +
+      '<div class="question-statement">' + q.statement + '</div>' +
+      '<div class="options-list">' + optsHtml + '</div>' +
+      '<div class="explanation-box" id="exp-' + idx + '">' +
+      '<strong>Gabarito: ' + q.correctAnswer + '</strong><br>' + q.explanation + '</div>';
     list.appendChild(card);
-
-    card.querySelectorAll('.option-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        if (card.dataset.answered) return;
-        card.dataset.answered = '1';
-        const key = e.currentTarget.dataset.key;
-        const isCorrect = key === q.correctAnswer;
-        state.answerResults[idx] = isCorrect;
-        if (isCorrect) state.correct++;
-        state.answered++;
-        card.querySelectorAll('.option-btn').forEach(b => {
-          b.disabled = true;
-          if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
-          else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
-        });
-        document.getElementById(`exp-${idx}`).classList.add('visible');
-        updateScore();
-        if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
-        if (state.answered === questions.length) showSessionResult();
-      });
-    });
   });
-
+  list.addEventListener('click', function(e) {
+    var btn = e.target.closest('.option-btn');
+    if (!btn) return;
+    var card = btn.closest('.question-card');
+    if (!card || card.dataset.answered) return;
+    card.dataset.answered = '1';
+    var idx = parseInt(btn.dataset.qidx, 10);
+    var key = btn.dataset.key;
+    var q   = questions[idx];
+    var isCorrect = key === q.correctAnswer;
+    state.answerResults[idx] = isCorrect;
+    if (isCorrect) state.correct++;
+    state.answered++;
+    card.querySelectorAll('.option-btn').forEach(function(b) {
+      b.disabled = true;
+      if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+      else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
+    });
+    document.getElementById('exp-' + idx).classList.add('visible');
+    updateScore();
+    if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+    if (state.answered === questions.length) showSessionResult();
+  });
+  container.classList.add('visible');
   lucide.createIcons();
   scrollToWizard(50);
 }
 
-function renderQuizMode(questions) {
-  const container = document.getElementById('questions-container');
-  const chips     = document.getElementById('summary-chips');
-  const sessionResult  = document.getElementById('session-result');
-  const retryWrongBtn  = document.getElementById('retry-wrong-btn');
-  const scoreTotal     = document.getElementById('score-total');
+function renderFSQuiz(questions, container) {
+  var overlay  = document.getElementById('quiz-fs-overlay');
+  var cardWrap = document.getElementById('quiz-fs-card-wrap');
+  var counter  = document.getElementById('quiz-fs-counter');
+  var fillEl   = document.getElementById('quiz-fs-progress-fill');
+  var progressWrap = document.getElementById('quiz-fs-progress-bar-wrap');
+  var scoreEl  = document.getElementById('quiz-fs-score');
+  var nextBtn  = document.getElementById('quiz-fs-next-btn');
+  var closeBtn = document.getElementById('quiz-fs-close-btn');
+  document.getElementById('questions-list').innerHTML = '';
 
-  scoreTotal.textContent = questions.length;
-  state.answerResults = new Array(questions.length).fill(null);
-  state.quizCurrentIdx = 0;
-  sessionResult.classList.add('hidden');
-  retryWrongBtn.classList.add('hidden');
-  updateScore();
-
-  chips.innerHTML = `
-    <div class="chip">🎯 Questão por vez</div>
-    <div class="chip">${questions.length} Questões</div>
-    <div class="chip">\${{'easy':'Fácil','medium':'Médio','hard':'Difícil','extreme':'Extremo'}[state.difficulty]}</div>
-    <div class="chip">\${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>`;
-
-  // ── Fullscreen elements
-  const overlay    = document.getElementById('quiz-fs-overlay');
-  const cardWrap   = document.getElementById('quiz-fs-card-wrap');
-  const counter    = document.getElementById('quiz-fs-counter');
-  const fill       = document.getElementById('quiz-fs-progress-fill');
-  const progressWrap = document.getElementById('quiz-fs-progress-bar-wrap');
-  const scoreEl    = document.getElementById('quiz-fs-score');
-  const nextBtn    = document.getElementById('quiz-fs-next-btn');
-  const nextArrow  = document.getElementById('quiz-fs-next-arrow');
-  const closeBtn   = document.getElementById('quiz-fs-close-btn');
-
-  function fsUpdateHeader(idx) {
-    const total = questions.length;
-    counter.textContent = `\${idx + 1} / \${total}`;
-    const pct = Math.round(((idx) / total) * 100);
-    fill.style.width = pct + '%';
+  function updateHeader(idx) {
+    counter.textContent = (idx+1) + ' / ' + questions.length;
+    var pct = Math.round((idx / questions.length) * 100);
+    fillEl.style.width = pct + '%';
     progressWrap.setAttribute('aria-valuenow', pct);
-    const correct = state.answerResults.filter(r => r === true).length;
-    const wrong   = state.answerResults.filter(r => r === false).length;
-    scoreEl.innerHTML = `✓ \${correct} &nbsp; ✗ \${wrong}`;
+    var c = state.answerResults.filter(function(r){ return r===true; }).length;
+    var w = state.answerResults.filter(function(r){ return r===false; }).length;
+    scoreEl.innerHTML = '&#10003; ' + c + ' &nbsp; &#10007; ' + w;
   }
-
-  function fsRenderDots(idx) {
-    const dotRow = document.createElement('div');
-    dotRow.className = 'quiz-fs-dots';
-    questions.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'quiz-fs-dot' + (i === idx ? ' current' : state.answerResults[i] === true ? ' correct' : state.answerResults[i] === false ? ' wrong' : '');
-      dotRow.appendChild(dot);
+  function renderDots(idx) {
+    var row = document.createElement('div');
+    row.className = 'quiz-fs-dots';
+    questions.forEach(function(_, i) {
+      var dot = document.createElement('div');
+      dot.className = 'quiz-fs-dot' +
+        (i===idx ? ' current' : state.answerResults[i]===true ? ' correct' : state.answerResults[i]===false ? ' wrong' : '');
+      row.appendChild(dot);
     });
-    return dotRow;
+    return row;
   }
-
-  function fsRenderQuestion(idx, direction = 'forward') {
-    const q = questions[idx];
+  function showQuestion(idx) {
+    var q = questions[idx];
     nextBtn.disabled = true;
-    nextArrow.textContent = (idx + 1 < questions.length) ? '→' : '✓';
-    nextBtn.querySelector('span[id="quiz-fs-next-arrow"]');
-    nextBtn.lastChild.textContent = '';
-    nextBtn.innerHTML = `\${idx + 1 < questions.length ? 'Próxima' : 'Ver resultado'} <span id="quiz-fs-next-arrow">\${idx + 1 < questions.length ? '→' : '✓'}</span>`;
-    nextBtn.disabled = true;
-
-    fsUpdateHeader(idx);
-
-    // Animate exit if not first
-    const prevContent = cardWrap.innerHTML;
-
-    // Build new content
-    const frag = document.createDocumentFragment();
-    frag.appendChild(fsRenderDots(idx));
-
-    const card = document.createElement('div');
+    nextBtn.innerHTML = (idx+1 >= questions.length ? 'Ver resultado &#10003;' : 'Proxima &#8594;');
+    updateHeader(idx);
+    var optsHtml = (q.options || []).map(function(opt) {
+      return '<button class="option-btn" data-key="' + opt.key + '">' +
+        '<span class="option-key">' + opt.key + '</span><span>' + opt.text + '</span></button>';
+    }).join('');
+    var card = document.createElement('div');
     card.className = 'question-card';
-    card.id = `fsq-\${idx}`;
-    card.innerHTML = `
-      <div class="question-number">Questão \${idx + 1} de \${questions.length}</div>
-      <div class="question-statement">\${q.statement}</div>
-      <div class="options-list">
-        \${(q.options || []).map(opt => `
-          <button class="option-btn" data-qidx="\${idx}" data-key="\${opt.key}">
-            <span class="option-key">\${opt.key}</span>
-            <span>\${opt.text}</span>
-          </button>`).join('')}
-      </div>
-      <div class="explanation-box" id="fsexp-\${idx}">
-        <strong>Gabarito: \${q.correctAnswer}</strong><br>\${q.explanation}
-      </div>`;
-    frag.appendChild(card);
-
+    card.innerHTML =
+      '<div class="question-number">Questao ' + (idx+1) + ' de ' + questions.length + '</div>' +
+      '<div class="question-statement">' + q.statement + '</div>' +
+      '<div class="options-list">' + optsHtml + '</div>' +
+      '<div class="explanation-box" id="fsexp-' + idx + '">' +
+      '<strong>Gabarito: ' + q.correctAnswer + '</strong><br>' + q.explanation + '</div>';
     cardWrap.innerHTML = '';
-    cardWrap.appendChild(frag);
+    cardWrap.appendChild(renderDots(idx));
+    cardWrap.appendChild(card);
     cardWrap.classList.remove('entering','exiting');
     void cardWrap.offsetWidth;
     cardWrap.classList.add('entering');
-
-    // Options listeners — event delegation on cardWrap
-    cardWrap._fsHandler && cardWrap.removeEventListener('click', cardWrap._fsHandler);
-    cardWrap._fsHandler = function(e) {
-      const btn = e.target.closest('.option-btn');
-      if (!btn) return;
-      const activeCard = cardWrap.querySelector('.question-card');
-      if (!activeCard || activeCard.dataset.answered) return;
-      activeCard.dataset.answered = '1';
-      const key = btn.dataset.key;
-      const isCorrect = key === q.correctAnswer;
+    if (cardWrap._handler) cardWrap.removeEventListener('click', cardWrap._handler);
+    cardWrap._handler = function(e) {
+      var btn = e.target.closest('.option-btn');
+      if (!btn || card.dataset.answered) return;
+      card.dataset.answered = '1';
+      var key = btn.dataset.key;
+      var isCorrect = key === q.correctAnswer;
       state.answerResults[idx] = isCorrect;
       if (isCorrect) state.correct++;
       state.answered++;
-      activeCard.querySelectorAll('.option-btn').forEach(b => {
+      card.querySelectorAll('.option-btn').forEach(function(b) {
         b.disabled = true;
         if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
         else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
       });
-      document.getElementById('fsexp-' + idx).classList.add('visible');
+      document.getElementById('fsexp-'+idx).classList.add('visible');
       nextBtn.disabled = false;
-      fsUpdateHeader(idx);
+      updateHeader(idx);
       updateScore();
-      const oldDots = cardWrap.querySelector('.quiz-fs-dots');
-      if (oldDots) oldDots.replaceWith(fsRenderDots(idx));
-      if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+      var oldDots = cardWrap.querySelector('.quiz-fs-dots');
+      if (oldDots) oldDots.replaceWith(renderDots(idx));
+      if (isCorrect) confetti({ particleCount:40, spread:60, origin:{y:0.7}, colors:['#01696f','#437a22','#d19900'] });
     };
-    cardWrap.addEventListener('click', cardWrap._fsHandler);;
-
+    cardWrap.addEventListener('click', cardWrap._handler);
     lucide.createIcons();
-    // Scroll body to top
-    document.getElementById('quiz-fs-body').scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('quiz-fs-body').scrollTo({ top:0, behavior:'smooth' });
   }
-
-  // Next button
-  nextBtn.onclick = () => {
-    const idx = state.quizCurrentIdx;
-    if (idx + 1 < questions.length) {
+  nextBtn.onclick = function() {
+    if (state.quizCurrentIdx + 1 < questions.length) {
       state.quizCurrentIdx++;
-      fsRenderQuestion(state.quizCurrentIdx, 'forward');
+      showQuestion(state.quizCurrentIdx);
     } else {
-      // Close fullscreen, show result
-      closeFullscreen();
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+      container.classList.add('visible');
       showSessionResult();
     }
   };
-
-  // Close / exit fullscreen
-  function closeFullscreen() {
+  closeBtn.onclick = function() {
     overlay.classList.remove('open');
     document.body.style.overflow = '';
-  }
-  closeBtn.onclick = () => {
-    closeFullscreen();
     container.classList.add('visible');
   };
-
-  // Open fullscreen
-  // ── Responsive: fullscreen only on desktop ──
-  const isMobile = window.innerWidth <= 768;
-  if (!isMobile) {
-    renderInlineQuizMode(questions, container);
-    container.classList.add('visible');
-    return;
-  }
-
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
-  fsRenderQuestion(0);
   container.classList.add('visible');
-
-  retryWrongBtn.onclick = () => {
-    const wrong = state.generatedQuestions.filter((_, i) => state.answerResults[i] === false);
-    if (!wrong.length) return;
-    state.generatedQuestions = wrong;
-    state.answered = 0; state.correct = 0; state.answerResults = [];
-    renderQuizMode(wrong);
-  };
+  showQuestion(0);
 }
+
 document.addEventListener('DOMContentLoaded', init);
 </script>
 
