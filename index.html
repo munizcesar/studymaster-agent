@@ -1887,9 +1887,7 @@ function renderQuizMode(questions) {
     state.generatedQuestions = wrong;
     renderQuizMode(wrong);
   };
-  var isMobile = window.matchMedia('(max-width: 768px)').matches;
-  if (isMobile) { renderFSQuiz(questions, container); }
-  else          { renderInlineQuiz(questions, container); }
+  renderFSQuiz(questions, container);
 }
 
 function renderInlineQuiz(questions, container) {
