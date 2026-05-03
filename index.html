@@ -2001,31 +2001,33 @@ function renderQuizMode(questions) {
     void cardWrap.offsetWidth;
     cardWrap.classList.add('entering');
 
-    // Options listeners
-    card.querySelectorAll('.option-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        if (card.dataset.answered) return;
-        card.dataset.answered = '1';
-        const key = e.currentTarget.dataset.key;
-        const isCorrect = key === q.correctAnswer;
-        state.answerResults[idx] = isCorrect;
-        if (isCorrect) state.correct++;
-        state.answered++;
-        card.querySelectorAll('.option-btn').forEach(b => {
-          b.disabled = true;
-          if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
-          else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
-        });
-        document.getElementById(`fsexp-\${idx}`).classList.add('visible');
-        nextBtn.disabled = false;
-        fsUpdateHeader(idx);
-        updateScore();
-        // Rebuild dots with new state
-        const oldDots = cardWrap.querySelector('.quiz-fs-dots');
-        if (oldDots) oldDots.replaceWith(fsRenderDots(idx));
-        if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+    // Options listeners — event delegation on cardWrap
+    cardWrap._fsHandler && cardWrap.removeEventListener('click', cardWrap._fsHandler);
+    cardWrap._fsHandler = function(e) {
+      const btn = e.target.closest('.option-btn');
+      if (!btn) return;
+      const activeCard = cardWrap.querySelector('.question-card');
+      if (!activeCard || activeCard.dataset.answered) return;
+      activeCard.dataset.answered = '1';
+      const key = btn.dataset.key;
+      const isCorrect = key === q.correctAnswer;
+      state.answerResults[idx] = isCorrect;
+      if (isCorrect) state.correct++;
+      state.answered++;
+      activeCard.querySelectorAll('.option-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+        else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
       });
-    });
+      document.getElementById('fsexp-' + idx).classList.add('visible');
+      nextBtn.disabled = false;
+      fsUpdateHeader(idx);
+      updateScore();
+      const oldDots = cardWrap.querySelector('.quiz-fs-dots');
+      if (oldDots) oldDots.replaceWith(fsRenderDots(idx));
+      if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+    };
+    cardWrap.addEventListener('click', cardWrap._fsHandler);;
 
     lucide.createIcons();
     // Scroll body to top
