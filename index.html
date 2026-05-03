@@ -2058,7 +2058,7 @@ function renderQuizMode(questions) {
   // Open fullscreen
   // ── Responsive: fullscreen only on desktop ──
   const isMobile = window.innerWidth <= 768;
-  if (isMobile) {
+  if (!isMobile) {
     renderInlineQuizMode(questions, container);
     container.classList.add('visible');
     return;
