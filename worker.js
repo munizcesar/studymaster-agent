@@ -10,15 +10,18 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// Modelos em ordem de preferência — fallback automático se o primeiro atingir limite
+// Modelos em ordem de preferência — fallback automático se o primeiro atingir limite ou for descontinuado
 const GROQ_MODELS = [
   'llama-3.3-70b-versatile',
-  'llama-3.1-70b-versatile',
+  'llama3-70b-8192',
+  'llama3-8b-8192',
+  'llama-3.1-8b-instant',
+  'gemma2-9b-it',
 ];
 
 // Mapeamento de área do StudyMaster para área no Vectorize
 const AREA_MAP_VECTORIZE = {
-  'Direito': null,          // null = busca em todas as subáreas jurídicas
+  'Direito': null,
   'constitucional': 'constitucional',
   'civil': 'civil',
   'penal': 'penal',
@@ -27,7 +30,6 @@ const AREA_MAP_VECTORIZE = {
   'tributario': 'tributario',
 };
 
-// Detecta subárea jurídica pelo tópico/disciplina informado pelo usuário
 function detectarSubareaJuridica(topic, subject) {
   const texto = `${topic || ''} ${subject || ''}`.toLowerCase();
   if (/constitui|cf.?88|mandado|habeas|direito fundamental|controle de constitucional/i.test(texto)) return 'constitucional';
@@ -36,64 +38,38 @@ function detectarSubareaJuridica(topic, subject) {
   if (/administrativo|improbidade|licitação|concurso público|servidor|lei 8\.112|lei 9\.784|lei 14\.133|lei 8\.666/i.test(texto)) return 'administrativo';
   if (/tribut|imposto|taxa|contribuição|ctn|icms|iss|ir|iptu|itbi|decadência fiscal|prescrição tributária/i.test(texto)) return 'tributario';
   if (/civil|cc.?2002|contrato|responsabilidade civil|prescrição civil|família|herança|posse|propriedade|cpc/i.test(texto)) return 'civil';
-  return null; // busca sem filtro de área
+  return null;
 }
 
-// ─── RAG: busca vetorial no Vade Mecum ──────────────────────────────────────
 async function fetchVademecumRAG(query, subarea, env) {
-  // Retorna null silenciosamente se os bindings não estiverem disponíveis
   if (!env.AI || !env.KNOWLEDGE_INDEX) return null;
-
   try {
-    // 1. Gera embedding da query via Cloudflare AI (BGE-M3)
-    const embeddingRes = await env.AI.run('@cf/baai/bge-m3', {
-      text: [query.slice(0, 512)],
-    });
+    const embeddingRes = await env.AI.run('@cf/baai/bge-m3', { text: [query.slice(0, 512)] });
     const vector = embeddingRes?.data?.[0];
     if (!vector || !Array.isArray(vector)) return null;
-
-    // 2. Busca os chunks mais relevantes no Vectorize
-    const queryOptions = {
-      topK: 8,
-      returnMetadata: 'all',
-    };
-    // Filtra por subárea se detectada
-    if (subarea) {
-      queryOptions.filter = { area: { $eq: subarea } };
-    }
-
+    const queryOptions = { topK: 8, returnMetadata: 'all' };
+    if (subarea) queryOptions.filter = { area: { $eq: subarea } };
     const results = await env.KNOWLEDGE_INDEX.query(vector, queryOptions);
     if (!results?.matches?.length) return null;
-
-    // 3. Filtra por score de relevância e monta contexto
     const artigosRelevantes = results.matches
       .filter((m) => m.score >= 0.70)
       .slice(0, 8)
       .map((m) => m.metadata?.text || '')
       .filter(Boolean);
-
     if (artigosRelevantes.length === 0) return null;
-
-    const contexto = artigosRelevantes.join('\n\n');
     return {
-      text: contexto,
+      text: artigosRelevantes.join('\n\n'),
       source: 'Vade Mecum Digital — Planalto.gov.br (Vectorize RAG)',
       artigos: artigosRelevantes.length,
     };
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-// ─── Fallback: LexML (mantido para quando RAG não estiver disponível) ────────
 async function fetchLexML(query) {
   try {
     const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei Código Constituição Medida-Provisória"`;
     const url = `https://www.lexml.gov.br/busca/SRU?operation=searchRetrieve&version=1.1&query=${encodeURIComponent(cql)}&maximumRecords=5&recordSchema=dc`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
-      signal: AbortSignal.timeout(5000),
-    });
+    const res = await fetch(url, { headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' }, signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     const xml = await res.text();
     const titles = [...xml.matchAll(/<dc:title>([^<]+)<\/dc:title>/g)].map((m) => m[1]);
@@ -107,49 +83,36 @@ async function fetchLexML(query) {
       if (descriptions[i]) ctx += `\n    Ementa: ${descriptions[i]}`;
     });
     return ctx.slice(0, 2000);
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 async function fetchWikipediaContext(query, lang = 'pt') {
   try {
     const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
     const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
-      signal: AbortSignal.timeout(4000),
-    });
+    const res = await fetch(url, { headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' }, signal: AbortSignal.timeout(4000) });
     if (!res.ok) return null;
     const data = await res.json();
     return data?.extract ? data.extract.slice(0, 1500) : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 async function fetchContext(area, mode, topic, subject, idioma, env) {
   const isPortugues = !idioma || idioma === 'pt-BR';
   const isDireito = area === 'Direito' || mode === 'concurso';
   const query = topic || subject || area || '';
-
   if (isDireito && query) {
-    // 1ª tentativa: RAG vetorial (Vade Mecum completo)
     const subarea = detectarSubareaJuridica(topic, subject);
     const rag = await fetchVademecumRAG(query, subarea, env);
     if (rag) return { text: rag.text, source: rag.source };
-
-    // 2ª tentativa: LexML (fallback)
     const lexml = await fetchLexML(query);
     if (lexml) return { text: lexml, source: 'LexML/Senado Federal (Vade Mêcum Digital)' };
   }
-
   if (query) {
     const lang = isPortugues ? 'pt' : (idioma === 'es' ? 'es' : 'en');
     const wiki = await fetchWikipediaContext(query, lang);
     if (wiki) return { text: wiki, source: 'Wikipedia' };
   }
-
   return null;
 }
 
@@ -172,9 +135,7 @@ function validateQuestions(questions) {
     if (!q.correctAnswer || typeof q.correctAnswer !== 'string') return false;
     const validKeys = q.options.map((o) => o?.key).filter(Boolean);
     if (!validKeys.includes(q.correctAnswer)) return false;
-    if (!q.fonte || String(q.fonte).trim().length === 0) {
-      q.fonte = 'Conhecimento acadêmico consolidado';
-    }
+    if (!q.fonte || String(q.fonte).trim().length === 0) q.fonte = 'Conhecimento acadêmico consolidado';
     return true;
   });
 }
@@ -210,9 +171,7 @@ function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 2400
 
 function extractJsonFromText(text) {
   let t = String(text || '').trim();
-  if (t.startsWith('```')) {
-    t = t.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-  }
+  if (t.startsWith('```')) t = t.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
   if (t.startsWith('{') || t.startsWith('[')) return t;
   const matchObj = t.match(/\{[\s\S]*\}/);
   if (matchObj) return matchObj[0];
@@ -223,13 +182,8 @@ function extractJsonFromText(text) {
 
 export default {
   async fetch(request, env) {
-
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
-    if (request.method !== 'POST') {
-      return new Response('Method not allowed', { status: 405, headers: corsHeaders });
-    }
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
+    if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders });
     if (!env.GROQ_API_KEY) {
       return new Response(JSON.stringify({
         error: 'Configuração incompleta',
@@ -239,63 +193,26 @@ export default {
 
     try {
       const body = await request.json();
-      const {
-        topic, subject, area, mode,
-        difficulty, quantity, questionType,
-        concurso, banca, bancaFoco,
-        freeText, editalText,
-        alternativas, idioma, sessionMode,
-      } = body;
+      const { topic, subject, area, mode, difficulty, quantity, questionType, concurso, banca, bancaFoco, freeText, editalText, alternativas, idioma, sessionMode } = body;
 
-      const difficultyMap = {
-        easy:    'fácil (nível iniciante, conceitos básicos)',
-        medium:  'médio (nível intermediário, aplicação de conceitos)',
-        hard:    'difícil (nível avançado, análise e interpretação)',
-        extreme: 'extremo (nível especialista, questões de prova real de alto nível)',
-      };
+      const difficultyMap = { easy: 'fácil (nível iniciante, conceitos básicos)', medium: 'médio (nível intermediário, aplicação de conceitos)', hard: 'difícil (nível avançado, análise e interpretação)', extreme: 'extremo (nível especialista, questões de prova real de alto nível)' };
       const diffLabel = difficultyMap[difficulty] || 'médio';
-
       const numAlts = (questionType === 'vf') ? 2 : (parseInt(alternativas) === 4 ? 4 : 5);
       const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
-      const typeMap = {
-        mc:  `múltipla escolha com ${numAlts} alternativas (${altKeys})`,
-        vf:  'verdadeiro ou falso (A = Verdadeiro, B = Falso)',
-        mix: `misto — alternando entre múltipla escolha com ${numAlts} alternativas (${altKeys}) e verdadeiro/falso`,
-      };
+      const typeMap = { mc: `múltipla escolha com ${numAlts} alternativas (${altKeys})`, vf: 'verdadeiro ou falso (A = Verdadeiro, B = Falso)', mix: `misto — alternando entre múltipla escolha com ${numAlts} alternativas (${altKeys}) e verdadeiro/falso` };
       const typeLabel = typeMap[questionType] || typeMap.mc;
-
       const idiomaMap = { 'pt-BR': 'português do Brasil', 'en': 'English (American)', 'es': 'español (castellano)' };
       const idiomaLabel = idiomaMap[idioma] || 'português do Brasil';
       const isPortugues = !idioma || idioma === 'pt-BR';
-
-      const sessionMap = {
-        normal:   'Estudo Normal — questões didáticas com foco em aprendizado e fixação de conteúdo',
-        concurso: 'Simulado — questões no estilo e rigor de prova real, sem dicas pedagógicas no enunciado',
-        revisao:  'Revisão Rápida — questões curtas e objetivas para revisão veloz do conteúdo',
-      };
+      const sessionMap = { normal: 'Estudo Normal — questões didáticas com foco em aprendizado e fixação de conteúdo', concurso: 'Simulado — questões no estilo e rigor de prova real, sem dicas pedagógicas no enunciado', revisao: 'Revisão Rápida — questões curtas e objetivas para revisão veloz do conteúdo' };
       const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
-
       const bancaEfetiva = (bancaFoco && bancaFoco !== 'auto') ? bancaFoco : (banca || null);
-      const bancaStyleMap = {
-        'CEBRASPE':       'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.',
-        'CESPE':          'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.',
-        'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.',
-        'FCC':            'FCC: enunciados extensos e formais, questões literais baseadas em lei seca, doutrina e jurisprudência.',
-        'VUNESP':         'VUNESP: linguagem clara e objetiva, foco em aplicação prática e casos concretos.',
-        'FGV':            'FGV: enunciados elaborados com casos práticos, questões interdisciplinares e raciocínio aplicado.',
-        'CESGRANRIO':     'CESGRANRIO: questões técnicas, frequentemente com tabelas, gráficos e contexto corporativo.',
-        'IDECAN':         'IDECAN: questões objetivas, foco em lei e doutrina, linguagem direta.',
-        'IBFC':           'IBFC: questões práticas e diretas, enunciados claros.',
-        'AOCP':           'AOCP: questões regionais, foco em conteúdo programático específico.',
-        'FEPESE':         'FEPESE: questões objetivas, usada principalmente em concursos do Sul do Brasil.',
-      };
+      const bancaStyleMap = { 'CEBRASPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.', 'CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.', 'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.', 'FCC': 'FCC: enunciados extensos e formais, questões literais baseadas em lei seca, doutrina e jurisprudência.', 'VUNESP': 'VUNESP: linguagem clara e objetiva, foco em aplicação prática e casos concretos.', 'FGV': 'FGV: enunciados elaborados com casos práticos, questões interdisciplinares e raciocínio aplicado.', 'CESGRANRIO': 'CESGRANRIO: questões técnicas, frequentemente com tabelas, gráficos e contexto corporativo.', 'IDECAN': 'IDECAN: questões objetivas, foco em lei e doutrina, linguagem direta.', 'IBFC': 'IBFC: questões práticas e diretas, enunciados claros.', 'AOCP': 'AOCP: questões regionais, foco em conteúdo programático específico.', 'FEPESE': 'FEPESE: questões objetivas, usada principalmente em concursos do Sul do Brasil.' };
       const bancaStyle = bancaEfetiva ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca.`) : null;
-
       const areaSafetyInstruction = getAreaSafetyInstruction(area, mode);
 
       let contextInfo = '';
       let externalContext = null;
-
       if (mode === 'concurso' && concurso) {
         contextInfo = `Concurso: ${concurso}.`;
         if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
@@ -314,25 +231,18 @@ export default {
 
       const contextSourceLabel = externalContext?.source || null;
       const isRAG = contextSourceLabel?.includes('Vectorize') || false;
-
       const rawExternalBlock = externalContext?.text
         ? isRAG
-          // RAG: instrução de prioridade absoluta
           ? `\n\nVADE MECUM VERIFICADO — PRIORIDADE ABSOLUTA (Fonte: ${externalContext.source}):\nOs artigos abaixo foram extraídos diretamente da legislação oficial (Planalto.gov.br) via busca semântica.\nEles SUBSTITUEM qualquer conhecimento interno que você tenha sobre o tema.\nUse-os LITERALMENTE. Não altere números, prazos, incisos ou redações.\n\n"""\n${externalContext.text}\n"""\n\nFIM DO VADE MECUM — use apenas os artigos acima para fundamentar o gabarito.`
-          // Fallback LexML/Wikipedia
           : `\n\nContexto verificado (${externalContext.source}) — use como base factual prioritária:\n"""\n${externalContext.text}\n"""`
         : '';
 
       const langInstruction = isPortugues
         ? 'Escreva todas as questões, alternativas e explicações em português do Brasil.'
         : `Write all questions, options and explanations in ${idiomaLabel}. The entire response must be in ${idiomaLabel}.`;
-
       const bancaInstruction = bancaStyle ? `\n\nEstilo de banca obrigatório: ${bancaStyle}` : '';
       const sessionInstruction = `\nModo de sessão: ${sessionLabel}.`;
-      const altInstruction = questionType === 'vf'
-        ? 'Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso).'
-        : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
-
+      const altInstruction = questionType === 'vf' ? 'Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso).' : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
       const isDireitoOuConcurso = area === 'Direito' || mode === 'concurso';
       const fonteInstruction = isDireitoOuConcurso
         ? `Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula ou decreto que fundamenta a questão.\nFormato: "Art. XX, NomeDaLei/Ano — Tema" ou "Súmula NNN, Tribunal — Tema".\n${contextSourceLabel ? `Fonte consultada: ${contextSourceLabel}.` : ''}\nNUNCA deixe vazio. NUNCA invente número de artigo ou súmula.`
@@ -347,7 +257,6 @@ export default {
       const systemText = `Você é um examinador acadêmico especializado em concursos públicos e ensino superior brasileiro. Retorne APENAS JSON válido com a chave "questions", sem nenhum texto fora do JSON.\n${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado e verificado.\n- NUNCA invente leis, artigos, números, medicamentos, comandos, fórmulas ou qualquer dado.\n- Em caso de dúvida, elabore a questão em torno do conceito geral sem o detalhe duvidoso.\n- O campo "fonte" de CADA questão deve ser preenchido — NUNCA retorne "fonte": "" ou "fonte": null.\n- ${areaSafetyInstruction}`;
 
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(contextInfo, rawExternalBlock, systemText);
-
       const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${safeContextInfo}${externalBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual verificada"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} — sem repetir a mesma letra mais de 2 vezes seguidas.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. NENHUM texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos ou dados que não existem.\n9. Regra de segurança por área: ${areaSafetyInstruction}`;
 
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
@@ -356,22 +265,15 @@ export default {
       async function callGroqWithFallback() {
         const delays = [0, 2000, 4000];
         let lastRes = null;
-
         for (const model of GROQ_MODELS) {
           for (let i = 0; i < delays.length; i++) {
             if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
             lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${env.GROQ_API_KEY}`,
-              },
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.GROQ_API_KEY}` },
               body: JSON.stringify({
                 model,
-                messages: [
-                  { role: 'system', content: systemText },
-                  { role: 'user',   content: userPrompt },
-                ],
+                messages: [{ role: 'system', content: systemText }, { role: 'user', content: userPrompt }],
                 temperature,
                 max_tokens: maxTokens,
                 response_format: { type: 'json_object' },
@@ -380,7 +282,13 @@ export default {
             if (lastRes.ok || (lastRes.status !== 429 && lastRes.status !== 503)) break;
           }
           if (lastRes.ok) return lastRes;
-          if (lastRes.status === 401 || lastRes.status === 403 || lastRes.status === 400) return lastRes;
+          if (lastRes.status === 401 || lastRes.status === 403) return lastRes;
+          // status 400 com model_decommissioned → tenta próximo modelo
+          if (lastRes.status === 400) {
+            const errText = await lastRes.clone().text();
+            if (!errText.includes('decommissioned')) return lastRes;
+            continue;
+          }
         }
         return lastRes;
       }
@@ -394,8 +302,7 @@ export default {
         else if (groqResponse.status === 503) userMessage = 'A IA está com alta demanda. Tente novamente em segundos.';
         else if (groqResponse.status === 401 || groqResponse.status === 403) userMessage = 'Chave da API inválida. Verifique GROQ_API_KEY nas configurações do Worker.';
         return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
-          status: 502,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
@@ -404,18 +311,13 @@ export default {
 
       let questions = [];
       try {
-        const parsed = JSON.parse(rawText);
-        questions = extractQuestions(parsed);
+        questions = extractQuestions(JSON.parse(rawText));
       } catch {
         const matchObj = rawText.match(/\{[\s\S]*\}/);
-        if (matchObj) {
-          try { questions = extractQuestions(JSON.parse(matchObj[0])); } catch { /* continua */ }
-        }
+        if (matchObj) { try { questions = extractQuestions(JSON.parse(matchObj[0])); } catch { /* continua */ } }
         if (questions.length === 0) {
           const matchArr = rawText.match(/\[[\s\S]*\]/);
-          if (matchArr) {
-            try { questions = extractQuestions(JSON.parse(matchArr[0])); } catch { /* continua */ }
-          }
+          if (matchArr) { try { questions = extractQuestions(JSON.parse(matchArr[0])); } catch { /* continua */ } }
         }
       }
 
@@ -423,25 +325,20 @@ export default {
 
       if (questions.length === 0) {
         return new Response(JSON.stringify({
-          error: 'Resposta vazia',
-          rawText,
+          error: 'Resposta vazia', rawText,
           userMessage: 'A IA não conseguiu gerar questões válidas. Tente ajustar o tópico ou o nível de dificuldade.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       return new Response(JSON.stringify({ questions }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 
     } catch (err) {
       return new Response(JSON.stringify({
         error: err.message,
         userMessage: 'Ocorreu um erro inesperado. Tente novamente em instantes.',
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
   },
 };
