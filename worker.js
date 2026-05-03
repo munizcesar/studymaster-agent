@@ -19,6 +19,14 @@ const GROQ_MODELS = [
   'gemma2-9b-it',
 ];
 
+// Instâncias públicas do Invidious — fallback automático se uma cair
+const INVIDIOUS_INSTANCES = [
+  'https://inv.tux.pizza',
+  'https://invidious.privacydev.net',
+  'https://yt.drgnz.club',
+  'https://invidious.drgns.space',
+];
+
 // Mapeamento de área do StudyMaster para área no Vectorize
 const AREA_MAP_VECTORIZE = {
   'Direito': null,
@@ -180,19 +188,13 @@ function extractJsonFromText(text) {
   return t;
 }
 
-// ─── YouTube Transcript Extraction ────────────────────────────────────────────
-/**
- * Extrai o videoId de qualquer formato de URL do YouTube.
- */
+// ─── YouTube Transcript Extraction via Invidious ──────────────────────────────
 function extractYouTubeVideoId(url) {
   try {
     const u = new URL(url.trim());
-    // youtu.be/VIDEO_ID
     if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
-    // youtube.com/watch?v=VIDEO_ID
     const v = u.searchParams.get('v');
     if (v) return v;
-    // youtube.com/embed/VIDEO_ID ou youtube.com/shorts/VIDEO_ID
     const parts = u.pathname.split('/');
     const idx = parts.findIndex(p => ['embed', 'shorts', 'live'].includes(p));
     if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
@@ -201,105 +203,121 @@ function extractYouTubeVideoId(url) {
 }
 
 /**
- * Busca a transcrição de um vídeo do YouTube via timedtext API (sem autenticação).
- * Suporta legendas automáticas e manuais em pt, pt-BR, en.
- * Retorna o texto limpo ou lança um erro com mensagem amigável.
+ * Busca a transcrição via Invidious API (múltiplas instâncias com fallback).
+ * Endpoint: GET /api/v1/captions/:videoId
+ * Retorna o texto limpo ou lança erro amigável.
  */
 async function fetchYouTubeTranscript(videoId) {
   const MAX_TRANSCRIPT_CHARS = 30000;
+  let lastError = 'Nenhuma instância disponível.';
 
-  // 1. Busca a página do vídeo para encontrar a URL do caption track
-  const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const pageRes = await fetch(pageUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; StudyMaster/1.0)',
-      'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-    },
-    signal: AbortSignal.timeout(8000),
-  });
+  for (const instance of INVIDIOUS_INSTANCES) {
+    try {
+      // 1. Busca lista de legendas disponíveis
+      const captionsUrl = `${instance}/api/v1/captions/${videoId}`;
+      const captionsRes = await fetch(captionsUrl, {
+        headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+        signal: AbortSignal.timeout(8000),
+      });
 
-  if (!pageRes.ok) {
-    throw new Error(`Não foi possível acessar o vídeo (HTTP ${pageRes.status}). Verifique se o link é público.`);
+      if (!captionsRes.ok) {
+        lastError = `Instância ${instance} retornou HTTP ${captionsRes.status}.`;
+        continue;
+      }
+
+      const captionsData = await captionsRes.json();
+      const captions = captionsData?.captions;
+
+      if (!captions || captions.length === 0) {
+        throw new Error('Este vídeo não possui legendas ou transcrição disponível. Experimente um vídeo com legendas ativadas.');
+      }
+
+      // 2. Prioridade: pt-BR > pt > en > primeira disponível
+      const priority = ['pt-BR', 'pt', 'en'];
+      let chosen = null;
+      for (const lang of priority) {
+        chosen = captions.find(c => c.languageCode === lang) || null;
+        if (chosen) break;
+      }
+      if (!chosen) chosen = captions[0];
+
+      if (!chosen?.url) {
+        throw new Error('URL da legenda inválida. Tente outro vídeo.');
+      }
+
+      // 3. Monta URL completa da legenda (pode ser relativa ou absoluta)
+      const legendaUrl = chosen.url.startsWith('http')
+        ? chosen.url
+        : `${instance}${chosen.url}`;
+
+      // 4. Busca o conteúdo da legenda (formato VTT via Invidious)
+      const legendaRes = await fetch(legendaUrl, {
+        headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (!legendaRes.ok) {
+        lastError = `Falha ao baixar legenda (HTTP ${legendaRes.status}).`;
+        continue;
+      }
+
+      const vttText = await legendaRes.text();
+
+      // 5. Extrai texto limpo do formato VTT
+      const lines = vttText.split('\n');
+      const textLines = lines.filter(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return false;
+        if (trimmed.startsWith('WEBVTT')) return false;
+        if (trimmed.startsWith('NOTE')) return false;
+        if (/^\d+$/.test(trimmed)) return false; // números de sequência
+        if (/-->/.test(trimmed)) return false;    // timestamps
+        return true;
+      });
+
+      const segments = textLines
+        .map(l => l
+          .replace(/<[^>]+>/g, '')   // remove tags de estilo VTT
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .trim()
+        )
+        .filter(Boolean);
+
+      // Remove linhas duplicadas consecutivas (comum em VTT)
+      const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
+
+      if (!deduped.length) {
+        throw new Error('A transcrição do vídeo está vazia. Tente um vídeo diferente.');
+      }
+
+      let text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
+      const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
+      if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
+
+      return {
+        text,
+        videoId,
+        lang: chosen.languageCode || 'desconhecido',
+        isAuto: chosen.label?.toLowerCase().includes('auto') || false,
+        truncated: wasTruncated,
+        charCount: text.length,
+        source: instance,
+      };
+
+    } catch (err) {
+      // Se for erro definitivo (sem legendas), para imediatamente
+      if (err.message.includes('não possui legendas') || err.message.includes('vazia')) {
+        throw err;
+      }
+      lastError = err.message;
+    }
   }
 
-  const html = await pageRes.text();
-
-  // 2. Extrai o bloco de captionTracks do ytInitialPlayerResponse
-  const captionMatch = html.match(/"captionTracks":\s*(\[.*?\])/);
-  if (!captionMatch) {
-    throw new Error('Este vídeo não possui legendas ou transcrição disponível. Experimente um vídeo com legendas ativadas.');
-  }
-
-  let captionTracks;
-  try {
-    captionTracks = JSON.parse(captionMatch[1]);
-  } catch {
-    throw new Error('Erro ao processar os dados de legenda do vídeo.');
-  }
-
-  if (!captionTracks.length) {
-    throw new Error('Nenhuma legenda encontrada para este vídeo.');
-  }
-
-  // 3. Prioridade: pt-BR > pt > auto-gerada pt > en > qualquer
-  const priority = ['pt-BR', 'pt', 'en'];
-  let chosen = null;
-  for (const lang of priority) {
-    chosen = captionTracks.find(t => t.languageCode === lang) || null;
-    if (chosen) break;
-  }
-  // Auto-generated fallback
-  if (!chosen) {
-    chosen = captionTracks.find(t => t.kind === 'asr') || captionTracks[0];
-  }
-
-  if (!chosen?.baseUrl) {
-    throw new Error('URL da legenda inválida. Tente outro vídeo.');
-  }
-
-  // 4. Busca o XML da transcrição
-  const transcriptRes = await fetch(chosen.baseUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; StudyMaster/1.0)' },
-    signal: AbortSignal.timeout(8000),
-  });
-
-  if (!transcriptRes.ok) {
-    throw new Error('Falha ao baixar a legenda do vídeo. Tente novamente.');
-  }
-
-  const xml = await transcriptRes.text();
-
-  // 5. Extrai e limpa o texto das tags <text>
-  const segments = [...xml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g)]
-    .map(m => m[1]
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&apos;/g, "'")
-      .replace(/<[^>]+>/g, '') // remove tags internas de estilo
-      .trim()
-    )
-    .filter(Boolean);
-
-  if (!segments.length) {
-    throw new Error('A transcrição do vídeo está vazia. Tente um vídeo diferente.');
-  }
-
-  // 6. Une os segmentos em texto corrido e trunca se necessário
-  let text = segments.join(' ').replace(/\s{2,}/g, ' ').trim();
-  const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
-  if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
-
-  return {
-    text,
-    videoId,
-    lang: chosen.languageCode || 'desconhecido',
-    isAuto: chosen.kind === 'asr',
-    truncated: wasTruncated,
-    charCount: text.length,
-  };
+  throw new Error(`Não foi possível obter a transcrição. ${lastError} Verifique se o vídeo é público e possui legendas.`);
 }
 
 // ─── Main fetch handler ────────────────────────────────────────────────────────
