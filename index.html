@@ -410,11 +410,12 @@
     .quiz-fs-overlay {
       position: fixed; inset: 0; z-index: 900;
       background: var(--color-bg);
-      display: flex; flex-direction: column;
+      display: none; flex-direction: column;
       opacity: 0; pointer-events: none;
       transition: opacity 300ms cubic-bezier(0.16,1,0.3,1);
     }
     .quiz-fs-overlay.open {
+      display: flex;
       opacity: 1; pointer-events: auto;
     }
     .quiz-fs-header {
@@ -1855,6 +1856,56 @@ function updateScore() {
 
 
 // ── QUIZ MODE: questão por vez (Fullscreen) ─────────────────────────────────
+// ── QUIZ MODE inline (mobile fallback) ──────────────────────────────────────
+function renderInlineQuizMode(questions, container) {
+  const list = document.getElementById('questions-list');
+  list.innerHTML = '';
+
+  questions.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-${idx}`;
+    card.innerHTML = `
+      <div class="question-number">Questao ${idx + 1} de ${questions.length}</div>
+      <div class="question-statement">${q.statement}</div>
+      <div class="options-list">
+        ${(q.options || []).map(opt => `
+          <button class="option-btn" data-qidx="${idx}" data-key="${opt.key}">
+            <span class="option-key">${opt.key}</span>
+            <span>${opt.text}</span>
+          </button>`).join('')}
+      </div>
+      <div class="explanation-box" id="exp-${idx}">
+        <strong>Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      </div>`;
+    list.appendChild(card);
+
+    card.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        if (card.dataset.answered) return;
+        card.dataset.answered = '1';
+        const key = e.currentTarget.dataset.key;
+        const isCorrect = key === q.correctAnswer;
+        state.answerResults[idx] = isCorrect;
+        if (isCorrect) state.correct++;
+        state.answered++;
+        card.querySelectorAll('.option-btn').forEach(b => {
+          b.disabled = true;
+          if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+          else if (b.dataset.key === key && !isCorrect) b.classList.add('wrong');
+        });
+        document.getElementById(`exp-${idx}`).classList.add('visible');
+        updateScore();
+        if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+        if (state.answered === questions.length) showSessionResult();
+      });
+    });
+  });
+
+  lucide.createIcons();
+  scrollToWizard(50);
+}
+
 function renderQuizMode(questions) {
   const container = document.getElementById('questions-container');
   const chips     = document.getElementById('summary-chips');
@@ -2005,6 +2056,14 @@ function renderQuizMode(questions) {
   };
 
   // Open fullscreen
+  // ── Responsive: fullscreen only on desktop ──
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    renderInlineQuizMode(questions, container);
+    container.classList.add('visible');
+    return;
+  }
+
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
   fsRenderQuestion(0);
