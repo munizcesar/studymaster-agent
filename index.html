@@ -1,6 +1,7 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+﻿<!DOCTYPE html>
+<html lang="pt-br">
 <head>
+<<<<<<< Updated upstream
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyMaster — Gerador de Questões com IA</title>
@@ -289,3 +290,113 @@
     .compare-table-wrapper { background: var(--color-surface); }
     .profile-cards { background: var(--color-bg); }
     .how-it-works h2, .compare-table-wrapper%timeout  наск
+=======
+    <meta charset="UTF-8">
+    <title>Quiz Engine</title>
+    <style>
+        body.modal-open { overflow: hidden; }
+        #quiz-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; }
+        #quiz-overlay.open { display: block; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div id="quiz-container"></div>
+    <div id="quiz-overlay">
+        <div id="fs-header"></div>
+        <div id="fs-content"></div>
+        <button id="close-fs">Fechar</button>
+    </div>
+
+    <script>
+    const state = { 
+        questionType: 'quiz', 
+        currentIdx: 0, 
+        questions: [], 
+        diffLabel: 'Médio', 
+        modeLabel: 'Simulado' 
+    };
+
+    function renderQuestions(questions) {
+        // BUG 1: Guard clause para modo quiz
+        if (state.questionType === 'quiz') {
+            renderQuizMode(questions);
+            return;
+        }
+        // ... rest of logic
+    }
+
+    function renderQuizMode(questions) {
+        state.questions = questions;
+        const container = document.getElementById('quiz-container');
+        
+        // BUG 9: Registro do botão antes de abrir o overlay
+        const retryBtn = document.getElementById('retry-wrong-btn');
+        if(retryBtn) retryBtn.onclick = () => { console.log('Retry logic'); };
+
+        // BUG 2: Sempre abre fullscreen (Mobile & Desktop)
+        const overlay = document.getElementById('quiz-overlay');
+        document.body.classList.add('modal-open');
+        overlay.classList.add('open');
+        fsRenderQuestion(0);
+    }
+
+    function fsUpdateHeader() {
+        const header = document.getElementById('fs-header');
+        // BUG 3 & 4: Chips com labels reais e template literals corrigidos
+        header.innerHTML = `
+            <div class="chips">
+                <span>${state.diffLabel}</span>
+                <span>${state.modeLabel}</span>
+            </div>
+            <div class="progress">Questão ${state.currentIdx + 1} de ${state.questions.length}</div>
+        `;
+    }
+
+    function fsRenderQuestion(idx) {
+        state.currentIdx = idx;
+        fsUpdateHeader();
+        const content = document.getElementById('fs-content');
+        const q = state.questions[idx];
+        
+        content.innerHTML = `<h3>${q.title}</h3><div id="options"></div><button id="next-btn"></button>`;
+        
+        const btn = document.getElementById('next-btn');
+        const isLast = idx === state.questions.length - 1;
+
+        // BUG 5 & 6: Limpeza de variáveis órfãs e pontos e vírgulas duplos
+        btn.innerHTML = isLast ? 'Finalizar' : 'Próxima';
+        
+        btn.onclick = () => {
+            if (isLast) {
+                // BUG 8: Fluxo de finalização
+                closeFullscreen();
+                renderInlineQuizMode();
+                showSessionResult();
+                scrollToWizard(100);
+            } else {
+                fsRenderQuestion(idx + 1);
+            }
+        };
+    }
+
+    function closeFullscreen() {
+        const overlay = document.getElementById('quiz-overlay');
+        overlay.classList.remove('open');
+        document.body.classList.remove('modal-open');
+    }
+
+    // BUG 7: Close button chama renderInline e scroll
+    document.getElementById('close-fs').onclick = () => {
+        closeFullscreen();
+        renderInlineQuizMode();
+        scrollToWizard(100);
+    };
+
+    function renderInlineQuizMode() { console.log("Renderizando gabaritos inline..."); }
+    function showSessionResult() { console.log("Mostrando resultado..."); }
+    function scrollToWizard(val) { window.scrollTo(0, val); }
+
+    </script>
+</body>
+</html>
+>>>>>>> Stashed changes
