@@ -16,17 +16,12 @@ const GROQ_MODELS = [
   'gemma2-9b-it',
 ];
 
-// Instâncias de fallback estático (caso a API falhe)
 const INVIDIOUS_FALLBACK = [
   'https://yewtu.be',
   'https://inv.nadeko.net',
   'https://invidious.nerdvpn.de',
 ];
 
-/**
- * Busca lista de instâncias ativas via api.invidious.io
- * Filtra por: API ativa, HTTPS, sem onion, ordena por saúde
- */
 async function getInvidiousInstances() {
   try {
     const res = await fetch('https://api.invidious.io/instances.json?sort_by=health', {
@@ -43,7 +38,7 @@ async function getInvidiousInstances() {
         !info?.uri?.includes('.i2p')
       )
       .map(([, info]) => info.uri.replace(/\/$/, ''))
-      .slice(0, 8); // máximo 8 instâncias
+      .slice(0, 8);
     return instances.length > 0 ? instances : INVIDIOUS_FALLBACK;
   } catch {
     return INVIDIOUS_FALLBACK;
@@ -172,7 +167,7 @@ function validateQuestions(questions) {
 
 function getAreaSafetyInstruction(area, mode) {
   if (mode === 'concurso' || area === 'Direito') {
-    return `PROTOCOLO VADE MÊCUM ATIVO:\n- Use APENAS artigos, incisos e parágrafos confirmados no contexto legislativo fornecido.\n- Diplomas válidos: CF/88, CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).\n- Súmulas: cite SOMENTE com número e tribunal confirmados (STF, STJ, TST).\n- Se NÃO tiver certeza absoluta do número do artigo, use o PRINCÍPIO JURÍDICO sem citar o número.\n- NUNCA invente artigos fictícios, súmulas com números errados, leis inexistentes ou ementas fabricadas.`;
+    return `PROTOCOLO VADE MÊCUM ATIVO:\n- Use APENAS artigos, incisos e parágrafos confirmados no contexto legislativo fornecido.\n- Diplomas válidos: CF/88, CC/2002, CP, CPC/2015, CPP, CLT, Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).\n- Súmulas: cite SOMENTE com número e tribunal confirmados (STF, STJ, TST).\n- NUNCA invente artigos fictícios, súmulas com números errados ou leis inexistentes.`;
   }
   if (mode === 'livre') return 'As questões devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usuário.';
   const areaMap = {
@@ -215,8 +210,17 @@ function parseSubtitleContent(raw) {
   if (!raw || typeof raw !== 'string') return [];
   const trimmed = raw.trim();
 
+  // JSON (alguns frontends retornam assim)
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const items = Array.isArray(parsed) ? parsed : (parsed.captions || parsed.transcript || parsed.segments || []);
+      return items.map(i => (i.text || i.content || i.line || '')).filter(Boolean);
+    } catch { /* continua */ }
+  }
+
   // Formato XML/TTML
-  if (trimmed.startsWith('<') && (trimmed.includes('<text') || trimmed.includes('<p ') || trimmed.includes('<tt'))) {
+  if (trimmed.startsWith('<')) {
     const xmlMatches = [...trimmed.matchAll(/<(?:text|p)[^>]*>([\s\S]*?)<\/(?:text|p)>/gi)];
     if (xmlMatches.length > 0) {
       return xmlMatches
@@ -227,6 +231,7 @@ function parseSubtitleContent(raw) {
         )
         .filter(Boolean);
     }
+    // Fallback XML genérico
     const stripped = trimmed.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     return stripped.length > 10 ? [stripped] : [];
   }
@@ -268,8 +273,6 @@ function extractYouTubeVideoId(url) {
 
 async function fetchYouTubeTranscript(videoId) {
   const MAX_TRANSCRIPT_CHARS = 30000;
-
-  // Busca instâncias ativas dinamicamente
   const instances = await getInvidiousInstances();
   let lastError = 'Nenhuma instância disponível.';
   let noCaption = false;
@@ -360,6 +363,54 @@ export default {
 
     const url = new URL(request.url);
 
+    // ── Rota DEBUG: inspeciona resposta bruta do Invidious ──────────────────────────
+    if (url.pathname.endsWith('/youtube-debug')) {
+      try {
+        const body = await request.json();
+        const videoId = extractYouTubeVideoId(body.youtubeUrl || '');
+        if (!videoId) return new Response(JSON.stringify({ error: 'URL inválida' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+        const instances = await getInvidiousInstances();
+        const debugResults = [];
+
+        for (const instance of instances.slice(0, 3)) { // testa 3 instâncias
+          const result = { instance, captionsStatus: null, captionsList: [], chosenUrl: null, rawContentSample: null, parsedCount: 0 };
+          try {
+            const r1 = await fetch(`${instance}/api/v1/captions/${videoId}`, {
+              headers: { 'User-Agent': 'StudyMaster/1.0' },
+              signal: AbortSignal.timeout(6000),
+            });
+            result.captionsStatus = r1.status;
+            if (r1.ok) {
+              const d = await r1.json();
+              result.captionsList = (d?.captions || []).map(c => ({ label: c.label, languageCode: c.languageCode, url: c.url }));
+              const chosen = d?.captions?.find(c => ['pt-BR','pt','en'].includes(c.languageCode)) || d?.captions?.[0];
+              if (chosen?.url) {
+                const legendaUrl = chosen.url.startsWith('http') ? chosen.url : `${instance}${chosen.url}`;
+                result.chosenUrl = legendaUrl;
+                const r2 = await fetch(legendaUrl, { headers: { 'User-Agent': 'StudyMaster/1.0' }, signal: AbortSignal.timeout(6000) });
+                result.legendaStatus = r2.status;
+                if (r2.ok) {
+                  const raw = await r2.text();
+                  result.rawContentSample = raw.slice(0, 800); // primeiros 800 chars
+                  result.rawLength = raw.length;
+                  result.parsedCount = parseSubtitleContent(raw).length;
+                }
+              }
+            }
+          } catch (e) { result.error = e.message; }
+          debugResults.push(result);
+        }
+
+        return new Response(JSON.stringify({ videoId, instances: instances.slice(0, 3), debugResults }, null, 2), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
+    // ── Rota: /youtube-transcript ───────────────────────────────────────────────────
     if (url.pathname === '/youtube-transcript' || url.pathname.endsWith('/youtube-transcript')) {
       try {
         const body = await request.json();
