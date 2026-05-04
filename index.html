@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
@@ -303,33 +303,47 @@
     .daily-perf {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.05);
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 99px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
     }
-    [data-theme="dark"] .daily-perf {
-      background: rgba(255,255,255,0.08);
+    .daily-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
     }
     .daily-correct {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #22c55e;
+      background: rgba(34, 197, 94, 0.12);
+      color: #16a34a;
     }
     .daily-wrong {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+    }
+    [data-theme="dark"] .daily-correct {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+    [data-theme="dark"] .daily-wrong {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
     }
     .daily-hoje {
-      color: #9ca3af;
-      font-size: 12px;
+      padding: 0 6px 0 10px;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     /* Botões primários */
@@ -459,15 +473,15 @@
         </a>
         <div class="header-actions">
           <div class="daily-perf" id="daily-perf" aria-live="polite">
-            <span class="daily-correct">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span class="daily-hoje">Hoje</span>
+            <span class="daily-badge daily-correct" title="Acertos">
+              <i data-lucide="check" width="14" height="14"></i>
               <span id="dp-correct">0</span>
             </span>
-            <span class="daily-wrong">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <span class="daily-badge daily-wrong" title="Erros">
+              <i data-lucide="x" width="14" height="14"></i>
               <span id="dp-wrong">0</span>
             </span>
-            <span class="daily-hoje">hoje</span>
           </div>
           <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
             <i data-lucide="moon" width="20" height="20" id="theme-icon"></i>
@@ -1570,15 +1584,25 @@ function renderStep2Livre(container) {
         body: JSON.stringify({ youtubeUrl: url }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Erro HTTP ${res.status}`);
-      if (!data.transcript) throw new Error('Transcrição não encontrada para este vídeo.');
-      state.freeText = data.transcript;
+      
+      if (!res.ok) {
+        if (res.status === 429 || data.isBlocked) {
+          throw new Error('O YouTube bloqueou a extração automática. Por favor, abra o vídeo no YouTube, clique em "Mostrar Transcrição", copie o texto e cole-o na caixa abaixo.');
+        }
+        throw new Error(data.error || `Erro HTTP ${res.status}`);
+      }
+      
+      const transcriptText = data.text || data.transcript;
+      if (!transcriptText) throw new Error('Transcrição não encontrada para este vídeo.');
+      
+      state.freeText = transcriptText;
       state.youtubeUrl = url;
-      freeTextArea.value = data.transcript;
+      freeTextArea.value = transcriptText;
       updateCounter();
       updateNavButtons();
     } catch (err) {
-      ytError.textContent = err.message || 'Não foi possível extrair a transcrição. Verifique o link e tente novamente.';
+      ytError.innerHTML = `<strong>Aviso:</strong> ${err.message || 'Não foi possível extrair a transcrição. Verifique o link e tente novamente.'}`;
+      ytError.style.color = err.message.includes('bloqueou') ? '#d4a827' : 'var(--color-error)';
     } finally {
       ytExtractBtn.disabled = false;
       ytBtnLabel.textContent = 'Extrair transcrição';
