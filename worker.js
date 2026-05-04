@@ -10,7 +10,6 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// Modelos em ordem de preferência — fallback automático se o primeiro atingir limite ou for descontinuado
 const GROQ_MODELS = [
   'llama-3.3-70b-versatile',
   'llama3-70b-8192',
@@ -19,7 +18,6 @@ const GROQ_MODELS = [
   'gemma2-9b-it',
 ];
 
-// Instâncias públicas do Invidious — fallback automático se uma cair
 const INVIDIOUS_INSTANCES = [
   'https://inv.nadeko.net',
   'https://invidious.nikkosphere.com',
@@ -28,7 +26,6 @@ const INVIDIOUS_INSTANCES = [
   'https://inv.tux.pizza',
 ];
 
-// Mapeamento de área do StudyMaster para área no Vectorize
 const AREA_MAP_VECTORIZE = {
   'Direito': null,
   'constitucional': 'constitucional',
@@ -189,6 +186,55 @@ function extractJsonFromText(text) {
   return t;
 }
 
+// ─── Parsers de legenda ────────────────────────────────────────────────────────
+
+/**
+ * Parser robusto que aceita VTT, XML/TTML e texto puro.
+ * Retorna array de strings com o texto limpo.
+ */
+function parseSubtitleContent(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  const trimmed = raw.trim();
+
+  // Formato XML/TTML (Invidious às vezes retorna isso)
+  if (trimmed.startsWith('<') && (trimmed.includes('<text') || trimmed.includes('<p ') || trimmed.includes('<tt'))) {
+    // Extrai conteúdo de tags <text ...>...</text> ou <p ...>...</p>
+    const xmlMatches = [...trimmed.matchAll(/<(?:text|p)[^>]*>([\s\S]*?)<\/(?:text|p)>/gi)];
+    if (xmlMatches.length > 0) {
+      return xmlMatches
+        .map(m => m[1]
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+          .replace(/\s+/g, ' ').trim()
+        )
+        .filter(Boolean);
+    }
+    // Fallback: remove todas as tags XML e pega o texto
+    const stripped = trimmed.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return stripped.length > 10 ? [stripped] : [];
+  }
+
+  // Formato VTT / SRT
+  const lines = trimmed.split(/\r?\n/);
+  const textLines = lines.filter(line => {
+    const l = line.trim();
+    if (!l) return false;
+    if (l.startsWith('WEBVTT') || l.startsWith('NOTE') || l.startsWith('STYLE')) return false;
+    if (/^\d+$/.test(l)) return false;          // número de sequência SRT
+    if (/-->/.test(l)) return false;             // timestamp
+    if (/^\[.+\]$/.test(l)) return false;        // [Música] etc.
+    return true;
+  });
+
+  return textLines
+    .map(l => l
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .trim()
+    )
+    .filter(Boolean);
+}
+
 // ─── YouTube Transcript Extraction via Invidious ──────────────────────────────
 function extractYouTubeVideoId(url) {
   try {
@@ -203,18 +249,13 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
-/**
- * Busca a transcrição via Invidious API (múltiplas instâncias com fallback).
- * Endpoint: GET /api/v1/captions/:videoId
- * Retorna o texto limpo ou lança erro amigável.
- */
 async function fetchYouTubeTranscript(videoId) {
   const MAX_TRANSCRIPT_CHARS = 30000;
   let lastError = 'Nenhuma instância disponível.';
+  let noCaption = false;
 
   for (const instance of INVIDIOUS_INSTANCES) {
     try {
-      // 1. Busca lista de legendas disponíveis
       const captionsUrl = `${instance}/api/v1/captions/${videoId}`;
       const captionsRes = await fetch(captionsUrl, {
         headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
@@ -230,10 +271,13 @@ async function fetchYouTubeTranscript(videoId) {
       const captions = captionsData?.captions;
 
       if (!captions || captions.length === 0) {
-        throw new Error('Este vídeo não possui legendas ou transcrição disponível. Experimente um vídeo com legendas ativadas.');
+        // Vídeo sem legendas — não tenta outras instâncias, é definitivo
+        noCaption = true;
+        lastError = 'Este vídeo não possui legendas ou transcrição disponível. Experimente um vídeo com legendas ativadas.';
+        break;
       }
 
-      // 2. Prioridade: pt-BR > pt > en > primeira disponível
+      // Prioridade: pt-BR > pt > en > primeira disponível
       const priority = ['pt-BR', 'pt', 'en'];
       let chosen = null;
       for (const lang of priority) {
@@ -243,57 +287,35 @@ async function fetchYouTubeTranscript(videoId) {
       if (!chosen) chosen = captions[0];
 
       if (!chosen?.url) {
-        throw new Error('URL da legenda inválida. Tente outro vídeo.');
+        lastError = 'URL da legenda inválida nesta instância.';
+        continue;
       }
 
-      // 3. Monta URL completa da legenda (pode ser relativa ou absoluta)
       const legendaUrl = chosen.url.startsWith('http')
         ? chosen.url
         : `${instance}${chosen.url}`;
 
-      // 4. Busca o conteúdo da legenda (formato VTT via Invidious)
       const legendaRes = await fetch(legendaUrl, {
         headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
         signal: AbortSignal.timeout(8000),
       });
 
       if (!legendaRes.ok) {
-        lastError = `Falha ao baixar legenda (HTTP ${legendaRes.status}).`;
+        lastError = `Falha ao baixar legenda na instância ${instance} (HTTP ${legendaRes.status}).`;
         continue;
       }
 
-      const vttText = await legendaRes.text();
+      const rawContent = await legendaRes.text();
+      const segments = parseSubtitleContent(rawContent);
 
-      // 5. Extrai texto limpo do formato VTT
-      const lines = vttText.split('\n');
-      const textLines = lines.filter(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return false;
-        if (trimmed.startsWith('WEBVTT')) return false;
-        if (trimmed.startsWith('NOTE')) return false;
-        if (/^\d+$/.test(trimmed)) return false; // números de sequência
-        if (/-->/.test(trimmed)) return false;    // timestamps
-        return true;
-      });
-
-      const segments = textLines
-        .map(l => l
-          .replace(/<[^>]+>/g, '')   // remove tags de estilo VTT
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .trim()
-        )
-        .filter(Boolean);
-
-      // Remove linhas duplicadas consecutivas (comum em VTT)
-      const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
-
-      if (!deduped.length) {
-        throw new Error('A transcrição do vídeo está vazia. Tente um vídeo diferente.');
+      if (!segments.length) {
+        // Conteúdo vazio nesta instância — tenta a próxima
+        lastError = `Legenda vazia na instância ${instance}. Tentando próxima...`;
+        continue;
       }
+
+      // Remove duplicatas consecutivas
+      const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
 
       let text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
       const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
@@ -310,12 +332,12 @@ async function fetchYouTubeTranscript(videoId) {
       };
 
     } catch (err) {
-      // Se for erro definitivo (sem legendas), para imediatamente
-      if (err.message.includes('não possui legendas') || err.message.includes('vazia')) {
-        throw err;
-      }
       lastError = err.message;
     }
+  }
+
+  if (noCaption) {
+    throw new Error(lastError);
   }
 
   throw new Error(`Não foi possível obter a transcrição. ${lastError} Verifique se o vídeo é público e possui legendas.`);
@@ -329,7 +351,6 @@ export default {
 
     const url = new URL(request.url);
 
-    // ── Rota: /youtube-transcript ──────────────────────────────────────────────
     if (url.pathname === '/youtube-transcript' || url.pathname.endsWith('/youtube-transcript')) {
       try {
         const body = await request.json();
@@ -356,7 +377,6 @@ export default {
       }
     }
 
-    // ── Rota principal: geração de questões ───────────────────────────────────
     if (!env.GROQ_API_KEY) {
       return new Response(JSON.stringify({
         error: 'Configuração incompleta',
