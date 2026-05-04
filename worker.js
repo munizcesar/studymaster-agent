@@ -1,7 +1,5 @@
 // StudyMaster AI Worker — Cloudflare Worker + Groq API + Vectorize RAG
 // Deploy: wrangler deploy
-// Env var necessária: GROQ_API_KEY
-// Bindings necessários: AI (Cloudflare AI), KNOWLEDGE_INDEX (Vectorize)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,13 +16,39 @@ const GROQ_MODELS = [
   'gemma2-9b-it',
 ];
 
-const INVIDIOUS_INSTANCES = [
+// Instâncias de fallback estático (caso a API falhe)
+const INVIDIOUS_FALLBACK = [
+  'https://yewtu.be',
   'https://inv.nadeko.net',
-  'https://invidious.nikkosphere.com',
-  'https://yt.artemislena.eu',
-  'https://invidious.privacydev.net',
-  'https://inv.tux.pizza',
+  'https://invidious.nerdvpn.de',
 ];
+
+/**
+ * Busca lista de instâncias ativas via api.invidious.io
+ * Filtra por: API ativa, HTTPS, sem onion, ordena por saúde
+ */
+async function getInvidiousInstances() {
+  try {
+    const res = await fetch('https://api.invidious.io/instances.json?sort_by=health', {
+      headers: { 'User-Agent': 'StudyMaster/1.0' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return INVIDIOUS_FALLBACK;
+    const data = await res.json();
+    const instances = data
+      .filter(([, info]) =>
+        info?.api === true &&
+        info?.uri?.startsWith('https://') &&
+        !info?.uri?.includes('.onion') &&
+        !info?.uri?.includes('.i2p')
+      )
+      .map(([, info]) => info.uri.replace(/\/$/, ''))
+      .slice(0, 8); // máximo 8 instâncias
+    return instances.length > 0 ? instances : INVIDIOUS_FALLBACK;
+  } catch {
+    return INVIDIOUS_FALLBACK;
+  }
+}
 
 const AREA_MAP_VECTORIZE = {
   'Direito': null,
@@ -75,7 +99,7 @@ async function fetchLexML(query) {
   try {
     const cql = `(dc.title any "${query}" or dc.subject any "${query}") and tipoDocumento any "Lei Decreto-Lei Código Constituição Medida-Provisória"`;
     const url = `https://www.lexml.gov.br/busca/SRU?operation=searchRetrieve&version=1.1&query=${encodeURIComponent(cql)}&maximumRecords=5&recordSchema=dc`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' }, signal: AbortSignal.timeout(5000) });
+    const res = await fetch(url, { headers: { 'User-Agent': 'StudyMaster/1.0' }, signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     const xml = await res.text();
     const titles = [...xml.matchAll(/<dc:title>([^<]+)<\/dc:title>/g)].map((m) => m[1]);
@@ -96,7 +120,7 @@ async function fetchWikipediaContext(query, lang = 'pt') {
   try {
     const slug = encodeURIComponent(query.trim().replace(/\s+/g, '_'));
     const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' }, signal: AbortSignal.timeout(4000) });
+    const res = await fetch(url, { headers: { 'User-Agent': 'StudyMaster/1.0' }, signal: AbortSignal.timeout(4000) });
     if (!res.ok) return null;
     const data = await res.json();
     return data?.extract ? data.extract.slice(0, 1500) : null;
@@ -148,19 +172,19 @@ function validateQuestions(questions) {
 
 function getAreaSafetyInstruction(area, mode) {
   if (mode === 'concurso' || area === 'Direito') {
-    return `PROTOCOLO VADE MÊCUM ATIVO:\n- Use APENAS artigos, incisos e parágrafos confirmados no contexto legislativo fornecido (LexML/Senado Federal).\n- Diplomas válidos: CF/88, CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).\n- Súmulas: cite SOMENTE com número e tribunal confirmados (STF, STJ, TST).\n- Se NÃO tiver certeza absoluta do número do artigo, use o PRINCÍPIO JURÍDICO sem citar o número.\n- NUNCA invente artigos fictícios, súmulas com números errados, leis inexistentes ou ementas fabricadas.\n- Gabarito deve ser defensável perante banca real de concurso.`;
+    return `PROTOCOLO VADE MÊCUM ATIVO:\n- Use APENAS artigos, incisos e parágrafos confirmados no contexto legislativo fornecido.\n- Diplomas válidos: CF/88, CC/2002 (Lei 10.406), CP (DL 2.848/1940), CPC/2015 (Lei 13.105), CPP (DL 3.689/1941), CLT (DL 5.452/1943), Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).\n- Súmulas: cite SOMENTE com número e tribunal confirmados (STF, STJ, TST).\n- Se NÃO tiver certeza absoluta do número do artigo, use o PRINCÍPIO JURÍDICO sem citar o número.\n- NUNCA invente artigos fictícios, súmulas com números errados, leis inexistentes ou ementas fabricadas.`;
   }
-  if (mode === 'livre') return 'As questões devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usuário. Não adicione informações externas.';
+  if (mode === 'livre') return 'As questões devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usuário.';
   const areaMap = {
-    'Saúde': 'Use apenas terminologia médica, protocolos clínicos, fármacos e síndromes reconhecidos pela CID. Nunca invente nomes de medicamentos, exames ou procedimentos.',
-    'Tecnologia': 'Use apenas linguagens, frameworks, comandos e protocolos documentados. Nunca invente funções, bibliotecas ou sintaxes.',
-    'Exatas': 'Use apenas fórmulas, teoremas e constantes físicas/químicas verificados. Nunca invente resultados numéricos ou fórmulas incorretas.',
-    'Humanas': 'Use apenas eventos históricos, datas, personagens e conceitos reais e documentados. Nunca invente datas ou autores.',
-    'Negócios': 'Use apenas conceitos de administração, contabilidade e finanças consolidados. Nunca invente siglas, normas contábeis ou índices fictícios.',
-    'ENEM': 'Use apenas conteúdos da matriz de referência oficial do ENEM (INEP). Nunca invente dados fora do currículo.',
-    'Concursos — Matérias Comuns': 'Cite apenas artigos e conceitos existentes. Para Português, use regras da norma culta consagradas. Para Matemática, garanta cálculos e respostas corretos.',
+    'Saúde': 'Use apenas terminologia médica, protocolos clínicos, fármacos e síndromes reconhecidos pela CID.',
+    'Tecnologia': 'Use apenas linguagens, frameworks, comandos e protocolos documentados.',
+    'Exatas': 'Use apenas fórmulas, teoremas e constantes físicas/químicas verificados.',
+    'Humanas': 'Use apenas eventos históricos, datas, personagens e conceitos reais e documentados.',
+    'Negócios': 'Use apenas conceitos de administração, contabilidade e finanças consolidados.',
+    'ENEM': 'Use apenas conteúdos da matriz de referência oficial do ENEM (INEP).',
+    'Concursos — Matérias Comuns': 'Cite apenas artigos e conceitos existentes.',
   };
-  return areaMap[area] || 'Use apenas conhecimento factício consolidado e verificado. Nunca invente dados, nomes, leis ou conceitos.';
+  return areaMap[area] || 'Use apenas conhecimento factício consolidado e verificado.';
 }
 
 function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 24000) {
@@ -187,18 +211,12 @@ function extractJsonFromText(text) {
 }
 
 // ─── Parsers de legenda ────────────────────────────────────────────────────────
-
-/**
- * Parser robusto que aceita VTT, XML/TTML e texto puro.
- * Retorna array de strings com o texto limpo.
- */
 function parseSubtitleContent(raw) {
   if (!raw || typeof raw !== 'string') return [];
   const trimmed = raw.trim();
 
-  // Formato XML/TTML (Invidious às vezes retorna isso)
+  // Formato XML/TTML
   if (trimmed.startsWith('<') && (trimmed.includes('<text') || trimmed.includes('<p ') || trimmed.includes('<tt'))) {
-    // Extrai conteúdo de tags <text ...>...</text> ou <p ...>...</p>
     const xmlMatches = [...trimmed.matchAll(/<(?:text|p)[^>]*>([\s\S]*?)<\/(?:text|p)>/gi)];
     if (xmlMatches.length > 0) {
       return xmlMatches
@@ -209,7 +227,6 @@ function parseSubtitleContent(raw) {
         )
         .filter(Boolean);
     }
-    // Fallback: remove todas as tags XML e pega o texto
     const stripped = trimmed.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     return stripped.length > 10 ? [stripped] : [];
   }
@@ -220,9 +237,9 @@ function parseSubtitleContent(raw) {
     const l = line.trim();
     if (!l) return false;
     if (l.startsWith('WEBVTT') || l.startsWith('NOTE') || l.startsWith('STYLE')) return false;
-    if (/^\d+$/.test(l)) return false;          // número de sequência SRT
-    if (/-->/.test(l)) return false;             // timestamp
-    if (/^\[.+\]$/.test(l)) return false;        // [Música] etc.
+    if (/^\d+$/.test(l)) return false;
+    if (/-->/.test(l)) return false;
+    if (/^\[.+\]$/.test(l)) return false;
     return true;
   });
 
@@ -235,7 +252,7 @@ function parseSubtitleContent(raw) {
     .filter(Boolean);
 }
 
-// ─── YouTube Transcript Extraction via Invidious ──────────────────────────────
+// ─── YouTube Transcript ────────────────────────────────────────────────────────────
 function extractYouTubeVideoId(url) {
   try {
     const u = new URL(url.trim());
@@ -251,14 +268,16 @@ function extractYouTubeVideoId(url) {
 
 async function fetchYouTubeTranscript(videoId) {
   const MAX_TRANSCRIPT_CHARS = 30000;
+
+  // Busca instâncias ativas dinamicamente
+  const instances = await getInvidiousInstances();
   let lastError = 'Nenhuma instância disponível.';
   let noCaption = false;
 
-  for (const instance of INVIDIOUS_INSTANCES) {
+  for (const instance of instances) {
     try {
-      const captionsUrl = `${instance}/api/v1/captions/${videoId}`;
-      const captionsRes = await fetch(captionsUrl, {
-        headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+      const captionsRes = await fetch(`${instance}/api/v1/captions/${videoId}`, {
+        headers: { 'User-Agent': 'StudyMaster/1.0' },
         signal: AbortSignal.timeout(8000),
       });
 
@@ -271,13 +290,11 @@ async function fetchYouTubeTranscript(videoId) {
       const captions = captionsData?.captions;
 
       if (!captions || captions.length === 0) {
-        // Vídeo sem legendas — não tenta outras instâncias, é definitivo
         noCaption = true;
-        lastError = 'Este vídeo não possui legendas ou transcrição disponível. Experimente um vídeo com legendas ativadas.';
+        lastError = 'Este vídeo não possui legendas disponíveis. Tente um vídeo com legendas ativadas.';
         break;
       }
 
-      // Prioridade: pt-BR > pt > en > primeira disponível
       const priority = ['pt-BR', 'pt', 'en'];
       let chosen = null;
       for (const lang of priority) {
@@ -291,17 +308,15 @@ async function fetchYouTubeTranscript(videoId) {
         continue;
       }
 
-      const legendaUrl = chosen.url.startsWith('http')
-        ? chosen.url
-        : `${instance}${chosen.url}`;
+      const legendaUrl = chosen.url.startsWith('http') ? chosen.url : `${instance}${chosen.url}`;
 
       const legendaRes = await fetch(legendaUrl, {
-        headers: { 'User-Agent': 'StudyMaster/1.0 (educational tool)' },
+        headers: { 'User-Agent': 'StudyMaster/1.0' },
         signal: AbortSignal.timeout(8000),
       });
 
       if (!legendaRes.ok) {
-        lastError = `Falha ao baixar legenda na instância ${instance} (HTTP ${legendaRes.status}).`;
+        lastError = `Falha ao baixar legenda (HTTP ${legendaRes.status}) em ${instance}.`;
         continue;
       }
 
@@ -309,14 +324,11 @@ async function fetchYouTubeTranscript(videoId) {
       const segments = parseSubtitleContent(rawContent);
 
       if (!segments.length) {
-        // Conteúdo vazio nesta instância — tenta a próxima
-        lastError = `Legenda vazia na instância ${instance}. Tentando próxima...`;
+        lastError = `Legenda vazia em ${instance}. Tentando próxima...`;
         continue;
       }
 
-      // Remove duplicatas consecutivas
       const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
-
       let text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
       const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
       if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
@@ -336,10 +348,7 @@ async function fetchYouTubeTranscript(videoId) {
     }
   }
 
-  if (noCaption) {
-    throw new Error(lastError);
-  }
-
+  if (noCaption) throw new Error(lastError);
   throw new Error(`Não foi possível obter a transcrição. ${lastError} Verifique se o vídeo é público e possui legendas.`);
 }
 
@@ -362,7 +371,7 @@ export default {
         }
         const videoId = extractYouTubeVideoId(youtubeUrl);
         if (!videoId) {
-          return new Response(JSON.stringify({ error: 'URL do YouTube inválida. Verifique o link e tente novamente.' }), {
+          return new Response(JSON.stringify({ error: 'URL do YouTube inválida.' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
@@ -380,7 +389,7 @@ export default {
     if (!env.GROQ_API_KEY) {
       return new Response(JSON.stringify({
         error: 'Configuração incompleta',
-        userMessage: 'A chave da API não está configurada no servidor. Configure GROQ_API_KEY nas variáveis do Worker.',
+        userMessage: 'Configure GROQ_API_KEY nas variáveis do Worker.',
       }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -400,8 +409,8 @@ export default {
       const sessionMap = { normal: 'Estudo Normal — questões didáticas com foco em aprendizado e fixação de conteúdo', concurso: 'Simulado — questões no estilo e rigor de prova real, sem dicas pedagógicas no enunciado', revisao: 'Revisão Rápida — questões curtas e objetivas para revisão veloz do conteúdo' };
       const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
       const bancaEfetiva = (bancaFoco && bancaFoco !== 'auto') ? bancaFoco : (banca || null);
-      const bancaStyleMap = { 'CEBRASPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.', 'CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.', 'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis de interpretação.', 'FCC': 'FCC: enunciados extensos e formais, questões literais baseadas em lei seca, doutrina e jurisprudência.', 'VUNESP': 'VUNESP: linguagem clara e objetiva, foco em aplicação prática e casos concretos.', 'FGV': 'FGV: enunciados elaborados com casos práticos, questões interdisciplinares e raciocínio aplicado.', 'CESGRANRIO': 'CESGRANRIO: questões técnicas, frequentemente com tabelas, gráficos e contexto corporativo.', 'IDECAN': 'IDECAN: questões objetivas, foco em lei e doutrina, linguagem direta.', 'IBFC': 'IBFC: questões práticas e diretas, enunciados claros.', 'AOCP': 'AOCP: questões regionais, foco em conteúdo programático específico.', 'FEPESE': 'FEPESE: questões objetivas, usada principalmente em concursos do Sul do Brasil.' };
-      const bancaStyle = bancaEfetiva ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico dessa banca.`) : null;
+      const bancaStyleMap = { 'CEBRASPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis.', 'CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis.', 'CEBRASPE/CESPE': 'CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis.', 'FCC': 'FCC: enunciados extensos e formais, questões literais baseadas em lei seca.', 'VUNESP': 'VUNESP: linguagem clara e objetiva, foco em aplicação prática.', 'FGV': 'FGV: enunciados elaborados com casos práticos, questões interdisciplinares.', 'CESGRANRIO': 'CESGRANRIO: questões técnicas, frequentemente com tabelas e contexto corporativo.', 'IDECAN': 'IDECAN: questões objetivas, foco em lei e doutrina.', 'IBFC': 'IBFC: questões práticas e diretas.', 'AOCP': 'AOCP: foco em conteúdo programático específico.', 'FEPESE': 'FEPESE: questões objetivas, Sul do Brasil.' };
+      const bancaStyle = bancaEfetiva ? (bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo típico.`) : null;
       const areaSafetyInstruction = getAreaSafetyInstruction(area, mode);
 
       let contextInfo = '';
@@ -426,31 +435,29 @@ export default {
       const isRAG = contextSourceLabel?.includes('Vectorize') || false;
       const rawExternalBlock = externalContext?.text
         ? isRAG
-          ? `\n\nVADE MECUM VERIFICADO — PRIORIDADE ABSOLUTA (Fonte: ${externalContext.source}):\nOs artigos abaixo foram extraídos diretamente da legislação oficial (Planalto.gov.br) via busca semântica.\nEles SUBSTITUEM qualquer conhecimento interno que você tenha sobre o tema.\nUse-os LITERALMENTE. Não altere números, prazos, incisos ou redações.\n\n"""\n${externalContext.text}\n"""\n\nFIM DO VADE MECUM — use apenas os artigos acima para fundamentar o gabarito.`
-          : `\n\nContexto verificado (${externalContext.source}) — use como base factual prioritária:\n"""\n${externalContext.text}\n"""`
+          ? `\n\nVADE MECUM VERIFICADO — PRIORIDADE ABSOLUTA (Fonte: ${externalContext.source}):\n"""\n${externalContext.text}\n"""\nFIM DO VADE MECUM.`
+          : `\n\nContexto verificado (${externalContext.source}):\n"""\n${externalContext.text}\n"""`
         : '';
 
       const langInstruction = isPortugues
         ? 'Escreva todas as questões, alternativas e explicações em português do Brasil.'
-        : `Write all questions, options and explanations in ${idiomaLabel}. The entire response must be in ${idiomaLabel}.`;
+        : `Write all questions, options and explanations in ${idiomaLabel}.`;
       const bancaInstruction = bancaStyle ? `\n\nEstilo de banca obrigatório: ${bancaStyle}` : '';
       const sessionInstruction = `\nModo de sessão: ${sessionLabel}.`;
       const altInstruction = questionType === 'vf' ? 'Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso).' : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
       const isDireitoOuConcurso = area === 'Direito' || mode === 'concurso';
       const fonteInstruction = isDireitoOuConcurso
-        ? `Para cada questão, preencha o campo "fonte" com o artigo de lei, súmula ou decreto que fundamenta a questão.\nFormato: "Art. XX, NomeDaLei/Ano — Tema" ou "Súmula NNN, Tribunal — Tema".\n${contextSourceLabel ? `Fonte consultada: ${contextSourceLabel}.` : ''}\nNUNCA deixe vazio. NUNCA invente número de artigo ou súmula.`
-        : mode === 'academic'
-        ? 'Para cada questão, preencha o campo "fonte" com o conceito, teoria ou autor de referência. Nunca deixe vazio.'
-        : 'Para cada questão, preencha o campo "fonte" com o trecho ou conceito do material que embasou a questão. NUNCA deixe vazio.';
+        ? `Para cada questão, preencha "fonte" com artigo, súmula ou decreto.\nFormato: "Art. XX, Lei/Ano" ou "Súmula NNN, Tribunal".\nNUNCA invente número de artigo ou súmula.`
+        : 'Para cada questão, preencha "fonte" com conceito ou autor de referência. NUNCA deixe vazio.';
 
       const exampleOptions = numAlts === 4
         ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
         : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
 
-      const systemText = `Você é um examinador acadêmico especializado em concursos públicos e ensino superior brasileiro. Retorne APENAS JSON válido com a chave "questions", sem nenhum texto fora do JSON.\n${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado e verificado.\n- NUNCA invente leis, artigos, números, medicamentos, comandos, fórmulas ou qualquer dado.\n- Em caso de dúvida, elabore a questão em torno do conceito geral sem o detalhe duvidoso.\n- O campo "fonte" de CADA questão deve ser preenchido — NUNCA retorne "fonte": "" ou "fonte": null.\n- ${areaSafetyInstruction}`;
+      const systemText = `Você é um examinador acadêmico especializado em concursos públicos e ensino superior brasileiro. Retorne APENAS JSON válido com a chave "questions".\n${isPortugues ? 'Responda em português do Brasil.' : `Respond entirely in ${idiomaLabel}.`}\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado e verificado.\n- NUNCA invente leis, artigos, números, medicamentos, comandos, fórmulas ou qualquer dado.\n- O campo "fonte" de CADA questão deve ser preenchido.\n- ${areaSafetyInstruction}`;
 
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(contextInfo, rawExternalBlock, systemText);
-      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${safeContextInfo}${externalBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON com a chave "questions":\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado completo da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática do gabarito.",\n      "fonte": "Base legal ou conceitual verificada"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. ${altInstruction}\n2. Questões tecnicamente corretas e sem ambiguidades.\n3. Explicações didáticas e claras.\n4. Distribua a alternativa correta entre A, B, C, D${numAlts === 5 ? ', E' : ''} — sem repetir a mesma letra mais de 2 vezes seguidas.\n5. ${langInstruction}\n6. ${fonteInstruction}\n7. NENHUM texto fora do JSON.\n8. NUNCA invente leis, artigos, conceitos ou dados que não existem.\n9. Regra de segurança por área: ${areaSafetyInstruction}`;
+      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantity} questões de ${typeLabel} sobre:\n${safeContextInfo}${externalBlock}\n\nNível de dificuldade: ${diffLabel}.\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática.",\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras:\n1. ${altInstruction}\n2. Questões corretas e sem ambiguidades.\n3. Distribua o gabarito entre A-${numAlts === 5 ? 'E' : 'D'} sem repetir mais de 2x seguidas.\n4. ${langInstruction}\n5. ${fonteInstruction}\n6. NENHUM texto fora do JSON.\n7. ${areaSafetyInstruction}`;
 
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
       const temperature = sessionMode === 'concurso' ? 0.30 : sessionMode === 'revisao' ? 0.25 : 0.40;
@@ -489,10 +496,10 @@ export default {
 
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
-        let userMessage = 'Erro ao conectar com a IA. Tente novamente em instantes.';
-        if (groqResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde alguns instantes e tente novamente.';
-        else if (groqResponse.status === 503) userMessage = 'A IA está com alta demanda. Tente novamente em segundos.';
-        else if (groqResponse.status === 401 || groqResponse.status === 403) userMessage = 'Chave da API inválida. Verifique GROQ_API_KEY nas configurações do Worker.';
+        let userMessage = 'Erro ao conectar com a IA. Tente novamente.';
+        if (groqResponse.status === 429) userMessage = 'Limite de uso da IA atingido. Aguarde e tente novamente.';
+        else if (groqResponse.status === 503) userMessage = 'A IA está com alta demanda. Tente em segundos.';
+        else if (groqResponse.status === 401 || groqResponse.status === 403) userMessage = 'Chave da API inválida. Verifique GROQ_API_KEY.';
         return new Response(JSON.stringify({ error: 'Groq API error', details: err, userMessage }), {
           status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -518,7 +525,7 @@ export default {
       if (questions.length === 0) {
         return new Response(JSON.stringify({
           error: 'Resposta vazia', rawText,
-          userMessage: 'A IA não conseguiu gerar questões válidas. Tente ajustar o tópico ou o nível de dificuldade.',
+          userMessage: 'A IA não gerou questões válidas. Tente ajustar o tópico ou dificuldade.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
@@ -529,7 +536,7 @@ export default {
     } catch (err) {
       return new Response(JSON.stringify({
         error: err.message,
-        userMessage: 'Ocorreu um erro inesperado. Tente novamente em instantes.',
+        userMessage: 'Ocorreu um erro inesperado. Tente novamente.',
       }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
   },
