@@ -21,10 +21,11 @@ const GROQ_MODELS = [
 
 // Instâncias públicas do Invidious — fallback automático se uma cair
 const INVIDIOUS_INSTANCES = [
-  'https://inv.tux.pizza',
+  'https://inv.nadeko.net',
+  'https://invidious.nikkosphere.com',
+  'https://yt.artemislena.eu',
   'https://invidious.privacydev.net',
-  'https://yt.drgnz.club',
-  'https://invidious.drgns.space',
+  'https://inv.tux.pizza',
 ];
 
 // Mapeamento de área do StudyMaster para área no Vectorize
