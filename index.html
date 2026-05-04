@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+Ôªø<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyMaster ó Gerador de Questıes com IA</title>
-  <meta name="description" content="Gere questıes de estudo personalizadas com InteligÍncia Artificial para faculdade, concursos p˙blicos ou qualquer material. Gr·tis, sem cadastro.">
+  <title>StudyMaster ‚Äî Gerador de Quest√µes com IA</title>
+  <meta name="description" content="Gere quest√µes de estudo personalizadas com Intelig√™ncia Artificial para faculdade, concursos p√∫blicos ou qualquer material. Gr√°tis, sem cadastro.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -276,7 +276,7 @@
     .generating-label { font-size: var(--text-base); color: var(--color-text-muted); }
     .generating-sub { font-size: var(--text-sm); color: var(--color-text-faint); }
 
-    /* Questıes */
+    /* Quest√µes */
     .questions-container { display: none; }
     .questions-container.visible { display: block; }
     .question-card { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-4); }
@@ -332,7 +332,7 @@
       font-size: 12px;
     }
 
-    /* Botıes prim·rios */
+    /* Bot√µes prim√°rios */
     .btn-primary, .btn-restart {
       display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
       width: 100%; padding: var(--space-3);
@@ -441,7 +441,7 @@
   <header class="site-header">
     <div class="container">
       <div class="header-inner">
-        <a href="#" class="logo" id="logo-home" aria-label="StudyMaster ó Voltar ao inÌcio">
+        <a href="#" class="logo" id="logo-home" aria-label="StudyMaster ‚Äî Voltar ao in√≠cio">
           <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
             <defs>
               <linearGradient id="logoGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
@@ -479,9 +479,9 @@
 
   <section class="hero">
     <div class="container">
-      <span class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Questıes personalizadas ∑ Gabarito comentado ∑ 100% gratuito</span>
-      <h1 class="hero-title">Prepare-se com questıes<br><span>geradas por IA</span> para o seu objetivo</h1>
-      <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as questıes na hora ó com gabarito comentado para cada resposta.</p>
+      <span class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Quest√µes personalizadas ¬∑ Gabarito comentado ¬∑ 100% gratuito</span>
+      <h1 class="hero-title">Prepare-se com quest√µes<br><span>geradas por IA</span> para o seu objetivo</h1>
+      <p class="hero-subtitle">Defina o tema, a dificuldade e o formato. A IA gera as quest√µes na hora ‚Äî com gabarito comentado para cada resposta.</p>
     </div>
   </section>
 
@@ -494,9 +494,9 @@
           <span class="step-label">Modo</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="2" aria-label="Passo 2: Conte˙do">
+        <button class="step-indicator" data-step="2" aria-label="Passo 2: Conte√∫do">
           <span class="step-number">2</span>
-          <span class="step-label">Conte˙do</span>
+          <span class="step-label">Conte√∫do</span>
         </button>
         <div class="step-connector"></div>
         <button class="step-indicator" data-step="3" aria-label="Passo 3: Config">
@@ -504,9 +504,9 @@
           <span class="step-label">Config</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="4" aria-label="Passo 4: Questıes">
+        <button class="step-indicator" data-step="4" aria-label="Passo 4: Quest√µes">
           <span class="step-number">4</span>
-          <span class="step-label">Questıes</span>
+          <span class="step-label">Quest√µes</span>
         </button>
       </nav>
 
@@ -514,20 +514,20 @@
 
         <!-- STEP 1 -->
         <div class="wizard-step active" id="step-1" data-step="1">
-          <h2 class="step-title">Como vocÍ quer estudar hoje?</h2>
-          <p class="step-subtitle">Escolha o modo para personalizar sua sess„o</p>
+          <h2 class="step-title">Como voc√™ quer estudar hoje?</h2>
+          <p class="step-subtitle">Escolha o modo para personalizar sua sess√£o</p>
           <div class="mode-grid">
-            <button class="mode-card" data-mode="academic" aria-label="Modo AcadÍmico">
+            <button class="mode-card" data-mode="academic" aria-label="Modo Acad√™mico">
               <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
               <div class="mode-info">
-                <strong>AcadÍmico</strong>
-                <span>Faculdade, ENEM, graduaÁ„o por ·rea e matÈria</span>
+                <strong>Acad√™mico</strong>
+                <span>Faculdade, ENEM, gradua√ß√£o por √°rea e mat√©ria</span>
               </div>
             </button>
             <button class="mode-card" data-mode="concurso" aria-label="Modo Concurso">
               <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
               <div class="mode-info">
-                <strong>Concurso P˙blico</strong>
+                <strong>Concurso P√∫blico</strong>
                 <span>Selecione o concurso ou cole o edital</span>
               </div>
             </button>
@@ -546,29 +546,29 @@
 
         <!-- STEP 3 -->
         <div class="wizard-step" id="step-3" data-step="3">
-          <h2 class="step-title">Configure sua sess„o</h2>
-          <p class="step-subtitle">Padrıes j· selecionados ó ajuste se quiser</p>
+          <h2 class="step-title">Configure sua sess√£o</h2>
+          <p class="step-subtitle">Padr√µes j√° selecionados ‚Äî ajuste se quiser</p>
 
           <div class="config-group" id="config-difficulty">
             <label class="config-label">Dificuldade</label>
             <div class="chip-group" role="group">
-              <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> F·cil</button>
-              <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> MÈdio</button>
-              <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> DifÌcil</button>
+              <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> F√°cil</button>
+              <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> M√©dio</button>
+              <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Dif√≠cil</button>
               <button class="chip" data-difficulty="extreme"><span class="dot" style="background:#8b0000"></span> Extremo</button>
             </div>
           </div>
 
           <div class="config-group">
-            <label class="config-label">Quantidade de questıes: <strong id="qty-display">10</strong></label>
+            <label class="config-label">Quantidade de quest√µes: <strong id="qty-display">10</strong></label>
             <div class="slider-wrapper">
               <span>5</span>
-              <input type="range" id="qty-slider" min="5" max="50" step="5" value="10" aria-label="Quantidade de questıes">
+              <input type="range" id="qty-slider" min="5" max="50" step="5" value="10" aria-label="Quantidade de quest√µes">
               <span>50</span>
             </div>
           </div>
           <div class="config-group">
-            <label class="config-label">?? Meta di·ria de questıes</label>
+            <label class="config-label">üéØ Meta di√°ria de quest√µes</label>
             <div class="chip-group goal-chips" role="group" id="daily-goal-group">
               <button class="chip" data-goal="5">5</button>
               <button class="chip active" data-goal="10">10</button>
@@ -579,9 +579,9 @@
           </div>
 
           <div class="config-group" id="config-type">
-            <label class="config-label">Tipo de quest„o</label>
+            <label class="config-label">Tipo de quest√£o</label>
             <div class="chip-group" role="group">
-              <button class="chip active" data-qtype="mc">M˙ltipla Escolha</button>
+              <button class="chip active" data-qtype="mc">M√∫ltipla Escolha</button>
               <button class="chip" data-qtype="vf">Verdadeiro/Falso</button>
               <button class="chip" data-qtype="mix">Misto</button>
             </div>
@@ -596,34 +596,34 @@
           </div>
 
           <div class="config-group" id="config-idioma">
-            <label class="config-label">Idioma das questıes</label>
+            <label class="config-label">Idioma das quest√µes</label>
             <div class="chip-group" role="group">
-              <button class="chip active" data-idioma="pt-BR">PortuguÍs (BR)</button>
+              <button class="chip active" data-idioma="pt-BR">Portugu√™s (BR)</button>
               <button class="chip" data-idioma="en">English (EN)</button>
-              <button class="chip" data-idioma="es">EspaÒol (ES)</button>
+              <button class="chip" data-idioma="es">Espa√±ol (ES)</button>
             </div>
           </div>
 
           <div class="advanced-toggle-wrapper">
             <button class="advanced-toggle" id="advanced-btn" aria-expanded="false">
               <i data-lucide="settings-2" width="16" height="16"></i>
-              ConfiguraÁıes avanÁadas
+              Configura√ß√µes avan√ßadas
               <i data-lucide="chevron-down" width="16" height="16" class="chevron"></i>
             </button>
           </div>
           <div class="advanced-config hidden" id="advanced-config">
             <div class="config-group">
-              <label class="config-label">Modo da sess„o</label>
+              <label class="config-label">Modo da sess√£o</label>
               <div class="chip-group" role="group">
                 <button class="chip active" data-session="normal"><i data-lucide="book-open" width="14" height="14"></i> Estudo Normal</button>
                 <button class="chip" data-session="concurso"><i data-lucide="trophy" width="14" height="14"></i> Simulado</button>
-                <button class="chip" data-session="revisao"><i data-lucide="refresh-cw" width="14" height="14"></i> Revis„o R·pida</button>
+                <button class="chip" data-session="revisao"><i data-lucide="refresh-cw" width="14" height="14"></i> Revis√£o R√°pida</button>
               </div>
             </div>
             <div class="config-group" id="config-banca-focus">
               <label class="config-label">Foco em banca <span style="font-weight:400;color:var(--color-text-muted)">(estilo da prova)</span></label>
               <div class="chip-group" role="group">
-                <button class="chip active" data-banca="auto"><i data-lucide="bot" width="14" height="14"></i> Autom·tico</button>
+                <button class="chip active" data-banca="auto"><i data-lucide="bot" width="14" height="14"></i> Autom√°tico</button>
                 <button class="chip" data-banca="CEBRASPE">CEBRASPE / CESPE</button>
                 <button class="chip" data-banca="FCC">FCC</button>
                 <button class="chip" data-banca="VUNESP">VUNESP</button>
@@ -643,13 +643,13 @@
         <div class="wizard-step" id="step-4" data-step="4">
           <div class="generating-screen" id="generating-screen">
             <div class="spinner"></div>
-            <p class="generating-label">Gerando suas questıes com IAÖ</p>
+            <p class="generating-label">Gerando suas quest√µes com IA‚Ä¶</p>
             <p class="generating-sub">Isso leva alguns segundos</p>
           </div>
           <div class="error-screen" id="error-screen">
             <div class="error-icon"><i data-lucide="alert-triangle" width="48" height="48" style="color:var(--color-error)"></i></div>
-            <h3 style="margin-bottom:var(--space-2)">Erro ao gerar questıes</h3>
-            <p class="error-msg" id="error-msg">N„o foi possÌvel conectar ao servidor. Tente novamente em instantes.</p>
+            <h3 style="margin-bottom:var(--space-2)">Erro ao gerar quest√µes</h3>
+            <p class="error-msg" id="error-msg">N√£o foi poss√≠vel conectar ao servidor. Tente novamente em instantes.</p>
             <button class="btn-primary" id="retry-btn" style="max-width:300px;margin:0 auto;">
               <i data-lucide="refresh-cw" width="16" height="16"></i>
               Tentar novamente
@@ -664,7 +664,7 @@
             </div>
             <div id="questions-list"></div>
             <div class="hidden" id="session-result" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
-              <div style="font-weight:700;margin-bottom:6px">Resultado da sess„o</div>
+              <div style="font-weight:700;margin-bottom:6px">Resultado da sess√£o</div>
               <div id="session-stats" style="color:var(--color-text-muted)"></div>
               <button class="btn-primary hidden" id="retry-wrong-btn" style="margin-top:10px;max-width:320px">
                 Refazer somente as erradas
@@ -703,15 +703,15 @@
         <div class="steps-list">
           <div class="how-step">
             <span class="how-number">01</span>
-            <div><strong>Escolha seu modo</strong><p>AcadÍmico para faculdade, Concurso para editais, Livre para qualquer material.</p></div>
+            <div><strong>Escolha seu modo</strong><p>Acad√™mico para faculdade, Concurso para editais, Livre para qualquer material.</p></div>
           </div>
           <div class="how-step">
             <span class="how-number">02</span>
-            <div><strong>Configure a sess„o</strong><p>Dificuldade, quantidade, idioma e banca em menos de 30 segundos.</p></div>
+            <div><strong>Configure a sess√£o</strong><p>Dificuldade, quantidade, idioma e banca em menos de 30 segundos.</p></div>
           </div>
           <div class="how-step">
             <span class="how-number">03</span>
-            <div><strong>A IA gera na hora</strong><p>Questıes criadas diretamente na tela ó com gabarito comentado para cada resposta.</p></div>
+            <div><strong>A IA gera na hora</strong><p>Quest√µes criadas diretamente na tela ‚Äî com gabarito comentado para cada resposta.</p></div>
           </div>
         </div>
       </div>
@@ -722,56 +722,56 @@
       <div class="profile-cards">
         <div class="section-header">
           <p class="section-eyebrow">Feito para quem estuda de verdade</p>
-          <h2>Para quem È?</h2>
+          <h2>Para quem √©?</h2>
         </div>
         <div class="profiles-grid">
           <div class="profile-card">
-            <p class="profile-tag">Para vocÍ se...</p>
+            <p class="profile-tag">Para voc√™ se...</p>
             <div class="profile-header">
               <i data-lucide="graduation-cap" width="22" height="22"></i>
-              <strong>Universit·rios</strong>
+              <strong>Universit√°rios</strong>
             </div>
-            <p>Gere questıes de qualquer matÈria do seu curso por tÛpico especÌfico.</p>
+            <p>Gere quest√µes de qualquer mat√©ria do seu curso por t√≥pico espec√≠fico.</p>
           </div>
           <div class="profile-card">
-            <p class="profile-tag">Para vocÍ se...</p>
+            <p class="profile-tag">Para voc√™ se...</p>
             <div class="profile-header">
               <i data-lucide="clipboard-list" width="22" height="22"></i>
               <strong>Concurseiros</strong>
             </div>
-            <p>Simule bancas como CESPE, VUNESP e FCC com questıes no estilo real.</p>
+            <p>Simule bancas como CESPE, VUNESP e FCC com quest√µes no estilo real.</p>
           </div>
           <div class="profile-card">
-            <p class="profile-tag">Para vocÍ se...</p>
+            <p class="profile-tag">Para voc√™ se...</p>
             <div class="profile-header">
               <i data-lucide="scale" width="22" height="22"></i>
               <strong>Advogados / OAB</strong>
             </div>
-            <p>Prepare-se para a 1™ e 2™ fase com prompts no padr„o FGV.</p>
+            <p>Prepare-se para a 1¬™ e 2¬™ fase com prompts no padr√£o FGV.</p>
           </div>
           <div class="profile-card">
-            <p class="profile-tag">Para vocÍ se...</p>
+            <p class="profile-tag">Para voc√™ se...</p>
             <div class="profile-header">
               <i data-lucide="shield" width="22" height="22"></i>
-              <strong>SeguranÁa P˙blica</strong>
+              <strong>Seguran√ßa P√∫blica</strong>
             </div>
-            <p>PC, PM, GCM, Bombeiros ó questıes por cargo e legislaÁ„o especÌfica.</p>
+            <p>PC, PM, GCM, Bombeiros ‚Äî quest√µes por cargo e legisla√ß√£o espec√≠fica.</p>
           </div>
           <div class="profile-card">
-            <p class="profile-tag">Para vocÍ se...</p>
+            <p class="profile-tag">Para voc√™ se...</p>
             <div class="profile-header">
               <i data-lucide="heart-pulse" width="22" height="22"></i>
-              <strong>¡rea da Sa˙de</strong>
+              <strong>√Årea da Sa√∫de</strong>
             </div>
-            <p>ResidÍncias mÈdicas, concursos de enfermagem e farm·cia com foco clÌnico.</p>
+            <p>Resid√™ncias m√©dicas, concursos de enfermagem e farm√°cia com foco cl√≠nico.</p>
           </div>
           <div class="profile-card">
-            <p class="profile-tag">Para vocÍ se...</p>
+            <p class="profile-tag">Para voc√™ se...</p>
             <div class="profile-header">
               <i data-lucide="monitor" width="22" height="22"></i>
               <strong>TI &amp; Tecnologia</strong>
             </div>
-            <p>CertificaÁıes, concursos de TI e provas acadÍmicas de ciÍncia da computaÁ„o.</p>
+            <p>Certifica√ß√µes, concursos de TI e provas acad√™micas de ci√™ncia da computa√ß√£o.</p>
           </div>
         </div>
       </div>
@@ -786,13 +786,13 @@
         </div>
         <table class="compare-table">
           <thead>
-            <tr><th>SituaÁ„o</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th></tr>
+            <tr><th>Situa√ß√£o</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th></tr>
           </thead>
           <tbody>
-            <tr><td>Criar questıes</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
-            <tr><td>Relev‚ncia</td><td>GenÈrico e vago</td><td>EspecÌfico para seu concurso/matÈria</td></tr>
-            <tr><td>NÌvel das questıes</td><td>AleatÛrio</td><td>Calibrado pela dificuldade escolhida</td></tr>
-            <tr><td>Gabarito</td><td>Sem explicaÁ„o</td><td>Comentado com justificativa</td></tr>
+            <tr><td>Criar quest√µes</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
+            <tr><td>Relev√¢ncia</td><td>Gen√©rico e vago</td><td>Espec√≠fico para seu concurso/mat√©ria</td></tr>
+            <tr><td>N√≠vel das quest√µes</td><td>Aleat√≥rio</td><td>Calibrado pela dificuldade escolhida</td></tr>
+            <tr><td>Gabarito</td><td>Sem explica√ß√£o</td><td>Comentado com justificativa</td></tr>
             <tr><td>Custo</td><td>Pago (cursinhos)</td><td>100% gratuito</td></tr>
           </tbody>
         </table>
@@ -805,12 +805,12 @@
       <div class="footer-inner">
         <div class="footer-brand">
           <span class="footer-logo">StudyMaster</span>
-          <p class="footer-tagline">Gerador de questıes com IA ó gratuito e sem cadastro.</p>
+          <p class="footer-tagline">Gerador de quest√µes com IA ‚Äî gratuito e sem cadastro.</p>
         </div>
         <div class="footer-meta">
           <span>Powered by <strong>Groq AI</strong></span>
-          <span class="footer-divider">∑</span>
-          <span>© 2025 StudyMaster</span>
+          <span class="footer-divider">¬∑</span>
+          <span>¬© 2025 StudyMaster</span>
         </div>
       </div>
     </div>
@@ -819,203 +819,203 @@
 <script>
 const WORKER_URL = 'https://studymaster-worker.cesarmuniz0816.workers.dev';
 
-// --- ACADEMIC DATA (expandido) -----------------------------------------------
+// ‚îÄ‚îÄ‚îÄ ACADEMIC DATA (expandido) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
 const academicData = {
   'Direito': {
-    'Direito Constitucional': ['Teoria da ConstituiÁ„o','Direitos Fundamentais','OrganizaÁ„o do Estado','Poder Executivo','Poder Legislativo','Poder Judici·rio','Controle de Constitucionalidade','Processo Constitucional'],
-    'Direito Civil': ['Pessoa Natural e JurÌdica','NegÛcio JurÌdico','Responsabilidade Civil','Contratos','FamÌlia','Sucessıes','Direitos Reais','ObrigaÁıes'],
-    'Direito Penal': ['Teoria do Crime','Tipicidade','Culpabilidade','Penas e Medidas de SeguranÁa','Crimes contra a Pessoa','Crimes contra o PatrimÙnio','Lei de Drogas','Crimes contra a AdministraÁ„o P˙blica'],
-    'Direito Administrativo': ['Atos Administrativos','LicitaÁıes e Contratos','ServiÁos P˙blicos','Improbidade Administrativa','Controle da AdministraÁ„o','Agentes P˙blicos','Processo Administrativo'],
-    'Direito do Trabalho': ['Contrato de Trabalho','Jornada e Sal·rio','FGTS','Rescis„o Contratual','Processo do Trabalho','NegociaÁ„o Coletiva'],
-    'Direito Tribut·rio': ['Sistema Tribut·rio Nacional','Impostos Federais','Impostos Estaduais','ObrigaÁ„o Tribut·ria','CrÈdito Tribut·rio','ExecuÁ„o Fiscal'],
-    'Direito Processual Civil': ['JurisdiÁ„o e AÁ„o','Processo de Conhecimento','Tutelas ProvisÛrias','Recursos','ExecuÁ„o Civil','Cumprimento de SentenÁa'],
-    'Direito Processual Penal': ['InquÈrito Policial','Provas','Pris„o e Liberdade','Procedimentos','Recursos Penais','Medidas Cautelares'],
-    'Direito Empresarial': ['Direito Societ·rio','TÌtulos de CrÈdito','RecuperaÁ„o Judicial','Propriedade Intelectual','Contratos Empresariais'],
-    'Direito Internacional': ['Direito Internacional P˙blico','Direito Internacional Privado','Tratados e ConvenÁıes','Direitos Humanos Internacionais'],
-    'Direito Ambiental': ['PolÌtica Nacional do Meio Ambiente','Licenciamento Ambiental','Crimes Ambientais','CÛdigo Florestal','Unidades de ConservaÁ„o'],
+    'Direito Constitucional': ['Teoria da Constitui√ß√£o','Direitos Fundamentais','Organiza√ß√£o do Estado','Poder Executivo','Poder Legislativo','Poder Judici√°rio','Controle de Constitucionalidade','Processo Constitucional'],
+    'Direito Civil': ['Pessoa Natural e Jur√≠dica','Neg√≥cio Jur√≠dico','Responsabilidade Civil','Contratos','Fam√≠lia','Sucess√µes','Direitos Reais','Obriga√ß√µes'],
+    'Direito Penal': ['Teoria do Crime','Tipicidade','Culpabilidade','Penas e Medidas de Seguran√ßa','Crimes contra a Pessoa','Crimes contra o Patrim√¥nio','Lei de Drogas','Crimes contra a Administra√ß√£o P√∫blica'],
+    'Direito Administrativo': ['Atos Administrativos','Licita√ß√µes e Contratos','Servi√ßos P√∫blicos','Improbidade Administrativa','Controle da Administra√ß√£o','Agentes P√∫blicos','Processo Administrativo'],
+    'Direito do Trabalho': ['Contrato de Trabalho','Jornada e Sal√°rio','FGTS','Rescis√£o Contratual','Processo do Trabalho','Negocia√ß√£o Coletiva'],
+    'Direito Tribut√°rio': ['Sistema Tribut√°rio Nacional','Impostos Federais','Impostos Estaduais','Obriga√ß√£o Tribut√°ria','Cr√©dito Tribut√°rio','Execu√ß√£o Fiscal'],
+    'Direito Processual Civil': ['Jurisdi√ß√£o e A√ß√£o','Processo de Conhecimento','Tutelas Provis√≥rias','Recursos','Execu√ß√£o Civil','Cumprimento de Senten√ßa'],
+    'Direito Processual Penal': ['Inqu√©rito Policial','Provas','Pris√£o e Liberdade','Procedimentos','Recursos Penais','Medidas Cautelares'],
+    'Direito Empresarial': ['Direito Societ√°rio','T√≠tulos de Cr√©dito','Recupera√ß√£o Judicial','Propriedade Intelectual','Contratos Empresariais'],
+    'Direito Internacional': ['Direito Internacional P√∫blico','Direito Internacional Privado','Tratados e Conven√ß√µes','Direitos Humanos Internacionais'],
+    'Direito Ambiental': ['Pol√≠tica Nacional do Meio Ambiente','Licenciamento Ambiental','Crimes Ambientais','C√≥digo Florestal','Unidades de Conserva√ß√£o'],
   },
-  'Sa˙de': {
-    'Anatomia': ['Sistema Nervoso Central','Sistema Nervoso PerifÈrico','Sistema Cardiovascular','Sistema RespiratÛrio','Sistema DigestÛrio','Sistema MusculoesquelÈtico','Sistema EndÛcrino','Sistema Urin·rio','Sistema Reprodutor'],
-    'Fisiologia': ['Fisiologia Cardiovascular','Fisiologia RespiratÛria','Fisiologia Renal','Neurofisiologia','Fisiologia Gastrointestinal','Fisiologia EndÛcrina','Fisiologia do ExercÌcio'],
-    'BioquÌmica': ['Metabolismo de Carboidratos','Metabolismo LipÌdico','Metabolismo de ProteÌnas','Enzimologia','BioquÌmica Hormonal','Bases Moleculares da DoenÁa'],
-    'Farmacologia': ['FarmacocinÈtica','Farmacodin‚mica','AnalgÈsicos e Anti-inflamatÛrios','AntibiÛticos e Antimicrobianos','F·rmacos Cardiovasculares','F·rmacos do SNC','F·rmacos do Sistema EndÛcrino','Quimioterapia'],
-    'Patologia': ['InflamaÁ„o','Neoplasias','Patologia Cardiovascular','Patologia Pulmonar','Patologia Renal','Patologia Hep·tica','Patologia do SNC'],
-    'ClÌnica MÈdica': ['Cardiologia','Pneumologia','Gastroenterologia','Nefrologia','Endocrinologia','Infectologia','Neurologia','Reumatologia','Hematologia','Oncologia ClÌnica'],
-    'Cirurgia': ['Cirurgia Geral','Trauma e EmergÍncia','Cirurgia Cardiovascular','Cirurgia Digestiva','Neurocirurgia','Ortopedia e Traumatologia','PrÈ e PÛs-operatÛrio'],
-    'Pediatria': ['Crescimento e Desenvolvimento','Neonatologia','ImunizaÁıes','EmergÍncias Pedi·tricas','DoenÁas Infectocontagiosas na Inf‚ncia','NutriÁ„o Infantil'],
-    'Ginecologia e ObstetrÌcia': ['PrÈ-natal','Parto e PuerpÈrio','Ginecologia OncolÛgica','InfecÁıes GinecolÛgicas','Planejamento Familiar','ClimatÈrio e Menopausa'],
-    'Sa˙de Coletiva': ['Epidemiologia','Vigil‚ncia Sanit·ria','Vigil‚ncia EpidemiolÛgica','SUS ó LegislaÁ„o e PolÌticas','AtenÁ„o B·sica','Sa˙de da FamÌlia'],
-    'Enfermagem': ['SistematizaÁ„o da AssistÍncia de Enfermagem','Semiologia e SemiotÈcnica','Enfermagem em UTI','Enfermagem Cir˙rgica','Enfermagem em Sa˙de Mental','LegislaÁ„o e …tica em Enfermagem'],
-    'NutriÁ„o': ['NutriÁ„o ClÌnica','NutriÁ„o Esportiva','NutriÁ„o em Sa˙de P˙blica','Dietoterapia','Bromatologia','BioquÌmica Nutricional'],
-    'Psicologia': ['Psicologia ClÌnica','Psicologia Organizacional','Psicopatologia','AvaliaÁ„o PsicolÛgica','Teorias da Personalidade','Neuropsicologia'],
-    'Psican·lise': ['Fundamentos e HistÛria da Psican·lise (Freud)','Determinismo PsÌquico','Primeira TÛpica: Inconsciente, PrÈ-consciente e Consciente','Segunda TÛpica: Id, Ego e Superego','Recalque, Repress„o e Outros Mecanismos de Defesa','Puls„o ó Eros e T‚natos','Ang˙stia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de …dipo e Complexo de CastraÁ„o','InterpretaÁ„o dos Sonhos e FormaÁıes do Inconsciente','TransferÍncia e ContratransferÍncia','Neurose, Psicose e Pervers„o ó Estruturas ClÌnicas','Psican·lise Kleiniana ó PosiÁıes e RelaÁıes de Objeto','Psican·lise Winnicottiana ó Objeto Transicional e Holding','Psicologia AnalÌtica (Jung) ó Inconsciente Coletivo e ArquÈtipos','Processo de IndividuaÁ„o (Jung)','Psican·lise Lacaniana ó Linguagem, Sujeito e Desejo','Real, SimbÛlico e Imagin·rio ó RSI (Lacan)','Comparativo: Freud ◊ Jung ◊ Lacan','Psicoterapia Breve PsicanalÌtica','Psican·lise e Cultura (Freud ó Mal-Estar na CivilizaÁ„o)','…tica em Psican·lise','Psican·lise para Concursos (CFP, ResidÍncia, PÛs-graduaÁ„o)'],
-    'Fisioterapia': ['Fisioterapia RespiratÛria','Fisioterapia OrtopÈdica','Fisioterapia NeurolÛgica','ReabilitaÁ„o Cardiovascular','Fisioterapia em UTI'],
-    'Odontologia': ['ClÌnica OdontolÛgica','Periodontia','Endodontia','Cirurgia Bucomaxilofacial','Sa˙de Bucal Coletiva'],
-    'Medicina Veterin·ria': ['ClÌnica de Pequenos Animais','ClÌnica de Grandes Animais','Zoonoses','Sa˙de Animal e InspeÁ„o','Anestesiologia Veterin·ria'],
+  'Sa√∫de': {
+    'Anatomia': ['Sistema Nervoso Central','Sistema Nervoso Perif√©rico','Sistema Cardiovascular','Sistema Respirat√≥rio','Sistema Digest√≥rio','Sistema Musculoesquel√©tico','Sistema End√≥crino','Sistema Urin√°rio','Sistema Reprodutor'],
+    'Fisiologia': ['Fisiologia Cardiovascular','Fisiologia Respirat√≥ria','Fisiologia Renal','Neurofisiologia','Fisiologia Gastrointestinal','Fisiologia End√≥crina','Fisiologia do Exerc√≠cio'],
+    'Bioqu√≠mica': ['Metabolismo de Carboidratos','Metabolismo Lip√≠dico','Metabolismo de Prote√≠nas','Enzimologia','Bioqu√≠mica Hormonal','Bases Moleculares da Doen√ßa'],
+    'Farmacologia': ['Farmacocin√©tica','Farmacodin√¢mica','Analg√©sicos e Anti-inflamat√≥rios','Antibi√≥ticos e Antimicrobianos','F√°rmacos Cardiovasculares','F√°rmacos do SNC','F√°rmacos do Sistema End√≥crino','Quimioterapia'],
+    'Patologia': ['Inflama√ß√£o','Neoplasias','Patologia Cardiovascular','Patologia Pulmonar','Patologia Renal','Patologia Hep√°tica','Patologia do SNC'],
+    'Cl√≠nica M√©dica': ['Cardiologia','Pneumologia','Gastroenterologia','Nefrologia','Endocrinologia','Infectologia','Neurologia','Reumatologia','Hematologia','Oncologia Cl√≠nica'],
+    'Cirurgia': ['Cirurgia Geral','Trauma e Emerg√™ncia','Cirurgia Cardiovascular','Cirurgia Digestiva','Neurocirurgia','Ortopedia e Traumatologia','Pr√© e P√≥s-operat√≥rio'],
+    'Pediatria': ['Crescimento e Desenvolvimento','Neonatologia','Imuniza√ß√µes','Emerg√™ncias Pedi√°tricas','Doen√ßas Infectocontagiosas na Inf√¢ncia','Nutri√ß√£o Infantil'],
+    'Ginecologia e Obstetr√≠cia': ['Pr√©-natal','Parto e Puerp√©rio','Ginecologia Oncol√≥gica','Infec√ß√µes Ginecol√≥gicas','Planejamento Familiar','Climat√©rio e Menopausa'],
+    'Sa√∫de Coletiva': ['Epidemiologia','Vigil√¢ncia Sanit√°ria','Vigil√¢ncia Epidemiol√≥gica','SUS ‚Äî Legisla√ß√£o e Pol√≠ticas','Aten√ß√£o B√°sica','Sa√∫de da Fam√≠lia'],
+    'Enfermagem': ['Sistematiza√ß√£o da Assist√™ncia de Enfermagem','Semiologia e Semiot√©cnica','Enfermagem em UTI','Enfermagem Cir√∫rgica','Enfermagem em Sa√∫de Mental','Legisla√ß√£o e √âtica em Enfermagem'],
+    'Nutri√ß√£o': ['Nutri√ß√£o Cl√≠nica','Nutri√ß√£o Esportiva','Nutri√ß√£o em Sa√∫de P√∫blica','Dietoterapia','Bromatologia','Bioqu√≠mica Nutricional'],
+    'Psicologia': ['Psicologia Cl√≠nica','Psicologia Organizacional','Psicopatologia','Avalia√ß√£o Psicol√≥gica','Teorias da Personalidade','Neuropsicologia'],
+    'Psican√°lise': ['Fundamentos e Hist√≥ria da Psican√°lise (Freud)','Determinismo Ps√≠quico','Primeira T√≥pica: Inconsciente, Pr√©-consciente e Consciente','Segunda T√≥pica: Id, Ego e Superego','Recalque, Repress√£o e Outros Mecanismos de Defesa','Puls√£o ‚Äî Eros e T√¢natos','Ang√∫stia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de √âdipo e Complexo de Castra√ß√£o','Interpreta√ß√£o dos Sonhos e Forma√ß√µes do Inconsciente','Transfer√™ncia e Contratransfer√™ncia','Neurose, Psicose e Pervers√£o ‚Äî Estruturas Cl√≠nicas','Psican√°lise Kleiniana ‚Äî Posi√ß√µes e Rela√ß√µes de Objeto','Psican√°lise Winnicottiana ‚Äî Objeto Transicional e Holding','Psicologia Anal√≠tica (Jung) ‚Äî Inconsciente Coletivo e Arqu√©tipos','Processo de Individua√ß√£o (Jung)','Psican√°lise Lacaniana ‚Äî Linguagem, Sujeito e Desejo','Real, Simb√≥lico e Imagin√°rio ‚Äî RSI (Lacan)','Comparativo: Freud √ó Jung √ó Lacan','Psicoterapia Breve Psicanal√≠tica','Psican√°lise e Cultura (Freud ‚Äî Mal-Estar na Civiliza√ß√£o)','√âtica em Psican√°lise','Psican√°lise para Concursos (CFP, Resid√™ncia, P√≥s-gradua√ß√£o)'],
+    'Fisioterapia': ['Fisioterapia Respirat√≥ria','Fisioterapia Ortop√©dica','Fisioterapia Neurol√≥gica','Reabilita√ß√£o Cardiovascular','Fisioterapia em UTI'],
+    'Odontologia': ['Cl√≠nica Odontol√≥gica','Periodontia','Endodontia','Cirurgia Bucomaxilofacial','Sa√∫de Bucal Coletiva'],
+    'Medicina Veterin√°ria': ['Cl√≠nica de Pequenos Animais','Cl√≠nica de Grandes Animais','Zoonoses','Sa√∫de Animal e Inspe√ß√£o','Anestesiologia Veterin√°ria'],
   },
   'Tecnologia': {
-    'ProgramaÁ„o': ['LÛgica de ProgramaÁ„o','Algoritmos e Complexidade','Estruturas de Dados','ProgramaÁ„o Orientada a Objetos','ProgramaÁ„o Funcional','Design Patterns','Python','Java','C e C++','JavaScript','PHP','SQL','Go','Rust','Kotlin','Swift'],
-    'Linguagens de ProgramaÁ„o': ['Python Fundamentos','Python AvanÁado','Java','C e C++','JavaScript','PHP','SQL e PL/SQL','Go (Golang)','Rust','Kotlin','Swift','Ruby','Scala'],
+    'Programa√ß√£o': ['L√≥gica de Programa√ß√£o','Algoritmos e Complexidade','Estruturas de Dados','Programa√ß√£o Orientada a Objetos','Programa√ß√£o Funcional','Design Patterns','Python','Java','C e C++','JavaScript','PHP','SQL','Go','Rust','Kotlin','Swift'],
+    'Linguagens de Programa√ß√£o': ['Python Fundamentos','Python Avan√ßado','Java','C e C++','JavaScript','PHP','SQL e PL/SQL','Go (Golang)','Rust','Kotlin','Swift','Ruby','Scala'],
     'Desenvolvimento Web': ['HTML5 e CSS3','JavaScript Moderno','TypeScript','React e Next.js','Vue.js','Node.js e Express','REST APIs','GraphQL'],
-    'Banco de Dados': ['Modelagem Relacional','SQL AvanÁado','MySQL e PostgreSQL','NoSQL (MongoDB, Redis)','TransaÁıes e ACID','OtimizaÁ„o de Queries'],
-    'Redes e Infraestrutura': ['Modelo OSI e TCP/IP','Protocolos de Rede','Roteamento e Switching','SeguranÁa de Redes','Firewall e VPN','Protocolos Wireless'],
-    'SeguranÁa da InformaÁ„o': ['Criptografia','Gest„o de Riscos','Ethical Hacking','OWASP Top 10','Forense Digital','LGPD e Compliance'],
+    'Banco de Dados': ['Modelagem Relacional','SQL Avan√ßado','MySQL e PostgreSQL','NoSQL (MongoDB, Redis)','Transa√ß√µes e ACID','Otimiza√ß√£o de Queries'],
+    'Redes e Infraestrutura': ['Modelo OSI e TCP/IP','Protocolos de Rede','Roteamento e Switching','Seguran√ßa de Redes','Firewall e VPN','Protocolos Wireless'],
+    'Seguran√ßa da Informa√ß√£o': ['Criptografia','Gest√£o de Riscos','Ethical Hacking','OWASP Top 10','Forense Digital','LGPD e Compliance'],
     'Cloud Computing': ['AWS Fundamentos','Azure Fundamentos','Google Cloud','Containers e Docker','Kubernetes','Serverless e FaaS'],
-    'InteligÍncia Artificial': ['Machine Learning','Deep Learning','Processamento de Linguagem Natural','Vis„o Computacional','MLOps','…tica em IA'],
-    'DevOps': ['CI/CD Pipelines','Git e Versionamento','Docker e Compose','Kubernetes AvanÁado','Monitoramento e Observabilidade','Infrastructure as Code'],
-    'Sistemas Operacionais': ['Linux AdministraÁ„o','Windows Server','Processos e Threads','GerÍncia de MemÛria','Sistema de Arquivos'],
-    'Engenharia de Software': ['Requisitos e UML','Metodologias ¡geis (Scrum/Kanban)','Arquitetura de Software','Testes de Software','Clean Code e Refactoring'],
-    'CertificaÁıes de TI': ['CompTIA A+','CompTIA Network+','CompTIA Security+','CCNA ó Cisco','AWS Certified Solutions Architect','AWS Certified Developer','Microsoft Azure Fundamentals (AZ-900)','Google Cloud Associate','LPIC-1 e LPIC-2 (Linux)','Scrum Master (PSM/CSM)','ITIL Foundation','PMP ó Gest„o de Projetos'],
-    'TI para Concursos': ['NoÁıes de Inform·tica','Pacote Office e LibreOffice','SeguranÁa da InformaÁ„o B·sica','Redes para Concursos','Sistemas Operacionais B·sicos'],
+    'Intelig√™ncia Artificial': ['Machine Learning','Deep Learning','Processamento de Linguagem Natural','Vis√£o Computacional','MLOps','√âtica em IA'],
+    'DevOps': ['CI/CD Pipelines','Git e Versionamento','Docker e Compose','Kubernetes Avan√ßado','Monitoramento e Observabilidade','Infrastructure as Code'],
+    'Sistemas Operacionais': ['Linux Administra√ß√£o','Windows Server','Processos e Threads','Ger√™ncia de Mem√≥ria','Sistema de Arquivos'],
+    'Engenharia de Software': ['Requisitos e UML','Metodologias √Ågeis (Scrum/Kanban)','Arquitetura de Software','Testes de Software','Clean Code e Refactoring'],
+    'Certifica√ß√µes de TI': ['CompTIA A+','CompTIA Network+','CompTIA Security+','CCNA ‚Äî Cisco','AWS Certified Solutions Architect','AWS Certified Developer','Microsoft Azure Fundamentals (AZ-900)','Google Cloud Associate','LPIC-1 e LPIC-2 (Linux)','Scrum Master (PSM/CSM)','ITIL Foundation','PMP ‚Äî Gest√£o de Projetos'],
+    'TI para Concursos': ['No√ß√µes de Inform√°tica','Pacote Office e LibreOffice','Seguran√ßa da Informa√ß√£o B√°sica','Redes para Concursos','Sistemas Operacionais B√°sicos'],
   },
   'Exatas': {
-    'C·lculo': ['Limites e Continuidade','Derivadas','AplicaÁıes de Derivadas','Integrais Definidas e Indefinidas','SÈries e SequÍncias','EquaÁıes Diferenciais'],
-    '¡lgebra Linear': ['Matrizes e Determinantes','Sistemas Lineares','EspaÁos Vetoriais','TransformaÁıes Lineares','Autovalores e Autovetores'],
-    'FÌsica': ['Cinem·tica','Din‚mica e Leis de Newton','Trabalho e Energia','Termodin‚mica','Eletrost·tica','Eletromagnetismo','”ptica GeomÈtrica','FÌsica Moderna','FÌsica Qu‚ntica','Teoria da Relatividade','Ac˙stica','”ptica FÌsica','FÌsica de PartÌculas','AstrofÌsica B·sica'],
-    'QuÌmica': ['QuÌmica Geral','Estequiometria','TermoquÌmica','EquilÌbrio QuÌmico','EletroquÌmica','QuÌmica Org‚nica','QuÌmica AnalÌtica','BioquÌmica Aplicada','FÌsico-QuÌmica','PolÌmeros e Materiais','QuÌmica Ambiental','Espectroscopia'],
-    'Astronomia e AstrofÌsica': ['Sistema Solar','Estrelas e Ciclo Estelar','Gal·xias e Cosmologia','AstrofÌsica de PartÌculas','TelescÛpios e ObservaÁ„o','Exoplanetas'],
-    'CiÍncia dos Materiais': ['Estrutura Cristalina','Propriedades Mec‚nicas','Metais e Ligas','PolÌmeros','Cer‚micas','Semicondutores','Nanomateriais'],
-    'BiofÌsica': ['BiofÌsica Celular','Biomec‚nica','BiofÌsica Molecular','Radiobiologia','TÈcnicas BiofÌsicas (RMN, Criomicroscopia)'],
-    'EstatÌstica e Probabilidade': ['Probabilidade','Vari·veis AleatÛrias','DistribuiÁıes de Probabilidade','InferÍncia EstatÌstica','Testes de HipÛteses','Regress„o e CorrelaÁ„o'],
-    'Matem·tica Discreta': ['Teoria dos Conjuntos','LÛgica Proposicional','Teoria dos Grafos','CombinatÛria','Teoria dos N˙meros'],
-    'Matem·tica para Concursos': ['AritmÈtica e Porcentagem','Raz„o e ProporÁ„o','EquaÁıes e InequaÁıes','Geometria Plana','Geometria Espacial','RaciocÌnio LÛgico'],
+    'C√°lculo': ['Limites e Continuidade','Derivadas','Aplica√ß√µes de Derivadas','Integrais Definidas e Indefinidas','S√©ries e Sequ√™ncias','Equa√ß√µes Diferenciais'],
+    '√Ålgebra Linear': ['Matrizes e Determinantes','Sistemas Lineares','Espa√ßos Vetoriais','Transforma√ß√µes Lineares','Autovalores e Autovetores'],
+    'F√≠sica': ['Cinem√°tica','Din√¢mica e Leis de Newton','Trabalho e Energia','Termodin√¢mica','Eletrost√°tica','Eletromagnetismo','√ìptica Geom√©trica','F√≠sica Moderna','F√≠sica Qu√¢ntica','Teoria da Relatividade','Ac√∫stica','√ìptica F√≠sica','F√≠sica de Part√≠culas','Astrof√≠sica B√°sica'],
+    'Qu√≠mica': ['Qu√≠mica Geral','Estequiometria','Termoqu√≠mica','Equil√≠brio Qu√≠mico','Eletroqu√≠mica','Qu√≠mica Org√¢nica','Qu√≠mica Anal√≠tica','Bioqu√≠mica Aplicada','F√≠sico-Qu√≠mica','Pol√≠meros e Materiais','Qu√≠mica Ambiental','Espectroscopia'],
+    'Astronomia e Astrof√≠sica': ['Sistema Solar','Estrelas e Ciclo Estelar','Gal√°xias e Cosmologia','Astrof√≠sica de Part√≠culas','Telesc√≥pios e Observa√ß√£o','Exoplanetas'],
+    'Ci√™ncia dos Materiais': ['Estrutura Cristalina','Propriedades Mec√¢nicas','Metais e Ligas','Pol√≠meros','Cer√¢micas','Semicondutores','Nanomateriais'],
+    'Biof√≠sica': ['Biof√≠sica Celular','Biomec√¢nica','Biof√≠sica Molecular','Radiobiologia','T√©cnicas Biof√≠sicas (RMN, Criomicroscopia)'],
+    'Estat√≠stica e Probabilidade': ['Probabilidade','Vari√°veis Aleat√≥rias','Distribui√ß√µes de Probabilidade','Infer√™ncia Estat√≠stica','Testes de Hip√≥teses','Regress√£o e Correla√ß√£o'],
+    'Matem√°tica Discreta': ['Teoria dos Conjuntos','L√≥gica Proposicional','Teoria dos Grafos','Combinat√≥ria','Teoria dos N√∫meros'],
+    'Matem√°tica para Concursos': ['Aritm√©tica e Porcentagem','Raz√£o e Propor√ß√£o','Equa√ß√µes e Inequa√ß√µes','Geometria Plana','Geometria Espacial','Racioc√≠nio L√≥gico'],
   },
   'Humanas': {
-    'HistÛria do Brasil': ['Brasil Colonial','PerÌodo Joanino e IndependÍncia','Segundo Reinado','Rep˙blica Velha','Era Vargas','RedemocratizaÁ„o e Ditadura Militar','Nova Rep˙blica'],
-    'HistÛria Geral': ['PrÈ-HistÛria e Antiguidade','GrÈcia e Roma Antiga','Idade MÈdia','Renascimento e Modernidade','RevoluÁıes Industriais','Guerras Mundiais','Guerra Fria e Mundo Contempor‚neo'],
-    'Geografia do Brasil': ['GeopolÌtica Brasileira','Biomas Brasileiros','UrbanizaÁ„o e Regiıes Metropolitanas','Agropecu·ria e Recursos Naturais','GeopolÌtica Regional'],
-    'Geografia Geral': ['Cartografia e Coordenadas','GeopolÌtica Mundial','Climatologia e Hidrografia','PopulaÁ„o e MigraÁıes','GlobalizaÁ„o e Blocos EconÙmicos'],
-    'Filosofia': ['Filosofia Antiga (SÛcrates, Plat„o, AristÛteles)','Filosofia Medieval','Filosofia Moderna (Descartes, Kant)','…tica e Filosofia Moral','Epistemologia','Filosofia PolÌtica'],
-    'Sociologia': ['Teorias SociolÛgicas Cl·ssicas','Sociologia Brasileira','Movimentos Sociais','Trabalho e Sociedade','Cultura e Identidade'],
-    'Antropologia': ['Antropologia Cultural','Antropologia FÌsica','Etnologia Brasileira','Antropologia Urbana','Povos IndÌgenas no Brasil','Cultura e Simbolismo'],
-    'CiÍncia PolÌtica': ['Teoria PolÌtica Cl·ssica','Sistemas de Governo','Partidos e EleiÁıes','RelaÁıes Internacionais','Democracia e Autoritarismo','PolÌtica Brasileira Contempor‚nea'],
-    'Psicologia Social': ['CogniÁ„o Social','Atitudes e Preconceito','InfluÍncia Social','Grupos e Din‚micas de Grupo','Identidade Social','Psicologia das Massas'],
-    'Psican·lise': ['Fundamentos e HistÛria da Psican·lise (Freud)','Determinismo PsÌquico','Primeira TÛpica: Inconsciente, PrÈ-consciente e Consciente','Segunda TÛpica: Id, Ego e Superego','Recalque, Repress„o e Outros Mecanismos de Defesa','Puls„o ó Eros e T‚natos','Ang˙stia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de …dipo e Complexo de CastraÁ„o','InterpretaÁ„o dos Sonhos e FormaÁıes do Inconsciente','TransferÍncia e ContratransferÍncia','Neurose, Psicose e Pervers„o ó Estruturas ClÌnicas','Psican·lise Kleiniana ó PosiÁıes e RelaÁıes de Objeto','Psican·lise Winnicottiana ó Objeto Transicional e Holding','Psicologia AnalÌtica (Jung) ó Inconsciente Coletivo e ArquÈtipos','Processo de IndividuaÁ„o (Jung)','Psican·lise Lacaniana ó Linguagem, Sujeito e Desejo','Real, SimbÛlico e Imagin·rio ó RSI (Lacan)','Comparativo: Freud ◊ Jung ◊ Lacan','Psicoterapia Breve PsicanalÌtica','Psican·lise e Cultura (Freud ó Mal-Estar na CivilizaÁ„o)','…tica em Psican·lise','Psican·lise para Concursos (CFP, ResidÍncia, PÛs-graduaÁ„o)'],
-    'Direitos Humanos': ['HistÛrico e Fundamentos dos Direitos Humanos','Sistemas Internacionais de ProteÁ„o','Direitos Humanos no Brasil','Grupos Vulner·veis','Direito Humanit·rio Internacional','Mecanismos da ONU'],
-    'PortuguÍs': ['Morfologia e Sintaxe','Concord‚ncia e RegÍncia','Crase e PontuaÁ„o','InterpretaÁ„o e Tipologia Textual','RedaÁ„o Oficial','Literatura Brasileira e Portuguesa'],
-    'Atualidades': ['GeopolÌtica e Conflitos Internacionais','EleiÁıes e Democracia no Mundo','Crise Clim·tica e COP','InteligÍncia Artificial e Sociedade','Economia Global e InflaÁ„o','Sa˙de Global e Pandemias','Direitos Civis e Movimentos Sociais','Brasil: PolÌtica e Economia Recente','Tecnologia e Privacidade de Dados','SeguranÁa P˙blica e LegislaÁ„o'],
+    'Hist√≥ria do Brasil': ['Brasil Colonial','Per√≠odo Joanino e Independ√™ncia','Segundo Reinado','Rep√∫blica Velha','Era Vargas','Redemocratiza√ß√£o e Ditadura Militar','Nova Rep√∫blica'],
+    'Hist√≥ria Geral': ['Pr√©-Hist√≥ria e Antiguidade','Gr√©cia e Roma Antiga','Idade M√©dia','Renascimento e Modernidade','Revolu√ß√µes Industriais','Guerras Mundiais','Guerra Fria e Mundo Contempor√¢neo'],
+    'Geografia do Brasil': ['Geopol√≠tica Brasileira','Biomas Brasileiros','Urbaniza√ß√£o e Regi√µes Metropolitanas','Agropecu√°ria e Recursos Naturais','Geopol√≠tica Regional'],
+    'Geografia Geral': ['Cartografia e Coordenadas','Geopol√≠tica Mundial','Climatologia e Hidrografia','Popula√ß√£o e Migra√ß√µes','Globaliza√ß√£o e Blocos Econ√¥micos'],
+    'Filosofia': ['Filosofia Antiga (S√≥crates, Plat√£o, Arist√≥teles)','Filosofia Medieval','Filosofia Moderna (Descartes, Kant)','√âtica e Filosofia Moral','Epistemologia','Filosofia Pol√≠tica'],
+    'Sociologia': ['Teorias Sociol√≥gicas Cl√°ssicas','Sociologia Brasileira','Movimentos Sociais','Trabalho e Sociedade','Cultura e Identidade'],
+    'Antropologia': ['Antropologia Cultural','Antropologia F√≠sica','Etnologia Brasileira','Antropologia Urbana','Povos Ind√≠genas no Brasil','Cultura e Simbolismo'],
+    'Ci√™ncia Pol√≠tica': ['Teoria Pol√≠tica Cl√°ssica','Sistemas de Governo','Partidos e Elei√ß√µes','Rela√ß√µes Internacionais','Democracia e Autoritarismo','Pol√≠tica Brasileira Contempor√¢nea'],
+    'Psicologia Social': ['Cogni√ß√£o Social','Atitudes e Preconceito','Influ√™ncia Social','Grupos e Din√¢micas de Grupo','Identidade Social','Psicologia das Massas'],
+    'Psican√°lise': ['Fundamentos e Hist√≥ria da Psican√°lise (Freud)','Determinismo Ps√≠quico','Primeira T√≥pica: Inconsciente, Pr√©-consciente e Consciente','Segunda T√≥pica: Id, Ego e Superego','Recalque, Repress√£o e Outros Mecanismos de Defesa','Puls√£o ‚Äî Eros e T√¢natos','Ang√∫stia e Sintoma','Fases do Desenvolvimento Psicossexual','Complexo de √âdipo e Complexo de Castra√ß√£o','Interpreta√ß√£o dos Sonhos e Forma√ß√µes do Inconsciente','Transfer√™ncia e Contratransfer√™ncia','Neurose, Psicose e Pervers√£o ‚Äî Estruturas Cl√≠nicas','Psican√°lise Kleiniana ‚Äî Posi√ß√µes e Rela√ß√µes de Objeto','Psican√°lise Winnicottiana ‚Äî Objeto Transicional e Holding','Psicologia Anal√≠tica (Jung) ‚Äî Inconsciente Coletivo e Arqu√©tipos','Processo de Individua√ß√£o (Jung)','Psican√°lise Lacaniana ‚Äî Linguagem, Sujeito e Desejo','Real, Simb√≥lico e Imagin√°rio ‚Äî RSI (Lacan)','Comparativo: Freud √ó Jung √ó Lacan','Psicoterapia Breve Psicanal√≠tica','Psican√°lise e Cultura (Freud ‚Äî Mal-Estar na Civiliza√ß√£o)','√âtica em Psican√°lise','Psican√°lise para Concursos (CFP, Resid√™ncia, P√≥s-gradua√ß√£o)'],
+    'Direitos Humanos': ['Hist√≥rico e Fundamentos dos Direitos Humanos','Sistemas Internacionais de Prote√ß√£o','Direitos Humanos no Brasil','Grupos Vulner√°veis','Direito Humanit√°rio Internacional','Mecanismos da ONU'],
+    'Portugu√™s': ['Morfologia e Sintaxe','Concord√¢ncia e Reg√™ncia','Crase e Pontua√ß√£o','Interpreta√ß√£o e Tipologia Textual','Reda√ß√£o Oficial','Literatura Brasileira e Portuguesa'],
+    'Atualidades': ['Geopol√≠tica e Conflitos Internacionais','Elei√ß√µes e Democracia no Mundo','Crise Clim√°tica e COP','Intelig√™ncia Artificial e Sociedade','Economia Global e Infla√ß√£o','Sa√∫de Global e Pandemias','Direitos Civis e Movimentos Sociais','Brasil: Pol√≠tica e Economia Recente','Tecnologia e Privacidade de Dados','Seguran√ßa P√∫blica e Legisla√ß√£o'],
   },
-  'NegÛcios': {
-    'AdministraÁ„o': ['Teoria das OrganizaÁıes','Gest„o de Pessoas (RH)','Marketing e Vendas','Planejamento EstratÈgico','Empreendedorismo e InovaÁ„o','Gest„o de Projetos'],
-    'Contabilidade': ['BalanÁo Patrimonial','DRE e DVA','An·lise de BalanÁos','Contabilidade de Custos','Contabilidade P˙blica','IFRS e CPC'],
-    'Economia': ['Microeconomia','Macroeconomia','Economia Brasileira','PolÌtica Fiscal e Monet·ria','ComÈrcio Internacional'],
-    'FinanÁas': ['Matem·tica Financeira','Mercado Financeiro e de Capitais','An·lise de Investimentos','Gest„o de Risco','Derivativos e OpÁıes'],
-    'Direito Empresarial Aplicado': ['…tica nos NegÛcios','Compliance e GovernanÁa','LegislaÁ„o Trabalhista para Gestores','Direito do Consumidor'],
-    'LogÌstica e Supply Chain': ['Gest„o de Estoques','LogÌstica de Transporte','Supply Chain Management','Lean Manufacturing','Gest„o da Qualidade (ISO)'],
-    'Marketing Digital': ['SEO e Busca Org‚nica','Google Ads e Meta Ads','Marketing de Conte˙do','E-mail Marketing','Redes Sociais e InfluÍncia','Analytics e MÈtricas','Funil de Vendas Digital','E-commerce e Marketplace','Branding Digital'],
-    'Gest„o de Startups': ['Lean Startup e MVP','Pitch e CaptaÁ„o de Investimento','Venture Capital e Angel Investors','Product Market Fit','Growth Hacking','Cultura e People em Startups','Modelos de NegÛcio SaaS','Aceleradoras e Ecossistemas de InovaÁ„o'],
-    'AgronegÛcio': ['Cadeias Produtivas do AgronegÛcio','Commodities e Mercado Futuro','Tecnologia no Campo (AgTech)','CrÈdito Rural e Financiamento','ExportaÁıes do AgronegÛcio Brasileiro','Sustentabilidade e Agro','LegislaÁ„o Rural e Ambiental'],
+  'Neg√≥cios': {
+    'Administra√ß√£o': ['Teoria das Organiza√ß√µes','Gest√£o de Pessoas (RH)','Marketing e Vendas','Planejamento Estrat√©gico','Empreendedorismo e Inova√ß√£o','Gest√£o de Projetos'],
+    'Contabilidade': ['Balan√ßo Patrimonial','DRE e DVA','An√°lise de Balan√ßos','Contabilidade de Custos','Contabilidade P√∫blica','IFRS e CPC'],
+    'Economia': ['Microeconomia','Macroeconomia','Economia Brasileira','Pol√≠tica Fiscal e Monet√°ria','Com√©rcio Internacional'],
+    'Finan√ßas': ['Matem√°tica Financeira','Mercado Financeiro e de Capitais','An√°lise de Investimentos','Gest√£o de Risco','Derivativos e Op√ß√µes'],
+    'Direito Empresarial Aplicado': ['√âtica nos Neg√≥cios','Compliance e Governan√ßa','Legisla√ß√£o Trabalhista para Gestores','Direito do Consumidor'],
+    'Log√≠stica e Supply Chain': ['Gest√£o de Estoques','Log√≠stica de Transporte','Supply Chain Management','Lean Manufacturing','Gest√£o da Qualidade (ISO)'],
+    'Marketing Digital': ['SEO e Busca Org√¢nica','Google Ads e Meta Ads','Marketing de Conte√∫do','E-mail Marketing','Redes Sociais e Influ√™ncia','Analytics e M√©tricas','Funil de Vendas Digital','E-commerce e Marketplace','Branding Digital'],
+    'Gest√£o de Startups': ['Lean Startup e MVP','Pitch e Capta√ß√£o de Investimento','Venture Capital e Angel Investors','Product Market Fit','Growth Hacking','Cultura e People em Startups','Modelos de Neg√≥cio SaaS','Aceleradoras e Ecossistemas de Inova√ß√£o'],
+    'Agroneg√≥cio': ['Cadeias Produtivas do Agroneg√≥cio','Commodities e Mercado Futuro','Tecnologia no Campo (AgTech)','Cr√©dito Rural e Financiamento','Exporta√ß√µes do Agroneg√≥cio Brasileiro','Sustentabilidade e Agro','Legisla√ß√£o Rural e Ambiental'],
   },
   'ENEM': {
-    'Linguagens': ['InterpretaÁ„o de Texto','Literatura Brasileira e Portuguesa','Gram·tica e Norma Culta','Artes e Cultura','LÌngua Estrangeira'],
-    'Matem·tica': ['¡lgebra e FunÁıes','Geometria Plana e Espacial','EstatÌstica e Probabilidade','Matem·tica Financeira','Trigonometria'],
-    'CiÍncias da Natureza': ['Mec‚nica e Termodin‚mica','Eletricidade e ”ptica','QuÌmica Org‚nica e Inorg‚nica','Biologia Celular e Molecular','Ecologia e Meio Ambiente'],
-    'CiÍncias Humanas': ['HistÛria do Brasil','HistÛria Geral','Geografia FÌsica e Humana','Filosofia','Sociologia'],
-    'RedaÁ„o ENEM': ['Estrutura da RedaÁ„o','RepertÛrio Cultural','Proposta de IntervenÁ„o','Coes„o e CoerÍncia','Temas Recorrentes'],
+    'Linguagens': ['Interpreta√ß√£o de Texto','Literatura Brasileira e Portuguesa','Gram√°tica e Norma Culta','Artes e Cultura','L√≠ngua Estrangeira'],
+    'Matem√°tica': ['√Ålgebra e Fun√ß√µes','Geometria Plana e Espacial','Estat√≠stica e Probabilidade','Matem√°tica Financeira','Trigonometria'],
+    'Ci√™ncias da Natureza': ['Mec√¢nica e Termodin√¢mica','Eletricidade e √ìptica','Qu√≠mica Org√¢nica e Inorg√¢nica','Biologia Celular e Molecular','Ecologia e Meio Ambiente'],
+    'Ci√™ncias Humanas': ['Hist√≥ria do Brasil','Hist√≥ria Geral','Geografia F√≠sica e Humana','Filosofia','Sociologia'],
+    'Reda√ß√£o ENEM': ['Estrutura da Reda√ß√£o','Repert√≥rio Cultural','Proposta de Interven√ß√£o','Coes√£o e Coer√™ncia','Temas Recorrentes'],
   },
-  'Concursos ó MatÈrias Comuns': {
-    'LÌngua Portuguesa': ['Compreens„o e InterpretaÁ„o de Texto','Tipologia e GÍneros Textuais','Ortografia e AcentuaÁ„o','Concord‚ncia Nominal e Verbal','RegÍncia Nominal e Verbal','PontuaÁ„o','Vocabul·rio e Sem‚ntica','RedaÁ„o Oficial'],
-    'RaciocÌnio LÛgico': ['LÛgica Proposicional','Tabelas-Verdade','Diagramas LÛgicos','SequÍncias e Padrıes','RaciocÌnio AnalÌtico'],
-    'Matem·tica para Concursos': ['AritmÈtica e Divisibilidade','Porcentagem e Juros','Raz„o, ProporÁ„o e Regra de TrÍs','Probabilidade e EstatÌstica','Geometria','¡lgebra B·sica'],
-    'Inform·tica para Concursos': ['NoÁıes de Hardware e Software','Windows e Linux','Pacote Office (Word, Excel, PowerPoint)','Internet e E-mail','SeguranÁa da InformaÁ„o B·sica','Redes B·sicas'],
-    'LegislaÁ„o Geral': ['ConstituiÁ„o Federal ó Principais Artigos','Lei 8.112/90 (Estatuto dos Servidores)','Lei 8.666/93 e Lei 14.133/21 (LicitaÁıes)','Lei de Responsabilidade Fiscal','Lei de Acesso ‡ InformaÁ„o'],
-    'Direito Constitucional B·sico': ['PrincÌpios Fundamentais','Direitos e Garantias Fundamentais','AdministraÁ„o P˙blica','Poder Executivo, Legislativo e Judici·rio','Controle de Constitucionalidade'],
+  'Concursos ‚Äî Mat√©rias Comuns': {
+    'L√≠ngua Portuguesa': ['Compreens√£o e Interpreta√ß√£o de Texto','Tipologia e G√™neros Textuais','Ortografia e Acentua√ß√£o','Concord√¢ncia Nominal e Verbal','Reg√™ncia Nominal e Verbal','Pontua√ß√£o','Vocabul√°rio e Sem√¢ntica','Reda√ß√£o Oficial'],
+    'Racioc√≠nio L√≥gico': ['L√≥gica Proposicional','Tabelas-Verdade','Diagramas L√≥gicos','Sequ√™ncias e Padr√µes','Racioc√≠nio Anal√≠tico'],
+    'Matem√°tica para Concursos': ['Aritm√©tica e Divisibilidade','Porcentagem e Juros','Raz√£o, Propor√ß√£o e Regra de Tr√™s','Probabilidade e Estat√≠stica','Geometria','√Ålgebra B√°sica'],
+    'Inform√°tica para Concursos': ['No√ß√µes de Hardware e Software','Windows e Linux','Pacote Office (Word, Excel, PowerPoint)','Internet e E-mail','Seguran√ßa da Informa√ß√£o B√°sica','Redes B√°sicas'],
+    'Legisla√ß√£o Geral': ['Constitui√ß√£o Federal ‚Äî Principais Artigos','Lei 8.112/90 (Estatuto dos Servidores)','Lei 8.666/93 e Lei 14.133/21 (Licita√ß√µes)','Lei de Responsabilidade Fiscal','Lei de Acesso √† Informa√ß√£o'],
+    'Direito Constitucional B√°sico': ['Princ√≠pios Fundamentais','Direitos e Garantias Fundamentais','Administra√ß√£o P√∫blica','Poder Executivo, Legislativo e Judici√°rio','Controle de Constitucionalidade'],
   },
 };
 
-// --- CONCURSO DATA (expandido) ---------------------------------------------
+// ‚îÄ‚îÄ‚îÄ CONCURSO DATA (expandido) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
 const concursoData = {
-  'SeguranÁa P˙blica': { concursos: [
-    { id: 'pf-agente', label: 'PF ó Agente Federal', banca: 'CEBRASPE/CESPE' },
-    { id: 'pf-delegado', label: 'PF ó Delegado', banca: 'CEBRASPE/CESPE' },
-    { id: 'prf', label: 'PRF ó Policial Rodovi·rio Federal', banca: 'CEBRASPE/CESPE' },
-    { id: 'pc-sp', label: 'PC-SP ó Investigador / Delegado', banca: 'VUNESP' },
-    { id: 'pc-rj', label: 'PC-RJ ó Agente / Delegado', banca: 'CEBRASPE/CESPE' },
-    { id: 'pc-estados', label: 'PC ó Outros Estados', banca: 'CEBRASPE/CESPE' },
-    { id: 'pm-sp', label: 'PM-SP ó Soldado / Oficial', banca: 'VUNESP' },
-    { id: 'pm-estados', label: 'PM ó Outros Estados', banca: 'CEBRASPE/CESPE' },
-    { id: 'depen', label: 'DEPEN / Agente Penitenci·rio Federal', banca: 'CEBRASPE/CESPE' },
+  'Seguran√ßa P√∫blica': { concursos: [
+    { id: 'pf-agente', label: 'PF ‚Äî Agente Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'pf-delegado', label: 'PF ‚Äî Delegado', banca: 'CEBRASPE/CESPE' },
+    { id: 'prf', label: 'PRF ‚Äî Policial Rodovi√°rio Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'pc-sp', label: 'PC-SP ‚Äî Investigador / Delegado', banca: 'VUNESP' },
+    { id: 'pc-rj', label: 'PC-RJ ‚Äî Agente / Delegado', banca: 'CEBRASPE/CESPE' },
+    { id: 'pc-estados', label: 'PC ‚Äî Outros Estados', banca: 'CEBRASPE/CESPE' },
+    { id: 'pm-sp', label: 'PM-SP ‚Äî Soldado / Oficial', banca: 'VUNESP' },
+    { id: 'pm-estados', label: 'PM ‚Äî Outros Estados', banca: 'CEBRASPE/CESPE' },
+    { id: 'depen', label: 'DEPEN / Agente Penitenci√°rio Federal', banca: 'CEBRASPE/CESPE' },
     { id: 'bombeiros', label: 'Corpo de Bombeiros', banca: 'CEBRASPE/CESPE' },
     { id: 'gcm', label: 'Guarda Civil Municipal', banca: 'VUNESP' },
   ]},
-  'Fiscal / Tribut·rio': { concursos: [
-    { id: 'receita-auditor', label: 'Receita Federal ó Auditor Fiscal', banca: 'CEBRASPE/CESPE' },
-    { id: 'receita-analista', label: 'Receita Federal ó Analista Tribut·rio', banca: 'CEBRASPE/CESPE' },
-    { id: 'inss-analista', label: 'INSS ó Analista', banca: 'CEBRASPE/CESPE' },
-    { id: 'tcu', label: 'TCU ó Auditor Federal de Controle Externo', banca: 'CEBRASPE/CESPE' },
-    { id: 'tce', label: 'TCE ó Tribunais de Contas Estaduais', banca: 'FCC' },
-    { id: 'sefaz-sp', label: 'SEFAZ-SP ó Agente Fiscal de Rendas', banca: 'FCC' },
-    { id: 'sefaz-rj', label: 'SEFAZ-RJ ó Fiscal', banca: 'FGV' },
-    { id: 'pgfn', label: 'PGFN ó Procurador', banca: 'CEBRASPE/CESPE' },
-    { id: 'agu', label: 'AGU ó Advogado da Uni„o', banca: 'CEBRASPE/CESPE' },
+  'Fiscal / Tribut√°rio': { concursos: [
+    { id: 'receita-auditor', label: 'Receita Federal ‚Äî Auditor Fiscal', banca: 'CEBRASPE/CESPE' },
+    { id: 'receita-analista', label: 'Receita Federal ‚Äî Analista Tribut√°rio', banca: 'CEBRASPE/CESPE' },
+    { id: 'inss-analista', label: 'INSS ‚Äî Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'tcu', label: 'TCU ‚Äî Auditor Federal de Controle Externo', banca: 'CEBRASPE/CESPE' },
+    { id: 'tce', label: 'TCE ‚Äî Tribunais de Contas Estaduais', banca: 'FCC' },
+    { id: 'sefaz-sp', label: 'SEFAZ-SP ‚Äî Agente Fiscal de Rendas', banca: 'FCC' },
+    { id: 'sefaz-rj', label: 'SEFAZ-RJ ‚Äî Fiscal', banca: 'FGV' },
+    { id: 'pgfn', label: 'PGFN ‚Äî Procurador', banca: 'CEBRASPE/CESPE' },
+    { id: 'agu', label: 'AGU ‚Äî Advogado da Uni√£o', banca: 'CEBRASPE/CESPE' },
   ]},
-  'JurÌdico': { concursos: [
-    { id: 'oab-1fase', label: 'OAB ó 1™ Fase', banca: 'FGV' },
-    { id: 'oab-2fase', label: 'OAB ó 2™ Fase', banca: 'FGV' },
-    { id: 'tj-sp', label: 'TJ-SP ó Escrevente / Analista', banca: 'VUNESP' },
-    { id: 'tj-rj', label: 'TJ-RJ ó Analista', banca: 'FGV' },
-    { id: 'trf', label: 'TRF ó Analista e TÈcnico Judici·rio', banca: 'CEBRASPE/CESPE' },
-    { id: 'tst', label: 'TST ó Analista Judici·rio', banca: 'FCC' },
-    { id: 'mp-estadual', label: 'MinistÈrio P˙blico Estadual', banca: 'CEBRASPE/CESPE' },
-    { id: 'mpu', label: 'MPU ó Analista e TÈcnico', banca: 'CEBRASPE/CESPE' },
-    { id: 'defensoria-sp', label: 'Defensoria P˙blica SP', banca: 'FGV' },
-    { id: 'defensoria-federal', label: 'DPU ó Defensor P˙blico Federal', banca: 'CEBRASPE/CESPE' },
+  'Jur√≠dico': { concursos: [
+    { id: 'oab-1fase', label: 'OAB ‚Äî 1¬™ Fase', banca: 'FGV' },
+    { id: 'oab-2fase', label: 'OAB ‚Äî 2¬™ Fase', banca: 'FGV' },
+    { id: 'tj-sp', label: 'TJ-SP ‚Äî Escrevente / Analista', banca: 'VUNESP' },
+    { id: 'tj-rj', label: 'TJ-RJ ‚Äî Analista', banca: 'FGV' },
+    { id: 'trf', label: 'TRF ‚Äî Analista e T√©cnico Judici√°rio', banca: 'CEBRASPE/CESPE' },
+    { id: 'tst', label: 'TST ‚Äî Analista Judici√°rio', banca: 'FCC' },
+    { id: 'mp-estadual', label: 'Minist√©rio P√∫blico Estadual', banca: 'CEBRASPE/CESPE' },
+    { id: 'mpu', label: 'MPU ‚Äî Analista e T√©cnico', banca: 'CEBRASPE/CESPE' },
+    { id: 'defensoria-sp', label: 'Defensoria P√∫blica SP', banca: 'FGV' },
+    { id: 'defensoria-federal', label: 'DPU ‚Äî Defensor P√∫blico Federal', banca: 'CEBRASPE/CESPE' },
   ]},
-  'Banc·rio': { concursos: [
-    { id: 'bb-escriturario', label: 'Banco do Brasil ó Escritur·rio', banca: 'CESGRANRIO' },
-    { id: 'bb-analista', label: 'Banco do Brasil ó Analista', banca: 'CESGRANRIO' },
-    { id: 'cef-tecnico', label: 'Caixa EconÙmica ó TÈcnico Banc·rio', banca: 'CESGRANRIO' },
-    { id: 'cef-analista', label: 'Caixa EconÙmica ó Analista', banca: 'CESGRANRIO' },
-    { id: 'bndes', label: 'BNDES ó Analista', banca: 'CESGRANRIO' },
-    { id: 'bacen', label: 'Banco Central ó Analista', banca: 'CEBRASPE/CESPE' },
-    { id: 'correios', label: 'Correios ó Analista e TÈcnico', banca: 'CEBRASPE/CESPE' },
-    { id: 'cvm', label: 'CVM ó Analista', banca: 'FGV' },
+  'Banc√°rio': { concursos: [
+    { id: 'bb-escriturario', label: 'Banco do Brasil ‚Äî Escritur√°rio', banca: 'CESGRANRIO' },
+    { id: 'bb-analista', label: 'Banco do Brasil ‚Äî Analista', banca: 'CESGRANRIO' },
+    { id: 'cef-tecnico', label: 'Caixa Econ√¥mica ‚Äî T√©cnico Banc√°rio', banca: 'CESGRANRIO' },
+    { id: 'cef-analista', label: 'Caixa Econ√¥mica ‚Äî Analista', banca: 'CESGRANRIO' },
+    { id: 'bndes', label: 'BNDES ‚Äî Analista', banca: 'CESGRANRIO' },
+    { id: 'bacen', label: 'Banco Central ‚Äî Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'correios', label: 'Correios ‚Äî Analista e T√©cnico', banca: 'CEBRASPE/CESPE' },
+    { id: 'cvm', label: 'CVM ‚Äî Analista', banca: 'FGV' },
   ]},
   'Federal / Geral': { concursos: [
-    { id: 'anp', label: 'Petrobras / ANP ó NÌvel Superior', banca: 'CESGRANRIO' },
-    { id: 'ibge', label: 'IBGE ó Pesquisador / Analista', banca: 'CEBRASPE/CESPE' },
-    { id: 'anatel', label: 'ANATEL ó Especialista', banca: 'FGV' },
-    { id: 'anvisa', label: 'ANVISA ó Especialista em RegulaÁ„o', banca: 'CEBRASPE/CESPE' },
-    { id: 'cgu', label: 'CGU ó Auditor Federal', banca: 'CEBRASPE/CESPE' },
-    { id: 'iphan', label: 'IPHAN ó Especialista', banca: 'FCC' },
-    { id: 'mec', label: 'MEC / FNDE ó Analista', banca: 'CEBRASPE/CESPE' },
-    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro ó colar edital', banca: 'A definir' },
+    { id: 'anp', label: 'Petrobras / ANP ‚Äî N√≠vel Superior', banca: 'CESGRANRIO' },
+    { id: 'ibge', label: 'IBGE ‚Äî Pesquisador / Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'anatel', label: 'ANATEL ‚Äî Especialista', banca: 'FGV' },
+    { id: 'anvisa', label: 'ANVISA ‚Äî Especialista em Regula√ß√£o', banca: 'CEBRASPE/CESPE' },
+    { id: 'cgu', label: 'CGU ‚Äî Auditor Federal', banca: 'CEBRASPE/CESPE' },
+    { id: 'iphan', label: 'IPHAN ‚Äî Especialista', banca: 'FCC' },
+    { id: 'mec', label: 'MEC / FNDE ‚Äî Analista', banca: 'CEBRASPE/CESPE' },
+    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro ‚Äî colar edital', banca: 'A definir' },
   ]},
-  'Sa˙de / ResidÍncia': { concursos: [
-    { id: 'revalida', label: 'Revalida ó RevalidaÁ„o de Diploma MÈdico', banca: 'INEP/MEC' },
-    { id: 'residencia-medica', label: 'ResidÍncia MÈdica ó USP / UNICAMP / UNIFESP', banca: 'FAMERP/VUNESP' },
-    { id: 'residencia-enf', label: 'ResidÍncia em Enfermagem', banca: 'CEBRASPE/CESPE' },
-    { id: 'sus-medico', label: 'SUS / SMS ó MÈdico ClÌnico Geral', banca: 'VUNESP' },
-    { id: 'sus-enfermeiro', label: 'SUS / SMS ó Enfermeiro', banca: 'VUNESP' },
-    { id: 'sus-farmaceutico', label: 'SUS / SMS ó FarmacÍutico', banca: 'FCC' },
-    { id: 'sus-fisioterapeuta', label: 'SUS / SMS ó Fisioterapeuta', banca: 'VUNESP' },
-    { id: 'coren', label: 'COREN / CFM ó Provas de …tica e LegislaÁ„o', banca: 'Banca prÛpria' },
-    { id: 'ebserh', label: 'EBSERH ó Analista e TÈcnico em Sa˙de', banca: 'CEBRASPE/CESPE' },
-    { id: 'hcpa', label: 'HCPA ó Hospital de ClÌnicas de Porto Alegre', banca: 'Banca prÛpria' },
+  'Sa√∫de / Resid√™ncia': { concursos: [
+    { id: 'revalida', label: 'Revalida ‚Äî Revalida√ß√£o de Diploma M√©dico', banca: 'INEP/MEC' },
+    { id: 'residencia-medica', label: 'Resid√™ncia M√©dica ‚Äî USP / UNICAMP / UNIFESP', banca: 'FAMERP/VUNESP' },
+    { id: 'residencia-enf', label: 'Resid√™ncia em Enfermagem', banca: 'CEBRASPE/CESPE' },
+    { id: 'sus-medico', label: 'SUS / SMS ‚Äî M√©dico Cl√≠nico Geral', banca: 'VUNESP' },
+    { id: 'sus-enfermeiro', label: 'SUS / SMS ‚Äî Enfermeiro', banca: 'VUNESP' },
+    { id: 'sus-farmaceutico', label: 'SUS / SMS ‚Äî Farmac√™utico', banca: 'FCC' },
+    { id: 'sus-fisioterapeuta', label: 'SUS / SMS ‚Äî Fisioterapeuta', banca: 'VUNESP' },
+    { id: 'coren', label: 'COREN / CFM ‚Äî Provas de √âtica e Legisla√ß√£o', banca: 'Banca pr√≥pria' },
+    { id: 'ebserh', label: 'EBSERH ‚Äî Analista e T√©cnico em Sa√∫de', banca: 'CEBRASPE/CESPE' },
+    { id: 'hcpa', label: 'HCPA ‚Äî Hospital de Cl√≠nicas de Porto Alegre', banca: 'Banca pr√≥pria' },
   ]},
-  'EducaÁ„o': { concursos: [
-    { id: 'prof-ef', label: 'Professor ó Ensino Fundamental (Prefeituras)', banca: 'VUNESP' },
-    { id: 'prof-em', label: 'Professor ó Ensino MÈdio (SEE Estadual)', banca: 'VUNESP/FCC' },
-    { id: 'prof-mat', label: 'Professor de Matem·tica', banca: 'CEBRASPE/CESPE' },
-    { id: 'prof-port', label: 'Professor de PortuguÍs / LÌngua Portuguesa', banca: 'FCC' },
-    { id: 'prof-bio', label: 'Professor de Biologia / CiÍncias', banca: 'CEBRASPE/CESPE' },
-    { id: 'prof-hist', label: 'Professor de HistÛria', banca: 'CEBRASPE/CESPE' },
-    { id: 'prof-ed-fisica', label: 'Professor de EducaÁ„o FÌsica', banca: 'IBFC' },
-    { id: 'pedagogia', label: 'Pedagogo / Coordenador PedagÛgico', banca: 'VUNESP' },
-    { id: 'if-federal', label: 'Instituto Federal ó Professor', banca: 'CEBRASPE/CESPE' },
-    { id: 'mec-analista', label: 'MEC / Universidade Federal ó TÈcnico Administrativo', banca: 'CEBRASPE/CESPE' },
+  'Educa√ß√£o': { concursos: [
+    { id: 'prof-ef', label: 'Professor ‚Äî Ensino Fundamental (Prefeituras)', banca: 'VUNESP' },
+    { id: 'prof-em', label: 'Professor ‚Äî Ensino M√©dio (SEE Estadual)', banca: 'VUNESP/FCC' },
+    { id: 'prof-mat', label: 'Professor de Matem√°tica', banca: 'CEBRASPE/CESPE' },
+    { id: 'prof-port', label: 'Professor de Portugu√™s / L√≠ngua Portuguesa', banca: 'FCC' },
+    { id: 'prof-bio', label: 'Professor de Biologia / Ci√™ncias', banca: 'CEBRASPE/CESPE' },
+    { id: 'prof-hist', label: 'Professor de Hist√≥ria', banca: 'CEBRASPE/CESPE' },
+    { id: 'prof-ed-fisica', label: 'Professor de Educa√ß√£o F√≠sica', banca: 'IBFC' },
+    { id: 'pedagogia', label: 'Pedagogo / Coordenador Pedag√≥gico', banca: 'VUNESP' },
+    { id: 'if-federal', label: 'Instituto Federal ‚Äî Professor', banca: 'CEBRASPE/CESPE' },
+    { id: 'mec-analista', label: 'MEC / Universidade Federal ‚Äî T√©cnico Administrativo', banca: 'CEBRASPE/CESPE' },
   ]},
   'Municipal': { concursos: [
-    { id: 'pref-sp', label: 'Prefeitura de S„o Paulo ó Diversas ¡reas', banca: 'VUNESP' },
+    { id: 'pref-sp', label: 'Prefeitura de S√£o Paulo ‚Äî Diversas √Åreas', banca: 'VUNESP' },
     { id: 'pref-rj', label: 'Prefeitura do Rio de Janeiro', banca: 'FGV' },
     { id: 'pref-bh', label: 'Prefeitura de Belo Horizonte', banca: 'FUNDEP' },
     { id: 'pref-cwb', label: 'Prefeitura de Curitiba', banca: 'CEBRASPE/CESPE' },
     { id: 'pref-poa', label: 'Prefeitura de Porto Alegre', banca: 'FUNDATEC' },
     { id: 'pref-fortaleza', label: 'Prefeitura de Fortaleza', banca: 'CEBRASPE/CESPE' },
-    { id: 'camara-municipal', label: 'C‚mara Municipal ó Diversas Cidades', banca: 'VUNESP' },
+    { id: 'camara-municipal', label: 'C√¢mara Municipal ‚Äî Diversas Cidades', banca: 'VUNESP' },
     { id: 'mun-fiscal', label: 'Fiscal de Obras / Tributos Municipal', banca: 'VUNESP' },
-    { id: 'mun-assistente', label: 'Assistente Social / PsicÛlogo Municipal', banca: 'IBFC' },
-    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro municÌpio ó colar edital', banca: 'A definir' },
+    { id: 'mun-assistente', label: 'Assistente Social / Psic√≥logo Municipal', banca: 'IBFC' },
+    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro munic√≠pio ‚Äî colar edital', banca: 'A definir' },
   ]},
 };
 
@@ -1400,30 +1400,29 @@ function renderStep2() {
   container.innerHTML = '';
   if (state.mode === 'academic') renderStep2Academic(container);
   else if (state.mode === 'concurso') renderStep2Concurso(container);
-  else if (state.mode === 'youtube') renderStep2YouTube(container);
   else renderStep2Livre(container);
 }
 
 function renderStep2Academic(container) {
   container.innerHTML = `
-    <h2 class="step-title">Selecione a matÈria</h2>
+    <h2 class="step-title">Selecione a mat√©ria</h2>
     <div class="config-group">
-      <label class="config-label">¡rea</label>
+      <label class="config-label">√Årea</label>
       <select id="area-sel">
         <option value="">Selecione...</option>
         ${Object.keys(academicData).map(a => `<option value="${a}" ${state.area===a?'selected':''}>${a}</option>`).join('')}
       </select>
     </div>
     <div class="config-group">
-      <label class="config-label">MatÈria</label>
+      <label class="config-label">Mat√©ria</label>
       <select id="subj-sel" ${!state.area?'disabled style="opacity:0.5"':''}>
-        <option value="">Selecione a ·rea primeiro...</option>
+        <option value="">Selecione a √°rea primeiro...</option>
       </select>
     </div>
     <div class="config-group">
-      <label class="config-label">TÛpico (Opcional)</label>
+      <label class="config-label">T√≥pico (Opcional)</label>
       <select id="topic-sel" ${!state.subject?'disabled style="opacity:0.5"':''}>
-        <option value="">MatÈria completa</option>
+        <option value="">Mat√©ria completa</option>
       </select>
     </div>`;
   const selArea = document.getElementById('area-sel');
@@ -1446,12 +1445,12 @@ function renderStep2Academic(container) {
 }
 
 function populateSubj(el, area) {
-  if (!area) { el.innerHTML = '<option value="">Selecione a ·rea primeiro...</option>'; return; }
-  el.innerHTML = '<option value="">Selecione a matÈria...</option>' + Object.keys(academicData[area]).map(s => `<option value="${s}" ${state.subject===s?'selected':''}>${s}</option>`).join('');
+  if (!area) { el.innerHTML = '<option value="">Selecione a √°rea primeiro...</option>'; return; }
+  el.innerHTML = '<option value="">Selecione a mat√©ria...</option>' + Object.keys(academicData[area]).map(s => `<option value="${s}" ${state.subject===s?'selected':''}>${s}</option>`).join('');
 }
 function populateTopic(el, area, subj) {
-  if (!subj) { el.innerHTML = '<option value="">MatÈria completa</option>'; return; }
-  el.innerHTML = '<option value="">MatÈria completa</option>' + academicData[area][subj].map(t => `<option value="${t}" ${state.topic===t?'selected':''}>${t}</option>`).join('');
+  if (!subj) { el.innerHTML = '<option value="">Mat√©ria completa</option>'; return; }
+  el.innerHTML = '<option value="">Mat√©ria completa</option>' + academicData[area][subj].map(t => `<option value="${t}" ${state.topic===t?'selected':''}>${t}</option>`).join('');
 }
 
 function renderStep2Concurso(container) {
@@ -1482,8 +1481,8 @@ function renderStep2Concurso(container) {
         ${list.map(c => `<button class="chip ${state.concurso?.id===c.id?'active':''}" data-cid="${c.id}">${c.label}</button>`).join('')}
       </div>
       <div id="edital-box" class="${(isOutro||state.editalText)?'':'hidden'}" style="margin-top:var(--space-4)">
-        <label class="config-label">Cole o conte˙do program·tico do edital</label>
-        <textarea id="edital-text" placeholder="Cole o escopo de matÈrias do edital aqui (mÌnimo 50 caracteres)...">${state.editalText}</textarea>
+        <label class="config-label">Cole o conte√∫do program√°tico do edital</label>
+        <textarea id="edital-text" placeholder="Cole o escopo de mat√©rias do edital aqui (m√≠nimo 50 caracteres)...">${state.editalText}</textarea>
         <div style="font-size:12px;margin-top:4px" id="edital-counter">Caracteres: ${state.editalText.length}</div>
       </div>`;
     lucide.createIcons();
@@ -1518,23 +1517,23 @@ function renderStep2Concurso(container) {
 function renderStep2Livre(container) {
   container.innerHTML = `
     <h2 class="step-title">Cole seu material de estudo</h2>
-    <p class="step-subtitle">Cole textos, PDFs ou qualquer anotaÁ„o para gerar questıes focadas.</p>
+    <p class="step-subtitle">Cole textos, PDFs ou qualquer anota√ß√£o para gerar quest√µes focadas.</p>
     <div class="yt-extract-row">
       <input type="url" id="yt-url-input" class="yt-url-field" placeholder="Cole o link do YouTube aqui (ex: https://www.youtube.com/watch?v=...)" value="${state.youtubeUrl}">
       <button id="yt-extract-btn" class="yt-extract-btn">
-        <span id="yt-btn-label">Extrair transcriÁ„o</span>
+        <span id="yt-btn-label">Extrair transcri√ß√£o</span>
       </button>
     </div>
     <p class="yt-error" id="yt-error" aria-live="polite"></p>
-    <textarea id="free-txt" placeholder="Cole o texto aqui (mÌnimo de 50 caracteres)...">${state.freeText}</textarea>
+    <textarea id="free-txt" placeholder="Cole o texto aqui (m√≠nimo de 50 caracteres)...">${state.freeText}</textarea>
     <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px" id="free-counter">Caracteres: ${state.freeText.length}</div>
     <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
-    <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extraÁ„o de texto">
+    <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extra√ß√£o de texto">
       <strong>Arraste e solte o arquivo aqui</strong>
       <p style="margin-top:var(--space-2);color:var(--color-text-muted)">ou clique para selecionar (PDF, DOCX, TXT, MD, JPG, PNG, WEBP)</p>
     </div>
     <div class="upload-progress" id="upload-progress">
-      <p id="upload-progress-text">Extraindo conte˙do do arquivoÖ</p>
+      <p id="upload-progress-text">Extraindo conte√∫do do arquivo‚Ä¶</p>
       <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
     </div>
     <p class="upload-error" id="upload-error" aria-live="polite"></p>`;
@@ -1562,7 +1561,7 @@ function renderStep2Livre(container) {
     if (!url) { ytError.textContent = 'Cole um link do YouTube antes de extrair.'; return; }
     ytError.textContent = '';
     ytExtractBtn.disabled = true;
-    ytBtnLabel.textContent = 'ExtraindoÖ';
+    ytBtnLabel.textContent = 'Extraindo‚Ä¶';
     ytExtractBtn.insertAdjacentHTML('beforeend', '<span class="yt-btn-spinner" id="yt-spinner"></span>');
     try {
       const res = await fetch(`${WORKER_URL}/youtube-transcript`, {
@@ -1572,17 +1571,17 @@ function renderStep2Livre(container) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `Erro HTTP ${res.status}`);
-      if (!data.transcript) throw new Error('TranscriÁ„o n„o encontrada para este vÌdeo.');
+      if (!data.transcript) throw new Error('Transcri√ß√£o n√£o encontrada para este v√≠deo.');
       state.freeText = data.transcript;
       state.youtubeUrl = url;
       freeTextArea.value = data.transcript;
       updateCounter();
       updateNavButtons();
     } catch (err) {
-      ytError.textContent = err.message || 'N„o foi possÌvel extrair a transcriÁ„o. Verifique o link e tente novamente.';
+      ytError.textContent = err.message || 'N√£o foi poss√≠vel extrair a transcri√ß√£o. Verifique o link e tente novamente.';
     } finally {
       ytExtractBtn.disabled = false;
-      ytBtnLabel.textContent = 'Extrair transcriÁ„o';
+      ytBtnLabel.textContent = 'Extrair transcri√ß√£o';
       const spinner = document.getElementById('yt-spinner');
       if (spinner) spinner.remove();
     }
@@ -1641,14 +1640,14 @@ function renderStep2Livre(container) {
     };
 
     errorEl.textContent = '';
-    setProgress(true, 'Extraindo conte˙do do arquivoÖ', 10);
+    setProgress(true, 'Extraindo conte√∫do do arquivo‚Ä¶', 10);
 
     try {
       const extracted = await extractTextFromFile(file, ({ percent, label, loading }) => {
-        setProgress(true, label || 'Extraindo conte˙do do arquivoÖ', percent ?? 0, !!loading);
+        setProgress(true, label || 'Extraindo conte√∫do do arquivo‚Ä¶', percent ?? 0, !!loading);
       });
 
-      if (!extracted || !extracted.trim()) throw new Error('N„o foi possÌvel extrair texto deste arquivo.');
+      if (!extracted || !extracted.trim()) throw new Error('N√£o foi poss√≠vel extrair texto deste arquivo.');
 
       let finalText = extracted.trim();
       const wasTruncated = finalText.length > MAX_EXTRACTED_CHARS;
@@ -1661,7 +1660,7 @@ function renderStep2Livre(container) {
       freeTextArea.value = finalText;
       updateCounter();
       updateNavButtons();
-      showToast(`Texto extraÌdo com sucesso! (${formatChars(finalText.length)} caracteres)`);
+      showToast(`Texto extra√≠do com sucesso! (${formatChars(finalText.length)} caracteres)`);
       setProgress(false, '', 0);
     } catch (error) {
       setProgress(false, '', 0);
@@ -1675,7 +1674,7 @@ function getFileExtension(fileName = '') {
   return parts.length > 1 ? parts.pop() : '';
 }
 
-function loadScriptOnce(urls, id, libLabel = 'biblioteca de extraÁ„o') {
+function loadScriptOnce(urls, id, libLabel = 'biblioteca de extra√ß√£o') {
   const candidates = Array.isArray(urls) ? urls : [urls];
   if (scriptPromises[id]) return scriptPromises[id];
   scriptPromises[id] = new Promise((resolve, reject) => {
@@ -1683,7 +1682,7 @@ function loadScriptOnce(urls, id, libLabel = 'biblioteca de extraÁ„o') {
     let idx = 0;
     const tryNext = () => {
       const url = candidates[idx++];
-      if (!url) return reject(new Error(`Falha ao carregar ${libLabel}. Verifique sua conex„o e tente novamente.`));
+      if (!url) return reject(new Error(`Falha ao carregar ${libLabel}. Verifique sua conex√£o e tente novamente.`));
       const script = document.createElement('script');
       script.src = url;
       script.async = true;
@@ -1704,18 +1703,18 @@ async function extractTextFromFile(file, onProgress = () => {}) {
   const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(extension) || file.type.startsWith('image/');
 
   if (extension === 'txt' || extension === 'md' || file.type === 'text/plain' || file.type === 'text/markdown') {
-    onProgress({ percent: 45, label: 'Lendo arquivo de textoÖ' });
+    onProgress({ percent: 45, label: 'Lendo arquivo de texto‚Ä¶' });
     return file.text();
   }
 
   if (extension === 'pdf' || file.type === 'application/pdf') {
-    onProgress({ percent: 20, label: 'Carregando leitor de PDFÖ' });
+    onProgress({ percent: 20, label: 'Carregando leitor de PDF‚Ä¶' });
     await loadScriptOnce([
       'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
       'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     ], 'pdfjs-lib', 'o leitor de PDF');
-    if (!window.pdfjsLib) throw new Error('Leitor de PDF indisponÌvel no momento.');
+    if (!window.pdfjsLib) throw new Error('Leitor de PDF indispon√≠vel no momento.');
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
     const bytes = await file.arrayBuffer();
     let pdf;
@@ -1730,11 +1729,11 @@ async function extractTextFromFile(file, onProgress = () => {}) {
       const page = await pdf.getPage(pageNum);
       const content = await page.getTextContent();
       collected += `${content.items.map(item => item.str).join(' ')}\n`;
-      onProgress({ percent: 20 + Math.round((pageNum / pdf.numPages) * 70), label: 'Extraindo texto do PDFÖ' });
+      onProgress({ percent: 20 + Math.round((pageNum / pdf.numPages) * 70), label: 'Extraindo texto do PDF‚Ä¶' });
     }
     if (!collected.trim()) {
       if (!window.Tesseract) {
-        onProgress({ percent: 15, label: 'Carregando OCR para PDF escaneadoÖ', loading: true });
+        onProgress({ percent: 15, label: 'Carregando OCR para PDF escaneado‚Ä¶', loading: true });
         await loadScriptOnce([
           'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
           'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
@@ -1754,7 +1753,7 @@ async function extractTextFromFile(file, onProgress = () => {}) {
 
         onProgress({
           percent: 20 + Math.round((pageNum / pdf.numPages) * 70),
-          label: `PDF escaneado detectado: OCR da p·gina ${pageNum}/${pdf.numPages}Ö`,
+          label: `PDF escaneado detectado: OCR da p√°gina ${pageNum}/${pdf.numPages}‚Ä¶`,
           loading: true,
         });
 
@@ -1763,7 +1762,7 @@ async function extractTextFromFile(file, onProgress = () => {}) {
       }
 
       if (!ocrCollected.trim()) {
-        throw new Error('N„o foi possÌvel extrair texto deste PDF escaneado. Tente enviar imagens com melhor qualidade ou colar o texto manualmente.');
+        throw new Error('N√£o foi poss√≠vel extrair texto deste PDF escaneado. Tente enviar imagens com melhor qualidade ou colar o texto manualmente.');
       }
       return ocrCollected;
     }
@@ -1771,33 +1770,33 @@ async function extractTextFromFile(file, onProgress = () => {}) {
   }
 
   if (extension === 'docx' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-    onProgress({ percent: 20, label: 'Carregando leitor de DOCXÖ' });
+    onProgress({ percent: 20, label: 'Carregando leitor de DOCX‚Ä¶' });
     await loadScriptOnce([
       'https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js',
       'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js',
     ], 'mammoth-lib', 'o leitor de DOCX');
-    if (!window.mammoth) throw new Error('Leitor de DOCX indisponÌvel no momento.');
+    if (!window.mammoth) throw new Error('Leitor de DOCX indispon√≠vel no momento.');
     const buffer = await file.arrayBuffer();
     const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
-    onProgress({ percent: 90, label: 'Finalizando extraÁ„o do DOCXÖ' });
+    onProgress({ percent: 90, label: 'Finalizando extra√ß√£o do DOCX‚Ä¶' });
     return result.value || '';
   }
 
   if (isImage) {
     if (!window.Tesseract) {
-      onProgress({ percent: 15, label: 'Realizando OCR na imagemÖ', loading: true });
+      onProgress({ percent: 15, label: 'Realizando OCR na imagem‚Ä¶', loading: true });
       await loadScriptOnce([
         'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
         'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
       ], 'tesseract-lib', 'o OCR (Tesseract)');
     }
-    onProgress({ percent: 30, label: 'Realizando OCR na imagemÖ', loading: true });
+    onProgress({ percent: 30, label: 'Realizando OCR na imagem‚Ä¶', loading: true });
     const result = await window.Tesseract.recognize(file, 'por+eng', {
       logger: message => {
         if (message?.status === 'recognizing text') {
           onProgress({
             percent: 30 + Math.round((message.progress || 0) * 65),
-            label: 'Realizando OCR na imagemÖ',
+            label: 'Realizando OCR na imagem‚Ä¶',
             loading: true,
           });
         }
@@ -1806,7 +1805,7 @@ async function extractTextFromFile(file, onProgress = () => {}) {
     return result?.data?.text || '';
   }
 
-  throw new Error('Formato de arquivo n„o suportado para extraÁ„o.');
+  throw new Error('Formato de arquivo n√£o suportado para extra√ß√£o.');
 }
 
 async function callWorkerAndRender() {
@@ -1817,7 +1816,7 @@ async function callWorkerAndRender() {
   errScreen.classList.remove('visible');
   qContainer.classList.remove('visible');
 
-  // Resolve banca efetiva: se foco manual definido, usa ele; sen„o usa banca inferida do concurso
+  // Resolve banca efetiva: se foco manual definido, usa ele; sen√£o usa banca inferida do concurso
   const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto')
     ? state.bancaFoco
     : state.bancaInferida;
@@ -1849,7 +1848,7 @@ async function callWorkerAndRender() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
-    if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma quest„o retornada. Tente ajustar o tÛpico.');
+    if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma quest√£o retornada. Tente ajustar o t√≥pico.');
     state.generatedQuestions = data.questions;
     state.answered = 0; state.correct = 0;
     genScreen.classList.add('hidden');
@@ -1882,10 +1881,10 @@ function renderQuestions(questions) {
     ? state.bancaFoco
     : state.bancaInferida;
 
-  const idiomaLabel = { 'pt-BR': 'PortuguÍs (BR)', 'en': 'English (EN)', 'es': 'EspaÒol (ES)' };
+  const idiomaLabel = { 'pt-BR': 'Portugu√™s (BR)', 'en': 'English (EN)', 'es': 'Espa√±ol (ES)' };
   chips.innerHTML = `
-    <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> F·cil',medium:'<span class="dot" style="background:#D4A827"></span> MÈdio',hard:'<span class="dot" style="background:#c0392b"></span> DifÌcil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
-    <div class="chip">${questions.length} Questıes</div>
+    <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> F√°cil',medium:'<span class="dot" style="background:#D4A827"></span> M√©dio',hard:'<span class="dot" style="background:#c0392b"></span> Dif√≠cil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
+    <div class="chip">${questions.length} Quest√µes</div>
     <div class="chip">${state.alternativas} alternativas</div>
     <div class="chip">${idiomaLabel[state.idioma] || state.idioma}</div>
     <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
@@ -1897,7 +1896,7 @@ function renderQuestions(questions) {
     card.className = 'question-card';
     card.id = `q-${idx}`;
     card.innerHTML = `
-      <div class="question-number">Quest„o ${idx + 1}</div>
+      <div class="question-number">Quest√£o ${idx + 1}</div>
       <div class="question-statement">${q.statement}</div>
       <div class="options-list">
         ${(q.options || []).map(opt => `
@@ -1972,7 +1971,7 @@ function showSessionResult() {
   const total = state.generatedQuestions.length;
   const correct = state.correct;
   const wrong = total - correct;
-  stats.textContent = `VocÍ respondeu ${total} questıes: ${correct} acertos e ${wrong} erros.`;
+  stats.textContent = `Voc√™ respondeu ${total} quest√µes: ${correct} acertos e ${wrong} erros.`;
   if (wrong > 0) retryWrongBtn.classList.remove('hidden');
   else retryWrongBtn.classList.add('hidden');
   resultBox.classList.remove('hidden');
@@ -1991,5 +1990,4 @@ document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
-
 
