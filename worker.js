@@ -16,35 +16,6 @@ const GROQ_MODELS = [
   'gemma2-9b-it',
 ];
 
-const INVIDIOUS_FALLBACK = [
-  'https://yewtu.be',
-  'https://inv.nadeko.net',
-  'https://invidious.nerdvpn.de',
-];
-
-async function getInvidiousInstances() {
-  try {
-    const res = await fetch('https://api.invidious.io/instances.json?sort_by=health', {
-      headers: { 'User-Agent': 'StudyMaster/1.0' },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return INVIDIOUS_FALLBACK;
-    const data = await res.json();
-    const instances = data
-      .filter(([, info]) =>
-        info?.api === true &&
-        info?.uri?.startsWith('https://') &&
-        !info?.uri?.includes('.onion') &&
-        !info?.uri?.includes('.i2p')
-      )
-      .map(([, info]) => info.uri.replace(/\/$/, ''))
-      .slice(0, 8);
-    return instances.length > 0 ? instances : INVIDIOUS_FALLBACK;
-  } catch {
-    return INVIDIOUS_FALLBACK;
-  }
-}
-
 const AREA_MAP_VECTORIZE = {
   'Direito': null,
   'constitucional': 'constitucional',
@@ -205,59 +176,8 @@ function extractJsonFromText(text) {
   return t;
 }
 
-// ─── Parsers de legenda ────────────────────────────────────────────────────────
-function parseSubtitleContent(raw) {
-  if (!raw || typeof raw !== 'string') return [];
-  const trimmed = raw.trim();
+// ─── YouTube Transcript via timedtext (sem chave de API) ──────────────────────
 
-  // JSON (alguns frontends retornam assim)
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      const items = Array.isArray(parsed) ? parsed : (parsed.captions || parsed.transcript || parsed.segments || []);
-      return items.map(i => (i.text || i.content || i.line || '')).filter(Boolean);
-    } catch { /* continua */ }
-  }
-
-  // Formato XML/TTML
-  if (trimmed.startsWith('<')) {
-    const xmlMatches = [...trimmed.matchAll(/<(?:text|p)[^>]*>([\s\S]*?)<\/(?:text|p)>/gi)];
-    if (xmlMatches.length > 0) {
-      return xmlMatches
-        .map(m => m[1]
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-          .replace(/\s+/g, ' ').trim()
-        )
-        .filter(Boolean);
-    }
-    // Fallback XML genérico
-    const stripped = trimmed.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    return stripped.length > 10 ? [stripped] : [];
-  }
-
-  // Formato VTT / SRT
-  const lines = trimmed.split(/\r?\n/);
-  const textLines = lines.filter(line => {
-    const l = line.trim();
-    if (!l) return false;
-    if (l.startsWith('WEBVTT') || l.startsWith('NOTE') || l.startsWith('STYLE')) return false;
-    if (/^\d+$/.test(l)) return false;
-    if (/-->/.test(l)) return false;
-    if (/^\[.+\]$/.test(l)) return false;
-    return true;
-  });
-
-  return textLines
-    .map(l => l
-      .replace(/<[^>]+>/g, '')
-      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-      .trim()
-    )
-    .filter(Boolean);
-}
-
-// ─── YouTube Transcript ────────────────────────────────────────────────────────────
 function extractYouTubeVideoId(url) {
   try {
     const u = new URL(url.trim());
@@ -271,88 +191,108 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
+/**
+ * Extrai transcrição diretamente do endpoint timedtext do YouTube.
+ * Não precisa de chave de API. Funciona com legendas automáticas e manuais.
+ */
 async function fetchYouTubeTranscript(videoId) {
   const MAX_TRANSCRIPT_CHARS = 30000;
-  const instances = await getInvidiousInstances();
-  let lastError = 'Nenhuma instância disponível.';
-  let noCaption = false;
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-  for (const instance of instances) {
-    try {
-      const captionsRes = await fetch(`${instance}/api/v1/captions/${videoId}`, {
-        headers: { 'User-Agent': 'StudyMaster/1.0' },
-        signal: AbortSignal.timeout(8000),
-      });
-
-      if (!captionsRes.ok) {
-        lastError = `Instância ${instance} retornou HTTP ${captionsRes.status}.`;
-        continue;
-      }
-
-      const captionsData = await captionsRes.json();
-      const captions = captionsData?.captions;
-
-      if (!captions || captions.length === 0) {
-        noCaption = true;
-        lastError = 'Este vídeo não possui legendas disponíveis. Tente um vídeo com legendas ativadas.';
-        break;
-      }
-
-      const priority = ['pt-BR', 'pt', 'en'];
-      let chosen = null;
-      for (const lang of priority) {
-        chosen = captions.find(c => c.languageCode === lang) || null;
-        if (chosen) break;
-      }
-      if (!chosen) chosen = captions[0];
-
-      if (!chosen?.url) {
-        lastError = 'URL da legenda inválida nesta instância.';
-        continue;
-      }
-
-      const legendaUrl = chosen.url.startsWith('http') ? chosen.url : `${instance}${chosen.url}`;
-
-      const legendaRes = await fetch(legendaUrl, {
-        headers: { 'User-Agent': 'StudyMaster/1.0' },
-        signal: AbortSignal.timeout(8000),
-      });
-
-      if (!legendaRes.ok) {
-        lastError = `Falha ao baixar legenda (HTTP ${legendaRes.status}) em ${instance}.`;
-        continue;
-      }
-
-      const rawContent = await legendaRes.text();
-      const segments = parseSubtitleContent(rawContent);
-
-      if (!segments.length) {
-        lastError = `Legenda vazia em ${instance}. Tentando próxima...`;
-        continue;
-      }
-
-      const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
-      let text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
-      const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
-      if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
-
-      return {
-        text,
-        videoId,
-        lang: chosen.languageCode || 'desconhecido',
-        isAuto: chosen.label?.toLowerCase().includes('auto') || false,
-        truncated: wasTruncated,
-        charCount: text.length,
-        source: instance,
-      };
-
-    } catch (err) {
-      lastError = err.message;
-    }
+  // 1. Busca a página do vídeo para extrair o playerResponse (contém lista de legendas)
+  const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  let pageHtml;
+  try {
+    const pageRes = await fetch(pageUrl, {
+      headers: {
+        'User-Agent': UA,
+        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!pageRes.ok) throw new Error(`YouTube retornou HTTP ${pageRes.status}`);
+    pageHtml = await pageRes.text();
+  } catch (e) {
+    throw new Error(`Não foi possível acessar o vídeo: ${e.message}`);
   }
 
-  if (noCaption) throw new Error(lastError);
-  throw new Error(`Não foi possível obter a transcrição. ${lastError} Verifique se o vídeo é público e possui legendas.`);
+  // 2. Extrai o JSON do ytInitialPlayerResponse
+  const match = pageHtml.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});(?:\s*var\s|\s*<\/script)/s);
+  if (!match) throw new Error('Não foi possível extrair dados do vídeo. O vídeo pode ser privado ou com restrição de idade.');
+
+  let playerResponse;
+  try {
+    playerResponse = JSON.parse(match[1]);
+  } catch {
+    throw new Error('Erro ao processar dados do vídeo.');
+  }
+
+  // 3. Verifica se o vídeo está disponível
+  const status = playerResponse?.playabilityStatus?.status;
+  if (status && status !== 'OK') {
+    const reason = playerResponse?.playabilityStatus?.reason || status;
+    throw new Error(`Vídeo não disponível: ${reason}`);
+  }
+
+  // 4. Pega a lista de legendas
+  const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (captionTracks.length === 0) {
+    throw new Error('Este vídeo não possui legendas ou transcrição disponível. Tente um vídeo com legendas ativadas.');
+  }
+
+  // 5. Prioriza: pt-BR > pt > en > primeira disponível
+  const priority = ['pt-BR', 'pt', 'en'];
+  let chosen = null;
+  for (const lang of priority) {
+    chosen = captionTracks.find(t => t.languageCode === lang) || null;
+    if (chosen) break;
+  }
+  if (!chosen) chosen = captionTracks[0];
+
+  const baseUrl = chosen?.baseUrl;
+  if (!baseUrl) throw new Error('URL da legenda inválida.');
+
+  // 6. Busca o conteúdo XML da legenda
+  const transcriptUrl = `${baseUrl}&fmt=json3`; // formato JSON3 é mais simples de parsear
+  let transcriptData;
+  try {
+    const tRes = await fetch(transcriptUrl, {
+      headers: { 'User-Agent': UA },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!tRes.ok) throw new Error(`HTTP ${tRes.status}`);
+    transcriptData = await tRes.json();
+  } catch (e) {
+    throw new Error(`Falha ao baixar transcrição: ${e.message}`);
+  }
+
+  // 7. Extrai texto do formato JSON3
+  const events = transcriptData?.events || [];
+  const segments = events
+    .flatMap(e => e?.segs || [])
+    .map(s => (s?.utf8 || '').replace(/\n/g, ' ').trim())
+    .filter(s => s && s !== ' ');
+
+  // Remove duplicatas consecutivas
+  const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
+
+  if (!deduped.length) {
+    throw new Error('A transcrição do vídeo está vazia. Tente um vídeo diferente.');
+  }
+
+  let text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
+  const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
+  if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
+
+  return {
+    text,
+    videoId,
+    lang: chosen.languageCode || 'desconhecido',
+    isAuto: chosen.kind === 'asr',
+    truncated: wasTruncated,
+    charCount: text.length,
+    source: 'youtube.com (timedtext)',
+  };
 }
 
 // ─── Main fetch handler ────────────────────────────────────────────────────────
@@ -363,54 +303,7 @@ export default {
 
     const url = new URL(request.url);
 
-    // ── Rota DEBUG: inspeciona resposta bruta do Invidious ──────────────────────────
-    if (url.pathname.endsWith('/youtube-debug')) {
-      try {
-        const body = await request.json();
-        const videoId = extractYouTubeVideoId(body.youtubeUrl || '');
-        if (!videoId) return new Response(JSON.stringify({ error: 'URL inválida' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-        const instances = await getInvidiousInstances();
-        const debugResults = [];
-
-        for (const instance of instances.slice(0, 3)) { // testa 3 instâncias
-          const result = { instance, captionsStatus: null, captionsList: [], chosenUrl: null, rawContentSample: null, parsedCount: 0 };
-          try {
-            const r1 = await fetch(`${instance}/api/v1/captions/${videoId}`, {
-              headers: { 'User-Agent': 'StudyMaster/1.0' },
-              signal: AbortSignal.timeout(6000),
-            });
-            result.captionsStatus = r1.status;
-            if (r1.ok) {
-              const d = await r1.json();
-              result.captionsList = (d?.captions || []).map(c => ({ label: c.label, languageCode: c.languageCode, url: c.url }));
-              const chosen = d?.captions?.find(c => ['pt-BR','pt','en'].includes(c.languageCode)) || d?.captions?.[0];
-              if (chosen?.url) {
-                const legendaUrl = chosen.url.startsWith('http') ? chosen.url : `${instance}${chosen.url}`;
-                result.chosenUrl = legendaUrl;
-                const r2 = await fetch(legendaUrl, { headers: { 'User-Agent': 'StudyMaster/1.0' }, signal: AbortSignal.timeout(6000) });
-                result.legendaStatus = r2.status;
-                if (r2.ok) {
-                  const raw = await r2.text();
-                  result.rawContentSample = raw.slice(0, 800); // primeiros 800 chars
-                  result.rawLength = raw.length;
-                  result.parsedCount = parseSubtitleContent(raw).length;
-                }
-              }
-            }
-          } catch (e) { result.error = e.message; }
-          debugResults.push(result);
-        }
-
-        return new Response(JSON.stringify({ videoId, instances: instances.slice(0, 3), debugResults }, null, 2), {
-          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-    }
-
-    // ── Rota: /youtube-transcript ───────────────────────────────────────────────────
+    // ── Rota: /youtube-transcript ──────────────────────────────────────────────
     if (url.pathname === '/youtube-transcript' || url.pathname.endsWith('/youtube-transcript')) {
       try {
         const body = await request.json();
