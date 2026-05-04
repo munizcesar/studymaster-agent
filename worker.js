@@ -324,8 +324,14 @@ export default {
           status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message || 'Erro ao extrair transcrição.' }), {
-          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        const isBlocked = err.message.includes('HTTP 429') || err.message.includes('bloqueou a extração');
+        return new Response(JSON.stringify({ 
+          error: isBlocked 
+            ? 'O YouTube bloqueou a extração automática. Por favor, copie a transcrição manualmente.' 
+            : err.message || 'Erro ao extrair transcrição.',
+          isBlocked
+        }), {
+          status: isBlocked ? 429 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
