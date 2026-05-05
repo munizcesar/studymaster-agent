@@ -12,8 +12,8 @@ $graphics.Clear([System.Drawing.Color]::FromArgb(247, 246, 242))
 $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
     [System.Drawing.Point]::new(80, 120),
     [System.Drawing.Point]::new(280, 320),
-    [System.Drawing.Color]::FromArgb(1, 105, 111),
-    [System.Drawing.Color]::FromArgb(212, 168, 39)
+    [System.Drawing.Color]::FromArgb(91, 91, 214),
+    [System.Drawing.Color]::FromArgb(249, 115, 22)
 )
 $graphics.FillRectangle($brush, 80, 120, 200, 200)
 
@@ -40,7 +40,7 @@ $fontSmall = New-Object System.Drawing.Font('Arial', 34)
 # Cores
 $brushDark = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(40, 37, 29))
 $brushGray = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(107, 105, 101))
-$brushTeal = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(1, 105, 111))
+$brushTeal = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(91, 91, 214))
 
 # Textos
 $graphics.DrawString('StudyMaster', $fontBig, $brushTeal, 320, 95)
