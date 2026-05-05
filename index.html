@@ -602,6 +602,7 @@
     }
     .qf-option.selected {
       border-color: var(--color-primary);
+      background: rgba(91, 91, 214, 0.1);
       background: oklch(from var(--color-primary) l c h / 0.05);
     }
     .qf-option.selected .qf-option-letter {
@@ -612,6 +613,7 @@
     
     .qf-option.correct {
       border-color: var(--color-success) !important;
+      background: rgba(22, 163, 74, 0.1) !important;
       background: oklch(from var(--color-success) l c h / 0.08) !important;
     }
     .qf-option.correct .qf-option-letter {
@@ -622,6 +624,7 @@
     
     .qf-option.wrong {
       border-color: var(--color-error) !important;
+      background: rgba(220, 38, 38, 0.1) !important;
       background: oklch(from var(--color-error) l c h / 0.07) !important;
       opacity: 0.85;
     }
@@ -2477,11 +2480,11 @@ function renderQFQuestion(idx) {
         } else if (selectedKey === opt.key) {
           extClass = ' selected';
         }
-        return \`
-        <button class="qf-option\${extClass}" data-key="\${opt.key}" \${hasAnswered ? 'disabled' : ''}>
-          <span class="qf-option-letter">\${letter}</span>
-          <span>\${opt.text}</span>
-        </button>\`;
+        return `
+        <button class="qf-option${extClass}" data-key="${opt.key}" ${hasAnswered ? 'disabled' : ''}>
+          <span class="qf-option-letter">${letter}</span>
+          <span>${opt.text}</span>
+        </button>`;
       }).join('')}
     </div>
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
@@ -2494,18 +2497,19 @@ function renderQFQuestion(idx) {
 
   if (!hasAnswered) {
     const opts = wrap.querySelectorAll('.qf-option');
-    const resBtn = document.getElementById(`qf-res-${idx}`);
+    const resBtn = wrap.querySelector('.qf-resolver-btn');
     opts.forEach(btn => {
       btn.addEventListener('click', () => {
         if (qfState.results[idx] !== null) return;
         opts.forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         qfState.selected[idx] = btn.dataset.key;
-        resBtn.disabled = false;
+        if (resBtn) resBtn.disabled = false;
       });
     });
 
-    resBtn.addEventListener('click', () => {
+    if (resBtn) {
+      resBtn.addEventListener('click', () => {
       const sKey = qfState.selected[idx];
       if (!sKey) return;
       const correct = sKey === q.correctAnswer;
@@ -2529,6 +2533,7 @@ function renderQFQuestion(idx) {
         if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }, 100);
     });
+    }
   }
 }
 function renderQFResult() {
