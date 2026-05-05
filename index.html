@@ -313,8 +313,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: var(--color-bg);
       border: 1.5px solid var(--color-border);
@@ -687,8 +688,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: var(--color-bg);
       border: 1px solid var(--color-border);
@@ -2368,6 +2370,10 @@ async function callWorkerAndRender() {
     state.answered = 0; state.correct = 0;
     genScreen.classList.add('hidden');
     renderQuestions(data.questions);
+    // No mobile, entra automaticamente no Modo Foco
+    if (window.innerWidth < 768) {
+      setTimeout(openFullscreen, 200);
+    }
   } catch (err) {
     showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
   }
