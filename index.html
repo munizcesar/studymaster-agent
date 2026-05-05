@@ -464,99 +464,96 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: var(--color-bg);
-      border-bottom: 1px solid var(--color-divider);
-      padding: var(--space-3) var(--space-6);
+      background: var(--grad-brand);
+      color: white;
+      padding: var(--space-3) var(--space-4);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: var(--space-4);
+      box-shadow: var(--shadow-sm);
     }
     .qf-header-left {
       display: flex;
       align-items: center;
       gap: var(--space-3);
       min-width: 0;
+      flex: 1;
     }
     .qf-exit-btn {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-2);
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-md);
-      color: var(--color-text-muted);
-      font-size: var(--text-sm);
-      font-weight: 600;
-      transition: background var(--transition), color var(--transition);
-      white-space: nowrap;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      color: white;
+      background: rgba(255, 255, 255, 0.15);
+      transition: background var(--transition);
+      flex-shrink: 0;
     }
     .qf-exit-btn:hover {
-      background: var(--color-surface-offset);
-      color: var(--color-text);
+      background: rgba(255, 255, 255, 0.25);
     }
     .qf-subject-label {
-      font-size: var(--text-sm);
+      font-size: var(--text-base);
       font-weight: 700;
-      color: var(--color-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .qf-progress-track {
-      flex: 1;
-      height: 6px;
-      background: var(--color-divider);
-      border-radius: var(--radius-full);
-      overflow: hidden;
-      max-width: 320px;
-    }
-    .qf-progress-fill {
-      height: 100%;
-      background: var(--grad-brand);
-      border-radius: var(--radius-full);
-      transition: width 0.4s ease;
-      width: 0%;
-    }
-    .qf-score-pill {
-      display: inline-flex;
+    .qf-header-right {
+      display: flex;
       align-items: center;
-      gap: var(--space-2);
-      padding: var(--space-1) var(--space-3);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-full);
-      font-size: var(--text-sm);
-      font-weight: 700;
-      white-space: nowrap;
     }
-    .qf-correct-count { color: var(--color-success); }
-    .qf-wrong-count   { color: var(--color-error); }
+    .qf-filter-btn {
+      color: white;
+      background: rgba(255,255,255,0.15);
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    
     .qf-body {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: var(--space-8) var(--space-4);
-      gap: var(--space-6);
+      padding: 0;
       width: 100%;
     }
     .qf-question-wrap {
       width: 100%;
       max-width: 720px;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-8);
-      box-shadow: var(--shadow-md);
+      background: var(--color-bg); /* Clean bg on mobile */
+      padding: var(--space-4);
+      padding-bottom: 120px; /* space for bottom bar */
     }
-    .qf-question-num {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--color-primary);
-      margin-bottom: var(--space-3);
+    @media (min-width: 768px) {
+      .qf-body { padding: var(--space-8) var(--space-4); }
+      .qf-question-wrap {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        padding-bottom: var(--space-10);
+        box-shadow: var(--shadow-md);
+      }
     }
+    
+    .qf-metadata {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-6);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
+    }
+    .qf-metadata strong { color: var(--color-text); font-weight: 600; }
+    
     .qf-question-text {
       font-size: var(--text-lg);
       font-weight: 600;
@@ -564,6 +561,7 @@
       margin-bottom: var(--space-6);
       color: var(--color-text);
     }
+    
     .qf-options {
       display: flex;
       flex-direction: column;
@@ -571,52 +569,110 @@
     }
     .qf-option {
       display: flex;
-      align-items: flex-start;
-      gap: var(--space-3);
+      align-items: center;
+      gap: var(--space-4);
       width: 100%;
-      padding: var(--space-4) var(--space-5);
-      background: var(--color-bg);
-      border: 2px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface-offset);
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
       text-align: left;
       font-size: var(--text-base);
       font-family: inherit;
       color: var(--color-text);
       cursor: pointer;
-      transition: border-color var(--transition), background var(--transition), transform 120ms ease;
+      transition: all var(--transition);
+    }
+    .qf-option-letter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      transition: all var(--transition);
     }
     .qf-option:hover:not(:disabled) {
+      border-color: var(--color-primary-mid);
+    }
+    .qf-option.selected {
       border-color: var(--color-primary);
       background: oklch(from var(--color-primary) l c h / 0.05);
-      transform: translateY(-1px);
     }
-    .qf-option-key {
-      font-weight: 800;
-      min-width: 22px;
-      color: var(--color-primary);
+    .qf-option.selected .qf-option-letter {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
     }
+    
     .qf-option.correct {
-      border-color: var(--color-success);
-      background: oklch(from var(--color-success) l c h / 0.08);
-      color: var(--color-success);
+      border-color: var(--color-success) !important;
+      background: oklch(from var(--color-success) l c h / 0.08) !important;
     }
+    .qf-option.correct .qf-option-letter {
+      background: var(--color-success) !important;
+      color: white !important;
+      border-color: var(--color-success) !important;
+    }
+    
     .qf-option.wrong {
-      border-color: var(--color-error);
-      background: oklch(from var(--color-error) l c h / 0.07);
-      color: var(--color-error);
+      border-color: var(--color-error) !important;
+      background: oklch(from var(--color-error) l c h / 0.07) !important;
       opacity: 0.85;
     }
+    .qf-option.wrong .qf-option-letter {
+      background: var(--color-error) !important;
+      color: white !important;
+      border-color: var(--color-error) !important;
+    }
+    
     .qf-option:disabled { cursor: default; transform: none; }
+    
+    .qf-resolver-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: var(--space-3);
+      margin-top: var(--space-6);
+      background: var(--color-accent);
+      color: white;
+      font-weight: 700;
+      font-size: var(--text-base);
+      border-radius: var(--radius-md);
+      transition: all var(--transition);
+      box-shadow: 0 4px 12px oklch(from var(--color-accent) l c h / 0.25);
+      border: none;
+      cursor: pointer;
+    }
+    .qf-resolver-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .qf-resolver-btn:disabled {
+      background: var(--color-divider);
+      color: var(--color-text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .qf-resolver-btn.hidden { display: none; }
+    
     .qf-explanation {
       display: none;
       margin-top: var(--space-5);
       padding: var(--space-4);
-      background: oklch(from var(--color-primary) l c h / 0.06);
-      border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+      background: oklch(from var(--color-success) l c h / 0.08);
+      border: 1px solid oklch(from var(--color-success) l c h / 0.2);
       border-radius: var(--radius-md);
       font-size: var(--text-sm);
       line-height: 1.65;
       color: var(--color-text-muted);
+      animation: fadeIn 0.3s ease;
     }
     .qf-explanation.visible { display: block; }
     .qf-explanation strong { color: var(--color-text); }
@@ -703,6 +759,48 @@
       transition: all var(--transition);
     }
     .qf-btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .qf-bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+      box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05);
+    }
+    .qf-bb-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      color: var(--color-text-muted);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      transition: background var(--transition), color var(--transition);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    .qf-bb-btn:hover:not(:disabled) {
+      background: var(--color-surface-offset);
+      color: var(--color-text);
+    }
+    .qf-bb-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .qf-bb-status {
+      font-weight: 700;
+      font-size: var(--text-sm);
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      background: var(--color-bg);
+    }
+    
     @media (max-width: 600px) {
       .qf-question-wrap, .qf-result-card { padding: var(--space-5); border-radius: var(--radius-lg); }
       .qf-header { padding: var(--space-3) var(--space-4); }
@@ -718,20 +816,22 @@
     <header class="qf-header">
       <div class="qf-header-left">
         <button class="qf-exit-btn" id="qf-exit-btn" aria-label="Sair do modo fullscreen">
-          <i data-lucide="x" width="16" height="16"></i> Sair
+          <i data-lucide="chevron-left" width="20" height="20"></i>
         </button>
         <span class="qf-subject-label" id="qf-subject-label"></span>
       </div>
-      <div class="qf-progress-track">
-        <div class="qf-progress-fill" id="qf-progress-fill"></div>
-      </div>
-      <div class="qf-score-pill">
-        <span class="qf-correct-count" id="qf-correct">0✓</span>
-        <span style="color:var(--color-divider)">|</span>
-        <span class="qf-wrong-count" id="qf-wrong">0✗</span>
+      <div class="qf-header-right">
+        <button class="qf-filter-btn">
+          <i data-lucide="filter" width="16" height="16"></i>
+        </button>
       </div>
     </header>
     <div class="qf-body" id="qf-body"></div>
+    <div class="qf-bottom-bar" id="qf-bottom-bar" style="display:none">
+      <button class="qf-bb-btn" id="qf-prev-btn"><i data-lucide="chevron-left" width="16" height="16"></i> Anterior</button>
+      <div class="qf-bb-status" id="qf-bb-status">Questão 1 de 10</div>
+      <button class="qf-bb-btn" id="qf-next-btn">Próximo <i data-lucide="chevron-right" width="16" height="16"></i></button>
+    </div>
   </div>
 
   <a href="#wizard" class="skip-link">Pular para o configurador</a>
@@ -2305,16 +2405,14 @@ const qfSubLabel  = document.getElementById('qf-subject-label');
 const qfProgFill  = document.getElementById('qf-progress-fill');
 const qfCorrectEl = document.getElementById('qf-correct');
 const qfWrongEl   = document.getElementById('qf-wrong');
-let qfState = { questions: [], answered: 0, correct: 0, wrong: 0, results: [] };
+let qfState = { questions: [], answered: 0, correct: 0, wrong: 0, results: [], selected: [] };
 function openFullscreen() {
   const qs = state.generatedQuestions;
   if (!qs || !qs.length) return;
-  qfState = { questions: [...qs], answered: 0, correct: 0, wrong: 0, results: new Array(qs.length).fill(null) };
+  qfState = { questions: [...qs], answered: 0, correct: 0, wrong: 0, results: new Array(qs.length).fill(null), selected: new Array(qs.length).fill(null) };
   qfSubLabel.textContent = state.mode === 'academic' ? (state.topic || state.subject || '') : (state.concurso?.label || 'Livre');
-  qfCorrectEl.textContent = '0✓';
-  qfWrongEl.textContent   = '0✗';
-  qfProgFill.style.width  = '0%';
   qfBody.innerHTML = '';
+  document.getElementById('qf-bottom-bar').style.display = 'flex';
   renderQFQuestion(0);
   qfOverlay.classList.add('active');
   document.body.style.overflow = 'hidden';
@@ -2327,62 +2425,114 @@ function closeFullscreen() {
 function renderQFQuestion(idx) {
   const q = qfState.questions[idx];
   if (!q) return renderQFResult();
+  
+  // Setup bottom bar
+  const bb = document.getElementById('qf-bottom-bar');
+  bb.style.display = 'flex';
+  document.getElementById('qf-bb-status').textContent = `Questão ${idx + 1} de ${qfState.questions.length}`;
+  
+  const prevBtn = document.getElementById('qf-prev-btn');
+  const nextBtn = document.getElementById('qf-next-btn');
+  
+  prevBtn.disabled = idx === 0;
+  prevBtn.onclick = () => renderQFQuestion(idx - 1);
+  
+  nextBtn.disabled = false;
+  if (idx + 1 >= qfState.questions.length) {
+    nextBtn.innerHTML = 'Finalizar <i data-lucide="flag" width="16" height="16"></i>';
+    nextBtn.onclick = () => renderQFResult();
+  } else {
+    nextBtn.innerHTML = 'Próximo <i data-lucide="chevron-right" width="16" height="16"></i>';
+    nextBtn.onclick = () => renderQFQuestion(idx + 1);
+  }
+
   const wrap = document.createElement('div');
   wrap.className = 'qf-question-wrap';
+  
+  // Metadata
+  const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto') ? state.bancaFoco : state.bancaInferida;
+  const difLabel = {easy:'Fácil', medium:'Médio', hard:'Difícil', extreme:'Extremo'}[state.difficulty];
+  const topicLabel = state.topic || state.subject || 'Geral';
+  
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+  const hasAnswered = qfState.results[idx] !== null;
+  const selectedKey = qfState.selected[idx];
+
   wrap.innerHTML = `
-    <div class="qf-question-num">Questão ${idx + 1} de ${qfState.questions.length}</div>
+    <div class="qf-metadata">
+      <span><strong>Banca:</strong> ${bancaEfetiva || 'Não especificada'}</span>
+      <span>•</span>
+      <span><strong>Dificuldade:</strong> ${difLabel || 'Variada'}</span>
+      <span>•</span>
+      <span><strong>Assunto:</strong> ${topicLabel}</span>
+    </div>
     <div class="qf-question-text">${q.statement}</div>
     <div class="qf-options" id="qf-opts-${idx}">
-      ${(q.options || []).map(opt => `
-        <button class="qf-option" data-key="${opt.key}">
-          <span class="qf-option-key">${opt.key}</span>
-          <span>${opt.text}</span>
-        </button>`).join('')}
+      ${(q.options || []).map((opt, oIdx) => {
+        const letter = letters[oIdx] || opt.key;
+        let extClass = '';
+        if (hasAnswered) {
+          if (opt.key === q.correctAnswer) extClass = ' correct';
+          else if (opt.key === selectedKey && opt.key !== q.correctAnswer) extClass = ' wrong';
+        } else if (selectedKey === opt.key) {
+          extClass = ' selected';
+        }
+        return \`
+        <button class="qf-option\${extClass}" data-key="\${opt.key}" \${hasAnswered ? 'disabled' : ''}>
+          <span class="qf-option-letter">\${letter}</span>
+          <span>\${opt.text}</span>
+        </button>\`;
+      }).join('')}
     </div>
-    <div class="qf-explanation" id="qf-exp-${idx}">
-      <strong>Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+    <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
+    <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
+      <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
     </div>`;
   qfBody.innerHTML = '';
   qfBody.appendChild(wrap);
   lucide.createIcons();
-  wrap.querySelectorAll('.qf-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (wrap.dataset.answered) return;
-      wrap.dataset.answered = '1';
-      const key = btn.dataset.key;
-      const correct = key === q.correctAnswer;
+
+  if (!hasAnswered) {
+    const opts = wrap.querySelectorAll('.qf-option');
+    const resBtn = document.getElementById(`qf-res-${idx}`);
+    opts.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (qfState.results[idx] !== null) return;
+        opts.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        qfState.selected[idx] = btn.dataset.key;
+        resBtn.disabled = false;
+      });
+    });
+
+    resBtn.addEventListener('click', () => {
+      const sKey = qfState.selected[idx];
+      if (!sKey) return;
+      const correct = sKey === q.correctAnswer;
       qfState.results[idx] = correct;
       qfState.answered++;
       if (correct) { qfState.correct++; incrementCorrectToday(); } else { qfState.wrong++; incrementWrongToday(); }
       incrementTodayCount(1);
-      wrap.querySelectorAll('.qf-option').forEach(b => {
+      
+      opts.forEach(b => {
         b.disabled = true;
+        b.classList.remove('selected');
         if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
-        else if (b.dataset.key === key && !correct) b.classList.add('wrong');
+        else if (b.dataset.key === sKey && !correct) b.classList.add('wrong');
       });
+      resBtn.classList.add('hidden');
       document.getElementById(`qf-exp-${idx}`).classList.add('visible');
-      qfCorrectEl.textContent = `${qfState.correct}✓`;
-      qfWrongEl.textContent   = `${qfState.wrong}✗`;
-      qfProgFill.style.width  = `${(qfState.answered / qfState.questions.length) * 100}%`;
       if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'qf-btn-primary';
-      nextBtn.style.marginTop = 'var(--space-5)';
-      const isLast = idx + 1 >= qfState.questions.length;
-      nextBtn.innerHTML = isLast
-        ? '<i data-lucide="flag" width="16" height="16"></i> Ver Resultado'
-        : '<i data-lucide="arrow-right" width="16" height="16"></i> Próxima';
-      wrap.appendChild(nextBtn);
-      lucide.createIcons();
-      nextBtn.addEventListener('click', () => {
-        if (isLast) renderQFResult();
-        else renderQFQuestion(idx + 1);
-      });
-      qfBody.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      setTimeout(() => {
+        const exp = document.getElementById(`qf-exp-${idx}`);
+        if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
     });
-  });
+  }
 }
 function renderQFResult() {
+  document.getElementById('qf-bottom-bar').style.display = 'none';
   const total  = qfState.questions.length;
   const correct = qfState.correct;
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
