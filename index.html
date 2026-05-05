@@ -347,6 +347,59 @@
     .score-progress { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); margin: 0 var(--space-4); overflow: hidden; }
     .score-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
 
+    /* Navegação de questão única */
+    .q-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      margin-top: var(--space-5);
+      border-top: 1px solid var(--color-divider);
+    }
+    .q-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      background: var(--color-surface-offset);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-4);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .q-nav-btn:hover:not(:disabled) { background: var(--color-surface); color: var(--color-text); border-color: var(--color-primary); }
+    .q-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .q-nav-status {
+      font-weight: 700;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+    .q-resolver-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: var(--space-3);
+      margin-top: var(--space-5);
+      background: var(--color-accent);
+      color: white;
+      font-weight: 700;
+      font-size: var(--text-base);
+      font-family: inherit;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .q-resolver-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .q-resolver-btn:disabled { background: var(--color-divider); color: var(--color-text-muted); cursor: not-allowed; }
+    .q-resolver-btn.hidden { display: none; }
+
     .daily-perf {
       display: inline-flex;
       align-items: center;
@@ -2326,23 +2379,27 @@ function showError(msg) {
   document.getElementById('error-screen').classList.add('visible');
 }
 
+// Estado da navegação de questão única
+let qNavState = { currentIdx: 0, selected: [], results: [] };
+
 function renderQuestions(questions) {
   const container = document.getElementById('questions-container');
-  const list = document.getElementById('questions-list');
-  const chips = document.getElementById('summary-chips');
+  const chips     = document.getElementById('summary-chips');
   const sessionResult = document.getElementById('session-result');
   const retryWrongBtn = document.getElementById('retry-wrong-btn');
-  const scoreTotal = document.getElementById('score-total');
-  scoreTotal.textContent = questions.length;
-  state.answerResults = new Array(questions.length).fill(null);
+
+  qNavState = {
+    currentIdx: 0,
+    selected: new Array(questions.length).fill(null),
+    results:  new Array(questions.length).fill(null),
+  };
+  state.answerResults = qNavState.results;
+  state.answered = 0; state.correct = 0;
   sessionResult.classList.add('hidden');
   retryWrongBtn.classList.add('hidden');
   updateScore();
 
-  const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto')
-    ? state.bancaFoco
-    : state.bancaInferida;
-
+  const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto') ? state.bancaFoco : state.bancaInferida;
   const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
     <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
@@ -2352,77 +2409,127 @@ function renderQuestions(questions) {
     <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
     ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip"><i data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
 
-  list.innerHTML = '';
-  questions.forEach((q, idx) => {
-    const card = document.createElement('div');
-    card.className = 'question-card';
-    card.id = `q-${idx}`;
-    card.innerHTML = `
-      <div class="question-number">Questão ${idx + 1}</div>
-      <div class="question-statement">${q.statement}</div>
-      <div class="options-list">
-        ${(q.options || []).map(opt => `
-          <button class="option-btn" data-qidx="${idx}" data-key="${opt.key}">
-            <span class="option-key">${opt.key}</span>
-            <span>${opt.text}</span>
-          </button>`).join('')}
-      </div>
-      <div class="explanation-box" id="exp-${idx}">
-        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
-      </div>`;
-    list.appendChild(card);
-  });
-
-  list.querySelectorAll('.option-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const qIdx = parseInt(e.currentTarget.dataset.qidx);
-      const key = e.currentTarget.dataset.key;
-      handleAnswer(qIdx, key);
-    });
-  });
-
   retryWrongBtn.onclick = () => {
-    const wrongQuestions = state.generatedQuestions.filter((_, idx) => state.answerResults[idx] === false);
+    const wrongQuestions = state.generatedQuestions.filter((_, idx) => qNavState.results[idx] === false);
     if (!wrongQuestions.length) return;
     state.generatedQuestions = wrongQuestions;
-    state.answered = 0;
-    state.correct = 0;
-    state.answerResults = [];
+    state.answered = 0; state.correct = 0;
     renderQuestions(wrongQuestions);
   };
 
   container.classList.add('visible');
+  renderSingleQuestion(questions, 0);
   lucide.createIcons();
   scrollToWizard(100);
 }
 
-function handleAnswer(qIdx, selectedKey) {
-  const q = state.generatedQuestions[qIdx];
-  const card = document.getElementById(`q-${qIdx}`);
-  const btns = card.querySelectorAll('.option-btn');
-  const expBox = document.getElementById(`exp-${qIdx}`);
-  if (card.dataset.answered) return;
-  card.dataset.answered = '1';
+function renderSingleQuestion(questions, idx) {
+  const q   = questions[idx];
+  const list = document.getElementById('questions-list');
+  const total = questions.length;
+  const scoreTotal = document.getElementById('score-total');
+  scoreTotal.textContent = total;
+
+  const hasAnswered = qNavState.results[idx] !== null;
+  const selectedKey = qNavState.selected[idx];
+  const letters = ['A','B','C','D','E'];
+
+  list.innerHTML = `
+    <div class="question-card">
+      <div class="question-number">Questão ${idx + 1} de ${total}</div>
+      <div class="question-statement">${q.statement}</div>
+      <div class="options-list" id="qn-opts">
+        ${(q.options || []).map((opt, oIdx) => {
+          const letter = letters[oIdx] || opt.key;
+          let cls = '';
+          if (hasAnswered) {
+            if (opt.key === q.correctAnswer) cls = ' correct';
+            else if (opt.key === selectedKey && opt.key !== q.correctAnswer) cls = ' wrong';
+          } else if (selectedKey === opt.key) {
+            cls = ' selected';
+          }
+          return `<button class="option-btn${cls}" data-key="${opt.key}" ${hasAnswered ? 'disabled' : ''}>
+            <span class="option-key">${letter}</span><span>${opt.text}</span>
+          </button>`;
+        }).join('')}
+      </div>
+      <button class="q-resolver-btn${hasAnswered || !selectedKey ? '' : ''} ${hasAnswered ? 'hidden' : ''}" id="q-resolver" ${selectedKey ? '' : 'disabled'}>Resolver</button>
+      <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp">
+        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      </div>
+      <div class="q-nav-bar">
+        <button class="q-nav-btn" id="q-prev" ${idx === 0 ? 'disabled' : ''}>
+          <i data-lucide="chevron-left" width="16" height="16"></i> Anterior
+        </button>
+        <span class="q-nav-status">${idx + 1} / ${total}</span>
+        <button class="q-nav-btn" id="q-next">
+          ${idx + 1 === total
+            ? '<i data-lucide="flag" width="16" height="16"></i> Finalizar'
+            : 'Próximo <i data-lucide="chevron-right" width="16" height="16"></i>'}
+        </button>
+      </div>
+    </div>`;
+
+  lucide.createIcons();
+
+  // Seleção de alternativa
+  if (!hasAnswered) {
+    const opts   = list.querySelectorAll('.option-btn');
+    const resBtn = document.getElementById('q-resolver');
+    opts.forEach(btn => {
+      btn.addEventListener('click', () => {
+        opts.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        qNavState.selected[idx] = btn.dataset.key;
+        resBtn.disabled = false;
+      });
+    });
+
+    resBtn.addEventListener('click', () => {
+      const sKey = qNavState.selected[idx];
+      if (!sKey) return;
+      handleSingleAnswer(questions, idx, sKey);
+    });
+  }
+
+  // Navegação
+  document.getElementById('q-prev').addEventListener('click', () => {
+    if (idx > 0) { qNavState.currentIdx = idx - 1; renderSingleQuestion(questions, idx - 1); scrollToWizard(0); }
+  });
+  document.getElementById('q-next').addEventListener('click', () => {
+    if (idx + 1 < total) { qNavState.currentIdx = idx + 1; renderSingleQuestion(questions, idx + 1); scrollToWizard(0); }
+    else showSessionResult();
+  });
+}
+
+function handleSingleAnswer(questions, idx, selectedKey) {
+  const q = questions[idx];
   const isCorrect = selectedKey === q.correctAnswer;
-  state.answerResults[qIdx] = isCorrect;
+  qNavState.results[idx] = isCorrect;
+  state.answerResults[idx] = isCorrect;
   if (isCorrect) state.correct++;
   state.answered++;
   incrementTodayCount(1);
-  if (isCorrect) {
-    incrementCorrectToday();
-  } else {
-    incrementWrongToday();
-  }
-  btns.forEach(btn => {
-    btn.disabled = true;
-    if (btn.dataset.key === q.correctAnswer) btn.classList.add('correct');
-    else if (btn.dataset.key === selectedKey && !isCorrect) btn.classList.add('wrong');
-  });
-  expBox.classList.add('visible');
+  if (isCorrect) incrementCorrectToday(); else incrementWrongToday();
   updateScore();
-  if (state.answered === state.generatedQuestions.length) showSessionResult();
-  if (isCorrect) {
-    confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#01696f','#437a22','#d19900'] });
+
+  // Atualiza UI sem re-renderizar o card inteiro
+  const list = document.getElementById('questions-list');
+  const opts = list.querySelectorAll('.option-btn');
+  opts.forEach(b => {
+    b.disabled = true;
+    b.classList.remove('selected');
+    if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+    else if (b.dataset.key === selectedKey && !isCorrect) b.classList.add('wrong');
+  });
+  const resBtn = document.getElementById('q-resolver');
+  if (resBtn) resBtn.classList.add('hidden');
+  const expBox = document.getElementById('qn-exp');
+  if (expBox) expBox.classList.add('visible');
+
+  if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+  if (state.answered === questions.length) {
+    setTimeout(showSessionResult, 600);
   }
 }
 
