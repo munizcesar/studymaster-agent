@@ -20,14 +20,14 @@
       --color-text:           #28251d;
       --color-text-muted:     #7a7974;
       --color-text-faint:     #bab9b4;
-      --color-primary:        #01696f;
-      --color-primary-mid:    #00A7B2;
-      --color-primary-hover:  #0c4e54;
-      --color-accent:         #D4A827;
-      --color-success:        #437a22;
+      --color-primary:        #5B5BD6;
+      --color-primary-mid:    #7C3AED;
+      --color-primary-hover:  #4747C2;
+      --color-accent:         #F97316;
+      --color-success:        #16A34A;
       --color-error:          #c0392b;
-      --grad-brand: linear-gradient(135deg, #01696F 0%, #00A7B2 55%, #D4A827 100%);
-      --grad-brand-h: linear-gradient(135deg, #0c4e54 0%, #0090a0 55%, #b8911f 100%);
+      --grad-brand: linear-gradient(135deg, #5B5BD6 0%, #7C3AED 55%, #F97316 100%);
+      --grad-brand-h: linear-gradient(135deg, #4747C2 0%, #6D28D9 55%, #EA6C00 100%);
       --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
       --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
       --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
@@ -60,14 +60,14 @@
       --color-text:           #cdccca;
       --color-text-muted:     #797876;
       --color-text-faint:     #5a5957;
-      --color-primary:        #4f98a3;
-      --color-primary-mid:    #00c4d0;
-      --color-primary-hover:  #227f8b;
-      --color-accent:         #e0b84a;
-      --color-success:        #6daa45;
+      --color-primary:        #818CF8;
+      --color-primary-mid:    #A78BFA;
+      --color-primary-hover:  #6366F1;
+      --color-accent:         #FB923C;
+      --color-success:        #4ADE80;
       --color-error:          #e05a4a;
-      --grad-brand: linear-gradient(135deg, #4f98a3 0%, #00c4d0 55%, #e0b84a 100%);
-      --grad-brand-h: linear-gradient(135deg, #227f8b 0%, #00a8b4 55%, #c9a030 100%);
+      --grad-brand: linear-gradient(135deg, #818CF8 0%, #A78BFA 55%, #FB923C 100%);
+      --grad-brand-h: linear-gradient(135deg, #6366F1 0%, #8B5CF6 55%, #EA580C 100%);
       --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
       --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
       --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
@@ -446,9 +446,293 @@
     @media (max-width: 480px) {
       .daily-perf .daily-hoje { display: none; }
     }
+
+    /* ── Quiz Fullscreen Mode ── */
+    .quiz-fullscreen-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: var(--color-bg);
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .quiz-fullscreen-overlay.active {
+      display: flex;
+    }
+    .qf-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-divider);
+      padding: var(--space-3) var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    .qf-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+    .qf-exit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      transition: background var(--transition), color var(--transition);
+      white-space: nowrap;
+    }
+    .qf-exit-btn:hover {
+      background: var(--color-surface-offset);
+      color: var(--color-text);
+    }
+    .qf-subject-label {
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--color-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .qf-progress-track {
+      flex: 1;
+      height: 6px;
+      background: var(--color-divider);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      max-width: 320px;
+    }
+    .qf-progress-fill {
+      height: 100%;
+      background: var(--grad-brand);
+      border-radius: var(--radius-full);
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .qf-score-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-1) var(--space-3);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .qf-correct-count { color: var(--color-success); }
+    .qf-wrong-count   { color: var(--color-error); }
+    .qf-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-8) var(--space-4);
+      gap: var(--space-6);
+      width: 100%;
+    }
+    .qf-question-wrap {
+      width: 100%;
+      max-width: 720px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-md);
+    }
+    .qf-question-num {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-primary);
+      margin-bottom: var(--space-3);
+    }
+    .qf-question-text {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      line-height: 1.55;
+      margin-bottom: var(--space-6);
+      color: var(--color-text);
+    }
+    .qf-options {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .qf-option {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      width: 100%;
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-bg);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      text-align: left;
+      font-size: var(--text-base);
+      font-family: inherit;
+      color: var(--color-text);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition), transform 120ms ease;
+    }
+    .qf-option:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.05);
+      transform: translateY(-1px);
+    }
+    .qf-option-key {
+      font-weight: 800;
+      min-width: 22px;
+      color: var(--color-primary);
+    }
+    .qf-option.correct {
+      border-color: var(--color-success);
+      background: oklch(from var(--color-success) l c h / 0.08);
+      color: var(--color-success);
+    }
+    .qf-option.wrong {
+      border-color: var(--color-error);
+      background: oklch(from var(--color-error) l c h / 0.07);
+      color: var(--color-error);
+      opacity: 0.85;
+    }
+    .qf-option:disabled { cursor: default; transform: none; }
+    .qf-explanation {
+      display: none;
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      background: oklch(from var(--color-primary) l c h / 0.06);
+      border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      line-height: 1.65;
+      color: var(--color-text-muted);
+    }
+    .qf-explanation.visible { display: block; }
+    .qf-explanation strong { color: var(--color-text); }
+    .qf-result-card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-10);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+    .qf-result-emoji { margin-bottom: var(--space-4); }
+    .qf-result-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 800;
+      margin-bottom: var(--space-2);
+    }
+    .qf-result-sub { color: var(--color-text-muted); margin-bottom: var(--space-6); }
+    .qf-result-stats {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+    .qf-stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+    }
+    .qf-stat-value {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 800;
+    }
+    .qf-stat-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .qf-result-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      max-width: 340px;
+      margin: 0 auto;
+    }
+    .qf-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-6);
+      background: var(--grad-brand);
+      color: white;
+      font-weight: 700;
+      font-size: var(--text-base);
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition);
+      font-family: inherit;
+      box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3);
+    }
+    .qf-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .qf-btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-6);
+      color: var(--color-text-muted);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      background: transparent;
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+    .qf-btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
+    @media (max-width: 600px) {
+      .qf-question-wrap, .qf-result-card { padding: var(--space-5); border-radius: var(--radius-lg); }
+      .qf-header { padding: var(--space-3) var(--space-4); }
+      .qf-progress-track { display: none; }
+      .qf-question-text { font-size: var(--text-base); }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Quiz Fullscreen Overlay -->
+  <div class="quiz-fullscreen-overlay" id="quiz-fullscreen" role="dialog" aria-modal="true" aria-label="Quiz Fullscreen">
+    <header class="qf-header">
+      <div class="qf-header-left">
+        <button class="qf-exit-btn" id="qf-exit-btn" aria-label="Sair do modo fullscreen">
+          <i data-lucide="x" width="16" height="16"></i> Sair
+        </button>
+        <span class="qf-subject-label" id="qf-subject-label"></span>
+      </div>
+      <div class="qf-progress-track">
+        <div class="qf-progress-fill" id="qf-progress-fill"></div>
+      </div>
+      <div class="qf-score-pill">
+        <span class="qf-correct-count" id="qf-correct">0✓</span>
+        <span style="color:var(--color-divider)">|</span>
+        <span class="qf-wrong-count" id="qf-wrong">0✗</span>
+      </div>
+    </header>
+    <div class="qf-body" id="qf-body"></div>
+  </div>
 
   <a href="#wizard" class="skip-link">Pular para o configurador</a>
 
@@ -459,15 +743,15 @@
           <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
             <defs>
               <linearGradient id="logoGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#01696F"/>
-                <stop offset="0.5" stop-color="#00A7B2"/>
-                <stop offset="1" stop-color="#D4A827"/>
+                <stop offset="0" stop-color="#5B5BD6"/>
+                <stop offset="0.5" stop-color="#7C3AED"/>
+                <stop offset="1" stop-color="#F97316"/>
               </linearGradient>
             </defs>
             <rect width="64" height="64" rx="18" fill="url(#logoGrad)"/>
             <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
             <circle cx="46" cy="40" r="11" fill="#ffffff"/>
-            <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#01696F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#5B5BD6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           </svg>
           <span>StudyMaster</span>
         </a>
@@ -684,6 +968,10 @@
                 Refazer somente as erradas
               </button>
             </div>
+            <button class="btn-primary" id="fullscreen-btn" style="margin-top:var(--space-2);background:var(--grad-brand);">
+              <i data-lucide="maximize-2" width="16" height="16"></i>
+              Modo Foco (Fullscreen)
+            </button>
             <button class="btn-ghost" id="restart-btn">
               <i data-lucide="rotate-ccw" width="16" height="16"></i>
               Novo Quiz
@@ -2009,6 +2297,151 @@ function updateScore() {
   fill.style.width = `${progress}%`;
   value.innerHTML = `${state.answered}/<span id="score-total">${total}</span>`;
 }
+
+// ── Quiz Fullscreen ──────────────────────────────────────────────────────────
+const qfOverlay   = document.getElementById('quiz-fullscreen');
+const qfBody      = document.getElementById('qf-body');
+const qfSubLabel  = document.getElementById('qf-subject-label');
+const qfProgFill  = document.getElementById('qf-progress-fill');
+const qfCorrectEl = document.getElementById('qf-correct');
+const qfWrongEl   = document.getElementById('qf-wrong');
+let qfState = { questions: [], answered: 0, correct: 0, wrong: 0, results: [] };
+function openFullscreen() {
+  const qs = state.generatedQuestions;
+  if (!qs || !qs.length) return;
+  qfState = { questions: [...qs], answered: 0, correct: 0, wrong: 0, results: new Array(qs.length).fill(null) };
+  qfSubLabel.textContent = state.mode === 'academic' ? (state.topic || state.subject || '') : (state.concurso?.label || 'Livre');
+  qfCorrectEl.textContent = '0✓';
+  qfWrongEl.textContent   = '0✗';
+  qfProgFill.style.width  = '0%';
+  qfBody.innerHTML = '';
+  renderQFQuestion(0);
+  qfOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  lucide.createIcons();
+}
+function closeFullscreen() {
+  qfOverlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+function renderQFQuestion(idx) {
+  const q = qfState.questions[idx];
+  if (!q) return renderQFResult();
+  const wrap = document.createElement('div');
+  wrap.className = 'qf-question-wrap';
+  wrap.innerHTML = `
+    <div class="qf-question-num">Questão ${idx + 1} de ${qfState.questions.length}</div>
+    <div class="qf-question-text">${q.statement}</div>
+    <div class="qf-options" id="qf-opts-${idx}">
+      ${(q.options || []).map(opt => `
+        <button class="qf-option" data-key="${opt.key}">
+          <span class="qf-option-key">${opt.key}</span>
+          <span>${opt.text}</span>
+        </button>`).join('')}
+    </div>
+    <div class="qf-explanation" id="qf-exp-${idx}">
+      <strong>Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+    </div>`;
+  qfBody.innerHTML = '';
+  qfBody.appendChild(wrap);
+  lucide.createIcons();
+  wrap.querySelectorAll('.qf-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (wrap.dataset.answered) return;
+      wrap.dataset.answered = '1';
+      const key = btn.dataset.key;
+      const correct = key === q.correctAnswer;
+      qfState.results[idx] = correct;
+      qfState.answered++;
+      if (correct) { qfState.correct++; incrementCorrectToday(); } else { qfState.wrong++; incrementWrongToday(); }
+      incrementTodayCount(1);
+      wrap.querySelectorAll('.qf-option').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+        else if (b.dataset.key === key && !correct) b.classList.add('wrong');
+      });
+      document.getElementById(`qf-exp-${idx}`).classList.add('visible');
+      qfCorrectEl.textContent = `${qfState.correct}✓`;
+      qfWrongEl.textContent   = `${qfState.wrong}✗`;
+      qfProgFill.style.width  = `${(qfState.answered / qfState.questions.length) * 100}%`;
+      if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'qf-btn-primary';
+      nextBtn.style.marginTop = 'var(--space-5)';
+      const isLast = idx + 1 >= qfState.questions.length;
+      nextBtn.innerHTML = isLast
+        ? '<i data-lucide="flag" width="16" height="16"></i> Ver Resultado'
+        : '<i data-lucide="arrow-right" width="16" height="16"></i> Próxima';
+      wrap.appendChild(nextBtn);
+      lucide.createIcons();
+      nextBtn.addEventListener('click', () => {
+        if (isLast) renderQFResult();
+        else renderQFQuestion(idx + 1);
+      });
+      qfBody.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+}
+function renderQFResult() {
+  const total  = qfState.questions.length;
+  const correct = qfState.correct;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  
+  let iconHtml = '';
+  if (pct >= 80) iconHtml = '<i data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
+  else if (pct >= 60) iconHtml = '<i data-lucide="thumbs-up" width="64" height="64" style="color: var(--color-primary)"></i>';
+  else if (pct >= 40) iconHtml = '<i data-lucide="book-open" width="64" height="64" style="color: var(--color-accent)"></i>';
+  else iconHtml = '<i data-lucide="target" width="64" height="64" style="color: var(--color-error)"></i>';
+  
+  const msg   = pct >= 80 ? 'Excelente desempenho!' : pct >= 60 ? 'Bom trabalho!' : pct >= 40 ? 'Continue estudando!' : 'Não desista, pratique mais!';
+  qfBody.innerHTML = `
+    <div class="qf-result-card">
+      <div class="qf-result-emoji">${iconHtml}</div>
+      <h2 class="qf-result-title">${msg}</h2>
+      <p class="qf-result-sub">Você completou ${total} questões nesta sessão.</p>
+      <div class="qf-result-stats">
+        <div class="qf-stat-box">
+          <span class="qf-stat-value" style="color:var(--color-success)">${correct}</span>
+          <span class="qf-stat-label">Acertos</span>
+        </div>
+        <div class="qf-stat-box">
+          <span class="qf-stat-value" style="color:var(--color-error)">${total - correct}</span>
+          <span class="qf-stat-label">Erros</span>
+        </div>
+        <div class="qf-stat-box">
+          <span class="qf-stat-value" style="color:var(--color-primary)">${pct}%</span>
+          <span class="qf-stat-label">Aproveitamento</span>
+        </div>
+      </div>
+      <div class="qf-result-actions">
+        <button class="qf-btn-primary" id="qf-retry-btn">
+          <i data-lucide="rotate-ccw" width="16" height="16"></i> Novo Quiz
+        </button>
+        <button class="qf-btn-ghost" id="qf-close-btn">
+          <i data-lucide="x" width="16" height="16"></i> Fechar Fullscreen
+        </button>
+      </div>
+    </div>`;
+  lucide.createIcons();
+  confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#5B5BD6','#7C3AED','#F97316','#16A34A'] });
+  document.getElementById('qf-retry-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
+  document.getElementById('qf-close-btn').addEventListener('click', closeFullscreen);
+}
+document.getElementById('qf-exit-btn').addEventListener('click', closeFullscreen);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && qfOverlay.classList.contains('active')) closeFullscreen(); });
+
+// Wire up fullscreen button após renderQuestions
+const _origRenderQuestions = renderQuestions;
+window.renderQuestions = function(questions) {
+  _origRenderQuestions(questions);
+  const fsBtn = document.getElementById('fullscreen-btn');
+  if (fsBtn) {
+    // Remove previous listeners se houver (por segurança)
+    const newFsBtn = fsBtn.cloneNode(true);
+    fsBtn.replaceWith(newFsBtn);
+    newFsBtn.addEventListener('click', openFullscreen);
+  }
+};
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
