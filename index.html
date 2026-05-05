@@ -856,6 +856,84 @@
     .qf-btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
+    /* Modal de confirmação de saída */
+    .qf-exit-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 600;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    .qf-exit-modal-overlay.active {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+    .qf-exit-modal {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: var(--space-6) var(--space-5) var(--space-8);
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+    }
+    .qf-exit-modal-title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 800;
+      margin-bottom: var(--space-2);
+      color: var(--color-text);
+    }
+    .qf-exit-modal-sub {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-6);
+      line-height: 1.5;
+    }
+    .qf-exit-modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .qf-exit-continue-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      width: 100%;
+      padding: var(--space-4);
+      background: var(--grad-brand);
+      color: white;
+      font-weight: 700;
+      font-size: var(--text-base);
+      font-family: inherit;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: opacity var(--transition);
+    }
+    .qf-exit-continue-btn:hover { opacity: 0.9; }
+    .qf-exit-leave-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      width: 100%;
+      padding: var(--space-3);
+      background: transparent;
+      color: var(--color-text-muted);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      font-family: inherit;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .qf-exit-leave-btn:hover { background: var(--color-surface-offset); color: var(--color-text); }
+    
     .qf-bottom-bar {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -921,6 +999,24 @@
       <button class="qf-bb-btn" id="qf-prev-btn"><i data-lucide="chevron-left" width="16" height="16"></i> Anterior</button>
       <div class="qf-bb-status" id="qf-bb-status">Questão 1 de 10</div>
       <button class="qf-bb-btn" id="qf-next-btn">Próximo <i data-lucide="chevron-right" width="16" height="16"></i></button>
+    </div>
+  </div>
+
+  <!-- Modal de confirmação de saída do Modo Foco -->
+  <div class="qf-exit-modal-overlay" id="qf-exit-modal-overlay">
+    <div class="qf-exit-modal">
+      <div class="qf-exit-modal-title">Sair do Modo Foco?</div>
+      <div class="qf-exit-modal-sub">Seu progresso nesta sessão será perdido. Deseja sair e iniciar um novo quiz?</div>
+      <div class="qf-exit-modal-actions">
+        <button class="qf-exit-continue-btn" id="qf-modal-continue">
+          <i data-lucide="book-open" width="18" height="18"></i>
+          Continuar estudando
+        </button>
+        <button class="qf-exit-leave-btn" id="qf-modal-leave">
+          <i data-lucide="rotate-ccw" width="15" height="15"></i>
+          Sair e começar novo quiz
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2727,8 +2823,33 @@ function renderQFResult() {
   document.getElementById('qf-retry-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
   document.getElementById('qf-close-btn').addEventListener('click', closeFullscreen);
 }
-document.getElementById('qf-exit-btn').addEventListener('click', closeFullscreen);
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && qfOverlay.classList.contains('active')) closeFullscreen(); });
+// Modal de confirmação de saída
+const qfExitModal = document.getElementById('qf-exit-modal-overlay');
+function showExitModal() {
+  qfExitModal.classList.add('active');
+  lucide.createIcons();
+}
+function hideExitModal() {
+  qfExitModal.classList.remove('active');
+}
+document.getElementById('qf-modal-continue').addEventListener('click', hideExitModal);
+document.getElementById('qf-modal-leave').addEventListener('click', () => {
+  hideExitModal();
+  closeFullscreen();
+  document.getElementById('restart-btn').click();
+});
+document.getElementById('qf-exit-btn').addEventListener('click', () => {
+  // No mobile mostra modal; no desktop fecha direto
+  if (window.innerWidth < 768) {
+    showExitModal();
+  } else {
+    closeFullscreen();
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && qfOverlay.classList.contains('active')) {
+  if (qfExitModal.classList.contains('active')) hideExitModal();
+  else closeFullscreen();
+}});
 
 // Wire up fullscreen button após renderQuestions
 const _origRenderQuestions = renderQuestions;
