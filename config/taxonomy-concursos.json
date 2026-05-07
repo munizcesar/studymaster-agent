@@ -1,0 +1,244 @@
+{
+  "version": "1.0.0",
+  "description": "Taxonomia de filtros para modo Concursos no StudyMaster",
+  "lastUpdated": "2026-05-07",
+  
+  "subjects": {
+    "portugues": {
+      "label": "Português",
+      "description": "Língua Portuguesa para concursos",
+      "vectorizeCollection": "concursos_portugues",
+      "topics": [
+        "Ortografia",
+        "Acentuação",
+        "Pontuação",
+        "Regência verbal",
+        "Concordância",
+        "Semântica",
+        "Sintaxe",
+        "Literatura",
+        "Interpretação de texto"
+      ],
+      "conceptualBases": [
+        "NCCFL (Normas do Conforme Comunicativo Formal em Língua)",
+        "ABNT NBR 10520 (referências bibliográficas)",
+        "Gramáticas normativas brasileiras"
+      ]
+    },
+    
+    "direito_constitucional": {
+      "label": "Direito Constitucional",
+      "description": "Constituição Federal e direitos fundamentais",
+      "vectorizeCollection": "concursos_direito_constitucional",
+      "topics": [
+        "Constituição Federal de 1988",
+        "Direitos e garantias fundamentais",
+        "Direitos sociais",
+        "Direitos políticos",
+        "Nacionalidade",
+        "Poder Executivo",
+        "Poder Legislativo",
+        "Poder Judiciário",
+        "Ordem econômica e social",
+        "ADPF, ADI, mandado de segurança"
+      ],
+      "conceptualBases": [
+        "CF/88 (Constituição Federal de 1988)",
+        "Lei nº 6.994/2021 (EC nº 112)",
+        "Jurisprudência STF",
+        "Doutrina especializada"
+      ]
+    },
+    
+    "raciocinio_logico": {
+      "label": "Raciocínio Lógico",
+      "description": "Lógica proposicional, conjuntos, análise combinatória",
+      "vectorizeCollection": "concursos_raciocinio_logico",
+      "topics": [
+        "Lógica proposicional",
+        "Equivalências lógicas",
+        "Diagramas de Venn",
+        "Análise combinatória",
+        "Probabilidade",
+        "Sequências e progressões",
+        "Problemas de matemática básica"
+      ],
+      "conceptualBases": [
+        "Lógica formal (Mills, Wittgenstein)",
+        "Teoria dos conjuntos",
+        "Combinatória e estatística"
+      ]
+    },
+    
+    "informatica": {
+      "label": "Informática",
+      "description": "Tecnologia da Informação, redes, segurança",
+      "vectorizeCollection": "concursos_informatica",
+      "topics": [
+        "Hardware",
+        "Sistemas operacionais",
+        "Redes e internet",
+        "Segurança da informação",
+        "Banco de dados",
+        "Programação básica",
+        "Office (Word, Excel, PowerPoint)",
+        "Normas ISO/IEC"
+      ],
+      "conceptualBases": [
+        "ISO/IEC 27001 (segurança)",
+        "RFC padrões internet",
+        "Documentação oficial de SO"
+      ]
+    },
+    
+    "administracao_publica": {
+      "label": "Administração Pública",
+      "description": "Princípios, estrutura e funcionamento da AP",
+      "vectorizeCollection": "concursos_administracao_publica",
+      "topics": [
+        "Princípios constitucionais",
+        "Organização administrativa",
+        "Servidores públicos",
+        "Contratos administrativos",
+        "Licitação",
+        "Responsabilidade civil do Estado",
+        "Atos administrativos",
+        "Processo administrativo"
+      ],
+      "conceptualBases": [
+        "CF/88 (arts. 37-41)",
+        "Lei 8.112/1990 (regime jurídico servidores)",
+        "Lei 8.666/1993 (licitações)",
+        "Lei 9.784/1999 (processo administrativo)",
+        "Jurisprudência STJ/TRF"
+      ]
+    }
+  },
+
+  "bankStyles": {
+    "description": "Estilos de banca (preparar para futura integração)",
+    "fcc": {
+      "label": "FCC",
+      "style": "múltipla_escolha",
+      "characteristics": [
+        "5 alternativas (A-E)",
+        "Questões discursivas e interpretativas",
+        "Enunciados longos e contextualizados"
+      ]
+    },
+    "cebraspe": {
+      "label": "CEBRASPE (Cespe)",
+      "style": "certo_errado",
+      "characteristics": [
+        "Formato C/E (Certo ou Errado)",
+        "Múltiplos itens por texto",
+        "Enunciados diretos e objetivos"
+      ]
+    },
+    "vunesp": {
+      "label": "VUNESP",
+      "style": "multipla_escolha",
+      "characteristics": [
+        "4-5 alternativas",
+        "Questões técnicas e objetivas"
+      ]
+    },
+    "ibfc": {
+      "label": "IBFC",
+      "style": "multipla_escolha",
+      "characteristics": [
+        "5 alternativas (A-E)",
+        "Foco em legislação específica"
+      ]
+    }
+  },
+
+  "filterMapping": {
+    "description": "Mapeamento UI filtro → configuração interna",
+    "concursos": {
+      "portugues": {
+        "internalKey": "concursos_portugues",
+        "vectorizeCollection": "concursos_portugues",
+        "fallbackMode": "generic_portuguese",
+        "minContextLength": 200,
+        "description": "Português para concursos"
+      },
+      "direito_constitucional": {
+        "internalKey": "concursos_direito_constitucional",
+        "vectorizeCollection": "concursos_direito_constitucional",
+        "fallbackMode": "generic_law",
+        "minContextLength": 300,
+        "description": "Direito Constitucional"
+      },
+      "raciocinio_logico": {
+        "internalKey": "concursos_raciocinio_logico",
+        "vectorizeCollection": "concursos_raciocinio_logico",
+        "fallbackMode": "generic_logic",
+        "minContextLength": 150,
+        "description": "Raciocínio Lógico"
+      },
+      "informatica": {
+        "internalKey": "concursos_informatica",
+        "vectorizeCollection": "concursos_informatica",
+        "fallbackMode": "generic_it",
+        "minContextLength": 250,
+        "description": "Informática"
+      },
+      "administracao_publica": {
+        "internalKey": "concursos_administracao_publica",
+        "vectorizeCollection": "concursos_administracao_publica",
+        "fallbackMode": "generic_admin",
+        "minContextLength": 300,
+        "description": "Administração Pública"
+      }
+    }
+  },
+
+  "validationRules": {
+    "description": "Regras de validação pós-geração",
+    "requiredFields": [
+      "statement",
+      "options",
+      "correctAnswer",
+      "explanation"
+    ],
+    "optionalFields": [
+      "conceptualBasis",
+      "source",
+      "difficulty"
+    ],
+    "antiHallucination": {
+      "forbiddenPatterns": [
+        "banca",
+        "concurso real",
+        "prova de",
+        "ano de",
+        "edital"
+      ],
+      "action": "remove_or_normalize"
+    },
+    "answerValidation": {
+      "optionsCount": {
+        "min": 4,
+        "max": 5,
+        "lettersAllowed": ["A", "B", "C", "D", "E"]
+      },
+      "correctAnswerMustBe": "oneOfAbove"
+    }
+  },
+
+  "fallbackBehaviors": {
+    "description": "Comportamento quando contexto é insuficiente",
+    "insufficientContext": {
+      "threshold": "minContextLength não atingido",
+      "behavior": "generic_question",
+      "message": "Base conceitual indisponível no momento. Exibindo questão genérica.",
+      "disclosureRequired": true
+    },
+    "collectionNotFound": {
+      "behavior": "friendly_message",
+      "message": "Desculpe, ainda não temos base de dados suficiente para {subject}. Tente novamente em breve!",
+      "disclosureRequired": true
+    }
+  }
+}
