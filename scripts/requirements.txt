@@ -1,0 +1,39 @@
+# Requirements para scripts de extração de provas
+# Instale com: pip install -r requirements.txt
+
+# PDFs
+PyPDF2>=3.0.1
+pypdf>=4.0.0
+
+# Embeddings
+sentence-transformers>=2.2.0
+torch>=2.0.0
+numpy>=1.24.0
+
+# Web & Requests
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Data Processing
+pandas>=2.0.0
+
+# API
+python-dotenv>=1.0.0
+
+# Logging & Utils
+colorlog>=6.7.0
+tqdm>=4.65.0
+
+# Optional: Para OCR de PDFs escaneados
+# pytesseract>=0.3.10
+# pillow>=10.0.0
+
+# Optional: Para web scraping
+# selenium>=4.10.0
+# playwright>=1.40.0
+
+# Development
+black>=23.0.0
+flake8>=6.0.0
+pytest>=7.4.0
