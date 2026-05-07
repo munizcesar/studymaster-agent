@@ -1650,16 +1650,10 @@ function getDateStamp(date = new Date()) {
 }
 
 function getTodayCount() {
-  const today = getDateStamp();
-  const savedDate = safeStorageGet(STORAGE_KEYS.todayDate);
-  if (savedDate !== today) {
-    safeStorageSet(STORAGE_KEYS.todayDate, today);
-    safeStorageSet(STORAGE_KEYS.todayCount, '0');
-    return 0;
-  }
+  ensureTodayReset();
   const raw = safeStorageGet(STORAGE_KEYS.todayCount);
   const parsed = Number.parseInt(raw || '0', 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
 function setTodayCount(count) {
@@ -1677,10 +1671,14 @@ function incrementTodayCount(step = 1) {
 function ensureTodayReset() {
   const today = getDateStamp();
   const savedDate = safeStorageGet('sm_last_date');
+  
+  // Se mudou de dia, reseta TODOS os contadores simultaneamente
   if (savedDate !== today) {
     safeStorageSet('sm_last_date', today);
     safeStorageSet('sm_correct_today', '0');
     safeStorageSet('sm_wrong_today', '0');
+    safeStorageSet(STORAGE_KEYS.todayDate, today);
+    safeStorageSet(STORAGE_KEYS.todayCount, '0');
   }
 }
 
@@ -1688,14 +1686,14 @@ function getCorrectToday() {
   ensureTodayReset();
   const raw = safeStorageGet('sm_correct_today');
   const parsed = Number.parseInt(raw || '0', 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
 function getWrongToday() {
   ensureTodayReset();
   const raw = safeStorageGet('sm_wrong_today');
   const parsed = Number.parseInt(raw || '0', 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
 function incrementCorrectToday() {
@@ -1719,19 +1717,6 @@ function updateDailyPerf() {
   ensureTodayReset();
   correctEl.textContent = String(Number.parseInt(safeStorageGet('sm_correct_today') || '0', 10) || 0);
   wrongEl.textContent = String(Number.parseInt(safeStorageGet('sm_wrong_today') || '0', 10) || 0);
-}
-
-function scheduleMidnightReset() {
-  const now = new Date();
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-  const msUntilMidnight = next - now;
-  setTimeout(() => {
-    safeStorageSet('sm_last_date', getDateStamp());
-    safeStorageSet('sm_correct_today', '0');
-    safeStorageSet('sm_wrong_today', '0');
-    updateDailyPerf();
-    scheduleMidnightReset();
-  }, msUntilMidnight);
 }
 
 function getDailyGoal() {
@@ -1837,10 +1822,10 @@ function goHome() {
 function init() {
   lucide.createIcons();
   state.dailyGoal = getDailyGoal();
+  ensureTodayReset();
   getTodayCount();
   updateStreakBadge();
   updateDailyPerf();
-  scheduleMidnightReset();
 
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();

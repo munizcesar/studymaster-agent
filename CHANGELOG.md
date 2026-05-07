@@ -14,6 +14,15 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - PWA (instalável no celular)
 - Sistema de login com histórico (Cloudflare D1)
 
+### Corrigido
+- **CRÍTICO:** Refatorado sistema de reset de contadores diários (acertos/erros)
+  - Eliminado `scheduleMidnightReset()` com `setTimeout` recursivo (causa memory leaks)
+  - Unificado em único ponto de verificação: `ensureTodayReset()` chamado em todas as leituras
+  - Sincronizados todos os contadores (`sm_correct_today`, `sm_wrong_today`, `sm_today_count`) simultaneamente
+  - Corrigida lógica de retorno em `getCorrectToday()` e `getWrongToday()` (aceitava `>= 0` ao invés de `> 0`)
+  - Garante que contadores não se acumulam entre dias mesmo se usuário sair e voltar após meia-noite
+  - **Benefício:** 100% sincronização, sem timers redundantes, melhor performance
+
 ---
 
 ## [1.2.0] — 2026-05-01
