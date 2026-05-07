@@ -210,6 +210,40 @@
     .categorias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3); }
     .categoria-btn { padding: var(--space-4); text-align: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .categoria-btn:hover { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.05); }
+    
+    /* Filters grid para Concursos RAG */
+    .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-4); }
+    .filter-card { 
+      display: flex; flex-direction: column; align-items: flex-start;
+      padding: var(--space-4);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: left;
+    }
+    .filter-card:hover { 
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.03);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .filter-card.active {
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.1);
+      box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
+    }
+    .filter-icon { 
+      display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px;
+      border-radius: var(--radius-lg);
+      background: oklch(from var(--color-primary) l c h / 0.1);
+      color: var(--color-primary);
+      margin-bottom: var(--space-3);
+    }
+    .filter-info strong { display: block; font-size: var(--text-base); margin-bottom: var(--space-1); }
+    .filter-info span { font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.4; }
     .upload-area {
       border: 2px dashed var(--color-border);
       border-radius: var(--radius-lg);
@@ -1608,10 +1642,42 @@ const concursoData = {
   ]},
 };
 
+// ════════════════════════════════════════════════════════════════════════════
+// DADOS RAG PARA CONCURSOS (Novo modo com filtros de matéria)
+// ════════════════════════════════════════════════════════════════════════════
+const concursosFilters = {
+  portugues: {
+    label: 'Português',
+    icon: 'book-open',
+    description: 'Gramática, regência, semântica, interpretação de textos',
+  },
+  direito_constitucional: {
+    label: 'Direito Constitucional',
+    icon: 'balance-scale',
+    description: 'CF/88, direitos fundamentais, poderes e federação',
+  },
+  raciocinio_logico: {
+    label: 'Raciocínio Lógico',
+    icon: 'zap',
+    description: 'Lógica formal, combinatória, probabilidade',
+  },
+  informatica: {
+    label: 'Informática',
+    icon: 'cpu',
+    description: 'SO, redes, segurança, ISO/IEC, protocolos',
+  },
+  administracao_publica: {
+    label: 'Administração Pública',
+    icon: 'briefcase',
+    description: 'Lei 8.112, licitações, processos administrativos, CF/88',
+  },
+};
+
 const state = {
   currentStep: 1, direction: 'forward', mode: null,
   area: null, subject: null, topic: null,
   concursoCategory: null, concurso: null, bancaInferida: null,
+  filter: null,  // ← Novo: para modo Concursos RAG
   editalText: '', freeText: '', youtubeUrl: '',
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
@@ -1943,7 +2009,7 @@ function isStepValid(step) {
   if (step === 1) return !!state.mode;
   if (step === 2) {
     if (state.mode === 'academic') return !!state.area && !!state.subject;
-    if (state.mode === 'concurso') return (!!state.concurso && state.concurso.id !== 'outro-edital' && !state.concurso.id.includes('outro')) || state.editalText.length >= 50;
+    if (state.mode === 'concurso') return !!state.filter;  // ← Novo: validar filtro RAG
     if (state.mode === 'livre') return state.freeText.length >= 50;
   }
   return true;
@@ -1963,6 +2029,7 @@ function updateNavButtons() {
 function resetState() {
   state.area = null; state.subject = null; state.topic = null;
   state.concurso = null; state.concursoCategory = null; state.concursoSubStep = 'a';
+  state.filter = null;  // ← Novo: resetar filtro RAG
   state.freeText = ''; state.editalText = ''; state.youtubeUrl = ''; state.bancaInferida = null;
   state.generatedQuestions = []; state.answered = 0; state.correct = 0; state.answerResults = [];
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
@@ -2028,64 +2095,38 @@ function populateTopic(el, area, subj) {
 }
 
 function renderStep2Concurso(container) {
-  if (state.concursoSubStep === 'a') {
-    container.innerHTML = `
-      <h2 class="step-title">Selecione a Categoria</h2>
-      <p class="step-subtitle">Para focar no estilo da prova e banca organizadora</p>
-      <div class="categorias-grid">
-        ${Object.keys(concursoData).map(cat => `<button class="categoria-btn" data-cat="${cat}">${cat}</button>`).join('')}
-      </div>`;
-    document.querySelectorAll('.categoria-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        state.concursoCategory = e.currentTarget.dataset.cat;
-        state.concursoSubStep = 'b';
-        renderStep2Concurso(container);
-        scrollToWizard(50);
-      });
+  // NOVO MODO: Seleção de matéria para Concursos RAG
+  // (Substituiu completamente o modo legado de seleção de concursos específicos)
+  
+  container.innerHTML = `
+    <h2 class="step-title">Selecione a matéria</h2>
+    <p class="step-subtitle">Escolha a disciplina para gerar questões de concursos</p>
+    <div class="filters-grid">
+      ${Object.entries(concursosFilters).map(([key, filter]) => `
+        <button class="filter-card ${state.filter === key ? 'active' : ''}" data-filter="${key}">
+          <div class="filter-icon">
+            <i data-lucide="${filter.icon}" width="24" height="24"></i>
+          </div>
+          <div class="filter-info">
+            <strong>${filter.label}</strong>
+            <span>${filter.description}</span>
+          </div>
+        </button>
+      `).join('')}
+    </div>
+  `;
+  
+  lucide.createIcons();
+  
+  // Event listeners para seleção de filtro
+  document.querySelectorAll('.filter-card').forEach(btn => {
+    btn.addEventListener('click', e => {
+      document.querySelectorAll('.filter-card').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      state.filter = e.currentTarget.dataset.filter;
+      updateNavButtons();
     });
-  } else {
-    const list = concursoData[state.concursoCategory].concursos;
-    const isOutro = state.concurso?.id?.includes('outro');
-    container.innerHTML = `
-      <h2 class="step-title">Selecione o Concurso</h2>
-      <div style="margin-bottom:var(--space-4)">
-        <button id="back-cat" class="btn-ghost" style="display:inline-flex;width:auto;margin:0"><i data-lucide="arrow-left" width="16" height="16"></i> Mudar categoria</button>
-      </div>
-      <div class="chip-group">
-        ${list.map(c => `<button class="chip ${state.concurso?.id===c.id?'active':''}" data-cid="${c.id}">${c.label}</button>`).join('')}
-      </div>
-      <div id="edital-box" class="${(isOutro||state.editalText)?'':'hidden'}" style="margin-top:var(--space-4)">
-        <label class="config-label">Cole o conteúdo programático do edital</label>
-        <textarea id="edital-text" placeholder="Cole o escopo de matérias do edital aqui (mínimo 50 caracteres)...">${state.editalText}</textarea>
-        <div style="font-size:12px;margin-top:4px" id="edital-counter">Caracteres: ${state.editalText.length}</div>
-      </div>`;
-    lucide.createIcons();
-    document.getElementById('back-cat').addEventListener('click', () => {
-      state.concursoSubStep = 'a'; state.concurso = null; state.editalText = '';
-      updateNavButtons(); renderStep2Concurso(container);
-      scrollToWizard(50);
-    });
-    document.querySelectorAll('.chip[data-cid]').forEach(btn => {
-      btn.addEventListener('click', e => {
-        document.querySelectorAll('.chip[data-cid]').forEach(b => b.classList.remove('active'));
-        e.currentTarget.classList.add('active');
-        const conc = list.find(c => c.id === e.currentTarget.dataset.cid);
-        state.concurso = conc; state.bancaInferida = conc.banca;
-        const box = document.getElementById('edital-box');
-        if (conc.id.includes('outro')) box.classList.remove('hidden');
-        else box.classList.add('hidden');
-        updateNavButtons();
-      });
-    });
-    const dtxt = document.getElementById('edital-text');
-    if (dtxt) {
-      dtxt.addEventListener('input', e => {
-        state.editalText = e.target.value;
-        document.getElementById('edital-counter').textContent = `Caracteres: ${state.editalText.length}`;
-        updateNavButtons();
-      });
-    }
-  }
+  });
 }
 
 function renderStep2Livre(container) {
@@ -2407,6 +2448,7 @@ async function callWorkerAndRender() {
 
   const payload = {
     mode: state.mode,
+    filter: state.filter,  // ← Novo: para Concursos RAG
     area: state.area,
     subject: state.subject,
     topic: state.topic,

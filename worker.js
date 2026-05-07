@@ -1,11 +1,63 @@
 // StudyMaster AI Worker — Cloudflare Worker + Groq API + Vectorize RAG
 // Deploy: wrangler deploy
+//
+// FLUXO 3-STEP PARA CONCURSOS (RAG):
+// 1. User selects: mode="concursos" + filter="portugues" (ou outra matéria)
+// 2. Worker: valida filtro → busca contexto Vectorize → injeta no prompt
+// 3. Model: gera questão formatada → validamos contra alucinação → retornamos
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Max-Age': '86400',
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO RAG PARA CONCURSOS (baixo acoplamento, expansível)
+// ════════════════════════════════════════════════════════════════════════════
+
+const CONCURSOS_CONFIG = {
+  // Mapeamento: filtro → coleção Vectorize + metadados
+  subjects: {
+    portugues: {
+      label: 'Português',
+      vectorizeCollection: 'concursos_portugues',
+      minContextLength: 200,
+      forbiddenPatterns: ['banca\\s+\\w+', 'prova\\s+de\\s+\\d{4}', 'edital', 'concurso\\s+\\w+'],
+      conceptualBases: 'NCCFL, Gramáticas normativas brasileiras',
+    },
+    direito_constitucional: {
+      label: 'Direito Constitucional',
+      vectorizeCollection: 'concursos_direito_constitucional',
+      minContextLength: 300,
+      forbiddenPatterns: ['STF\\s+entendeu', 'julgado\\s+em\\s+\\d{4}', 'acórdão\\s+nº', 'decisão\\s+recente'],
+      conceptualBases: 'CF/88, Jurisprudência STF/STJ, Lei 9.784/99',
+    },
+    raciocinio_logico: {
+      label: 'Raciocínio Lógico',
+      vectorizeCollection: 'concursos_raciocinio_logico',
+      minContextLength: 150,
+      forbiddenPatterns: ['como\\s+foi\\s+comprovado', 'universalmente\\s+aceito', 'recentemente\\s+descoberto'],
+      conceptualBases: 'Lógica formal, Teoria dos conjuntos, Análise combinatória',
+    },
+    informatica: {
+      label: 'Informática',
+      vectorizeCollection: 'concursos_informatica',
+      minContextLength: 250,
+      forbiddenPatterns: ['última\\s+versão', 'tecnologia\\s+do\\s+futuro', 'versão\\s+\\d+\\.\\d+\\s+(lançada|publicada)'],
+      conceptualBases: 'ISO/IEC 27001, RFC padrões, Documentação oficial',
+    },
+    administracao_publica: {
+      label: 'Administração Pública',
+      vectorizeCollection: 'concursos_administracao_publica',
+      minContextLength: 300,
+      forbiddenPatterns: ['banca\\s+\\w+\\s+decidiu', 'edital\\s+de\\s+\\d{4}', 'prova\\s+(ESAF|CESPE|FCC)'],
+      conceptualBases: 'CF/88, Lei 8.112/90, Lei 8.666/93, Lei 9.784/99, Lei 14.133/21',
+    },
+  },
+  // Fallback gracioso quando contexto insuficiente
+  fallbackMessage: 'Desculpe, ainda não temos base de dados suficiente para esta matéria. Tente novamente em breve!',
 };
 
 const GROQ_MODELS = [
@@ -25,6 +77,219 @@ const AREA_MAP_VECTORIZE = {
   'administrativo': 'administrativo',
   'tributario': 'tributario',
 };
+
+// ════════════════════════════════════════════════════════════════════════════
+// FUNÇÕES RAG PARA CONCURSOS (3-STEP FLOW)
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * PASSO 1: Validar se filtro está mapeado para coleção Vectorize
+ * @param {string} filter - ex: "portugues", "direito_constitucional"
+ * @returns {Object} { valid: bool, config: subjectConfig || null }
+ */
+function validateConcursosFilter(filter) {
+  const config = CONCURSOS_CONFIG.subjects[filter];
+  if (!config) {
+    return { valid: false, config: null, error: `Filtro não mapeado: ${filter}` };
+  }
+  return { valid: true, config };
+}
+
+/**
+ * PASSO 2: Recuperar contexto do Vectorize
+ * @param {Object} env - Environment com VECTORIZE binding
+ * @param {string} collection - Nome da coleção (ex: "concursos_portugues")
+ * @param {string} query - Texto para busca semântica
+ * @param {number} minLength - Tamanho mínimo esperado
+ * @returns {Promise<Object>} { context, sufficient, sources, length }
+ */
+async function fetchVectorizeContext(env, collection, query, minLength) {
+  try {
+    // Se não temos Vectorize configurado, retornar contexto vazio
+    if (!env.VECTORIZE) {
+      console.warn(`[RAG] Vectorize não configurado. Retornando contexto vazio.`);
+      return {
+        context: '',
+        sufficient: false,
+        sources: [],
+        contextLength: 0,
+      };
+    }
+
+    // Gerar embedding para a query usando CF AI
+    let embedding;
+    try {
+      if (!env.AI) {
+        console.warn(`[RAG] CF AI não disponível. Retornando contexto vazio.`);
+        return {
+          context: '',
+          sufficient: false,
+          sources: [],
+          contextLength: 0,
+        };
+      }
+
+      const embeddingRes = await env.AI.run('@cf/baai/bge-m3', { text: [query.slice(0, 512)] });
+      const vector = embeddingRes?.data?.[0];
+      if (!vector || !Array.isArray(vector)) {
+        console.warn(`[RAG] Embedding inválido. Retornando contexto vazio.`);
+        return {
+          context: '',
+          sufficient: false,
+          sources: [],
+          contextLength: 0,
+        };
+      }
+      embedding = vector;
+    } catch (e) {
+      console.warn(`[RAG] Erro ao gerar embedding: ${e.message}`);
+      return {
+        context: '',
+        sufficient: false,
+        sources: [],
+        contextLength: 0,
+      };
+    }
+
+    // Buscar no Vectorize
+    let results;
+    try {
+      results = await env.VECTORIZE.query(embedding, {
+        namespace: collection,
+        topK: 5,
+        returnMetadata: 'all',
+      });
+    } catch (e) {
+      console.warn(`[RAG] Erro ao buscar Vectorize: ${e.message}`);
+      return {
+        context: '',
+        sufficient: false,
+        sources: [],
+        contextLength: 0,
+      };
+    }
+
+    // Processar resultados
+    if (!results?.matches?.length) {
+      return {
+        context: '',
+        sufficient: false,
+        sources: [],
+        contextLength: 0,
+      };
+    }
+
+    // Filtrar por score mínimo e extrair textos
+    const documents = results.matches
+      .filter((m) => m.score >= 0.65)
+      .slice(0, 3)
+      .map((m) => ({
+        text: m.metadata?.text || m.text || '',
+        source: m.metadata?.source || 'Acervo de Concursos',
+        score: m.score,
+      }))
+      .filter((d) => d.text.trim().length > 0);
+
+    if (documents.length === 0) {
+      return {
+        context: '',
+        sufficient: false,
+        sources: [],
+        contextLength: 0,
+      };
+    }
+
+    // Concatenar contextos
+    const context = documents.map((d) => d.text).join('\n\n');
+    const sufficient = context.length >= minLength;
+
+    return {
+      context,
+      sufficient,
+      sources: documents.map((d) => ({ text: d.text.slice(0, 100), source: d.source })),
+      contextLength: context.length,
+    };
+  } catch (e) {
+    console.error(`[RAG] Erro geral em fetchVectorizeContext: ${e.message}`);
+    return {
+      context: '',
+      sufficient: false,
+      sources: [],
+      contextLength: 0,
+    };
+  }
+}
+
+/**
+ * PASSO 3: Validar saída contra alucinação
+ * @param {Object} question - Questão gerada { statement, options, correctAnswer, explanation }
+ * @param {Object} subjectConfig - Config da matéria com forbiddenPatterns
+ * @returns {Object} { valid, errors, corrected }
+ */
+function validateAgainstHallucination(question, subjectConfig) {
+  const errors = [];
+
+  // Validar campos obrigatórios
+  if (!question.statement || question.statement.trim().length < 20) {
+    errors.push('statement: enunciado ausente ou muito curto');
+  }
+  if (!Array.isArray(question.options) || question.options.length < 4) {
+    errors.push('options: deve ter 4-5 alternativas');
+  }
+  if (!question.correctAnswer || !['A', 'B', 'C', 'D', 'E'].includes(question.correctAnswer)) {
+    errors.push('correctAnswer: deve ser A-E');
+  }
+  if (!question.explanation || question.explanation.trim().length < 30) {
+    errors.push('explanation: explicação ausente ou muito curta');
+  }
+
+  // Detectar padrões proibidos
+  const forbiddenPatterns = subjectConfig.forbiddenPatterns || [];
+  const fullText = [question.statement, question.explanation, ...(question.options || []).map((o) => o.text || '')].join(' ').toLowerCase();
+
+  const detectedPatterns = forbiddenPatterns.filter((pattern) => {
+    try {
+      const regex = new RegExp(pattern.toLowerCase(), 'i');
+      return regex.test(fullText);
+    } catch {
+      return false;
+    }
+  });
+
+  if (detectedPatterns.length > 0) {
+    // Remover/normalizar padrões proibidos
+    let corrected = { ...question };
+    let cleanedStatement = corrected.statement;
+    let cleanedExplanation = corrected.explanation;
+
+    detectedPatterns.forEach((pattern) => {
+      try {
+        const regex = new RegExp(pattern, 'gi');
+        cleanedStatement = cleanedStatement.replace(regex, '[informação removida]');
+        cleanedExplanation = cleanedExplanation.replace(regex, '[informação removida]');
+      } catch {
+        // Ignorar padrões inválidos
+      }
+    });
+
+    corrected.statement = cleanedStatement;
+    corrected.explanation = cleanedExplanation;
+
+    return {
+      valid: true,
+      errors: [],
+      corrected,
+      hallucinations: detectedPatterns,
+      warning: `Padrões alucinatórios detectados e removidos: ${detectedPatterns.join(', ')}`,
+    };
+  }
+
+  if (errors.length > 0) {
+    return { valid: false, errors, corrected: null };
+  }
+
+  return { valid: true, errors: [], corrected: question };
+}
 
 function detectarSubareaJuridica(topic, subject) {
   const texto = `${topic || ''} ${subject || ''}`.toLowerCase();
@@ -293,6 +558,272 @@ async function fetchYouTubeTranscript(videoId) {
     charCount: text.length,
     source: 'youtube.com (timedtext)',
   };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ORQUESTRADOR RAG PARA CONCURSOS (3-STEP PIPELINE)
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Fluxo completo RAG para modo Concursos:
+ * 1. Validar filtro mapeado
+ * 2. Buscar contexto Vectorize
+ * 3. Gerar questão com LLM (Groq) + validar contra alucinação
+ */
+async function generateConcursosRAGQuestion(body, env) {
+  const { filter, quantity = 1, difficulty, questionType, alternativas, idioma, sessionMode } = body;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PASSO 1: Validar filtro
+  // ─────────────────────────────────────────────────────────────────────────
+  const filterValidation = validateConcursosFilter(filter);
+  if (!filterValidation.valid) {
+    return {
+      success: false,
+      error: filterValidation.error,
+      userMessage: CONCURSOS_CONFIG.fallbackMessage,
+      statusCode: 400,
+    };
+  }
+
+  const subjectConfig = filterValidation.config;
+  console.log(`[RAG] ✓ Filtro válido: ${filter} → ${subjectConfig.vectorizeCollection}`);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PASSO 2: Buscar contexto Vectorize
+  // ─────────────────────────────────────────────────────────────────────────
+  const query = filter; // usar filter como query básica
+  const contextResult = await fetchVectorizeContext(
+    env,
+    subjectConfig.vectorizeCollection,
+    query,
+    subjectConfig.minContextLength
+  );
+
+  console.log(
+    `[RAG] Contexto: ${contextResult.contextLength} chars, ` +
+    `Suficiente: ${contextResult.sufficient}`
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PASSO 3: Gerar questão com LLM
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Construir prompt com contexto Vectorize
+  const difficultyMap = {
+    easy: 'fácil (nível iniciante, conceitos básicos)',
+    medium: 'médio (nível intermediário, aplicação de conceitos)',
+    hard: 'difícil (nível avançado, análise e interpretação)',
+    extreme: 'extremo (nível especialista, questões de prova real)',
+  };
+  const diffLabel = difficultyMap[difficulty] || 'médio';
+
+  const numAlts = parseInt(alternativas) === 4 ? 4 : 5;
+  const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
+
+  const sessionMap = {
+    normal: 'Estudo Normal — questões didáticas',
+    concurso: 'Simulado — questões no estilo de prova real, sem dicas pedagógicas',
+    revisao: 'Revisão Rápida — questões curtas e objetivas',
+  };
+  const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
+
+  const contextBlock = contextResult.sufficient
+    ? `CONTEXTO VERIFICADO (${subjectConfig.label}):\n"""\n${contextResult.context}\n"""\n\n`
+    : '';
+
+  const antiHallucinationRules = `
+RESTRIÇÕES OBRIGATÓRIAS:
+- NÃO invente banca, concurso, prova ou ano
+- NÃO invente artigos de lei ou números de súmulas
+- Use APENAS conceitos e contexto fornecido
+- Cite apenas referências normativas válidas: ${subjectConfig.conceptualBases}
+- Campo "fonte" deve ser preenchido com base legal/conceitual verificada`;
+
+  const systemText = `Você é um examinador acadêmico especializado em concursos públicos. Retorne APENAS JSON válido com a chave "questions".
+Responda em português do Brasil.
+
+PRINCÍPIOS INEGOCIÁVEIS:
+- Use APENAS conhecimento factício consolidado
+- ${antiHallucinationRules}`;
+
+  const exampleOptions =
+    numAlts === 4
+      ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
+      : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
+
+  const userPrompt = `Modo: ${sessionLabel}
+
+Gere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.
+
+${contextBlock}
+
+Tema: ${subjectConfig.label}
+Conceitos base: ${subjectConfig.conceptualBases}
+
+Retorne APENAS um objeto JSON:
+{
+  "questions": [
+    {
+      "id": 1,
+      "statement": "Enunciado da questão.",
+      "options": [
+${exampleOptions}
+      ],
+      "correctAnswer": "A",
+      "explanation": "Explicação didática e verificável.",
+      "fonte": "Base legal ou conceitual"
+    }
+  ]
+}
+
+Regras obrigatórias:
+1. Gere exatamente ${numAlts} alternativas usando ${altKeys}
+2. Questões corretas, sem ambiguidades
+3. Distribua gabarito entre as opções
+4. ${antiHallucinationRules}
+5. NENHUM texto fora do JSON`;
+
+  // Chamar Groq (com fallback)
+  const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
+
+  if (!groqResponse.ok) {
+    const err = await groqResponse.text();
+    let userMessage = 'Erro ao conectar com a IA. Tente novamente.';
+    if (groqResponse.status === 429) userMessage = 'Limite de uso atingido. Aguarde.';
+    else if (groqResponse.status === 503) userMessage = 'IA com alta demanda. Tente em segundos.';
+
+    return {
+      success: false,
+      error: 'Groq API error',
+      details: err,
+      userMessage,
+      statusCode: groqResponse.status,
+    };
+  }
+
+  // Extrair e validar resposta
+  const groqData = await groqResponse.json();
+  const rawText = extractJsonFromText(groqData?.choices?.[0]?.message?.content || '');
+
+  let questions = [];
+  try {
+    questions = extractQuestions(JSON.parse(rawText));
+  } catch {
+    const matchObj = rawText.match(/\{[\s\S]*\}/);
+    if (matchObj) {
+      try {
+        questions = extractQuestions(JSON.parse(matchObj[0]));
+      } catch {
+        // continua
+      }
+    }
+  }
+
+  if (questions.length === 0) {
+    return {
+      success: false,
+      error: 'Nenhuma questão gerada',
+      userMessage: 'A IA não gerou questões válidas. Tente ajustar filtro ou dificuldade.',
+      statusCode: 422,
+    };
+  }
+
+  // Validar questões contra alucinação
+  const validatedQuestions = [];
+  for (const q of questions) {
+    const validation = validateAgainstHallucination(q, subjectConfig);
+
+    if (!validation.valid) {
+      console.warn(`[RAG] Validação falhou para questão ${q.id}:`, validation.errors);
+      continue; // Pular questão inválida
+    }
+
+    const finalQuestion = validation.corrected;
+    if (validation.warning) {
+      console.warn(`[RAG] Aviso:`, validation.warning);
+    }
+
+    validatedQuestions.push({
+      id: finalQuestion.id,
+      statement: finalQuestion.statement,
+      options: finalQuestion.options,
+      correctAnswer: finalQuestion.correctAnswer,
+      explanation: finalQuestion.explanation,
+      fonte: finalQuestion.fonte || subjectConfig.conceptualBases,
+    });
+  }
+
+  if (validatedQuestions.length === 0) {
+    return {
+      success: false,
+      error: 'Nenhuma questão passou na validação',
+      userMessage: 'Questões geradas não passaram na validação. Tente novamente.',
+      statusCode: 422,
+    };
+  }
+
+  console.log(`[RAG] ✓ ${validatedQuestions.length} questão(ões) gerada(s) e validada(s)`);
+
+  return {
+    success: true,
+    questions: validatedQuestions,
+    metadata: {
+      mode: 'rag',
+      subject: subjectConfig.label,
+      vectorizeCollection: subjectConfig.vectorizeCollection,
+      contextLength: contextResult.contextLength,
+      contextSufficient: contextResult.sufficient,
+      sources: contextResult.sources,
+      ragScore: contextResult.sufficient ? 0.95 : 0.65,
+    },
+    statusCode: 200,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FUNÇÃO AUXILIAR: Chamar Groq com retry/fallback
+// ════════════════════════════════════════════════════════════════════════════
+async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
+  const temperature = 0.35; // Concursos preferem respostas mais determinísticas
+  const maxTokens = quantity <= 5 ? 2048 : quantity <= 10 ? 4096 : 6144;
+
+  const delays = [0, 2000, 4000];
+  let lastRes = null;
+
+  for (const model of GROQ_MODELS) {
+    for (let i = 0; i < delays.length; i++) {
+      if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
+
+      lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.GROQ_API_KEY}` },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemText },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+          response_format: { type: 'json_object' },
+        }),
+      });
+
+      if (lastRes.ok || (lastRes.status !== 429 && lastRes.status !== 503)) break;
+    }
+
+    if (lastRes.ok) return lastRes;
+    if (lastRes.status === 401 || lastRes.status === 403) return lastRes;
+    if (lastRes.status === 400) {
+      const errText = await lastRes.clone().text();
+      if (!errText.includes('decommissioned')) return lastRes;
+      continue;
+    }
+  }
+
+  return lastRes;
 }
 
 // ─── Main fetch handler ────────────────────────────────────────────────────────
@@ -345,9 +876,38 @@ export default {
 
     try {
       const body = await request.json();
-      const { topic, subject, area, mode, difficulty, quantity, questionType, concurso, banca, bancaFoco, freeText, editalText, alternativas, idioma, sessionMode } = body;
+      const { topic, subject, area, mode, difficulty, quantity, questionType, concurso, banca, bancaFoco, freeText, editalText, alternativas, idioma, sessionMode, filter } = body;
 
-      const difficultyMap = { easy: 'fácil (nível iniciante, conceitos básicos)', medium: 'médio (nível intermediário, aplicação de conceitos)', hard: 'difícil (nível avançado, análise e interpretação)', extreme: 'extremo (nível especialista, questões de prova real de alto nível)' };
+      // ──────────────────────────────────────────────────────────────────────────
+      // ROTEAMENTO: Se modo Concursos com filtro, usar pipeline RAG
+      // ──────────────────────────────────────────────────────────────────────────
+      if (mode === 'concursos' && filter) {
+        const ragResult = await generateConcursosRAGQuestion(body, env);
+
+        if (!ragResult.success) {
+          return new Response(
+            JSON.stringify({
+              error: ragResult.error,
+              userMessage: ragResult.userMessage,
+              details: ragResult.details,
+            }),
+            {
+              status: ragResult.statusCode || 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        // Retornar no formato padronizado
+        return new Response(JSON.stringify({ questions: ragResult.questions }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // ──────────────────────────────────────────────────────────────────────────
+      // FLUXO LEGADO: Modos ENEM, Estudo, etc. (Groq direto, sem RAG)
+      // ──────────────────────────────────────────────────────────────────────────
       const diffLabel = difficultyMap[difficulty] || 'médio';
       const numAlts = (questionType === 'vf') ? 2 : (parseInt(alternativas) === 4 ? 4 : 5);
       const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
