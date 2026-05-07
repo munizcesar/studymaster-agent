@@ -1,0 +1,82 @@
+[
+  {
+    "id": "q001_fcc_2024_qc",
+    "enunciado": "De acordo com o Código Penal Brasileiro, o dolo, para fins penais, é definido como:",
+    "alternativas": [
+      {
+        "letra": "A",
+        "texto": "A vontade consciente de executar a ação criminosa.",
+        "correta": false
+      },
+      {
+        "letra": "B",
+        "texto": "A negligência do agente em verificar os riscos de sua conduta.",
+        "correta": false
+      },
+      {
+        "letra": "C",
+        "texto": "A intenção específica de causar dano a outrem.",
+        "correta": false
+      },
+      {
+        "letra": "D",
+        "texto": "O conhecimento e a vontade de executar o fato típico.",
+        "correta": true
+      },
+      {
+        "letra": "E",
+        "texto": "A previsibilidade do resultado delitivo.",
+        "correta": false
+      }
+    ],
+    "gabarito": "D",
+    "explicacao": "O dolo caracteriza-se pela presença de dois elementos: o conhecimento e a vontade de executar o fato típico.",
+    "banca": "FCC",
+    "concurso": "TRE-SP - Analista Judiciário",
+    "ano": 2024,
+    "dificuldade": "médio",
+    "disciplina": "Direito Penal",
+    "assunto": "Dolo",
+    "timestamp": "2026-05-07T12:00:00Z"
+  },
+  {
+    "id": "q002_cesgranrio_2023_qc",
+    "enunciado": "A administração moderna enfatiza a importância da liderança no alcance de objetivos organizacionais. Qual das seguintes afirmações sobre liderança está CORRETA?",
+    "alternativas": [
+      {
+        "letra": "A",
+        "texto": "Liderança é sinônimo de autoridade formal.",
+        "correta": false
+      },
+      {
+        "letra": "B",
+        "texto": "Liderança é um conjunto de influências sociais que permitiria alcançar objetivos específicos.",
+        "correta": true
+      },
+      {
+        "letra": "C",
+        "texto": "Apenas gestores podem exercer liderança em uma organização.",
+        "correta": false
+      },
+      {
+        "letra": "D",
+        "texto": "A liderança carismática é o modelo mais eficiente em todas as situações.",
+        "correta": false
+      },
+      {
+        "letra": "E",
+        "texto": "Liderança não pode ser desenvolvida; é apenas um traço inato.",
+        "correta": false
+      }
+    ],
+    "gabarito": "B",
+    "explicacao": "A liderança é definida como influência social que mobiliza pessoas para alcançar objetivos comuns.",
+    "banca": "CESGRANRIO",
+    "concurso": "Petrobras - Técnico em Administração",
+    "ano": 2023,
+    "dificuldade": "médio",
+    "disciplina": "Administração",
+    "assunto": "Liderança",
+    "timestamp": "2026-05-07T12:00:00Z"
+  }
+]
