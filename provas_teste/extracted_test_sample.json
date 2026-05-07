@@ -1,0 +1,82 @@
+[
+  {
+    "id": "q001_fcc_2024",
+    "statement": "De acordo com o Código Penal Brasileiro, o dolo, para fins penais, é definido como:",
+    "options": [
+      {"letter": "A", "text": "A vontade consciente de executar a ação criminosa."},
+      {"letter": "B", "text": "A negligência do agente em verificar os riscos de sua conduta."},
+      {"letter": "C", "text": "A intenção específica de causar dano a outrem."},
+      {"letter": "D", "text": "O conhecimento e a vontade de executar o fato típico."},
+      {"letter": "E", "text": "A previsibilidade do resultado delitivo."}
+    ],
+    "correctAnswer": "D",
+    "explanation": "O dolo caracteriza-se pela presença de dois elementos: o conhecimento e a vontade de executar o fato típico.",
+    "banca": "FCC",
+    "exam": "TRE-SP - Analista Judiciário",
+    "year": 2024,
+    "difficulty": "médio",
+    "subject": "Direito Penal",
+    "topic": "Dolo",
+    "timestamp": "2026-05-07T12:00:00Z"
+  },
+  {
+    "id": "q002_fcc_2024",
+    "statement": "Qual é o prazo prescricional para crimes de furto simples conforme a legislação penal vigente?",
+    "options": [
+      {"letter": "A", "text": "2 anos"},
+      {"letter": "B", "text": "3 anos"},
+      {"letter": "C", "text": "5 anos"},
+      {"letter": "D", "text": "8 anos"},
+      {"letter": "E", "text": "10 anos"}
+    ],
+    "correctAnswer": "B",
+    "explanation": "Segundo o Art. 109 do CP, crimes em geral têm prazo prescricional de 3 anos.",
+    "banca": "FCC",
+    "exam": "TRE-SP - Analista Judiciário",
+    "year": 2024,
+    "difficulty": "fácil",
+    "subject": "Direito Penal",
+    "topic": "Prescricão",
+    "timestamp": "2026-05-07T12:00:00Z"
+  },
+  {
+    "id": "q003_cesgranrio_2023",
+    "statement": "A administração moderna enfatiza a importância da liderança no alcance de objetivos organizacionais. Qual das seguintes afirmações sobre liderança está CORRETA?",
+    "options": [
+      {"letter": "A", "text": "Liderança é sinônimo de autoridade formal."},
+      {"letter": "B", "text": "Liderança é um conjunto de influências sociais que permitiria alcançar objetivos específicos."},
+      {"letter": "C", "text": "Apenas gestores podem exercer liderança em uma organização."},
+      {"letter": "D", "text": "A liderança carismática é o modelo mais eficiente em todas as situações."},
+      {"letter": "E", "text": "Liderança não pode ser desenvolvida; é apenas um traço inato."}
+    ],
+    "correctAnswer": "B",
+    "explanation": "A liderança é definida como influência social que mobiliza pessoas para alcançar objetivos comuns.",
+    "banca": "CESGRANRIO",
+    "exam": "Petrobras - Técnico em Administração",
+    "year": 2023,
+    "difficulty": "médio",
+    "subject": "Administração",
+    "topic": "Liderança",
+    "timestamp": "2026-05-07T12:00:00Z"
+  },
+  {
+    "id": "q004_ibfc_2023",
+    "statement": "Assinale a alternativa CORRETA sobre os direitos e garantias fundamentais previstos na Constituição Federal:",
+    "options": [
+      {"letter": "A", "text": "A vida é um direito fundamental, não havendo possibilidade de restrição em nenhuma circunstância."},
+      {"letter": "B", "text": "A liberdade de expressão é absoluta e não pode ser limitada."},
+      {"letter": "C", "text": "Os direitos fundamentais são aqueles expressamente enumerados na Constituição."},
+      {"letter": "D", "text": "O direito à liberdade e segurança são direitos sociais."},
+      {"letter": "E", "text": "A tortura é proibida sob qualquer pretexto."}
+    ],
+    "correctAnswer": "E",
+    "explanation": "A proibição da tortura é um direito fundamental absoluto, conforme Art. 5º, XLIII da CF/88.",
+    "banca": "IBFC",
+    "exam": "PM-DF - Soldado da Polícia Militar",
+    "year": 2023,
+    "difficulty": "fácil",
+    "subject": "Direito Constitucional",
+    "topic": "Direitos Fundamentais",
+    "timestamp": "2026-05-07T12:00:00Z"
+  }
+]
