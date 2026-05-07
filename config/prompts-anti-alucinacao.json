@@ -105,12 +105,12 @@
         "Estrutura do Estado: cite artigos específicos da CF/88 (arts. 37-41)."
       ],
       "exampleContext": "CF/88, art. 37: 'A administração pública direta e indireta de qualquer dos Poderes da União, dos Estados, do Distrito Federal e dos Municípios obedecerá aos princípios de legalidade, impessoalidade, moralidade, publicidade e eficiência'.",
-      "forbiddenPatterns": [
-        "concurso de",
-        "prova ESAF/FGV",
-        "edital de",
-        "banca X decidiu"
-      ]
+       "forbiddenPatterns": [
+         "concurso de",
+         "prova de",
+         "edital de",
+         "banca X decidiu"
+       ]
     }
   },
 
@@ -132,16 +132,17 @@
   "validationChecks": {
     "description": "Checks a realizar após receber resposta do modelo",
     "hallucination_detection": [
-      {
-        "pattern": "\\b(banca|concurso|prova|edital|ano de \\d{4})\\b",
-        "severity": "high",
-        "action": "remove_or_normalize"
-      },
-      {
-        "pattern": "\\b(ESAF|CEBRASPE|FCC|VUNESP|IBFC)\\b",
-        "severity": "high",
-        "action": "check_against_vectorize_context"
-      },
+       {
+         "pattern": "\\b(banca|concurso|prova|edital|ano de \\d{4})\\b",
+         "severity": "high",
+         "action": "remove_or_normalize"
+       },
+       {
+         "pattern": "\\b(platform|exam_board|banca específica)\\b",
+         "severity": "high",
+         "action": "check_against_vectorize_context",
+         "note": "Detecta menção a bancas/plataformas; deve estar no CONTEXTO fornecido para ser válido"
+       },
       {
         "pattern": "\\b(segundo.*julgado|conforme acórdão|decisão de)\\b",
         "severity": "medium",

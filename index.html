@@ -1643,33 +1643,44 @@ const concursoData = {
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// DADOS RAG PARA CONCURSOS (Novo modo com filtros de matéria)
+// DADOS RAG PARA CONCURSOS (Modo Concursos: Matérias Clássicas)
 // ════════════════════════════════════════════════════════════════════════════
+// Mapeamento 1:1 com CONCURSOS_CONFIG.filters no backend (worker.js)
+//
+// Chaves internas: concursos.<materia>
+// Coleções RAG: concursos_<materia>
+// ════════════════════════════════════════════════════════════════════════════
+
 const concursosFilters = {
-  portugues: {
+  'concursos.portugues': {
     label: 'Português',
     icon: 'book-open',
     description: 'Gramática, regência, semântica, interpretação de textos',
   },
-  direito_constitucional: {
+  'concursos.direito_constitucional': {
     label: 'Direito Constitucional',
     icon: 'balance-scale',
     description: 'CF/88, direitos fundamentais, poderes e federação',
   },
-  raciocinio_logico: {
+  'concursos.direito_administrativo': {
+    label: 'Direito Administrativo',
+    icon: 'briefcase',
+    description: 'Administração pública, servidores, licitações, atos administrativos',
+  },
+  'concursos.raciocinio_logico': {
     label: 'Raciocínio Lógico',
     icon: 'zap',
-    description: 'Lógica formal, combinatória, probabilidade',
+    description: 'Lógica formal, combinatória, probabilidade, argumentos',
   },
-  informatica: {
+  'concursos.informatica': {
     label: 'Informática',
     icon: 'cpu',
-    description: 'SO, redes, segurança, ISO/IEC, protocolos',
+    description: 'SO, redes, segurança, protocolos, bancos de dados',
   },
-  administracao_publica: {
+  'concursos.administracao_publica': {
     label: 'Administração Pública',
     icon: 'briefcase',
-    description: 'Lei 8.112, licitações, processos administrativos, CF/88',
+    description: 'Gestão pública, planejamento, Lei 8.112, Lei 14.133 (licitações)',
   },
 };
 

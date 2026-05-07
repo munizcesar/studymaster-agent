@@ -16,48 +16,128 @@ const corsHeaders = {
 // ════════════════════════════════════════════════════════════════════════════
 // CONFIGURAÇÃO RAG PARA CONCURSOS (baixo acoplamento, expansível)
 // ════════════════════════════════════════════════════════════════════════════
+//
+// TABELA DE MAPEAMENTO EXPLÍCITO: Filtro → Coleção Vectorize
+// ────────────────────────────────────────────────────────────────────────────
+// concursos.portugues                 → concursos_portugues
+// concursos.direito_constitucional    → concursos_direito_constitucional
+// concursos.direito_administrativo    → concursos_direito_administrativo
+// concursos.raciocinio_logico         → concursos_rlm (raciocínio lógico-matemático)
+// concursos.informatica               → concursos_informatica
+// concursos.administracao_publica     → concursos_adm_publica
+//
+// FUTURO (Arquitetura preparada, não implementado):
+// - area: "policial" | "tribunais" | "fiscal" | "administracao_geral" | ...
+// - estilo: "certo_errado" | "multipla_escolha" | "discursiva" | ...
+// ────────────────────────────────────────────────────────────────────────────
 
 const CONCURSOS_CONFIG = {
-  // Mapeamento: filtro → coleção Vectorize + metadados
-  subjects: {
-    portugues: {
+  // Mapeamento EXPLÍCITO: filtro (chave) → Vectorize collection + metadados
+  // Padrão de chave interna: "concursos.<materia>"
+  filters: {
+    'concursos.portugues': {
       label: 'Português',
+      description: 'Gramática, regência verbal, semântica, interpretação de textos',
       vectorizeCollection: 'concursos_portugues',
       minContextLength: 200,
-      forbiddenPatterns: ['banca\\s+\\w+', 'prova\\s+de\\s+\\d{4}', 'edital', 'concurso\\s+\\w+'],
-      conceptualBases: 'NCCFL, Gramáticas normativas brasileiras',
+      forbiddenPatterns: [
+        'banca\\s+\\w+',
+        'prova\\s+de\\s+\\d{4}',
+        'edital\\s+de',
+        'concurso\\s+\\w+',
+        'ano\\s+de\\s+\\d{4}',
+      ],
+      conceptualBases: 'Normas de concordância, regência, interpretação textual (NBR, literatura brasileira)',
+      // Futuro: area e estilo
+      // area: null,  // Aceita qualquer área
+      // estilo: null,  // Aceita qualquer estilo
     },
-    direito_constitucional: {
+    'concursos.direito_constitucional': {
       label: 'Direito Constitucional',
+      description: 'Constituição Federal/88, direitos fundamentais, poder judiciário, federalismo',
       vectorizeCollection: 'concursos_direito_constitucional',
       minContextLength: 300,
-      forbiddenPatterns: ['STF\\s+entendeu', 'julgado\\s+em\\s+\\d{4}', 'acórdão\\s+nº', 'decisão\\s+recente'],
-      conceptualBases: 'CF/88, Jurisprudência STF/STJ, Lei 9.784/99',
+      forbiddenPatterns: [
+        'STF\\s+entendeu',
+        'julgado\\s+em\\s+\\d{4}',
+        'acórdão\\s+nº?\\s*\\d+',
+        'decisão\\s+recente',
+        'prova\\s+de\\s+\\d{4}',
+        'banca\\s+\\w+',
+      ],
+      conceptualBases: 'CF/88, Jurisprudência STF/STJ, Lei 9.784/99 (processo administrativo)',
     },
-    raciocinio_logico: {
+    'concursos.direito_administrativo': {
+      label: 'Direito Administrativo',
+      description: 'Administração pública, servidores públicos, licitações, atos administrativos',
+      vectorizeCollection: 'concursos_direito_administrativo',
+      minContextLength: 300,
+      forbiddenPatterns: [
+        'banca\\s+\\w+\\s+decidiu',
+        'edital\\s+de\\s+\\d{4}',
+        'prova\\s+(real|específica)',
+        'ano\\s+de\\s+\\d{4}',
+        'julgado\\s+em',
+      ],
+      conceptualBases: 'CF/88, Lei 8.112/90, Lei 8.666/93, Lei 9.784/99, Lei 14.133/21, Lei 12.527/11 (LAI)',
+    },
+    'concursos.raciocinio_logico': {
       label: 'Raciocínio Lógico',
-      vectorizeCollection: 'concursos_raciocinio_logico',
+      description: 'Lógica formal, combinatória, probabilidade, análise de argumentos',
+      vectorizeCollection: 'concursos_rlm',
       minContextLength: 150,
-      forbiddenPatterns: ['como\\s+foi\\s+comprovado', 'universalmente\\s+aceito', 'recentemente\\s+descoberto'],
-      conceptualBases: 'Lógica formal, Teoria dos conjuntos, Análise combinatória',
+      forbiddenPatterns: [
+        'como\\s+foi\\s+comprovado',
+        'universalmente\\s+aceito',
+        'recentemente\\s+descoberto',
+        'prova\\s+de\\s+\\d{4}',
+        'banca\\s+\\w+',
+      ],
+      conceptualBases: 'Lógica clássica, Teoria dos conjuntos, Análise combinatória, Probabilidade',
     },
-    informatica: {
+    'concursos.informatica': {
       label: 'Informática',
+      description: 'Sistemas operacionais, redes, segurança da informação, protocolos, bancos de dados',
       vectorizeCollection: 'concursos_informatica',
       minContextLength: 250,
-      forbiddenPatterns: ['última\\s+versão', 'tecnologia\\s+do\\s+futuro', 'versão\\s+\\d+\\.\\d+\\s+(lançada|publicada)'],
-      conceptualBases: 'ISO/IEC 27001, RFC padrões, Documentação oficial',
+      forbiddenPatterns: [
+        'última\\s+versão',
+        'versão\\s+mais\\s+recente',
+        'tecnologia\\s+do\\s+futuro',
+        'versão\\s+\\d+\\.\\d+\\s+(lançada|publicada)',
+        'prova\\s+de\\s+\\d{4}',
+      ],
+      conceptualBases: 'ISO/IEC 27001, RFC padrões, Documentação oficial (NIST, CIS)',
     },
-    administracao_publica: {
+    'concursos.administracao_publica': {
       label: 'Administração Pública',
-      vectorizeCollection: 'concursos_administracao_publica',
+      description: 'Gestão pública, planejamento estratégico, liderança, administração de recursos',
+      vectorizeCollection: 'concursos_adm_publica',
       minContextLength: 300,
-      forbiddenPatterns: ['banca\\s+\\w+\\s+decidiu', 'edital\\s+de\\s+\\d{4}', 'prova\\s+(ESAF|CESPE|FCC)'],
-      conceptualBases: 'CF/88, Lei 8.112/90, Lei 8.666/93, Lei 9.784/99, Lei 14.133/21',
+      forbiddenPatterns: [
+        'banca\\s+\\w+\\s+decidiu',
+        'edital\\s+de\\s+\\d{4}',
+        'prova\\s+(real|específica|recente)',
+        'ano\\s+de\\s+\\d{4}',
+        'concurso\\s+\\w+',
+      ],
+      conceptualBases: 'CF/88, Lei 8.112/90 (regime jurídico), Lei 9.784/99, Lei 14.133/21 (nova lei de licitações)',
     },
   },
-  // Fallback gracioso quando contexto insuficiente
+
+  // Mapeamento reverso: coleção → filtro (para debugging/logging)
+  collectionToFilter: {
+    'concursos_portugues': 'concursos.portugues',
+    'concursos_direito_constitucional': 'concursos.direito_constitucional',
+    'concursos_direito_administrativo': 'concursos.direito_administrativo',
+    'concursos_rlm': 'concursos.raciocinio_logico',
+    'concursos_informatica': 'concursos.informatica',
+    'concursos_adm_publica': 'concursos.administracao_publica',
+  },
+
+  // Fallback gracioso quando contexto insuficiente ou filtro não mapeado
   fallbackMessage: 'Desculpe, ainda não temos base de dados suficiente para esta matéria. Tente novamente em breve!',
+  invalidFilterMessage: (filter) => `O filtro "${filter}" não foi reconhecido. Escolha uma das matérias disponíveis: Português, Direito Constitucional, Direito Administrativo, Raciocínio Lógico, Informática ou Administração Pública.`,
 };
 
 const GROQ_MODELS = [
@@ -83,15 +163,23 @@ const AREA_MAP_VECTORIZE = {
 // ════════════════════════════════════════════════════════════════════════════
 
 /**
- * PASSO 1: Validar se filtro está mapeado para coleção Vectorize
- * @param {string} filter - ex: "portugues", "direito_constitucional"
- * @returns {Object} { valid: bool, config: subjectConfig || null }
+ * PASSO 1: Validar se filtro está mapeado na tabela CONCURSOS_CONFIG.filters
+ * @param {string} filter - ex: "concursos.portugues", "concursos.direito_administrativo"
+ * @returns {Object} { valid: bool, config: filterConfig || null, error: string || null }
  */
 function validateConcursosFilter(filter) {
-  const config = CONCURSOS_CONFIG.subjects[filter];
+  const config = CONCURSOS_CONFIG.filters[filter];
+  
   if (!config) {
-    return { valid: false, config: null, error: `Filtro não mapeado: ${filter}` };
+    const availableFilters = Object.keys(CONCURSOS_CONFIG.filters).map(f => f.replace('concursos.', '')).join(', ');
+    return {
+      valid: false,
+      config: null,
+      error: `Filtro não mapeado: "${filter}". Opções disponíveis: ${availableFilters}`,
+      userMessage: CONCURSOS_CONFIG.invalidFilterMessage(filter),
+    };
   }
+
   return { valid: true, config };
 }
 
@@ -582,7 +670,7 @@ async function generateConcursosRAGQuestion(body, env) {
     return {
       success: false,
       error: filterValidation.error,
-      userMessage: CONCURSOS_CONFIG.fallbackMessage,
+      userMessage: filterValidation.userMessage || CONCURSOS_CONFIG.fallbackMessage,
       statusCode: 400,
     };
   }

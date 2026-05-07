@@ -16,25 +16,29 @@
 5 matérias iniciais mapeadas:
 - ✅ **Português** → `concursos_portugues`
 - ✅ **Direito Constitucional** → `concursos_direito_constitucional`
-- ✅ **Raciocínio Lógico** → `concursos_raciocinio_logico`
+- ✅ **Direito Administrativo** → `concursos_direito_administrativo` (NOVO)
+- ✅ **Raciocínio Lógico** → `concursos_rlm`
 - ✅ **Informática** → `concursos_informatica`
-- ✅ **Administração Pública** → `concursos_administracao_publica`
+- ✅ **Administração Pública** → `concursos_adm_publica`
 
 **Adicionalidades**:
-- Estrutura pronta para adicionar estilos de banca (FCC, CEBRASPE, VUNESP, IBFC)
+- Estrutura mapeamento explícito: filtro → coleção (1:1), sem ambiguidade
 - Tópicos por matéria definidos
-- Bases conceituais normativas para cada área
+- Bases conceituais normativas para cada área (sem referências a bancas)
+- Validação anti-alucinação por matéria
+- Preparado para futura extensão com `area` e `estilo` (não implementado ainda)
 
 ### ✅ 2. Mapeamento Filtro → Coleção Vectorize
 
 **Arquivo**: `config/taxonomy-concursos.json` (seção `filterMapping`)
 
 ```
-concursos.portugues           → concursos_portugues        (min 200 chars)
-concursos.direito_const       → concursos_direito_const    (min 300 chars)
-concursos.raciocinio_logico   → concursos_raciocinio_logico (min 150 chars)
-concursos.informatica         → concursos_informatica      (min 250 chars)
-concursos.administracao       → concursos_administracao    (min 300 chars)
+concursos.portugues                    → concursos_portugues                (min 200 chars)
+concursos.direito_constitucional       → concursos_direito_constitucional   (min 300 chars)
+concursos.direito_administrativo       → concursos_direito_administrativo   (min 300 chars) [NOVO]
+concursos.raciocinio_logico            → concursos_rlm                      (min 150 chars)
+concursos.informatica                  → concursos_informatica              (min 250 chars)
+concursos.administracao_publica        → concursos_adm_publica              (min 300 chars)
 ```
 
 **Comportamento**:

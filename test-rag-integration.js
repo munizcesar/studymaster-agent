@@ -20,7 +20,7 @@ const tests = [
     name: '1. Modo Concursos + Filtro Português',
     payload: {
       mode: 'concursos',
-      filter: 'portugues',
+      filter: 'concursos.portugues',
       difficulty: 'medium',
       quantity: 1,
       questionType: 'mc',
@@ -38,7 +38,7 @@ const tests = [
     name: '2. Modo Concursos + Filtro Direito Constitucional',
     payload: {
       mode: 'concursos',
-      filter: 'direito_constitucional',
+      filter: 'concursos.direito_constitucional',
       difficulty: 'hard',
       quantity: 2,
       questionType: 'mc',
@@ -52,7 +52,24 @@ const tests = [
     },
   },
   {
-    name: '3. Modo Concursos + Filtro Inválido',
+    name: '3. Modo Concursos + Filtro Direito Administrativo (NOVO)',
+    payload: {
+      mode: 'concursos',
+      filter: 'concursos.direito_administrativo',
+      difficulty: 'medium',
+      quantity: 1,
+      questionType: 'mc',
+      alternativas: 5,
+      idioma: 'pt-BR',
+      sessionMode: 'normal',
+    },
+    expected: {
+      success: true,
+      hasQuestions: true,
+    },
+  },
+  {
+    name: '4. Modo Concursos + Filtro Inválido',
     payload: {
       mode: 'concursos',
       filter: 'materia_inexistente',
@@ -69,7 +86,7 @@ const tests = [
     },
   },
   {
-    name: '4. Modo Academic (legado, deve continuar funcionando)',
+    name: '5. Modo Academic (legado, deve continuar funcionando)',
     payload: {
       mode: 'academic',
       area: 'Saúde',

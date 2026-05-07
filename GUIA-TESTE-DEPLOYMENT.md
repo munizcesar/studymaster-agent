@@ -8,9 +8,11 @@
 
 ## 📋 O Que Foi Integrado
 
-### 1. **worker.js** (662 inserções)
-- `CONCURSOS_CONFIG`: 5 subjects com mapeamentos, padrões proibidos, min context length
-- `validateConcursosFilter()`: Valida se filtro existe
+### 1. **worker.js** (expandido)
+- `CONCURSOS_CONFIG`: 6 subjects com mapeamentos 1:1, padrões proibidos, min context length
+- `CONCURSOS_CONFIG.filters`: Mapeamento explícito `concursos.<materia>` → metadata + coleção Vectorize
+- `CONCURSOS_CONFIG.collectionToFilter`: Reverse mapping para debugging
+- `validateConcursosFilter()`: Valida se filtro existe, retorna erro amigável se não mapeado
 - `fetchVectorizeContext()`: Busca semântica no Vectorize (com graceful degradation)
 - `validateAgainstHallucination()`: Remove padrões proibidos pós-geração
 - `generateConcursosRAGQuestion()`: Orquestra o pipeline 3-step
@@ -18,12 +20,12 @@
 - **Roteamento**: `mode=concursos+filter` → RAG pipeline
 - **Fallback**: Modo legado (Academic, Livre) continua funcionando
 
-### 2. **index.html** (662 modificações)
-- `concursosFilters`: 5 matérias com ícones e descrições
+### 2. **index.html** (expandido)
+- `concursosFilters`: 6 matérias com chaves `concursos.<materia>` ícones e descrições
 - `renderStep2Concurso()`: **Nova UI** de seleção de matérias (substituiu seleção de concursos)
 - `.filters-grid` + `.filter-card` CSS: Grid responsivo de 260px min
 - `isStepValid()`: Validação de filtro selecionado
-- `state.filter`: Campo para armazenar filtro selecionado
+- `state.filter`: Campo para armazenar filtro selecionado (formato `concursos.<materia>`)
 - `payload.filter`: Enviado junto com requisição ao worker
 
 ---
@@ -49,11 +51,12 @@ node test-rag-integration.js
 ```
 ✅ PASSOU — 1. Modo Concursos + Filtro Português
 ✅ PASSOU — 2. Modo Concursos + Filtro Direito Constitucional
-✅ PASSOU — 3. Modo Concursos + Filtro Inválido
-✅ PASSOU — 4. Modo Academic (legado)
+✅ PASSOU — 3. Modo Concursos + Filtro Direito Administrativo
+✅ PASSOU — 4. Modo Concursos + Filtro Inválido
+✅ PASSOU — 5. Modo Academic (legado)
 
 📊 RESULTADO FINAL
-✅ Passou: 4/4
+✅ Passou: 5/5
 ```
 
 ### Opção 2: Teste Manual no Navegador
@@ -79,7 +82,7 @@ curl -X POST http://localhost:8787 \
   -H "Content-Type: application/json" \
   -d '{
     "mode": "concursos",
-    "filter": "portugues",
+    "filter": "concursos.portugues",
     "difficulty": "medium",
     "quantity": 1,
     "questionType": "mc",

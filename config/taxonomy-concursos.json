@@ -26,34 +26,57 @@
       ]
     },
     
-    "direito_constitucional": {
-      "label": "Direito Constitucional",
-      "description": "Constituição Federal e direitos fundamentais",
-      "vectorizeCollection": "concursos_direito_constitucional",
-      "topics": [
-        "Constituição Federal de 1988",
-        "Direitos e garantias fundamentais",
-        "Direitos sociais",
-        "Direitos políticos",
-        "Nacionalidade",
-        "Poder Executivo",
-        "Poder Legislativo",
-        "Poder Judiciário",
-        "Ordem econômica e social",
-        "ADPF, ADI, mandado de segurança"
-      ],
-      "conceptualBases": [
-        "CF/88 (Constituição Federal de 1988)",
-        "Lei nº 6.994/2021 (EC nº 112)",
-        "Jurisprudência STF",
-        "Doutrina especializada"
-      ]
-    },
-    
-    "raciocinio_logico": {
-      "label": "Raciocínio Lógico",
-      "description": "Lógica proposicional, conjuntos, análise combinatória",
-      "vectorizeCollection": "concursos_raciocinio_logico",
+     "direito_constitucional": {
+       "label": "Direito Constitucional",
+       "description": "Constituição Federal e direitos fundamentais",
+       "vectorizeCollection": "concursos_direito_constitucional",
+       "topics": [
+         "Constituição Federal de 1988",
+         "Direitos e garantias fundamentais",
+         "Direitos sociais",
+         "Direitos políticos",
+         "Nacionalidade",
+         "Poder Executivo",
+         "Poder Legislativo",
+         "Poder Judiciário",
+         "Ordem econômica e social",
+         "ADPF, ADI, mandado de segurança"
+       ],
+       "conceptualBases": [
+         "CF/88 (Constituição Federal de 1988)",
+         "Lei nº 6.994/2021 (EC nº 112)",
+         "Jurisprudência STF",
+         "Doutrina especializada"
+       ]
+     },
+     
+     "direito_administrativo": {
+       "label": "Direito Administrativo",
+       "description": "Administração pública, servidores e licitações",
+       "vectorizeCollection": "concursos_direito_administrativo",
+       "topics": [
+         "Servidores públicos",
+         "Lei 8.112/1990",
+         "Lei 14.133/2021 (nova lei de licitações)",
+         "Lei 8.666/1993 (licitações antigas)",
+         "Atos administrativos",
+         "Processo administrativo",
+         "Responsabilidade civil do Estado",
+         "Contratos administrativos"
+       ],
+       "conceptualBases": [
+         "CF/88 (arts. 37-41)",
+         "Lei 8.112/1990",
+         "Lei 14.133/2021",
+         "Lei 9.784/1999",
+         "Jurisprudência STJ/TRF"
+       ]
+     },
+     
+     "raciocinio_logico": {
+       "label": "Raciocínio Lógico",
+       "description": "Lógica proposicional, conjuntos, análise combinatória",
+       "vectorizeCollection": "concursos_rlm",
       "topics": [
         "Lógica proposicional",
         "Equivalências lógicas",
@@ -91,108 +114,78 @@
       ]
     },
     
-    "administracao_publica": {
-      "label": "Administração Pública",
-      "description": "Princípios, estrutura e funcionamento da AP",
-      "vectorizeCollection": "concursos_administracao_publica",
-      "topics": [
-        "Princípios constitucionais",
-        "Organização administrativa",
-        "Servidores públicos",
-        "Contratos administrativos",
-        "Licitação",
-        "Responsabilidade civil do Estado",
-        "Atos administrativos",
-        "Processo administrativo"
-      ],
-      "conceptualBases": [
-        "CF/88 (arts. 37-41)",
-        "Lei 8.112/1990 (regime jurídico servidores)",
-        "Lei 8.666/1993 (licitações)",
-        "Lei 9.784/1999 (processo administrativo)",
-        "Jurisprudência STJ/TRF"
-      ]
-    }
-  },
+     "administracao_publica": {
+       "label": "Administração Pública",
+       "description": "Princípios, estrutura e funcionamento da AP",
+       "vectorizeCollection": "concursos_adm_publica",
+       "topics": [
+         "Princípios constitucionais",
+         "Organização administrativa",
+         "Servidores públicos",
+         "Contratos administrativos",
+         "Licitação",
+         "Responsabilidade civil do Estado",
+         "Atos administrativos",
+         "Processo administrativo"
+       ],
+       "conceptualBases": [
+         "CF/88 (arts. 37-41)",
+         "Lei 8.112/1990 (regime jurídico servidores)",
+         "Lei 8.666/1993 (licitações)",
+         "Lei 9.784/1999 (processo administrativo)",
+         "Jurisprudência STJ/TRF"
+       ]
+     }
+   },
 
-  "bankStyles": {
-    "description": "Estilos de banca (preparar para futura integração)",
-    "fcc": {
-      "label": "FCC",
-      "style": "múltipla_escolha",
-      "characteristics": [
-        "5 alternativas (A-E)",
-        "Questões discursivas e interpretativas",
-        "Enunciados longos e contextualizados"
-      ]
-    },
-    "cebraspe": {
-      "label": "CEBRASPE (Cespe)",
-      "style": "certo_errado",
-      "characteristics": [
-        "Formato C/E (Certo ou Errado)",
-        "Múltiplos itens por texto",
-        "Enunciados diretos e objetivos"
-      ]
-    },
-    "vunesp": {
-      "label": "VUNESP",
-      "style": "multipla_escolha",
-      "characteristics": [
-        "4-5 alternativas",
-        "Questões técnicas e objetivas"
-      ]
-    },
-    "ibfc": {
-      "label": "IBFC",
-      "style": "multipla_escolha",
-      "characteristics": [
-        "5 alternativas (A-E)",
-        "Foco em legislação específica"
-      ]
-    }
-  },
-
-  "filterMapping": {
-    "description": "Mapeamento UI filtro → configuração interna",
-    "concursos": {
-      "portugues": {
-        "internalKey": "concursos_portugues",
-        "vectorizeCollection": "concursos_portugues",
-        "fallbackMode": "generic_portuguese",
-        "minContextLength": 200,
-        "description": "Português para concursos"
-      },
-      "direito_constitucional": {
-        "internalKey": "concursos_direito_constitucional",
-        "vectorizeCollection": "concursos_direito_constitucional",
-        "fallbackMode": "generic_law",
-        "minContextLength": 300,
-        "description": "Direito Constitucional"
-      },
-      "raciocinio_logico": {
-        "internalKey": "concursos_raciocinio_logico",
-        "vectorizeCollection": "concursos_raciocinio_logico",
-        "fallbackMode": "generic_logic",
-        "minContextLength": 150,
-        "description": "Raciocínio Lógico"
-      },
-      "informatica": {
-        "internalKey": "concursos_informatica",
-        "vectorizeCollection": "concursos_informatica",
-        "fallbackMode": "generic_it",
-        "minContextLength": 250,
-        "description": "Informática"
-      },
-      "administracao_publica": {
-        "internalKey": "concursos_administracao_publica",
-        "vectorizeCollection": "concursos_administracao_publica",
-        "fallbackMode": "generic_admin",
-        "minContextLength": 300,
-        "description": "Administração Pública"
-      }
-    }
-  },
+   "filterMapping": {
+     "description": "Mapeamento UI filtro → configuração interna (DEPRECATED: usar CONCURSOS_CONFIG.filters em worker.js)",
+     "note": "Esta seção é legado. O mapeamento principal está em worker.js:CONCURSOS_CONFIG.filters",
+     "concursos": {
+       "concursos.portugues": {
+         "internalKey": "concursos_portugues",
+         "vectorizeCollection": "concursos_portugues",
+         "fallbackMode": "generic_portuguese",
+         "minContextLength": 200,
+         "description": "Português para concursos"
+       },
+       "concursos.direito_constitucional": {
+         "internalKey": "concursos_direito_constitucional",
+         "vectorizeCollection": "concursos_direito_constitucional",
+         "fallbackMode": "generic_law",
+         "minContextLength": 300,
+         "description": "Direito Constitucional"
+       },
+       "concursos.direito_administrativo": {
+         "internalKey": "concursos_direito_administrativo",
+         "vectorizeCollection": "concursos_direito_administrativo",
+         "fallbackMode": "generic_law",
+         "minContextLength": 300,
+         "description": "Direito Administrativo"
+       },
+       "concursos.raciocinio_logico": {
+         "internalKey": "concursos_rlm",
+         "vectorizeCollection": "concursos_rlm",
+         "fallbackMode": "generic_logic",
+         "minContextLength": 150,
+         "description": "Raciocínio Lógico"
+       },
+       "concursos.informatica": {
+         "internalKey": "concursos_informatica",
+         "vectorizeCollection": "concursos_informatica",
+         "fallbackMode": "generic_it",
+         "minContextLength": 250,
+         "description": "Informática"
+       },
+       "concursos.administracao_publica": {
+         "internalKey": "concursos_adm_publica",
+         "vectorizeCollection": "concursos_adm_publica",
+         "fallbackMode": "generic_admin",
+         "minContextLength": 300,
+         "description": "Administração Pública"
+       }
+     }
+   },
 
   "validationRules": {
     "description": "Regras de validação pós-geração",
