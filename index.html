@@ -1821,13 +1821,14 @@ const concursosFilters = {
 };
 
 // Tópicos por disciplina de concursos (para select em cascata)
+// Chaves = sufixo da disciplina (sem 'concursos.'), pois o worker monta: `concursos.${discipline}`
 const concursoTopicMap = {
-  'concursos.portugues': ['Compreensão e Interpretação de Texto','Ortografia e Acentuação','Concordância Nominal e Verbal','Regência Nominal e Verbal','Pontuação e Crase','Semântica e Vocabulário','Morfologia','Sintaxe da Frase','Tipologia e Gêneros Textuais','Redação Oficial'],
-  'concursos.direito_constitucional': ['CF/88 — Princípios Fundamentais','Direitos e Garantias Fundamentais','Direitos Sociais','Direitos Políticos e Nacionalidade','Poder Executivo','Poder Legislativo','Poder Judiciário','Controle de Constitucionalidade','Administração Pública'],
-  'concursos.direito_administrativo': ['Atos Administrativos','Processo Administrativo (Lei 9.784/99)','Servidores Públicos (Lei 8.112/90)','Licitações (Lei 8.666/93)','Nova Lei de Licitações (Lei 14.133/21)','Contratos Administrativos','Responsabilidade Civil do Estado','Improbidade Administrativa'],
-  'concursos.raciocinio_logico': ['Lógica Proposicional','Tabelas-Verdade','Diagramas Lógicos (Venn)','Sequências e Padrões','Argumentação e Inferência','Análise Combinatória','Probabilidade','Porcentagem e Proporção'],
-  'concursos.informatica': ['Hardware e Software Básico','Sistemas Operacionais (Windows/Linux)','Pacote Office (Word, Excel, PowerPoint)','Internet, Redes e Protocolos','Segurança da Informação','Banco de Dados Básico','Redes de Computadores'],
-  'concursos.administracao_publica': ['Princípios Constitucionais da AP','Organização Administrativa','Controle da Administração','Planejamento e Orçamento Público','Gestão de Pessoas no Setor Público','Liderança e Comportamento Organizacional','Ética no Serviço Público'],
+  'portugues': ['Compreensão e Interpretação de Texto','Ortografia e Acentuação','Concordância Nominal e Verbal','Regência Nominal e Verbal','Pontuação e Crase','Semântica e Vocabulário','Morfologia','Sintaxe da Frase','Tipologia e Gêneros Textuais','Redação Oficial'],
+  'direito_constitucional': ['CF/88 — Princípios Fundamentais','Direitos e Garantias Fundamentais','Direitos Sociais','Direitos Políticos e Nacionalidade','Poder Executivo','Poder Legislativo','Poder Judiciário','Controle de Constitucionalidade','Administração Pública'],
+  'direito_administrativo': ['Atos Administrativos','Processo Administrativo (Lei 9.784/99)','Servidores Públicos (Lei 8.112/90)','Licitações (Lei 8.666/93)','Nova Lei de Licitações (Lei 14.133/21)','Contratos Administrativos','Responsabilidade Civil do Estado','Improbidade Administrativa'],
+  'raciocinio_logico': ['Lógica Proposicional','Tabelas-Verdade','Diagramas Lógicos (Venn)','Sequências e Padrões','Argumentação e Inferência','Análise Combinatória','Probabilidade','Porcentagem e Proporção'],
+  'informatica': ['Hardware e Software Básico','Sistemas Operacionais (Windows/Linux)','Pacote Office (Word, Excel, PowerPoint)','Internet, Redes e Protocolos','Segurança da Informação','Banco de Dados Básico','Redes de Computadores'],
+  'administracao_publica': ['Princípios Constitucionais da AP','Organização Administrativa','Controle da Administração','Planejamento e Orçamento Público','Gestão de Pessoas no Setor Público','Liderança e Comportamento Organizacional','Ética no Serviço Público'],
 };
 
 const state = {
@@ -2289,7 +2290,9 @@ function renderConcursosActiveTags() {
   if (!el) return;
   const f = state.concursosFiltersState;
   const labels = [
-    f.discipline && (concursosFilters[f.discipline]?.label),
+    // f.discipline = sufixo (ex: 'direito_constitucional')
+    // concursosFilters usa chave completa (ex: 'concursos.direito_constitucional')
+    f.discipline && (concursosFilters[`concursos.${f.discipline}`]?.label),
     f.topic && `Tópico: ${f.topic}`,
     f.examBoard && `Banca: ${f.examBoard}`,
     f.agency && `Órgão: ${f.agency}`,
@@ -2303,8 +2306,13 @@ function renderConcursosActiveTags() {
 function renderStep2Concurso(container) {
   const f = state.concursosFiltersState;
 
+  // value = sufixo da disciplina (ex: 'direito_constitucional')
+  // o worker monta filterKey = `concursos.${discipline}` — sem prefixo duplo!
   const disciplineOptions = Object.entries(concursosFilters)
-    .map(([key, v]) => `<option value="${key}" ${f.discipline===key?'selected':''}>${v.label}</option>`)
+    .map(([key, v]) => {
+      const suffix = key.replace('concursos.', ''); // 'direito_constitucional'
+      return `<option value="${suffix}" ${f.discipline===suffix?'selected':''}>${v.label}</option>`;
+    })
     .join('');
 
   const topicsForDiscipline = f.discipline ? (concursoTopicMap[f.discipline] || []) : [];

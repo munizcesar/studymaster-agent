@@ -662,6 +662,8 @@ async function fetchYouTubeTranscript(videoId) {
 async function generateConcursosRAGQuestion(body, env) {
   const { filter, quantity = 1, difficulty, questionType, alternativas, idioma, sessionMode } = body;
 
+  console.log('[RAG] FILTER RAW:', JSON.stringify(filter));
+
   let filterKey = filter;
   let content = {}, exam = {}, examMetadata = {}, history = {};
 
@@ -672,6 +674,8 @@ async function generateConcursosRAGQuestion(body, env) {
     history = filter.history || {};
     filterKey = content.discipline ? `concursos.${content.discipline}` : filterKey;
   }
+
+  console.log('[RAG] FILTER KEY:', filterKey);
 
   // ─────────────────────────────────────────────────────────────────────────
   // PASSO 1: Validar filtro
