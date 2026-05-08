@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMaster - Teste do Módulo de Filtros</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  
+  <!-- Ícones Lucide -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <!-- Estilos do Módulo de Filtros -->
+  <link rel="stylesheet" href="/src/filter-styles.css">
+  
+  <style>
+    :root {
+      --color-bg:             #f7f6f2;
+      --color-surface:        #f9f8f5;
+      --color-surface-2:      #fbfbf9;
+      --color-surface-offset: #f3f0ec;
+      --color-divider:        #dcd9d5;
+      --color-border:         #d4d1ca;
+      --color-text:           #28251d;
+      --color-text-muted:     #7a7974;
+      --color-text-faint:     #bab9b4;
+      --color-primary:        #5B5BD6;
+      --color-primary-hover:  #4747C2;
+      --color-accent:         #F97316;
+      --color-success:        #16A34A;
+      --color-error:          #c0392b;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --font-display: 'Cabinet Grotesk', 'Helvetica Neue', sans-serif;
+      --font-body: 'Satoshi', 'Inter', sans-serif;
+      --text-xs: 0.75rem;
+      --text-sm: 0.875rem;
+      --text-base: 1rem;
+      --text-lg: 1.125rem;
+      --text-xl: 1.5rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: var(--space-4);
+    }
+
+    .header {
+      margin-bottom: var(--space-8);
+    }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: var(--space-2);
+      background: linear-gradient(135deg, #5B5BD6, #7C3AED, #F97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      color: var(--color-text-muted);
+      font-size: var(--text-base);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    .sidebar {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      height: fit-content;
+      position: sticky;
+      top: var(--space-4);
+    }
+
+    .main-content {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: var(--space-6);
+      min-height: 500px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, rgba(91, 91, 214, 0.1), rgba(124, 58, 237, 0.1));
+      border: 1px solid rgba(91, 91, 214, 0.3);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .info-box h3 {
+      margin-bottom: var(--space-2);
+      color: var(--color-primary);
+    }
+
+    .info-box code {
+      background: var(--color-surface-offset);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+    }
+
+    .debug-panel {
+      background: var(--color-surface-offset);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-top: var(--space-6);
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .debug-panel h4 {
+      margin-bottom: var(--space-2);
+      font-size: var(--text-sm);
+    }
+
+    .debug-log {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      line-height: 1.4;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .debug-entry {
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--color-divider);
+    }
+
+    .debug-entry:last-child {
+      border-bottom: none;
+    }
+
+    .debug-timestamp {
+      color: var(--color-text-faint);
+      margin-right: var(--space-2);
+    }
+
+    .questions-container {
+      margin-top: var(--space-6);
+    }
+
+    .question-card {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
+    }
+
+    .question-number {
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .question-source {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      background: var(--color-surface-offset);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+    }
+
+    .question-statement {
+      margin-bottom: var(--space-4);
+      line-height: 1.6;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition);
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 1024px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        top: auto;
+      }
+    }
+
+    /* Dark Mode */
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #1c1b19;
+      --color-surface-2: #201f1d;
+      --color-surface-offset: #1d1c1a;
+      --color-divider: #262523;
+      --color-border: #393836;
+      --color-text: #cdccca;
+      --color-text-muted: #797876;
+      --color-text-faint: #5a5957;
+      --color-primary: #818CF8;
+      --color-primary-hover: #6366F1;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: var(--space-8);
+      color: var(--color-text-muted);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto var(--space-4);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+    <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </button>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🎓 StudyMaster - Teste do Módulo de Filtros</h1>
+      <p>Demonstração interativa do painel de filtros de questões para concursos</p>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar: Filtros -->
+      <aside class="sidebar">
+        <div id="filterContainer"></div>
+      </aside>
+
+      <!-- Main: Informações + Questões -->
+      <main class="main-content">
+        <!-- Info Box -->
+        <div class="info-box">
+          <h3>ℹ️ Como usar</h3>
+          <p>
+            Use o painel de filtros à esquerda para:
+          </p>
+          <ul style="margin-top: var(--space-2); padding-left: var(--space-6);">
+            <li>Selecionar filtros por conteúdo, concurso, prova e histórico</li>
+            <li>Aplicar presets prontos (Geral, Concurso, Revisão)</li>
+            <li>Salvar suas configurações favoritas</li>
+            <li>Ver estimativa de questões encontradas</li>
+            <li>Gerar questões com um clique</li>
+          </ul>
+        </div>
+
+        <!-- Questions Container -->
+        <div class="questions-container" id="questionsContainer">
+          <p style="text-align: center; color: var(--color-text-muted); padding: var(--space-8) var(--space-4);">
+            Selecione filtros e clique em "Gerar Questões" para ver questões aqui
+          </p>
+        </div>
+
+        <!-- Debug Panel -->
+        <div class="debug-panel">
+          <h4>🔍 Debug Log</h4>
+          <div class="debug-log" id="debugLog">
+            <div class="debug-entry">
+              <span class="debug-timestamp">[00:00:00]</span>
+              <span>Sistema inicializado</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/src/filter-module.js"></script>
+  <script src="/src/filter-ui.js"></script>
+
+  <script>
+    // ════════════════════════════════════════════════════════════════════
+    // DEBUG & LOGGING
+    // ════════════════════════════════════════════════════════════════════
+
+    const debugLog = document.getElementById('debugLog');
+
+    function addDebugLog(message) {
+      const timestamp = new Date().toLocaleTimeString('pt-BR');
+      const entry = document.createElement('div');
+      entry.className = 'debug-entry';
+      entry.innerHTML = `
+        <span class="debug-timestamp">[${timestamp}]</span>
+        <span>${message}</span>
+      `;
+      debugLog.appendChild(entry);
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // THEME TOGGLE
+    // ════════════════════════════════════════════════════════════════════
+
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const theme = htmlElement.getAttribute('data-theme');
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      htmlElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      addDebugLog(`Tema alterado para: ${newTheme}`);
+    });
+
+    // ════════════════════════════════════════════════════════════════════
+    // INICIALIZAÇÃO DO MÓDULO
+    // ════════════════════════════════════════════════════════════════════
+
+    // Inicializar FilterUI
+    const filterUI = new FilterUI('filterContainer', filterManager);
+    addDebugLog('FilterUI inicializado');
+
+    // ════════════════════════════════════════════════════════════════════
+    // LISTENERS
+    // ════════════════════════════════════════════════════════════════════
+
+    // Subscribe a mudanças de filtros
+    filterManager.subscribe((event) => {
+      const { eventType, data } = event;
+      addDebugLog(`📍 Evento: ${eventType}`);
+      
+      if (eventType === 'filter-changed') {
+        console.log('Filtro alterado:', data.path, '=', data.value);
+      }
+    });
+
+    // Listener para aplicar filtros
+    window.addEventListener('filters-applied', (event) => {
+      const payload = event.detail;
+      addDebugLog('✅ Filtros aplicados - Gerando questões...');
+      generateMockQuestions(payload);
+    });
+
+    // ════════════════════════════════════════════════════════════════════
+    // GERADOR DE QUESTÕES (MOCK)
+    // ════════════════════════════════════════════════════════════════════
+
+    async function generateMockQuestions(filters) {
+      const container = document.getElementById('questionsContainer');
+      
+      // Mostrar loading
+      container.innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Gerando questões com os filtros selecionados...</p>
+        </div>
+      `;
+
+      // Simular latência de rede
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Gerar questões mock
+      const mockQuestions = [
+        {
+          id: 1,
+          statement: 'Qual alternativa melhor completa a frase: "O professor ___ alunos para o exame"?',
+          options: [
+            { key: 'A', text: 'preparava' },
+            { key: 'B', text: 'prepara' },
+            { key: 'C', text: 'preparou' },
+            { key: 'D', text: 'preparando' },
+            { key: 'E', text: 'prepararia' }
+          ],
+          correctAnswer: 'C',
+          explanation: 'O verbo "preparar" no pretérito perfeito do indicativo é "preparou", que concorda com o sujeito "O professor".',
+          fonte: 'CESGRANRIO - 2023'
+        },
+        {
+          id: 2,
+          statement: 'De acordo com a Constituição Federal de 1988, quantos são os poderes da União?',
+          options: [
+            { key: 'A', text: 'Dois' },
+            { key: 'B', text: 'Três' },
+            { key: 'C', text: 'Quatro' },
+            { key: 'D', text: 'Cinco' },
+            { key: 'E', text: 'Seis' }
+          ],
+          correctAnswer: 'B',
+          explanation: 'A Constituição Federal prevê a separação de poderes em: Executivo, Legislativo e Judiciário (art. 2º).',
+          fonte: 'FGV - 2022'
+        },
+        {
+          id: 3,
+          statement: 'Qual é o próximo número da sequência: 2, 4, 8, 16, ?',
+          options: [
+            { key: 'A', text: '24' },
+            { key: 'B', text: '30' },
+            { key: 'C', text: '32' },
+            { key: 'D', text: '48' },
+            { key: 'E', text: '64' }
+          ],
+          correctAnswer: 'C',
+          explanation: 'A sequência dobra a cada número: 2×2=4, 4×2=8, 8×2=16, 16×2=32.',
+          fonte: 'VUNESP - 2024'
+        }
+      ];
+
+      // Renderizar questões
+      renderQuestions(mockQuestions);
+      addDebugLog(`✨ ${mockQuestions.length} questões geradas com sucesso`);
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById('questionsContainer');
+      
+      if (questions.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhuma questão encontrada.</p>';
+        return;
+      }
+
+      const html = questions.map((q, idx) => `
+        <div class="question-card">
+          <div class="question-header">
+            <h3 class="question-number">Questão ${idx + 1}</h3>
+            <span class="question-source">${q.fonte}</span>
+          </div>
+          
+          <div class="question-statement">${q.statement}</div>
+          
+          <fieldset style="border: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2);">
+            <legend class="sr-only">Alternativas</legend>
+            ${q.options.map((opt) => `
+              <label style="display: flex; gap: var(--space-2); cursor: pointer;">
+                <input type="radio" name="question-${q.id}" value="${opt.key}" style="cursor: pointer;">
+                <span><strong>${opt.key}.</strong> ${opt.text}</span>
+              </label>
+            `).join('')}
+          </fieldset>
+          
+          <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-divider);">
+            <button onclick="toggleExplanation(this)" style="
+              background: var(--color-primary);
+              color: white;
+              border: none;
+              border-radius: var(--radius-sm);
+              padding: var(--space-2) var(--space-4);
+              cursor: pointer;
+              font-weight: 600;
+              transition: var(--transition);
+            " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              📖 Ver Gabarito
+            </button>
+            
+            <div class="explanation" style="display: none; margin-top: var(--space-3); padding: var(--space-3); background: var(--color-surface-offset); border-radius: var(--radius-sm); border-left: 4px solid var(--color-success);">
+              <strong>Resposta Correta: ${q.correctAnswer}</strong>
+              <p style="margin-top: var(--space-2);">${q.explanation}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    window.toggleExplanation = function(btn) {
+      const explanation = btn.closest('[class="question-card"]').querySelector('.explanation');
+      const isHidden = explanation.style.display === 'none';
+      explanation.style.display = isHidden ? 'block' : 'none';
+      btn.textContent = isHidden ? '📖 Ocultar Gabarito' : '📖 Ver Gabarito';
+    };
+
+    // ════════════════════════════════════════════════════════════════════
+    // INICIALIZAÇÃO FINAL
+    // ════════════════════════════════════════════════════════════════════
+
+    addDebugLog('✅ Sistema de Teste totalmente inicializado');
+    console.log('FilterManager:', filterManager);
+    console.log('FilterUI:', filterUI);
+  </script>
+
+</body>
+</html>
