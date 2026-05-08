@@ -322,6 +322,54 @@
     /* Questões */
     .questions-container { display: none; }
     .questions-container.visible { display: block; }
+    
+    /* Layout responsivo para questões */
+    @media (max-width: 1023px) {
+      /* MOBILE: Uma questão por vez, com bottom bar fixa */
+      #questions-list {
+        display: flex;
+        flex-direction: column;
+      }
+      .question-card {
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        margin-bottom: var(--space-5);
+      }
+      .q-nav-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-divider);
+        padding: var(--space-4) var(--space-6);
+        z-index: 99;
+        box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05);
+        margin-top: var(--space-5);
+        margin: 0;
+        border-top: 1px solid var(--color-divider);
+        display: flex !important;
+      }
+      .wizard-card {
+        padding-bottom: var(--space-8);
+        margin-bottom: var(--space-16);
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      /* DESKTOP: Múltiplas questões com scroll natural */
+      #questions-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+      }
+      .q-nav-bar {
+        display: none !important;
+      }
+    }
+    
     .question-card { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-5); }
     .question-number { font-size: var(--text-sm); font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-3); }
     .question-statement { font-size: var(--text-lg); font-weight: 600; margin-bottom: var(--space-5); line-height: 1.65; color: var(--color-text); }
@@ -382,7 +430,7 @@
     .score-progress { flex: 1; height: 6px; background: var(--color-divider); border-radius: var(--radius-full); margin: 0 var(--space-4); overflow: hidden; }
     .score-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s ease; width: 0%; }
 
-    /* Navegação de questão única */
+    /* Navegação de questão única - MOBILE */
     .q-nav-bar {
       display: flex;
       align-items: center;
@@ -391,6 +439,16 @@
       padding: var(--space-3) 0;
       margin-top: var(--space-5);
       border-top: 1px solid var(--color-divider);
+    }
+    @media (min-width: 1024px) {
+      .q-nav-bar {
+        display: none !important;
+      }
+    }
+    @media (max-width: 1023px) {
+      .q-nav-bar {
+        display: flex !important;
+      }
     }
     .q-nav-btn {
       display: inline-flex;
@@ -646,13 +704,17 @@
       align-items: center;
       padding: 0;
       width: 100%;
+      /* Desktop (≥1024px): scroll container */
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     .qf-question-wrap {
       width: 100%;
       max-width: 720px;
       background: var(--color-bg);
       padding: var(--space-5) var(--space-5);
-      padding-bottom: 120px; /* espaço para a bottom bar */
+      padding-bottom: 120px; /* espaço para a bottom bar em mobile */
+      margin: 0 auto;
     }
     @media (min-width: 768px) {
       .qf-body { padding: var(--space-8) var(--space-4); }
@@ -663,6 +725,22 @@
         padding: var(--space-8);
         padding-bottom: var(--space-10);
         box-shadow: var(--shadow-md);
+        margin-bottom: var(--space-8);
+      }
+    }
+    /* Desktop (≥1024px): múltiplas questões em scroll */
+    @media (min-width: 1024px) {
+      .qf-body {
+        /* Modo scroll: remove padding de cada questão */
+        padding: var(--space-6) var(--space-4);
+      }
+      .qf-question-wrap {
+        padding-bottom: var(--space-10);
+        margin-bottom: var(--space-6);
+      }
+      /* Ocultar bottom bar em desktop */
+      .qf-bottom-bar {
+        display: none !important;
       }
     }
     
@@ -790,6 +868,13 @@
       cursor: not-allowed;
     }
     .qf-resolver-btn.hidden { display: none; }
+    
+    /* Desktop (≥1024px): botão responder de cada questão */
+    @media (min-width: 1024px) {
+      .qf-resolver-btn {
+        margin-top: var(--space-5);
+      }
+    }
     
     .qf-explanation {
       display: none;
@@ -979,6 +1064,12 @@
       justify-content: space-between;
       z-index: 20;
       box-shadow: 0 -4px 12px oklch(0 0 0 / 0.05);
+    }
+    /* Desktop (≥1024px): ocultar bottom bar */
+    @media (min-width: 1024px) {
+      .qf-bottom-bar {
+        display: none !important;
+      }
     }
     .qf-bb-btn {
       display: inline-flex;
@@ -2544,10 +2635,120 @@ function renderQuestions(questions) {
   };
 
   container.classList.add('visible');
-  renderSingleQuestion(questions, 0);
+  
+  // Detectar viewport: desktop (>= 1024px) ou mobile (< 1024px)
+  const isDesktop = window.innerWidth >= 1024;
+  if (isDesktop) {
+    renderAllQuestionsDesktop(questions);
+  } else {
+    renderSingleQuestion(questions, 0);
+  }
+  
   lucide.createIcons();
   scrollToWizard(100);
 }
+
+function renderAllQuestionsDesktop(questions) {
+  const list = document.getElementById('questions-list');
+  const scoreTotal = document.getElementById('score-total');
+  scoreTotal.textContent = questions.length;
+  
+  const letters = ['A','B','C','D','E'];
+  
+  // Renderizar todas as questões em HTML
+  list.innerHTML = questions.map((q, idx) => {
+    const hasAnswered = qNavState.results[idx] !== null;
+    const selectedKey = qNavState.selected[idx];
+    const total = questions.length;
+    
+    return `
+      <div class="question-card" data-question-idx="${idx}">
+        <div class="question-number">Questão ${idx + 1} de ${total}</div>
+        <div class="question-statement">${q.statement}</div>
+        <div class="options-list" id="qn-opts-${idx}">
+          ${(q.options || []).map((opt, oIdx) => {
+            const letter = letters[oIdx] || opt.key;
+            let cls = '';
+            if (hasAnswered) {
+              if (opt.key === q.correctAnswer) cls = ' correct';
+              else if (opt.key === selectedKey && opt.key !== q.correctAnswer) cls = ' wrong';
+            } else if (selectedKey === opt.key) {
+              cls = ' selected';
+            }
+            return `<button class="option-btn${cls}" data-key="${opt.key}" data-question-idx="${idx}" ${hasAnswered ? 'disabled' : ''}>
+              <span class="option-key">${letter}</span><span>${opt.text}</span>
+            </button>`;
+          }).join('')}
+        </div>
+        <button class="q-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="q-resolver-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
+        <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp-${idx}">
+          <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+        </div>
+      </div>`;
+  }).join('');
+  
+  // Event listeners para todas as questões em desktop
+  questions.forEach((q, idx) => {
+    const opts = list.querySelectorAll(`[data-question-idx="${idx}"].option-btn`);
+    const resBtn = document.getElementById(`q-resolver-${idx}`);
+    
+    // Seleção de alternativa
+    if (!qNavState.results[idx]) {
+      opts.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const allOptsForQuestion = list.querySelectorAll(`[data-question-idx="${idx}"].option-btn`);
+          allOptsForQuestion.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          qNavState.selected[idx] = btn.dataset.key;
+          if (resBtn) resBtn.disabled = false;
+        });
+      });
+      
+      if (resBtn) {
+        resBtn.addEventListener('click', () => {
+          const sKey = qNavState.selected[idx];
+          if (!sKey) return;
+          handleDesktopAnswer(questions, idx, sKey);
+        });
+      }
+    }
+  });
+}
+
+function handleDesktopAnswer(questions, idx, selectedKey) {
+  const q = questions[idx];
+  const isCorrect = selectedKey === q.correctAnswer;
+  qNavState.results[idx] = isCorrect;
+  state.answerResults[idx] = isCorrect;
+  if (isCorrect) state.correct++;
+  state.answered++;
+  incrementTodayCount(1);
+  if (isCorrect) incrementCorrectToday(); else incrementWrongToday();
+  updateScore();
+
+  // Atualizar apenas a questão respondida
+  const list = document.getElementById('questions-list');
+  const opts = list.querySelectorAll(`[data-question-idx="${idx}"].option-btn`);
+  opts.forEach(b => {
+    b.disabled = true;
+    b.classList.remove('selected');
+    if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+    else if (b.dataset.key === selectedKey && !isCorrect) b.classList.add('wrong');
+  });
+  
+  const resBtn = document.getElementById(`q-resolver-${idx}`);
+  if (resBtn) resBtn.classList.add('hidden');
+  
+  const expBox = document.getElementById(`qn-exp-${idx}`);
+  if (expBox) expBox.classList.add('visible');
+
+  if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+  
+  if (state.answered === questions.length) {
+    setTimeout(showSessionResult, 600);
+  }
+}
+
 
 function renderSingleQuestion(questions, idx) {
   const q   = questions[idx];
@@ -2695,8 +2896,21 @@ function openFullscreen() {
   qfState = { questions: [...qs], answered: 0, correct: 0, wrong: 0, results: new Array(qs.length).fill(null), selected: new Array(qs.length).fill(null) };
   qfSubLabel.textContent = state.mode === 'academic' ? (state.topic || state.subject || '') : (state.concurso?.label || 'Livre');
   qfBody.innerHTML = '';
-  document.getElementById('qf-bottom-bar').style.display = 'flex';
-  renderQFQuestion(0);
+  
+  // Verificar breakpoint para definir modo
+  const isDesktop = window.innerWidth >= 1024;
+  
+  if (isDesktop) {
+    // Modo Desktop: renderizar todas as questões em scroll
+    renderAllQFQuestions();
+    // Não mostrar bottom bar em desktop
+    document.getElementById('qf-bottom-bar').style.display = 'none';
+  } else {
+    // Modo Mobile: renderizar questão única
+    document.getElementById('qf-bottom-bar').style.display = 'flex';
+    renderQFQuestion(0);
+  }
+  
   qfOverlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   lucide.createIcons();
@@ -2705,6 +2919,175 @@ function closeFullscreen() {
   qfOverlay.classList.remove('active');
   document.body.style.overflow = '';
 }
+function renderAllQFQuestions() {
+  // Modo Desktop: renderizar todas as questões em scroll
+  qfBody.innerHTML = '';
+  
+  qfState.questions.forEach((q, idx) => {
+    const wrap = createQFQuestionElement(q, idx);
+    qfBody.appendChild(wrap);
+    attachQFQuestionEventListeners(wrap, idx);
+  });
+  
+  // Scroll para o topo
+  qfBody.scrollTop = 0;
+  lucide.createIcons();
+}
+
+function createQFQuestionElement(q, idx) {
+  const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto') ? state.bancaFoco : state.bancaInferida;
+  const difLabel = {easy:'Fácil', medium:'Médio', hard:'Difícil', extreme:'Extremo'}[state.difficulty];
+  const topicLabel = state.topic || state.subject || 'Geral';
+  
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+  const hasAnswered = qfState.results[idx] !== null;
+  const selectedKey = qfState.selected[idx];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'qf-question-wrap';
+  wrap.id = `qf-wrap-${idx}`;
+  
+  wrap.innerHTML = `
+    <div class="qf-metadata">
+      <span><strong>Banca:</strong> ${bancaEfetiva || 'Não especificada'}</span>
+      <span>•</span>
+      <span><strong>Dificuldade:</strong> ${difLabel || 'Variada'}</span>
+      <span>•</span>
+      <span><strong>Assunto:</strong> ${topicLabel}</span>
+    </div>
+    <div class="qf-question-text">${q.statement}</div>
+    <div class="qf-options" id="qf-opts-${idx}">
+      ${(q.options || []).map((opt, oIdx) => {
+        const letter = letters[oIdx] || opt.key;
+        let extClass = '';
+        if (hasAnswered) {
+          if (opt.key === q.correctAnswer) extClass = ' correct';
+          else if (opt.key === selectedKey && opt.key !== q.correctAnswer) extClass = ' wrong';
+        } else if (selectedKey === opt.key) {
+          extClass = ' selected';
+        }
+        return `
+        <button class="qf-option${extClass}" data-key="${opt.key}" data-question-idx="${idx}" ${hasAnswered ? 'disabled' : ''}>
+          <span class="qf-option-letter">${letter}</span>
+          <span>${opt.text}</span>
+        </button>`;
+      }).join('')}
+    </div>
+    <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
+    <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
+      <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+    </div>`;
+  
+  return wrap;
+}
+
+function attachQFQuestionEventListeners(wrap, idx) {
+  const q = qfState.questions[idx];
+  const hasAnswered = qfState.results[idx] !== null;
+  
+  if (!hasAnswered) {
+    const opts = wrap.querySelectorAll('.qf-option');
+    const resBtn = wrap.querySelector('.qf-resolver-btn');
+    
+    opts.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (qfState.results[idx] !== null) return;
+        opts.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        qfState.selected[idx] = btn.dataset.key;
+        if (resBtn) resBtn.disabled = false;
+      });
+    });
+
+    if (resBtn) {
+      resBtn.addEventListener('click', () => {
+        const sKey = qfState.selected[idx];
+        if (!sKey) return;
+        const correct = sKey === q.correctAnswer;
+        qfState.results[idx] = correct;
+        qfState.answered++;
+        if (correct) { qfState.correct++; incrementCorrectToday(); } else { qfState.wrong++; incrementWrongToday(); }
+        incrementTodayCount(1);
+        
+        opts.forEach(b => {
+          b.disabled = true;
+          b.classList.remove('selected');
+          if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+          else if (b.dataset.key === sKey && !correct) b.classList.add('wrong');
+        });
+        resBtn.classList.add('hidden');
+        document.getElementById(`qf-exp-${idx}`).classList.add('visible');
+        if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+        
+        // Verificar se todas as questões foram respondidas
+        if (qfState.answered === qfState.questions.length) {
+          setTimeout(() => renderQFResultInline(), 800);
+        }
+        
+        setTimeout(() => {
+          const exp = document.getElementById(`qf-exp-${idx}`);
+          if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 100);
+      });
+    }
+  }
+}
+
+function renderQFResultInline() {
+  // Renderizar resultado no final da página em modo desktop
+  const total  = qfState.questions.length;
+  const correct = qfState.correct;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  
+  let iconHtml = '';
+  if (pct >= 80) iconHtml = '<i data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
+  else if (pct >= 60) iconHtml = '<i data-lucide="thumbs-up" width="64" height="64" style="color: var(--color-primary)"></i>';
+  else if (pct >= 40) iconHtml = '<i data-lucide="book-open" width="64" height="64" style="color: var(--color-accent)"></i>';
+  else iconHtml = '<i data-lucide="target" width="64" height="64" style="color: var(--color-error)"></i>';
+  
+  const msg   = pct >= 80 ? 'Excelente desempenho!' : pct >= 60 ? 'Bom trabalho!' : pct >= 40 ? 'Continue estudando!' : 'Não desista, pratique mais!';
+  
+  const resultCard = document.createElement('div');
+  resultCard.className = 'qf-result-card';
+  resultCard.id = 'qf-inline-result';
+  resultCard.innerHTML = `
+    <div class="qf-result-emoji">${iconHtml}</div>
+    <h2 class="qf-result-title">${msg}</h2>
+    <p class="qf-result-sub">Você completou ${total} questões nesta sessão.</p>
+    <div class="qf-result-stats">
+      <div class="qf-stat-box">
+        <span class="qf-stat-value" style="color:var(--color-success)">${correct}</span>
+        <span class="qf-stat-label">Acertos</span>
+      </div>
+      <div class="qf-stat-box">
+        <span class="qf-stat-value" style="color:var(--color-error)">${total - correct}</span>
+        <span class="qf-stat-label">Erros</span>
+      </div>
+      <div class="qf-stat-box">
+        <span class="qf-stat-value" style="color:var(--color-primary)">${pct}%</span>
+        <span class="qf-stat-label">Aproveitamento</span>
+      </div>
+    </div>
+    <div class="qf-result-actions">
+      <button class="qf-btn-primary" id="qf-retry-inline-btn">
+        <i data-lucide="rotate-ccw" width="16" height="16"></i> Novo Quiz
+      </button>
+      <button class="qf-btn-ghost" id="qf-close-inline-btn">
+        <i data-lucide="x" width="16" height="16"></i> Fechar Fullscreen
+      </button>
+    </div>`;
+  
+  qfBody.appendChild(resultCard);
+  lucide.createIcons();
+  confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#5B5BD6','#7C3AED','#F97316','#16A34A'] });
+  
+  document.getElementById('qf-retry-inline-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
+  document.getElementById('qf-close-inline-btn').addEventListener('click', closeFullscreen);
+  
+  // Scroll para o resultado
+  resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function renderQFQuestion(idx) {
   const q = qfState.questions[idx];
   if (!q) return renderQFResult();
@@ -2904,6 +3287,57 @@ window.renderQuestions = function(questions) {
 };
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Handle responsiveness: reinitialize normal questions view on resize
+let questionsResizeTimer;
+let lastViewportMode = window.innerWidth >= 1024 ? 'desktop' : 'mobile';
+
+window.addEventListener('resize', () => {
+  // Verificar se estamos na tela de questões
+  const qContainer = document.getElementById('questions-container');
+  if (!qContainer || !qContainer.classList.contains('visible')) {
+    // Se não está visível, apenas fazer o resize check do fullscreen
+    if (!qfOverlay.classList.contains('active')) return;
+  }
+  
+  clearTimeout(questionsResizeTimer);
+  questionsResizeTimer = setTimeout(() => {
+    const isDesktop = window.innerWidth >= 1024;
+    const currentMode = isDesktop ? 'desktop' : 'mobile';
+    
+    // Só re-renderizar se o modo mudou E as questões estão visíveis
+    if (qContainer && qContainer.classList.contains('visible') && currentMode !== lastViewportMode) {
+      lastViewportMode = currentMode;
+      
+      if (isDesktop) {
+        // Mobile -> Desktop: renderizar todas as questões
+        renderAllQuestionsDesktop(state.generatedQuestions);
+      } else {
+        // Desktop -> Mobile: renderizar questão única
+        renderSingleQuestion(state.generatedQuestions, qNavState.currentIdx);
+      }
+      lucide.createIcons();
+    }
+    
+    // Also handle fullscreen resize
+    if (!qfOverlay.classList.contains('active')) return;
+    
+    const hasResult = document.getElementById('qf-inline-result');
+    
+    // Se não há resultado (ainda respondendo) e mudou o modo
+    if (!hasResult) {
+      if (isDesktop && !document.querySelector('.qf-question-wrap:nth-child(2)')) {
+        // Mobile -> Desktop: renderizar todas as questões
+        renderAllQFQuestions();
+        document.getElementById('qf-bottom-bar').style.display = 'none';
+      } else if (!isDesktop && document.querySelectorAll('.qf-question-wrap').length > 1) {
+        // Desktop -> Mobile: renderizar questão única
+        renderQFQuestion(qfState.answered);
+        document.getElementById('qf-bottom-bar').style.display = 'flex';
+      }
+    }
+  }, 250);
+});
 </script>
 </body>
 </html>
