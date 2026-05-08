@@ -662,10 +662,21 @@ async function fetchYouTubeTranscript(videoId) {
 async function generateConcursosRAGQuestion(body, env) {
   const { filter, quantity = 1, difficulty, questionType, alternativas, idioma, sessionMode } = body;
 
+  let filterKey = filter;
+  let content = {}, exam = {}, examMetadata = {}, history = {};
+
+  if (typeof filter === 'object' && filter !== null) {
+    content = filter.content || {};
+    exam = filter.exam || {};
+    examMetadata = filter.examMetadata || {};
+    history = filter.history || {};
+    filterKey = content.discipline ? `concursos.${content.discipline}` : filterKey;
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // PASSO 1: Validar filtro
   // ─────────────────────────────────────────────────────────────────────────
-  const filterValidation = validateConcursosFilter(filter);
+  const filterValidation = validateConcursosFilter(filterKey);
   if (!filterValidation.valid) {
     return {
       success: false,
@@ -676,12 +687,32 @@ async function generateConcursosRAGQuestion(body, env) {
   }
 
   const subjectConfig = filterValidation.config;
-  console.log(`[RAG] ✓ Filtro válido: ${filter} → ${subjectConfig.vectorizeCollection}`);
+  console.log(`[RAG] ✓ Filtro válido: ${filterKey} → ${subjectConfig.vectorizeCollection}`);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PASSO 1.5: Montar Query Context
+  // ─────────────────────────────────────────────────────────────────────────
+  const contextParts = [];
+  if (content.topic) contextParts.push(`Tópico: ${content.topic}`);
+  if (content.subtopic) contextParts.push(`Subtópico: ${content.subtopic}`);
+  if (content.keyword) contextParts.push(`Palavra-chave: ${content.keyword}`);
+  if (exam.examBoard) contextParts.push(`Banca: ${exam.examBoard}`);
+  if (exam.agency) contextParts.push(`Órgão: ${exam.agency}`);
+  if (exam.position) contextParts.push(`Cargo: ${exam.position}`);
+  if (exam.educationLevel) contextParts.push(`Escolaridade: ${exam.educationLevel}`);
+  if (examMetadata.yearFrom || examMetadata.yearTo) {
+    contextParts.push(`Ano: ${examMetadata.yearFrom || '...'} a ${examMetadata.yearTo || '...'}`);
+  }
+
+  const queryContext = contextParts.join(', ');
+  if (queryContext) {
+    console.log(`[RAG] Query Context Montada: ${queryContext}`);
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // PASSO 2: Buscar contexto Vectorize
   // ─────────────────────────────────────────────────────────────────────────
-  const query = filter; // usar filter como query básica
+  const query = queryContext ? `${filterKey} ${queryContext}` : filterKey; // usar filter+contexto como query básica
   const contextResult = await fetchVectorizeContext(
     env,
     subjectConfig.vectorizeCollection,
@@ -744,6 +775,7 @@ PRINCÍPIOS INEGOCIÁVEIS:
   const userPrompt = `Modo: ${sessionLabel}
 
 Gere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.
+Contexto específico solicitado: ${queryContext || 'Nenhum específico.'}
 
 ${contextBlock}
 
