@@ -209,11 +209,15 @@ class FilterUI {
 
               <div class="filter-group">
                 <label>Nível de Escolaridade</label>
+                <!--
+                  IMPORTANTE: values SEM acento para não quebrar comparação no worker.js.
+                  "medio" (não "médio"), "tecnico" (não "técnico").
+                -->
                 <select id="filter-education-level" class="filter-select">
                   <option value="">Selecione um nível...</option>
                   <option value="fundamental">Ensino Fundamental</option>
-                  <option value="médio">Ensino Médio</option>
-                  <option value="técnico">Ensino Técnico</option>
+                  <option value="medio">Ensino Médio</option>
+                  <option value="tecnico">Ensino Técnico</option>
                   <option value="superior">Ensino Superior</option>
                 </select>
               </div>
@@ -583,19 +587,50 @@ class FilterUI {
   }
 
   /**
-   * Atualiza o select de tópicos baseado na disciplina selecionada
+   * Atualiza o select de tópicos baseado na disciplina selecionada.
+   *
+   * IMPORTANTE: os values dos tópicos são gerados via
+   *   topic.toLowerCase().replace(/\s+/g, '_')
+   * e devem bater com o que worker.js usa em content.topic para filtrar.
+   *
+   * Para 'informatica', a lista inclui 'Hardware' → value: 'hardware'.
    */
   updateTopicSelect() {
     const discipline = this.filterManager.getFilter('content.discipline');
     const topicSelect = this.container.querySelector('#filter-topic');
 
+    // Tópicos por disciplina — todos os valores são gerados com .toLowerCase().replace(/\s+/g,'_')
     const topicMap = {
-      'portugues': ['Ortografia', 'Acentuação', 'Pontuação', 'Regência Verbal', 'Concordância', 'Semântica'],
-      'direito_constitucional': ['Constituição Federal', 'Direitos Fundamentais', 'Poder Executivo', 'Poder Legislativo'],
-      'direito_administrativo': ['Servidores Públicos', 'Lei 8.112/90', 'Licitações', 'Atos Administrativos'],
-      'raciocinio_logico': ['Lógica Proposicional', 'Conjuntos', 'Combinatória', 'Probabilidade'],
-      'informatica': ['SO Windows', 'SO Linux', 'Redes', 'Segurança', 'BD Relacional'],
-      'administracao_publica': ['Teoria Geral da Administração', 'Gestão de Pessoas', 'Processo Administrativo']
+      'portugues': [
+        'Ortografia', 'Acentuação', 'Pontuação', 'Regência Verbal',
+        'Concordância', 'Semântica', 'Morfologia', 'Sintaxe',
+        'Coesão e Coerência', 'Interpretação de Texto'
+      ],
+      'direito_constitucional': [
+        'Constituição Federal', 'Direitos Fundamentais', 'Poder Executivo',
+        'Poder Legislativo', 'Poder Judiciário', 'Princípios Fundamentais',
+        'Organização do Estado', 'Controle de Constitucionalidade'
+      ],
+      'direito_administrativo': [
+        'Servidores Públicos', 'Lei 8.112/90', 'Licitações', 'Atos Administrativos',
+        'Contratos Administrativos', 'Improbidade Administrativa',
+        'Poderes Administrativos', 'Organização da Administração'
+      ],
+      'raciocinio_logico': [
+        'Lógica Proposicional', 'Conjuntos', 'Combinatória', 'Probabilidade',
+        'Sequências e Séries', 'Porcentagem', 'Geometria', 'Raciocínio Analítico'
+      ],
+      // BUG FIX: 'Hardware' adicionado — value gerado = 'hardware'
+      'informatica': [
+        'Hardware', 'SO Windows', 'SO Linux', 'Redes de Computadores',
+        'Segurança da Informação', 'BD Relacional', 'Internet e Navegadores',
+        'Pacote Office', 'Nuvem e Virtualização', 'Programação Básica'
+      ],
+      'administracao_publica': [
+        'Teoria Geral da Administração', 'Gestão de Pessoas',
+        'Processo Administrativo', 'Planejamento Estratégico',
+        'Gestão de Qualidade', 'Finanças Públicas'
+      ]
     };
 
     const topics = topicMap[discipline] || [];
@@ -613,19 +648,40 @@ class FilterUI {
 
     this.container.querySelector('#filter-subtopic').innerHTML = '<option value="">Selecione um subtópico...</option>';
     this.container.querySelector('#filter-subtopic').disabled = true;
+
+    // Limpa topic/subtopic no FilterManager ao trocar disciplina
+    this.filterManager.setFilter('content.topic', null);
+    this.filterManager.setFilter('content.subtopic', null);
   }
 
   /**
-   * Atualiza o select de subtópicos baseado no tópico selecionado
+   * Atualiza o select de subtópicos baseado no tópico selecionado.
+   * Keys do subtopicMap correspondem aos values gerados no topicMap acima.
    */
   updateSubtopicSelect() {
     const topic = this.filterManager.getFilter('content.topic');
     const subtopicSelect = this.container.querySelector('#filter-subtopic');
 
     const subtopicMap = {
-      'ortografia': ['Uso de hífen', 'Palavras com S/X', 'Acentuação especial'],
-      'acentuacao': ['Monossílabos', 'Paroxítonas', 'Proparoxítonas'],
-      'pontuacao': ['Vírgula', 'Ponto final', 'Ponto e vírgula', 'Parênteses'],
+      // Português
+      'ortografia':             ['Uso de hífen', 'Palavras com S/X', 'Acentuação especial'],
+      'acentuacao':             ['Monossílabos', 'Paroxítonas', 'Proparoxítonas'],
+      'pontuacao':              ['Vírgula', 'Ponto final', 'Ponto e vírgula', 'Parênteses'],
+      'concordância':           ['Concordância Nominal', 'Concordância Verbal'],
+      'regência_verbal':        ['Verbos de Ligação', 'Verbos Transitivos'],
+      // Informática — BUG FIX: entradas para todos os tópicos de informática
+      'hardware':               ['Processadores', 'Memórias', 'Dispositivos de Armazenamento', 'Periféricos', 'Placa-mãe'],
+      'so_windows':             ['Windows 10', 'Windows 11', 'Gerenciamento de Arquivos', 'Painel de Controle'],
+      'so_linux':               ['Comandos Terminal', 'Permissões', 'Gerenciamento de Pacotes'],
+      'redes_de_computadores':  ['Modelo OSI', 'TCP/IP', 'Protocolos', 'Cabeamento', 'Wi-Fi'],
+      'segurança_da_informação':['Criptografia', 'Firewall', 'Malware', 'VPN', 'Backup'],
+      'bd_relacional':          ['SQL', 'Normalização', 'Transações', 'Índices'],
+      'internet_e_navegadores': ['HTTP/HTTPS', 'DNS', 'Navegadores', 'Correio Eletrônico'],
+      'pacote_office':          ['Word', 'Excel', 'PowerPoint', 'Outlook'],
+      'nuvem_e_virtualização':  ['IaaS', 'PaaS', 'SaaS', 'Máquinas Virtuais'],
+      // Lógica
+      'lógica_proposicional':   ['Conectivos Lógicos', 'Tabela Verdade', 'Equivalências'],
+      'conjuntos':              ['União', 'Interseção', 'Diagrama de Venn'],
     };
 
     const subtopics = subtopicMap[topic] || [];
@@ -638,7 +694,10 @@ class FilterUI {
       subtopicSelect.appendChild(opt);
     });
 
-    subtopicSelect.disabled = !topic;
+    subtopicSelect.disabled = !topic || subtopics.length === 0;
+
+    // Limpa subtopic no FilterManager ao trocar tópico
+    this.filterManager.setFilter('content.subtopic', null);
   }
 
   /**
@@ -730,7 +789,9 @@ class FilterUI {
   syncUIWithManager() {
     // Conteúdo
     this.container.querySelector('#filter-discipline').value = this.filterManager.getFilter('content.discipline') || '';
+    this.updateTopicSelect();
     this.container.querySelector('#filter-topic').value = this.filterManager.getFilter('content.topic') || '';
+    this.updateSubtopicSelect();
     this.container.querySelector('#filter-subtopic').value = this.filterManager.getFilter('content.subtopic') || '';
     this.container.querySelector('#filter-keyword').value = this.filterManager.getFilter('content.keyword') || '';
 
