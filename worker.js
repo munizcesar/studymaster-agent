@@ -48,9 +48,6 @@ const CONCURSOS_CONFIG = {
         'ano\\s+de\\s+\\d{4}',
       ],
       conceptualBases: 'Normas de concordância, regência, interpretação textual (NBR, literatura brasileira)',
-      // Futuro: area e estilo
-      // area: null,  // Aceita qualquer área
-      // estilo: null,  // Aceita qualquer estilo
     },
     'concursos.direito_constitucional': {
       label: 'Direito Constitucional',
@@ -646,7 +643,6 @@ async function fetchYouTubeTranscript(videoId) {
     charCount: text.length,
     source: 'youtube.com (timedtext)',
   };
-  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -716,7 +712,7 @@ async function generateConcursosRAGQuestion(body, env) {
   // ─────────────────────────────────────────────────────────────────────────
   // PASSO 2: Buscar contexto Vectorize
   // ─────────────────────────────────────────────────────────────────────────
-  const query = queryContext ? `${filterKey} ${queryContext}` : filterKey; // usar filter+contexto como query básica
+  const query = queryContext ? `${filterKey} ${queryContext}` : filterKey;
   const contextResult = await fetchVectorizeContext(
     env,
     subjectConfig.vectorizeCollection,
@@ -733,7 +729,6 @@ async function generateConcursosRAGQuestion(body, env) {
   // PASSO 3: Gerar questão com LLM
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Construir prompt com contexto Vectorize
   const difficultyMap = {
     easy: 'fácil (nível iniciante, conceitos básicos)',
     medium: 'médio (nível intermediário, aplicação de conceitos)',
@@ -861,7 +856,7 @@ Regras obrigatórias:
 
     if (!validation.valid) {
       console.warn(`[RAG] Validação falhou para questão ${q.id}:`, validation.errors);
-      continue; // Pular questão inválida
+      continue;
     }
 
     const finalQuestion = validation.corrected;
@@ -910,7 +905,7 @@ Regras obrigatórias:
 // FUNÇÃO AUXILIAR: Chamar Groq com retry/fallback
 // ════════════════════════════════════════════════════════════════════════════
 async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
-  const temperature = 0.35; // Concursos preferem respostas mais determinísticas
+  const temperature = 0.35;
   const maxTokens = quantity <= 5 ? 2048 : quantity <= 10 ? 4096 : 6144;
 
   const delays = [0, 2000, 4000];
@@ -1022,7 +1017,6 @@ export default {
           );
         }
 
-        // Retornar no formato padronizado
         return new Response(JSON.stringify({ questions: ragResult.questions }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -1032,6 +1026,12 @@ export default {
       // ──────────────────────────────────────────────────────────────────────────
       // FLUXO LEGADO: Modos ENEM, Estudo, etc. (Groq direto, sem RAG)
       // ──────────────────────────────────────────────────────────────────────────
+      const difficultyMap = {
+        easy: 'fácil (nível iniciante, conceitos básicos)',
+        medium: 'médio (nível intermediário, aplicação de conceitos)',
+        hard: 'difícil (nível avançado, análise e interpretação)',
+        extreme: 'extremo (nível especialista, questões de prova real)',
+      };
       const diffLabel = difficultyMap[difficulty] || 'médio';
       const numAlts = (questionType === 'vf') ? 2 : (parseInt(alternativas) === 4 ? 4 : 5);
       const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
@@ -1096,10 +1096,22 @@ export default {
       const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
       const temperature = sessionMode === 'concurso' ? 0.30 : sessionMode === 'revisao' ? 0.25 : 0.40;
 
-      async function callGroqWithFallback() {
+      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.GROQ_API_KEY}` },
+        body: JSON.stringify({
+          model: GROQ_MODELS[0],
+          messages: [{ role: 'system', content: systemText }, { role: 'user', content: userPrompt }],
+          temperature,
+          max_tokens: maxTokens,
+          response_format: { type: 'json_object' },
+        }),
+      });
+
+      const groqResponse = groqRes.ok ? groqRes : await (async () => {
         const delays = [0, 2000, 4000];
-        let lastRes = null;
-        for (const model of GROQ_MODELS) {
+        let lastRes = groqRes;
+        for (const model of GROQ_MODELS.slice(1)) {
           for (let i = 0; i < delays.length; i++) {
             if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
             lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1124,9 +1136,7 @@ export default {
           }
         }
         return lastRes;
-      }
-
-      const groqResponse = await callGroqWithFallback();
+      })();
 
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
