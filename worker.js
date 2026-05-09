@@ -190,53 +190,29 @@ function validateConcursosFilter(filter) {
  */
 async function fetchVectorizeContext(env, collection, query, minLength) {
   try {
-    // Se não temos Vectorize configurado, retornar contexto vazio
     if (!env.VECTORIZE) {
       console.warn(`[RAG] Vectorize não configurado. Retornando contexto vazio.`);
-      return {
-        context: '',
-        sufficient: false,
-        sources: [],
-        contextLength: 0,
-      };
+      return { context: '', sufficient: false, sources: [], contextLength: 0 };
     }
 
-    // Gerar embedding para a query usando CF AI
     let embedding;
     try {
       if (!env.AI) {
         console.warn(`[RAG] CF AI não disponível. Retornando contexto vazio.`);
-        return {
-          context: '',
-          sufficient: false,
-          sources: [],
-          contextLength: 0,
-        };
+        return { context: '', sufficient: false, sources: [], contextLength: 0 };
       }
-
       const embeddingRes = await env.AI.run('@cf/baai/bge-m3', { text: [query.slice(0, 512)] });
       const vector = embeddingRes?.data?.[0];
       if (!vector || !Array.isArray(vector)) {
         console.warn(`[RAG] Embedding inválido. Retornando contexto vazio.`);
-        return {
-          context: '',
-          sufficient: false,
-          sources: [],
-          contextLength: 0,
-        };
+        return { context: '', sufficient: false, sources: [], contextLength: 0 };
       }
       embedding = vector;
     } catch (e) {
       console.warn(`[RAG] Erro ao gerar embedding: ${e.message}`);
-      return {
-        context: '',
-        sufficient: false,
-        sources: [],
-        contextLength: 0,
-      };
+      return { context: '', sufficient: false, sources: [], contextLength: 0 };
     }
 
-    // Buscar no Vectorize
     let results;
     try {
       results = await env.VECTORIZE.query(embedding, {
@@ -246,25 +222,13 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
       });
     } catch (e) {
       console.warn(`[RAG] Erro ao buscar Vectorize: ${e.message}`);
-      return {
-        context: '',
-        sufficient: false,
-        sources: [],
-        contextLength: 0,
-      };
+      return { context: '', sufficient: false, sources: [], contextLength: 0 };
     }
 
-    // Processar resultados
     if (!results?.matches?.length) {
-      return {
-        context: '',
-        sufficient: false,
-        sources: [],
-        contextLength: 0,
-      };
+      return { context: '', sufficient: false, sources: [], contextLength: 0 };
     }
 
-    // Filtrar por score mínimo e extrair textos
     const documents = results.matches
       .filter((m) => m.score >= 0.65)
       .slice(0, 3)
@@ -276,15 +240,9 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
       .filter((d) => d.text.trim().length > 0);
 
     if (documents.length === 0) {
-      return {
-        context: '',
-        sufficient: false,
-        sources: [],
-        contextLength: 0,
-      };
+      return { context: '', sufficient: false, sources: [], contextLength: 0 };
     }
 
-    // Concatenar contextos
     const context = documents.map((d) => d.text).join('\n\n');
     const sufficient = context.length >= minLength;
 
@@ -296,25 +254,16 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     };
   } catch (e) {
     console.error(`[RAG] Erro geral em fetchVectorizeContext: ${e.message}`);
-    return {
-      context: '',
-      sufficient: false,
-      sources: [],
-      contextLength: 0,
-    };
+    return { context: '', sufficient: false, sources: [], contextLength: 0 };
   }
 }
 
 /**
  * PASSO 3: Validar saída contra alucinação
- * @param {Object} question - Questão gerada { statement, options, correctAnswer, explanation }
- * @param {Object} subjectConfig - Config da matéria com forbiddenPatterns
- * @returns {Object} { valid, errors, corrected }
  */
 function validateAgainstHallucination(question, subjectConfig) {
   const errors = [];
 
-  // Validar campos obrigatórios
   if (!question.statement || question.statement.trim().length < 20) {
     errors.push('statement: enunciado ausente ou muito curto');
   }
@@ -328,7 +277,6 @@ function validateAgainstHallucination(question, subjectConfig) {
     errors.push('explanation: explicação ausente ou muito curta');
   }
 
-  // Detectar padrões proibidos
   const forbiddenPatterns = subjectConfig.forbiddenPatterns || [];
   const fullText = [question.statement, question.explanation, ...(question.options || []).map((o) => o.text || '')].join(' ').toLowerCase();
 
@@ -342,7 +290,6 @@ function validateAgainstHallucination(question, subjectConfig) {
   });
 
   if (detectedPatterns.length > 0) {
-    // Remover/normalizar padrões proibidos
     let corrected = { ...question };
     let cleanedStatement = corrected.statement;
     let cleanedExplanation = corrected.explanation;
@@ -541,23 +488,15 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
-/**
- * Extrai transcrição diretamente do endpoint timedtext do YouTube.
- * Não precisa de chave de API. Funciona com legendas automáticas e manuais.
- */
 async function fetchYouTubeTranscript(videoId) {
   const MAX_TRANSCRIPT_CHARS = 30000;
   const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-  // 1. Busca a página do vídeo para extrair o playerResponse (contém lista de legendas)
   const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
   let pageHtml;
   try {
     const pageRes = await fetch(pageUrl, {
-      headers: {
-        'User-Agent': UA,
-        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-      },
+      headers: { 'User-Agent': UA, 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8' },
       signal: AbortSignal.timeout(10000),
     });
     if (!pageRes.ok) throw new Error(`YouTube retornou HTTP ${pageRes.status}`);
@@ -566,7 +505,6 @@ async function fetchYouTubeTranscript(videoId) {
     throw new Error(`Não foi possível acessar o vídeo: ${e.message}`);
   }
 
-  // 2. Extrai o JSON do ytInitialPlayerResponse
   const match = pageHtml.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});(?:\s*var\s|\s*<\/script)/s);
   if (!match) throw new Error('Não foi possível extrair dados do vídeo. O vídeo pode ser privado ou com restrição de idade.');
 
@@ -577,20 +515,17 @@ async function fetchYouTubeTranscript(videoId) {
     throw new Error('Erro ao processar dados do vídeo.');
   }
 
-  // 3. Verifica se o vídeo está disponível
   const status = playerResponse?.playabilityStatus?.status;
   if (status && status !== 'OK') {
     const reason = playerResponse?.playabilityStatus?.reason || status;
     throw new Error(`Vídeo não disponível: ${reason}`);
   }
 
-  // 4. Pega a lista de legendas
   const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
   if (captionTracks.length === 0) {
     throw new Error('Este vídeo não possui legendas ou transcrição disponível. Tente um vídeo com legendas ativadas.');
   }
 
-  // 5. Prioriza: pt-BR > pt > en > primeira disponível
   const priority = ['pt-BR', 'pt', 'en'];
   let chosen = null;
   for (const lang of priority) {
@@ -602,8 +537,7 @@ async function fetchYouTubeTranscript(videoId) {
   const baseUrl = chosen?.baseUrl;
   if (!baseUrl) throw new Error('URL da legenda inválida.');
 
-  // 6. Busca o conteúdo XML da legenda
-  const transcriptUrl = `${baseUrl}&fmt=json3`; // formato JSON3 é mais simples de parsear
+  const transcriptUrl = `${baseUrl}&fmt=json3`;
   let transcriptData;
   try {
     const tRes = await fetch(transcriptUrl, {
@@ -616,14 +550,12 @@ async function fetchYouTubeTranscript(videoId) {
     throw new Error(`Falha ao baixar transcrição: ${e.message}`);
   }
 
-  // 7. Extrai texto do formato JSON3
   const events = transcriptData?.events || [];
   const segments = events
     .flatMap(e => e?.segs || [])
     .map(s => (s?.utf8 || '').replace(/\n/g, ' ').trim())
     .filter(s => s && s !== ' ');
 
-  // Remove duplicatas consecutivas
   const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
 
   if (!deduped.length) {
@@ -649,12 +581,6 @@ async function fetchYouTubeTranscript(videoId) {
 // ORQUESTRADOR RAG PARA CONCURSOS (3-STEP PIPELINE)
 // ════════════════════════════════════════════════════════════════════════════
 
-/**
- * Fluxo completo RAG para modo Concursos:
- * 1. Validar filtro mapeado
- * 2. Buscar contexto Vectorize
- * 3. Gerar questão com LLM (Groq) + validar contra alucinação
- */
 async function generateConcursosRAGQuestion(body, env) {
   const { filter, quantity = 1, difficulty, questionType, alternativas, idioma, sessionMode } = body;
 
@@ -673,9 +599,6 @@ async function generateConcursosRAGQuestion(body, env) {
 
   console.log('[RAG] FILTER KEY:', filterKey);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PASSO 1: Validar filtro
-  // ─────────────────────────────────────────────────────────────────────────
   const filterValidation = validateConcursosFilter(filterKey);
   if (!filterValidation.valid) {
     return {
@@ -689,9 +612,6 @@ async function generateConcursosRAGQuestion(body, env) {
   const subjectConfig = filterValidation.config;
   console.log(`[RAG] ✓ Filtro válido: ${filterKey} → ${subjectConfig.vectorizeCollection}`);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PASSO 1.5: Montar Query Context
-  // ─────────────────────────────────────────────────────────────────────────
   const contextParts = [];
   if (content.topic) contextParts.push(`Tópico: ${content.topic}`);
   if (content.subtopic) contextParts.push(`Subtópico: ${content.subtopic}`);
@@ -709,9 +629,6 @@ async function generateConcursosRAGQuestion(body, env) {
     console.log(`[RAG] Query Context Montada: ${queryContext}`);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PASSO 2: Buscar contexto Vectorize
-  // ─────────────────────────────────────────────────────────────────────────
   const query = queryContext ? `${filterKey} ${queryContext}` : filterKey;
   const contextResult = await fetchVectorizeContext(
     env,
@@ -724,10 +641,6 @@ async function generateConcursosRAGQuestion(body, env) {
     `[RAG] Contexto: ${contextResult.contextLength} chars, ` +
     `Suficiente: ${contextResult.sufficient}`
   );
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // PASSO 3: Gerar questão com LLM
-  // ─────────────────────────────────────────────────────────────────────────
 
   const difficultyMap = {
     easy: 'fácil (nível iniciante, conceitos básicos)',
@@ -804,7 +717,6 @@ Regras obrigatórias:
 4. ${antiHallucinationRules}
 5. NENHUM texto fora do JSON`;
 
-  // Chamar Groq (com fallback)
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
 
   if (!groqResponse.ok) {
@@ -822,7 +734,6 @@ Regras obrigatórias:
     };
   }
 
-  // Extrair e validar resposta
   const groqData = await groqResponse.json();
   const rawText = extractJsonFromText(groqData?.choices?.[0]?.message?.content || '');
 
@@ -849,7 +760,6 @@ Regras obrigatórias:
     };
   }
 
-  // Validar questões contra alucinação
   const validatedQuestions = [];
   for (const q of questions) {
     const validation = validateAgainstHallucination(q, subjectConfig);
@@ -975,11 +885,11 @@ export default {
         });
       } catch (err) {
         const isBlocked = err.message.includes('HTTP 429') || err.message.includes('bloqueou a extração');
-        return new Response(JSON.stringify({ 
-          error: isBlocked 
-            ? 'O YouTube bloqueou a extração automática. Por favor, copie a transcrição manualmente.' 
+        return new Response(JSON.stringify({
+          error: isBlocked
+            ? 'O YouTube bloqueou a extração automática. Por favor, copie a transcrição manualmente.'
             : err.message || 'Erro ao extrair transcrição.',
-          isBlocked
+          isBlocked,
         }), {
           status: isBlocked ? 429 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
