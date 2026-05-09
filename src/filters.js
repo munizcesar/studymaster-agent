@@ -138,6 +138,94 @@ class QuestionFilters {
     }
   }
 
+  // Mapeamento de paths aninhados (UI) para chaves planas (Interno)
+  static PATH_MAP = {
+    'content.discipline': 'discipline',
+    'content.topic': 'topic',
+    'content.subtopic': 'subtopic',
+    'content.keyword': 'keywordSearch',
+    'exam.examBoard': 'banca',
+    'exam.agency': 'organ',
+    'exam.position': 'position',
+    'exam.educationLevel': 'education_level',
+    'exam.specificExam': 'exam',
+    'exam.area': 'area',
+    'exam.sphere': 'sphere',
+    'exam.state': 'state',
+    'examMetadata.yearFrom': 'yearMin',
+    'examMetadata.yearTo': 'yearMax',
+    'examMetadata.questionType': 'questionType',
+    'examMetadata.difficulty': 'difficulty',
+    'history.statusFilter': 'resolution_status',
+    'history.excludeAnnulled': 'exclude_annulled',
+    'history.excludeOutdated': 'exclude_outdated',
+    'history.hasCommentary': 'only_commented'
+  };
+
+  /**
+   * Obtém valor de um filtro via path aninhado
+   * @param {string} path - dot-notation path
+   */
+  getFilter(path) {
+    const flatKey = QuestionFilters.PATH_MAP[path];
+    if (!flatKey) return undefined;
+    return this.filters[flatKey];
+  }
+
+  /**
+   * Define um filtro via path aninhado
+   * @param {string} path - dot-notation path
+   * @param {*} value - valor a definir
+   */
+  setFilter(path, value) {
+    const flatKey = QuestionFilters.PATH_MAP[path];
+    if (!flatKey) return this.filters;
+
+    if (value === null || value === undefined || value === '') {
+      this.removeFilter(flatKey);
+    } else {
+      this.addFilter(flatKey, value);
+    }
+    return this.filters;
+  }
+
+  /**
+   * Retorna o payload aninhado no formato esperado pelo Worker
+   * @returns {object} Payload da API
+   */
+  toApiPayload() {
+    return {
+      content: {
+        discipline: this.filters.discipline || null,
+        topic: this.filters.topic || null,
+        subtopic: this.filters.subtopic || null,
+        keyword: this.filters.keywordSearch || ''
+      },
+      exam: {
+        examBoard: this.filters.banca || null,
+        agency: this.filters.organ || null,
+        position: this.filters.position || null,
+        educationLevel: this.filters.education_level || null,
+        specificExam: this.filters.exam || null,
+        area: this.filters.area || null,
+        sphere: this.filters.sphere || null,
+        state: this.filters.state || null
+      },
+      examMetadata: {
+        yearFrom: this.filters.yearMin ? parseInt(this.filters.yearMin) : null,
+        yearTo: this.filters.yearMax ? parseInt(this.filters.yearMax) : null,
+        questionType: this.filters.questionType || null,
+        difficulty: this.filters.difficulty || null
+      },
+      history: {
+        statusFilter: this.filters.resolution_status || 'all',
+        excludeAnnulled: !!this.filters.exclude_annulled,
+        excludeOutdated: !!this.filters.exclude_outdated,
+        hasCommentary: !!this.filters.only_commented
+      }
+    };
+  }
+
   /**
    * Define o esquema de validação para cada tipo de filtro
    * @returns {Object} Mapa de tipos de filtro para suas definições

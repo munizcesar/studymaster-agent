@@ -735,35 +735,33 @@ class FilterUI {
    * Sincroniza os valores de inputs com o state do FilterManager
    */
   syncUIWithManager() {
-    const filters = this.filterManager.filters;
-
     // Conteúdo
-    this.container.querySelector('#filter-discipline').value = filters.content.discipline || '';
-    this.container.querySelector('#filter-topic').value = filters.content.topic || '';
-    this.container.querySelector('#filter-subtopic').value = filters.content.subtopic || '';
-    this.container.querySelector('#filter-keyword').value = filters.content.keyword || '';
+    this.container.querySelector('#filter-discipline').value = this.filterManager.getFilter('content.discipline') || '';
+    this.container.querySelector('#filter-topic').value = this.filterManager.getFilter('content.topic') || '';
+    this.container.querySelector('#filter-subtopic').value = this.filterManager.getFilter('content.subtopic') || '';
+    this.container.querySelector('#filter-keyword').value = this.filterManager.getFilter('content.keyword') || '';
 
     // Concurso
-    this.container.querySelector('#filter-specific-exam').value = filters.exam.specificExam || '';
-    this.container.querySelector('#filter-agency').value = filters.exam.agency || '';
-    this.container.querySelector('#filter-exam-board').value = filters.exam.examBoard || '';
-    this.container.querySelector('#filter-position').value = filters.exam.position || '';
-    this.container.querySelector('#filter-area').value = filters.exam.area || '';
-    this.container.querySelector('#filter-education-level').value = filters.exam.educationLevel || '';
-    this.container.querySelector('#filter-sphere').value = filters.exam.sphere || '';
-    this.container.querySelector('#filter-state').value = filters.exam.state || '';
+    this.container.querySelector('#filter-specific-exam').value = this.filterManager.getFilter('exam.specificExam') || '';
+    this.container.querySelector('#filter-agency').value = this.filterManager.getFilter('exam.agency') || '';
+    this.container.querySelector('#filter-exam-board').value = this.filterManager.getFilter('exam.examBoard') || '';
+    this.container.querySelector('#filter-position').value = this.filterManager.getFilter('exam.position') || '';
+    this.container.querySelector('#filter-area').value = this.filterManager.getFilter('exam.area') || '';
+    this.container.querySelector('#filter-education-level').value = this.filterManager.getFilter('exam.educationLevel') || '';
+    this.container.querySelector('#filter-sphere').value = this.filterManager.getFilter('exam.sphere') || '';
+    this.container.querySelector('#filter-state').value = this.filterManager.getFilter('exam.state') || '';
 
     // Prova
-    this.container.querySelector('#filter-year-from').value = filters.examMetadata.yearFrom || '';
-    this.container.querySelector('#filter-year-to').value = filters.examMetadata.yearTo || '';
-    this.container.querySelector('#filter-question-type').value = filters.examMetadata.questionType || '';
-    this.container.querySelector('#filter-difficulty').value = filters.examMetadata.difficulty || '';
+    this.container.querySelector('#filter-year-from').value = this.filterManager.getFilter('examMetadata.yearFrom') || '';
+    this.container.querySelector('#filter-year-to').value = this.filterManager.getFilter('examMetadata.yearTo') || '';
+    this.container.querySelector('#filter-question-type').value = this.filterManager.getFilter('examMetadata.questionType') || '';
+    this.container.querySelector('#filter-difficulty').value = this.filterManager.getFilter('examMetadata.difficulty') || '';
 
     // Histórico
-    this.container.querySelector('#filter-status').value = filters.history.statusFilter || 'all';
-    this.container.querySelector('#filter-exclude-annulled').checked = filters.history.excludeAnnulled;
-    this.container.querySelector('#filter-exclude-outdated').checked = filters.history.excludeOutdated;
-    this.container.querySelector('#filter-has-commentary').checked = filters.history.hasCommentary;
+    this.container.querySelector('#filter-status').value = this.filterManager.getFilter('history.statusFilter') || 'all';
+    this.container.querySelector('#filter-exclude-annulled').checked = !!this.filterManager.getFilter('history.excludeAnnulled');
+    this.container.querySelector('#filter-exclude-outdated').checked = !!this.filterManager.getFilter('history.excludeOutdated');
+    this.container.querySelector('#filter-has-commentary').checked = !!this.filterManager.getFilter('history.hasCommentary');
 
     this.updateUI();
   }
