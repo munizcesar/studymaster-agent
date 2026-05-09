@@ -94,6 +94,13 @@ class FilterUI {
             <div class="filter-section-content">
               <div class="filter-group">
                 <label>Disciplina</label>
+                <!--
+                  VALORES DO SELECT DE DISCIPLINA:
+                  Os values abaixo devem bater EXATAMENTE com as chaves usadas em
+                  worker.js → CONCURSOS_CONFIG.filters (ex: concursos.portugues,
+                  concursos.direito_constitucional, etc.).
+                  NÃO usar acentos nem variações (ex: "português" é INCORRETO).
+                -->
                 <select id="filter-discipline" class="filter-select">
                   <option value="">Selecione uma disciplina...</option>
                   <option value="portugues">Português</option>
@@ -102,7 +109,6 @@ class FilterUI {
                   <option value="raciocinio_logico">Raciocínio Lógico</option>
                   <option value="informatica">Informática</option>
                   <option value="administracao_publica">Administração Pública</option>
-                  <!-- Mais disciplinas conforme taxonomia -->
                 </select>
               </div>
 
@@ -419,13 +425,9 @@ class FilterUI {
         const section = e.currentTarget.closest('.filter-section');
         const content = section.querySelector('.filter-section-content');
         const isOpen = content.style.display !== 'none';
-        
-        // Fecha todas as seções
         this.container.querySelectorAll('.filter-section-content').forEach(c => {
           c.style.display = 'none';
         });
-
-        // Abre a clicada (se estava fechada)
         if (!isOpen) {
           content.style.display = 'block';
           section.classList.add('open');
@@ -436,6 +438,7 @@ class FilterUI {
     });
 
     // Filtros de conteúdo
+    // IMPORTANTE: sempre usa setFilter('content.discipline', ...) com os values sem acento
     this.container.querySelector('#filter-discipline').addEventListener('change', (e) => {
       this.filterManager.setFilter('content.discipline', e.target.value || null);
       this.updateTopicSelect();
@@ -559,7 +562,7 @@ class FilterUI {
       const name = prompt('Nome para este filtro:');
       if (name && name.trim()) {
         this.filterManager.saveFavorite(name.trim());
-        this.showFavoritesModal();  // Atualiza a lista
+        this.showFavoritesModal();
       }
     });
   }
@@ -581,19 +584,18 @@ class FilterUI {
 
   /**
    * Atualiza o select de tópicos baseado na disciplina selecionada
-   * (Simplificado - em produção, integrar com árvore real do MAPA-CONTEUDO)
    */
   updateTopicSelect() {
     const discipline = this.filterManager.getFilter('content.discipline');
     const topicSelect = this.container.querySelector('#filter-topic');
 
-    // Mapa simplificado (expandir conforme necessário)
     const topicMap = {
       'portugues': ['Ortografia', 'Acentuação', 'Pontuação', 'Regência Verbal', 'Concordância', 'Semântica'],
       'direito_constitucional': ['Constituição Federal', 'Direitos Fundamentais', 'Poder Executivo', 'Poder Legislativo'],
       'direito_administrativo': ['Servidores Públicos', 'Lei 8.112/90', 'Licitações', 'Atos Administrativos'],
       'raciocinio_logico': ['Lógica Proposicional', 'Conjuntos', 'Combinatória', 'Probabilidade'],
-      'informatica': ['SO Windows', 'SO Linux', 'Redes', 'Segurança', 'BD Relacional']
+      'informatica': ['SO Windows', 'SO Linux', 'Redes', 'Segurança', 'BD Relacional'],
+      'administracao_publica': ['Teoria Geral da Administração', 'Gestão de Pessoas', 'Processo Administrativo']
     };
 
     const topics = topicMap[discipline] || [];
@@ -609,7 +611,6 @@ class FilterUI {
     topicSelect.disabled = !discipline;
     topicSelect.value = '';
 
-    // Reseta subtópico
     this.container.querySelector('#filter-subtopic').innerHTML = '<option value="">Selecione um subtópico...</option>';
     this.container.querySelector('#filter-subtopic').disabled = true;
   }
@@ -621,12 +622,10 @@ class FilterUI {
     const topic = this.filterManager.getFilter('content.topic');
     const subtopicSelect = this.container.querySelector('#filter-subtopic');
 
-    // Mapa simplificado
     const subtopicMap = {
       'ortografia': ['Uso de hífen', 'Palavras com S/X', 'Acentuação especial'],
       'acentuacao': ['Monossílabos', 'Paroxítonas', 'Proparoxítonas'],
       'pontuacao': ['Vírgula', 'Ponto final', 'Ponto e vírgula', 'Parênteses'],
-      // ... expandir
     };
 
     const subtopics = subtopicMap[topic] || [];
@@ -662,7 +661,6 @@ class FilterUI {
       </span>
     `).join('');
 
-    // Event listeners para remover filtros individuais
     tagsContainer.querySelectorAll('.tag-remove').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const path = e.currentTarget.dataset.filterPath;
@@ -674,7 +672,6 @@ class FilterUI {
 
   /**
    * Atualiza o contador de questões
-   * (Em produção, fazer uma chamada à API para contar)
    */
   updateQuestionCounter() {
     const counterText = this.container.querySelector('#questionCounterText');
@@ -686,33 +683,30 @@ class FilterUI {
       return;
     }
 
-    // Simulação: em produção, fazer requisição à API
     this.isLoading = true;
     counterText.textContent = 'Contando questões...';
 
-    // setTimeout simula latência de rede
     setTimeout(() => {
-      // Lógica simplificada: contar é baseado no número de filtros como placeholder
       const estimatedCount = Math.floor(Math.random() * 500) + 50;
       this.questionCounter = estimatedCount;
-
-      counterText.innerHTML = `
-        <strong>${estimatedCount}</strong> questões encontradas
-      `;
+      counterText.innerHTML = `<strong>${estimatedCount}</strong> questões encontradas`;
       this.isLoading = false;
       this.container.querySelector('#applyFiltersBtn').disabled = false;
     }, 500);
   }
 
   /**
-   * Aplica filtros e gera questões (integração com gerador)
+   * Aplica filtros e gera questões (integração com gerador).
+   * Obtém o payload via toApiPayload() e dispara evento 'filters-applied'.
+   * O log abaixo permite verificar no console se content.discipline,
+   * exam.examBoard, exam.agency, exam.position, exam.educationLevel,
+   * examMetadata.yearFrom e examMetadata.yearTo estão corretos.
    */
   applyFiltersAndGenerateQuestions() {
     const payload = this.filterManager.toApiPayload();
-    // console.log('Applying filters:', payload);
 
-    // Aqui você integraria com a geração de questões
-    // Por exemplo, chamar window.generateQuestions() ou disparar um evento
+    console.log('[DEBUG FilterUI] payload enviado ao Worker:', JSON.stringify(payload, null, 2));
+
     window.dispatchEvent(new CustomEvent('filters-applied', { detail: payload }));
   }
 
@@ -723,7 +717,6 @@ class FilterUI {
     const validation = this.filterManager.validateForPreset(presetId);
 
     if (!validation.valid && FILTER_PRESETS[presetId].requiredFields.length > 0) {
-      // Se o preset tem campos obrigatórios, mostrar aviso
       alert(`Este preset requer: ${validation.missingFields.join(', ')}`);
     }
 
@@ -791,7 +784,6 @@ class FilterUI {
         </div>
       `).join('');
 
-      // Event listeners para carregar/remover
       favoritesList.querySelectorAll('[data-load-favorite]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const id = e.currentTarget.dataset.loadFavorite;
@@ -806,7 +798,7 @@ class FilterUI {
           const id = e.currentTarget.dataset.removeFavorite;
           if (confirm('Tem certeza que deseja remover este favorito?')) {
             this.filterManager.removeFavorite(id);
-            this.showFavoritesModal();  // Atualiza a lista
+            this.showFavoritesModal();
           }
         });
       });

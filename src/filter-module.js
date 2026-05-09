@@ -23,7 +23,7 @@ const FILTER_SCHEMA = {
   
   // SEÇÃO CONTEÚDO (Content hierarchy)
   content: {
-    discipline: null,           // ex: "Português", "Direito Constitucional"
+    discipline: null,           // ex: "portugues", "direito_constitucional"
     topic: null,                // ex: "Pontuação", "Poder Executivo"
     subtopic: null,             // ex: "Ponto final", "Competências"
     selectedNodes: [],          // Array de nós selecionados na árvore
@@ -33,8 +33,8 @@ const FILTER_SCHEMA = {
   // SEÇÃO CONCURSO (Exam metadata)
   exam: {
     specificExam: null,         // ex: "Concurso TRT 2024", "TJDG 2023"
-    agency: null,               // ex: "TRT", "TJDG", "Receita Federal", "INSS"
-    examBoard: null,            // ex: "FGV", "CESGRANRIO", "CESPE/CEBRASPE", "VUNESP"
+    agency: null,               // ex: "trt", "tjdg", "rf", "inss"
+    examBoard: null,            // ex: "fgv", "cesgranrio", "cespe", "vunesp"
     position: null,             // ex: "Analista Judiciário", "Auditor Fiscal"
     area: null,                 // ex: "judicial", "fiscal", "police", "teaching", "general"
     educationLevel: null,       // ex: "fundamental", "médio", "técnico", "superior"
@@ -77,9 +77,6 @@ const FILTER_SCHEMA = {
 const FILTER_PRESETS = {
   /**
    * PRESET 1: Treino geral por assunto
-   * - Exige: disciplina + tópico
-   * - Deixa banca, órgão, cargo e ano livres ou amplos
-   * - Objetivo: praticar conteúdo de forma genérica
    */
   general: {
     id: 'preset-general',
@@ -88,8 +85,8 @@ const FILTER_PRESETS = {
     icon: 'books',
     template: {
       content: {
-        discipline: null,       // OBRIGATÓRIO selecionar
-        topic: null,            // OBRIGATÓRIO selecionar
+        discipline: null,
+        topic: null,
         subtopic: null,
         selectedNodes: [],
         keyword: ''
@@ -125,9 +122,6 @@ const FILTER_PRESETS = {
 
   /**
    * PRESET 2: Treino focado no meu concurso
-   * - Exige: banca + órgão + cargo
-   * - Filtra automaticamente últimos 3-5 anos
-   * - Objetivo: simulação realista específica de um concurso
    */
   focused: {
     id: 'preset-focused',
@@ -144,24 +138,24 @@ const FILTER_PRESETS = {
       },
       exam: {
         specificExam: null,
-        agency: null,           // OBRIGATÓRIO
-        examBoard: null,        // OBRIGATÓRIO
-        position: null,         // OBRIGATÓRIO
+        agency: null,
+        examBoard: null,
+        position: null,
         area: null,
         educationLevel: null,
         sphere: null,
         state: null
       },
       examMetadata: {
-        yearFrom: new Date().getFullYear() - 5,  // Últimos 5 anos
+        yearFrom: new Date().getFullYear() - 5,
         yearTo: new Date().getFullYear(),
         questionType: null,
         difficulty: null
       },
       history: {
         statusFilter: 'all',
-        excludeAnnulled: true,    // Excluir anuladadas
-        excludeOutdated: true,    // Excluir desatualizadas
+        excludeAnnulled: true,
+        excludeOutdated: true,
         hasCommentary: false
       }
     },
@@ -173,9 +167,6 @@ const FILTER_PRESETS = {
 
   /**
    * PRESET 3: Revisão do que errei
-   * - Mantém filtros normais de conteúdo
-   * - FIXA histórico em "apenas erradas"
-   * - Objetivo: remediar lacunas de aprendizado
    */
   review: {
     id: 'preset-review',
@@ -207,15 +198,15 @@ const FILTER_PRESETS = {
         difficulty: null
       },
       history: {
-        statusFilter: 'wrong',      // FIXADO: apenas erradas
+        statusFilter: 'wrong',
         excludeAnnulled: false,
         excludeOutdated: false,
-        hasCommentary: true         // Priorize com comentário
+        hasCommentary: true
       }
     },
     requiredFields: [],
     constraints: {
-      lockedFields: ['history.statusFilter'],  // Campo fixo, não pode mudar
+      lockedFields: ['history.statusFilter'],
       description: 'Foco em questões erradas com comentários'
     }
   }
@@ -226,7 +217,6 @@ const FILTER_PRESETS = {
 // ════════════════════════════════════════════════════════════════════════════
 
 const FILTER_OPTIONS = {
-  // Áreas/áreas de atuação
   area: [
     { value: 'judicial', label: 'Poder Judiciário' },
     { value: 'fiscal', label: 'Fiscalização / Auditoria' },
@@ -236,23 +226,17 @@ const FILTER_OPTIONS = {
     { value: 'technical', label: 'Técnico' },
     { value: 'other', label: 'Outro' }
   ],
-  
-  // Escolaridade
   educationLevel: [
     { value: 'fundamental', label: 'Ensino Fundamental' },
     { value: 'médio', label: 'Ensino Médio' },
     { value: 'técnico', label: 'Ensino Técnico' },
     { value: 'superior', label: 'Ensino Superior' }
   ],
-  
-  // Esfera
   sphere: [
     { value: 'federal', label: 'Federal' },
     { value: 'estadual', label: 'Estadual' },
     { value: 'municipal', label: 'Municipal' }
   ],
-  
-  // Estados (UF)
   state: [
     { value: 'AC', label: 'Acre' },
     { value: 'AL', label: 'Alagoas' },
@@ -282,16 +266,12 @@ const FILTER_OPTIONS = {
     { value: 'SE', label: 'Sergipe' },
     { value: 'TO', label: 'Tocantins' }
   ],
-  
-  // Tipo de questão
   questionType: [
     { value: 'multiple_choice', label: 'Múltipla Escolha' },
     { value: 'true_false', label: 'Certo/Errado' },
     { value: 'discursive', label: 'Discursiva' },
     { value: 'mix', label: 'Mista' }
   ],
-  
-  // Nível de dificuldade
   difficulty: [
     { value: 'very_easy', label: 'Muito Fácil' },
     { value: 'easy', label: 'Fácil' },
@@ -299,8 +279,6 @@ const FILTER_OPTIONS = {
     { value: 'hard', label: 'Difícil' },
     { value: 'very_hard', label: 'Muito Difícil' }
   ],
-  
-  // Status do histórico
   statusFilter: [
     { value: 'all', label: 'Todas as questões' },
     { value: 'not_solved', label: 'Apenas não resolvidas' },
@@ -319,7 +297,7 @@ class FilterManager {
     this.filters = this.createEmptyFilters();
     this.favorites = this.loadFavorites();
     this.lastPreset = null;
-    this.isDirty = false;  // Flag para saber se há mudanças não salvas
+    this.isDirty = false;
   }
 
   /**
@@ -327,6 +305,32 @@ class FilterManager {
    */
   createEmptyFilters() {
     return JSON.parse(JSON.stringify(FILTER_SCHEMA));
+  }
+
+  /**
+   * Deep merge: mescla `source` por cima de `target` recursivamente.
+   * Apenas sobrescreve chaves que existem em `source`; não remove chaves de `target`.
+   * @param {object} target - objeto base (estrutura completa)
+   * @param {object} source - objeto com os valores a aplicar
+   * @returns {object} target mutado
+   */
+  deepMerge(target, source) {
+    if (!source || typeof source !== 'object') return target;
+    for (const key of Object.keys(source)) {
+      if (
+        source[key] !== null &&
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key]) &&
+        target[key] !== null &&
+        typeof target[key] === 'object' &&
+        !Array.isArray(target[key])
+      ) {
+        this.deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+    return target;
   }
 
   /**
@@ -341,34 +345,30 @@ class FilterManager {
 
   /**
    * Remove um filtro individual
-   * @param {string} path - caminho dot-notation: "exam.agency", "history.statusFilter", etc
+   * @param {string} path - caminho dot-notation
    */
   removeFilter(path) {
     const keys = path.split('.');
     let current = this.filters;
-    
-    // Navega até o penúltimo nível
     for (let i = 0; i < keys.length - 1; i++) {
       current = current[keys[i]];
     }
-    
     const lastKey = keys[keys.length - 1];
-    
-    // Define como null (ou valor padrão apropriado)
     if (Array.isArray(current[lastKey])) {
       current[lastKey] = [];
     } else {
       current[lastKey] = null;
     }
-    
     this.isDirty = true;
     this.notifyObservers('filter-removed', { path });
     return this.filters;
   }
 
   /**
-   * Aplica um preset de filtros
-   * @param {string} presetId - ID do preset ("general", "focused", "review")
+   * Aplica um preset de filtros.
+   * Garante que this.filters SEMPRE mantém a estrutura completa do FILTER_SCHEMA.
+   * Faz deep merge do template por cima da estrutura vazia.
+   * @param {string} presetId
    */
   applyPreset(presetId) {
     const preset = FILTER_PRESETS[presetId];
@@ -377,12 +377,17 @@ class FilterManager {
       return false;
     }
 
-    // Copia o template do preset
-    this.filters = JSON.parse(JSON.stringify(preset.template));
+    // Sempre parte de uma estrutura vazia completa (garante content/exam/examMetadata/history/metadata)
+    this.filters = this.createEmptyFilters();
+
+    // Deep merge do template do preset por cima - sem remover seções
+    this.deepMerge(this.filters, preset.template);
+
+    // Preserva metadados do preset
     this.filters.metadata.presetType = presetId;
     this.lastPreset = presetId;
     this.isDirty = true;
-    
+
     this.notifyObservers('preset-applied', { presetId, preset });
     return true;
   }
@@ -390,23 +395,20 @@ class FilterManager {
   /**
    * Adiciona um filtro individual
    * @param {string} path - dot-notation path
-   * @param {any} value - valor a definir
+   * @param {any} value
    */
   setFilter(path, value) {
     const keys = path.split('.');
     let current = this.filters;
-    
     for (let i = 0; i < keys.length - 1; i++) {
       if (!current[keys[i]]) {
         current[keys[i]] = {};
       }
       current = current[keys[i]];
     }
-    
     const lastKey = keys[keys.length - 1];
     current[lastKey] = value;
     this.isDirty = true;
-    
     this.notifyObservers('filter-changed', { path, value });
     return this.filters;
   }
@@ -418,26 +420,21 @@ class FilterManager {
   getFilter(path) {
     const keys = path.split('.');
     let current = this.filters;
-    
     for (const key of keys) {
       current = current[key];
       if (current === null || current === undefined) break;
     }
-    
     return current;
   }
 
   /**
    * Obtém lista de filtros ativos (aqueles que têm valor não-null)
-   * @returns {Array} array de {path, value, label}
    */
   getActiveFilters() {
     const active = [];
-    
     const traverse = (obj, prefix = '') => {
       for (const [key, val] of Object.entries(obj)) {
         const path = prefix ? `${prefix}.${key}` : key;
-        
         if (val === null || val === undefined || val === '' || (Array.isArray(val) && val.length === 0)) {
           // Skip
         } else if (typeof val === 'object' && !Array.isArray(val) && path !== 'metadata') {
@@ -451,63 +448,44 @@ class FilterManager {
         }
       }
     };
-    
     traverse(this.filters);
     return active;
   }
 
   /**
    * Retorna um rótulo legível para exibição de filtro ativo
-   * @param {string} path
-   * @param {any} value
    */
   getFilterLabel(path, value) {
-    // Encontrar a opção correspondente
     const [section, field] = path.split('.');
-    
     if (FILTER_OPTIONS[field]) {
       const option = FILTER_OPTIONS[field].find(o => o.value === value);
       if (option) return option.label;
     }
-    
-    // Fallback: retorna o valor como-é
     return String(value);
   }
 
   /**
    * Valida se os filtros estão completos para um preset específico
-   * @param {string} presetId - ID do preset
-   * @returns {object} {valid, missingFields, errors}
    */
   validateForPreset(presetId) {
     const preset = FILTER_PRESETS[presetId];
     if (!preset) return { valid: false, errors: ['Preset não encontrado'] };
-
     const missingFields = [];
     const errors = [];
-
     for (const requiredPath of preset.requiredFields) {
       const value = this.getFilter(requiredPath);
       if (!value || (Array.isArray(value) && value.length === 0)) {
         missingFields.push(requiredPath);
       }
     }
-
     if (missingFields.length > 0) {
       errors.push(`Campos obrigatórios não preenchidos: ${missingFields.join(', ')}`);
     }
-
-    return {
-      valid: errors.length === 0,
-      missingFields,
-      errors
-    };
+    return { valid: errors.length === 0, missingFields, errors };
   }
 
   /**
    * Salva filtros atuais como um "favorito" nomeado
-   * @param {string} name - nome para o favorito
-   * @returns {string} ID do favorito criado
    */
   saveFavorite(name) {
     const favorite = {
@@ -517,17 +495,17 @@ class FilterManager {
       createdAt: new Date().toISOString(),
       usageCount: 0
     };
-
     this.favorites.push(favorite);
     this.persistFavorites();
-    
     this.notifyObservers('favorite-saved', { favorite });
     return favorite.id;
   }
 
   /**
-   * Carrega um favorito salvo
-   * @param {string} id - ID do favorito
+   * Carrega um favorito salvo.
+   * Garante que this.filters SEMPRE mantém a estrutura completa do FILTER_SCHEMA.
+   * Faz deep merge dos filtros salvos por cima da estrutura vazia.
+   * @param {string} id
    */
   loadFavorite(id) {
     const favorite = this.favorites.find(f => f.id === id);
@@ -536,11 +514,16 @@ class FilterManager {
       return false;
     }
 
-    this.filters = JSON.parse(JSON.stringify(favorite.filters));
+    // Sempre parte de uma estrutura vazia completa
+    this.filters = this.createEmptyFilters();
+
+    // Deep merge dos filtros salvos por cima - sem remover seções
+    this.deepMerge(this.filters, favorite.filters);
+
     favorite.usageCount++;
     favorite.lastUsed = new Date().toISOString();
     this.persistFavorites();
-    
+
     this.isDirty = false;
     this.notifyObservers('favorite-loaded', { favorite });
     return true;
@@ -593,41 +576,52 @@ class FilterManager {
   }
 
   /**
-   * Converte filtros aplicados para formato de requisição API
+   * Converte filtros aplicados para formato de requisição API.
+   * Lê explicitamente cada campo de this.filters para garantir que
+   * nenhuma seção seja substituída por objeto parcial.
    * @returns {object} payload para enviar ao /api/quiz
    */
   toApiPayload() {
-    return {
+    // Garante que todas as seções existem (segurança extra)
+    const content     = this.filters.content     || {};
+    const exam        = this.filters.exam        || {};
+    const examMeta    = this.filters.examMetadata || {};
+    const history     = this.filters.history     || {};
+
+    const payload = {
       content: {
-        discipline: this.filters.content.discipline,
-        topic: this.filters.content.topic,
-        subtopic: this.filters.content.subtopic,
-        selectedNodes: this.filters.content.selectedNodes,
-        keyword: this.filters.content.keyword
+        discipline:    content.discipline    ?? null,
+        topic:         content.topic         ?? null,
+        subtopic:      content.subtopic      ?? null,
+        selectedNodes: Array.isArray(content.selectedNodes) ? content.selectedNodes : [],
+        keyword:       content.keyword       ?? ''
       },
       exam: {
-        specificExam: this.filters.exam.specificExam,
-        agency: this.filters.exam.agency,
-        examBoard: this.filters.exam.examBoard,
-        position: this.filters.exam.position,
-        area: this.filters.exam.area,
-        educationLevel: this.filters.exam.educationLevel,
-        sphere: this.filters.exam.sphere,
-        state: this.filters.exam.state
+        specificExam:   exam.specificExam   ?? null,
+        agency:         exam.agency         ?? null,
+        examBoard:      exam.examBoard      ?? null,
+        position:       exam.position       ?? null,
+        area:           exam.area           ?? null,
+        educationLevel: exam.educationLevel ?? null,
+        sphere:         exam.sphere         ?? null,
+        state:          exam.state          ?? null
       },
       examMetadata: {
-        yearFrom: this.filters.examMetadata.yearFrom,
-        yearTo: this.filters.examMetadata.yearTo,
-        questionType: this.filters.examMetadata.questionType,
-        difficulty: this.filters.examMetadata.difficulty
+        yearFrom:     examMeta.yearFrom     ?? null,
+        yearTo:       examMeta.yearTo       ?? null,
+        questionType: examMeta.questionType ?? null,
+        difficulty:   examMeta.difficulty   ?? null
       },
       history: {
-        statusFilter: this.filters.history.statusFilter,
-        excludeAnnulled: this.filters.history.excludeAnnulled,
-        excludeOutdated: this.filters.history.excludeOutdated,
-        hasCommentary: this.filters.history.hasCommentary
+        statusFilter:    history.statusFilter    ?? 'all',
+        excludeAnnulled: history.excludeAnnulled ?? false,
+        excludeOutdated: history.excludeOutdated ?? false,
+        hasCommentary:   history.hasCommentary   ?? false
       }
     };
+
+    console.log('[DEBUG FilterManager] filter payload:', JSON.stringify(payload, null, 2));
+    return payload;
   }
 
   /**
