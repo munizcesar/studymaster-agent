@@ -10,8 +10,6 @@
  * 
  * ARQUITETURA:
  * FilterManager (estado global) → FilterUI (componentes) → FilterAPI (backend)
- * 
- * Extensível em: novos campos, novos presets, novos validadores
  */
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -20,200 +18,97 @@
 
 const FILTER_SCHEMA = {
   version: '1.0.0',
-  
-  // SEÇÃO CONTEÚDO (Content hierarchy)
   content: {
-    discipline: null,           // ex: "portugues", "direito_constitucional"
-    topic: null,                // ex: "Pontuação", "Poder Executivo"
-    subtopic: null,             // ex: "Ponto final", "Competências"
-    selectedNodes: [],          // Array de nós selecionados na árvore
-    keyword: ''                 // Busca por palavra-chave no texto da questão
+    discipline: null,
+    topic: null,
+    subtopic: null,
+    selectedNodes: [],
+    keyword: ''
   },
-  
-  // SEÇÃO CONCURSO (Exam metadata)
   exam: {
-    specificExam: null,         // ex: "Concurso TRT 2024", "TJDG 2023"
-    agency: null,               // ex: "trt", "tjdg", "rf", "inss"
-    examBoard: null,            // ex: "fgv", "cesgranrio", "cespe", "vunesp"
-    position: null,             // ex: "Analista Judiciário", "Auditor Fiscal"
-    area: null,                 // ex: "judicial", "fiscal", "police", "teaching", "general"
-    educationLevel: null,       // ex: "fundamental", "médio", "técnico", "superior"
-    sphere: null,               // ex: "federal", "estadual", "municipal"
-    state: null                 // ex: "SP", "RJ", "MG", "DF"
+    specificExam: null,
+    agency: null,
+    examBoard: null,
+    position: null,
+    area: null,
+    educationLevel: null,
+    sphere: null,
+    state: null
   },
-  
-  // SEÇÃO PROVA (Exam metadata - question characteristics)
   examMetadata: {
-    yearFrom: null,             // ex: 2020
-    yearTo: null,               // ex: 2025
-    questionType: null,         // ex: "multiple_choice", "true_false", "discursive", "mix"
-    difficulty: null            // ex: "very_easy", "easy", "medium", "hard", "very_hard"
+    yearFrom: null,
+    yearTo: null,
+    questionType: null,
+    difficulty: null
   },
-  
-  // SEÇÃO HISTÓRICO DO ALUNO (Student history - performance filters)
   history: {
-    statusFilter: 'all',        // "all"|"not_solved"|"solved"|"correct"|"wrong"
-    excludeAnnulled: false,     // Excluir questões anuladadas
-    excludeOutdated: false,     // Excluir questões desatualizadas
-    hasCommentary: false        // Apenas questões com comentário/gabarito
+    statusFilter: 'all',
+    excludeAnnulled: false,
+    excludeOutdated: false,
+    hasCommentary: false
   },
-  
-  // METADATA (filtros aplicados, favoritos, etc)
   metadata: {
     isActive: true,
     isFavorite: false,
-    favoriteId: null,           // UUID para saved favorites
+    favoriteId: null,
     favoriteName: null,
-    presetType: null,           // "general"|"focused"|"review"|"custom"
+    presetType: null,
     createdAt: null,
     lastUsed: null
   }
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// PRESETS PREDEFINIDOS - 3 templates para otimizar workflows comuns
+// PRESETS PREDEFINIDOS
 // ════════════════════════════════════════════════════════════════════════════
 
 const FILTER_PRESETS = {
-  /**
-   * PRESET 1: Treino geral por assunto
-   */
   general: {
     id: 'preset-general',
     name: 'Treino Geral por Assunto',
     description: 'Pratique conteúdo sem filtros de banca/concurso específicos',
     icon: 'books',
     template: {
-      content: {
-        discipline: null,
-        topic: null,
-        subtopic: null,
-        selectedNodes: [],
-        keyword: ''
-      },
-      exam: {
-        specificExam: null,
-        agency: null,
-        examBoard: null,
-        position: null,
-        area: null,
-        educationLevel: null,
-        sphere: null,
-        state: null
-      },
-      examMetadata: {
-        yearFrom: null,
-        yearTo: null,
-        questionType: null,
-        difficulty: null
-      },
-      history: {
-        statusFilter: 'all',
-        excludeAnnulled: false,
-        excludeOutdated: false,
-        hasCommentary: false
-      }
+      content: { discipline: null, topic: null, subtopic: null, selectedNodes: [], keyword: '' },
+      exam: { specificExam: null, agency: null, examBoard: null, position: null, area: null, educationLevel: null, sphere: null, state: null },
+      examMetadata: { yearFrom: null, yearTo: null, questionType: null, difficulty: null },
+      history: { statusFilter: 'all', excludeAnnulled: false, excludeOutdated: false, hasCommentary: false }
     },
     requiredFields: ['content.discipline', 'content.topic'],
-    constraints: {
-      description: 'Foco em conteúdo, sem restrições de banca/órgão'
-    }
+    constraints: { description: 'Foco em conteúdo, sem restrições de banca/órgão' }
   },
-
-  /**
-   * PRESET 2: Treino focado no meu concurso
-   */
   focused: {
     id: 'preset-focused',
     name: 'Treino Focado no Meu Concurso',
     description: 'Questões específicas da sua banca e cargo (últimos anos)',
     icon: 'target',
     template: {
-      content: {
-        discipline: null,
-        topic: null,
-        subtopic: null,
-        selectedNodes: [],
-        keyword: ''
-      },
-      exam: {
-        specificExam: null,
-        agency: null,
-        examBoard: null,
-        position: null,
-        area: null,
-        educationLevel: null,
-        sphere: null,
-        state: null
-      },
-      examMetadata: {
-        yearFrom: new Date().getFullYear() - 5,
-        yearTo: new Date().getFullYear(),
-        questionType: null,
-        difficulty: null
-      },
-      history: {
-        statusFilter: 'all',
-        excludeAnnulled: true,
-        excludeOutdated: true,
-        hasCommentary: false
-      }
+      content: { discipline: null, topic: null, subtopic: null, selectedNodes: [], keyword: '' },
+      exam: { specificExam: null, agency: null, examBoard: null, position: null, area: null, educationLevel: null, sphere: null, state: null },
+      examMetadata: { yearFrom: new Date().getFullYear() - 5, yearTo: new Date().getFullYear(), questionType: null, difficulty: null },
+      history: { statusFilter: 'all', excludeAnnulled: true, excludeOutdated: true, hasCommentary: false }
     },
     requiredFields: ['exam.agency', 'exam.examBoard', 'exam.position'],
-    constraints: {
-      description: 'Foco em concurso específico, últimos 5 anos, sem questões anuladadas'
-    }
+    constraints: { description: 'Foco em concurso específico, últimos 5 anos, sem questões anuladadas' }
   },
-
-  /**
-   * PRESET 3: Revisão do que errei
-   */
   review: {
     id: 'preset-review',
     name: 'Revisão do Que Errei',
     description: 'Revise apenas as questões que você errou',
     icon: 'AlertCircle',
     template: {
-      content: {
-        discipline: null,
-        topic: null,
-        subtopic: null,
-        selectedNodes: [],
-        keyword: ''
-      },
-      exam: {
-        specificExam: null,
-        agency: null,
-        examBoard: null,
-        position: null,
-        area: null,
-        educationLevel: null,
-        sphere: null,
-        state: null
-      },
-      examMetadata: {
-        yearFrom: null,
-        yearTo: null,
-        questionType: null,
-        difficulty: null
-      },
-      history: {
-        statusFilter: 'wrong',
-        excludeAnnulled: false,
-        excludeOutdated: false,
-        hasCommentary: true
-      }
+      content: { discipline: null, topic: null, subtopic: null, selectedNodes: [], keyword: '' },
+      exam: { specificExam: null, agency: null, examBoard: null, position: null, area: null, educationLevel: null, sphere: null, state: null },
+      examMetadata: { yearFrom: null, yearTo: null, questionType: null, difficulty: null },
+      history: { statusFilter: 'wrong', excludeAnnulled: false, excludeOutdated: false, hasCommentary: true }
     },
     requiredFields: [],
-    constraints: {
-      lockedFields: ['history.statusFilter'],
-      description: 'Foco em questões erradas com comentários'
-    }
+    constraints: { lockedFields: ['history.statusFilter'], description: 'Foco em questões erradas com comentários' }
   }
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// OPCÕES PARA DROPDOWNS/SELECTS - Enum de valores permitidos
+// OPCÕES PARA DROPDOWNS/SELECTS
 // ════════════════════════════════════════════════════════════════════════════
 
 const FILTER_OPTIONS = {
@@ -238,32 +133,19 @@ const FILTER_OPTIONS = {
     { value: 'municipal', label: 'Municipal' }
   ],
   state: [
-    { value: 'AC', label: 'Acre' },
-    { value: 'AL', label: 'Alagoas' },
-    { value: 'AP', label: 'Amapá' },
-    { value: 'AM', label: 'Amazonas' },
-    { value: 'BA', label: 'Bahia' },
-    { value: 'CE', label: 'Ceará' },
-    { value: 'DF', label: 'Distrito Federal' },
-    { value: 'ES', label: 'Espírito Santo' },
-    { value: 'GO', label: 'Goiás' },
-    { value: 'MA', label: 'Maranhão' },
-    { value: 'MT', label: 'Mato Grosso' },
-    { value: 'MS', label: 'Mato Grosso do Sul' },
-    { value: 'MG', label: 'Minas Gerais' },
-    { value: 'PA', label: 'Pará' },
-    { value: 'PB', label: 'Paraíba' },
-    { value: 'PR', label: 'Paraná' },
-    { value: 'PE', label: 'Pernambuco' },
-    { value: 'PI', label: 'Piauí' },
-    { value: 'RJ', label: 'Rio de Janeiro' },
-    { value: 'RN', label: 'Rio Grande do Norte' },
-    { value: 'RS', label: 'Rio Grande do Sul' },
-    { value: 'RO', label: 'Rondônia' },
-    { value: 'RR', label: 'Roraima' },
-    { value: 'SC', label: 'Santa Catarina' },
-    { value: 'SP', label: 'São Paulo' },
-    { value: 'SE', label: 'Sergipe' },
+    { value: 'AC', label: 'Acre' }, { value: 'AL', label: 'Alagoas' },
+    { value: 'AP', label: 'Amapá' }, { value: 'AM', label: 'Amazonas' },
+    { value: 'BA', label: 'Bahia' }, { value: 'CE', label: 'Ceará' },
+    { value: 'DF', label: 'Distrito Federal' }, { value: 'ES', label: 'Espírito Santo' },
+    { value: 'GO', label: 'Goiás' }, { value: 'MA', label: 'Maranhão' },
+    { value: 'MT', label: 'Mato Grosso' }, { value: 'MS', label: 'Mato Grosso do Sul' },
+    { value: 'MG', label: 'Minas Gerais' }, { value: 'PA', label: 'Pará' },
+    { value: 'PB', label: 'Paraíba' }, { value: 'PR', label: 'Paraná' },
+    { value: 'PE', label: 'Pernambuco' }, { value: 'PI', label: 'Piauí' },
+    { value: 'RJ', label: 'Rio de Janeiro' }, { value: 'RN', label: 'Rio Grande do Norte' },
+    { value: 'RS', label: 'Rio Grande do Sul' }, { value: 'RO', label: 'Rondônia' },
+    { value: 'RR', label: 'Roraima' }, { value: 'SC', label: 'Santa Catarina' },
+    { value: 'SP', label: 'São Paulo' }, { value: 'SE', label: 'Sergipe' },
     { value: 'TO', label: 'Tocantins' }
   ],
   questionType: [
@@ -289,31 +171,24 @@ const FILTER_OPTIONS = {
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// FILTER MANAGER - Gerenciador central de estado e lógica de filtros
+// FILTER MANAGER
 // ════════════════════════════════════════════════════════════════════════════
 
 class FilterManager {
   constructor() {
+    // FIX: observers declarado no constructor (não como class field)
+    // para compatibilidade com bundlers/ambientes sem suporte a ES2022 class fields.
+    this.observers = [];
     this.filters = this.createEmptyFilters();
     this.favorites = this.loadFavorites();
     this.lastPreset = null;
     this.isDirty = false;
   }
 
-  /**
-   * Cria um objeto de filtros vazio baseado no SCHEMA
-   */
   createEmptyFilters() {
     return JSON.parse(JSON.stringify(FILTER_SCHEMA));
   }
 
-  /**
-   * Deep merge: mescla `source` por cima de `target` recursivamente.
-   * Apenas sobrescreve chaves que existem em `source`; não remove chaves de `target`.
-   * @param {object} target - objeto base (estrutura completa)
-   * @param {object} source - objeto com os valores a aplicar
-   * @returns {object} target mutado
-   */
   deepMerge(target, source) {
     if (!source || typeof source !== 'object') return target;
     for (const key of Object.keys(source)) {
@@ -333,9 +208,6 @@ class FilterManager {
     return target;
   }
 
-  /**
-   * Reseta todos os filtros
-   */
   clearAllFilters() {
     this.filters = this.createEmptyFilters();
     this.isDirty = true;
@@ -343,10 +215,6 @@ class FilterManager {
     return this.filters;
   }
 
-  /**
-   * Remove um filtro individual
-   * @param {string} path - caminho dot-notation
-   */
   removeFilter(path) {
     const keys = path.split('.');
     let current = this.filters;
@@ -364,39 +232,21 @@ class FilterManager {
     return this.filters;
   }
 
-  /**
-   * Aplica um preset de filtros.
-   * Garante que this.filters SEMPRE mantém a estrutura completa do FILTER_SCHEMA.
-   * Faz deep merge do template por cima da estrutura vazia.
-   * @param {string} presetId
-   */
   applyPreset(presetId) {
     const preset = FILTER_PRESETS[presetId];
     if (!preset) {
-      console.warn(`Preset não encontrado: ${presetId}`);
+      console.warn('Preset não encontrado: ' + presetId);
       return false;
     }
-
-    // Sempre parte de uma estrutura vazia completa (garante content/exam/examMetadata/history/metadata)
     this.filters = this.createEmptyFilters();
-
-    // Deep merge do template do preset por cima - sem remover seções
     this.deepMerge(this.filters, preset.template);
-
-    // Preserva metadados do preset
     this.filters.metadata.presetType = presetId;
     this.lastPreset = presetId;
     this.isDirty = true;
-
-    this.notifyObservers('preset-applied', { presetId, preset });
+    this.notifyObservers('preset-applied', { presetId: presetId, preset: preset });
     return true;
   }
 
-  /**
-   * Adiciona um filtro individual
-   * @param {string} path - dot-notation path
-   * @param {any} value
-   */
   setFilter(path, value) {
     const keys = path.split('.');
     let current = this.filters;
@@ -409,151 +259,113 @@ class FilterManager {
     const lastKey = keys[keys.length - 1];
     current[lastKey] = value;
     this.isDirty = true;
-    this.notifyObservers('filter-changed', { path, value });
+    this.notifyObservers('filter-changed', { path: path, value: value });
     return this.filters;
   }
 
-  /**
-   * Obtém valor de um filtro
-   * @param {string} path - dot-notation path
-   */
   getFilter(path) {
     const keys = path.split('.');
     let current = this.filters;
-    for (const key of keys) {
-      current = current[key];
+    for (var i = 0; i < keys.length; i++) {
+      current = current[keys[i]];
       if (current === null || current === undefined) break;
     }
     return current;
   }
 
-  /**
-   * Obtém lista de filtros ativos (aqueles que têm valor não-null)
-   */
   getActiveFilters() {
     const active = [];
-    const traverse = (obj, prefix = '') => {
-      for (const [key, val] of Object.entries(obj)) {
-        const path = prefix ? `${prefix}.${key}` : key;
+    const self = this;
+    function traverse(obj, prefix) {
+      prefix = prefix || '';
+      var entries = Object.keys(obj);
+      for (var i = 0; i < entries.length; i++) {
+        var key = entries[i];
+        var val = obj[key];
+        var path = prefix ? (prefix + '.' + key) : key;
         if (val === null || val === undefined || val === '' || (Array.isArray(val) && val.length === 0)) {
-          // Skip
+          // skip
         } else if (typeof val === 'object' && !Array.isArray(val) && path !== 'metadata') {
           traverse(val, path);
         } else {
-          active.push({
-            path,
-            value: val,
-            label: this.getFilterLabel(path, val)
-          });
+          active.push({ path: path, value: val, label: self.getFilterLabel(path, val) });
         }
       }
-    };
+    }
     traverse(this.filters);
     return active;
   }
 
-  /**
-   * Retorna um rótulo legível para exibição de filtro ativo
-   */
   getFilterLabel(path, value) {
-    const [section, field] = path.split('.');
+    var parts = path.split('.');
+    var field = parts[1];
     if (FILTER_OPTIONS[field]) {
-      const option = FILTER_OPTIONS[field].find(o => o.value === value);
+      var option = FILTER_OPTIONS[field].find(function(o) { return o.value === value; });
       if (option) return option.label;
     }
     return String(value);
   }
 
-  /**
-   * Valida se os filtros estão completos para um preset específico
-   */
   validateForPreset(presetId) {
     const preset = FILTER_PRESETS[presetId];
     if (!preset) return { valid: false, errors: ['Preset não encontrado'] };
     const missingFields = [];
     const errors = [];
-    for (const requiredPath of preset.requiredFields) {
-      const value = this.getFilter(requiredPath);
+    for (var i = 0; i < preset.requiredFields.length; i++) {
+      var requiredPath = preset.requiredFields[i];
+      var value = this.getFilter(requiredPath);
       if (!value || (Array.isArray(value) && value.length === 0)) {
         missingFields.push(requiredPath);
       }
     }
     if (missingFields.length > 0) {
-      errors.push(`Campos obrigatórios não preenchidos: ${missingFields.join(', ')}`);
+      errors.push('Campos obrigatórios não preenchidos: ' + missingFields.join(', '));
     }
-    return { valid: errors.length === 0, missingFields, errors };
+    return { valid: errors.length === 0, missingFields: missingFields, errors: errors };
   }
 
-  /**
-   * Salva filtros atuais como um "favorito" nomeado
-   */
   saveFavorite(name) {
     const favorite = {
-      id: `fav-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name,
+      id: 'fav-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+      name: name,
       filters: JSON.parse(JSON.stringify(this.filters)),
       createdAt: new Date().toISOString(),
       usageCount: 0
     };
     this.favorites.push(favorite);
     this.persistFavorites();
-    this.notifyObservers('favorite-saved', { favorite });
+    this.notifyObservers('favorite-saved', { favorite: favorite });
     return favorite.id;
   }
 
-  /**
-   * Carrega um favorito salvo.
-   * Garante que this.filters SEMPRE mantém a estrutura completa do FILTER_SCHEMA.
-   * Faz deep merge dos filtros salvos por cima da estrutura vazia.
-   * @param {string} id
-   */
   loadFavorite(id) {
-    const favorite = this.favorites.find(f => f.id === id);
+    const favorite = this.favorites.find(function(f) { return f.id === id; });
     if (!favorite) {
-      console.warn(`Favorito não encontrado: ${id}`);
+      console.warn('Favorito não encontrado: ' + id);
       return false;
     }
-
-    // Sempre parte de uma estrutura vazia completa
     this.filters = this.createEmptyFilters();
-
-    // Deep merge dos filtros salvos por cima - sem remover seções
     this.deepMerge(this.filters, favorite.filters);
-
     favorite.usageCount++;
     favorite.lastUsed = new Date().toISOString();
     this.persistFavorites();
-
     this.isDirty = false;
-    this.notifyObservers('favorite-loaded', { favorite });
+    this.notifyObservers('favorite-loaded', { favorite: favorite });
     return true;
   }
 
-  /**
-   * Lista todos os favoritos
-   */
   getFavorites() {
-    return this.favorites.map(f => ({
-      id: f.id,
-      name: f.name,
-      createdAt: f.createdAt,
-      usageCount: f.usageCount,
-      lastUsed: f.lastUsed
-    }));
+    return this.favorites.map(function(f) {
+      return { id: f.id, name: f.name, createdAt: f.createdAt, usageCount: f.usageCount, lastUsed: f.lastUsed };
+    });
   }
 
-  /**
-   * Remove um favorito
-   */
   removeFavorite(id) {
-    this.favorites = this.favorites.filter(f => f.id !== id);
+    this.favorites = this.favorites.filter(function(f) { return f.id !== id; });
     this.persistFavorites();
-    this.notifyObservers('favorite-removed', { id });
+    this.notifyObservers('favorite-removed', { id: id });
   }
 
-  /**
-   * Persistência: salva favoritos em localStorage
-   */
   persistFavorites() {
     try {
       localStorage.setItem('studymaster-filter-favorites', JSON.stringify(this.favorites));
@@ -562,9 +374,6 @@ class FilterManager {
     }
   }
 
-  /**
-   * Persistência: carrega favoritos de localStorage
-   */
   loadFavorites() {
     try {
       const stored = localStorage.getItem('studymaster-filter-favorites');
@@ -575,48 +384,41 @@ class FilterManager {
     }
   }
 
-  /**
-   * Converte filtros aplicados para formato de requisição API.
-   * Lê explicitamente cada campo de this.filters para garantir que
-   * nenhuma seção seja substituída por objeto parcial.
-   * @returns {object} payload para enviar ao /api/quiz
-   */
   toApiPayload() {
-    // Garante que todas as seções existem (segurança extra)
-    const content     = this.filters.content     || {};
-    const exam        = this.filters.exam        || {};
-    const examMeta    = this.filters.examMetadata || {};
-    const history     = this.filters.history     || {};
+    const content  = this.filters.content      || {};
+    const exam     = this.filters.exam         || {};
+    const examMeta = this.filters.examMetadata || {};
+    const history  = this.filters.history      || {};
 
     const payload = {
       content: {
-        discipline:    content.discipline    ?? null,
-        topic:         content.topic         ?? null,
-        subtopic:      content.subtopic      ?? null,
+        discipline:    content.discipline    != null ? content.discipline    : null,
+        topic:         content.topic         != null ? content.topic         : null,
+        subtopic:      content.subtopic      != null ? content.subtopic      : null,
         selectedNodes: Array.isArray(content.selectedNodes) ? content.selectedNodes : [],
-        keyword:       content.keyword       ?? ''
+        keyword:       content.keyword       != null ? content.keyword       : ''
       },
       exam: {
-        specificExam:   exam.specificExam   ?? null,
-        agency:         exam.agency         ?? null,
-        examBoard:      exam.examBoard      ?? null,
-        position:       exam.position       ?? null,
-        area:           exam.area           ?? null,
-        educationLevel: exam.educationLevel ?? null,
-        sphere:         exam.sphere         ?? null,
-        state:          exam.state          ?? null
+        specificExam:   exam.specificExam   != null ? exam.specificExam   : null,
+        agency:         exam.agency         != null ? exam.agency         : null,
+        examBoard:      exam.examBoard      != null ? exam.examBoard      : null,
+        position:       exam.position       != null ? exam.position       : null,
+        area:           exam.area           != null ? exam.area           : null,
+        educationLevel: exam.educationLevel != null ? exam.educationLevel : null,
+        sphere:         exam.sphere         != null ? exam.sphere         : null,
+        state:          exam.state          != null ? exam.state          : null
       },
       examMetadata: {
-        yearFrom:     examMeta.yearFrom     ?? null,
-        yearTo:       examMeta.yearTo       ?? null,
-        questionType: examMeta.questionType ?? null,
-        difficulty:   examMeta.difficulty   ?? null
+        yearFrom:     examMeta.yearFrom     != null ? examMeta.yearFrom     : null,
+        yearTo:       examMeta.yearTo       != null ? examMeta.yearTo       : null,
+        questionType: examMeta.questionType != null ? examMeta.questionType : null,
+        difficulty:   examMeta.difficulty   != null ? examMeta.difficulty   : null
       },
       history: {
-        statusFilter:    history.statusFilter    ?? 'all',
-        excludeAnnulled: history.excludeAnnulled ?? false,
-        excludeOutdated: history.excludeOutdated ?? false,
-        hasCommentary:   history.hasCommentary   ?? false
+        statusFilter:    history.statusFilter    != null ? history.statusFilter    : 'all',
+        excludeAnnulled: history.excludeAnnulled != null ? history.excludeAnnulled : false,
+        excludeOutdated: history.excludeOutdated != null ? history.excludeOutdated : false,
+        hasCommentary:   history.hasCommentary   != null ? history.hasCommentary   : false
       }
     };
 
@@ -624,44 +426,29 @@ class FilterManager {
     return payload;
   }
 
-  /**
-   * Sistema simples de observadores para notificações de mudanças
-   */
-  observers = [];
-
   subscribe(callback) {
     this.observers.push(callback);
-    return () => {
-      this.observers = this.observers.filter(c => c !== callback);
+    const self = this;
+    return function() {
+      self.observers = self.observers.filter(function(c) { return c !== callback; });
     };
   }
 
   notifyObservers(eventType, data) {
-    this.observers.forEach(callback => callback({ eventType, data }));
+    for (var i = 0; i < this.observers.length; i++) {
+      this.observers[i]({ eventType: eventType, data: data });
+    }
   }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// SINGLETON GLOBAL - Instância única do FilterManager
+// SINGLETON GLOBAL
 // ════════════════════════════════════════════════════════════════════════════
 
-const filterManager = new FilterManager();
+var filterManager = new FilterManager();
 
-// Exportar para uso global (se usando módulos) ou deixar disponível no window
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    FilterManager,
-    filterManager,
-    FILTER_SCHEMA,
-    FILTER_PRESETS,
-    FILTER_OPTIONS
-  };
+  module.exports = { FilterManager: FilterManager, filterManager: filterManager, FILTER_SCHEMA: FILTER_SCHEMA, FILTER_PRESETS: FILTER_PRESETS, FILTER_OPTIONS: FILTER_OPTIONS };
 } else {
-  window.FilterModule = {
-    FilterManager,
-    filterManager,
-    FILTER_SCHEMA,
-    FILTER_PRESETS,
-    FILTER_OPTIONS
-  };
+  window.FilterModule = { FilterManager: FilterManager, filterManager: filterManager, FILTER_SCHEMA: FILTER_SCHEMA, FILTER_PRESETS: FILTER_PRESETS, FILTER_OPTIONS: FILTER_OPTIONS };
 }
