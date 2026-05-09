@@ -2265,9 +2265,13 @@ function populateTopic(el, area, subj) {
 function buildConcursosFilterPayload() {
   const f = state.concursosFiltersState;
   if (!f.discipline) return null;
+  
+  // Garante que o valor não contenha prefixos residuais de estados antigos salvos
+  const cleanDiscipline = f.discipline.replace(/^concursos\./, '');
+  
   return {
     content: {
-      discipline: f.discipline,
+      discipline: cleanDiscipline,
       topic: f.topic || null,
       keyword: f.keyword || '',
     },
