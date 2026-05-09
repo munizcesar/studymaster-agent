@@ -733,14 +733,9 @@ class QuestionFilters {
       transformedValue = schema.transform(value);
     }
 
-    // Validar valores permitidos
-    if (schema.validValues && !schema.validValues.includes(transformedValue)) {
-      console.warn(
-        `[Filters] Valor inválido para "${filterKey}": "${value}". ` +
-        `Valores permitidos: ${schema.validValues.join(', ')}`
-      );
-      return false;
-    }
+    // A validação estrita de validValues foi removida para evitar conflitos
+    // com as strings geradas pela UI (ex: "portugues" sem acento, "CEBRASPE/CESPE").
+    // A validação real ocorre no backend (worker.js).
 
     // Armazenar o filtro
     if (schema.multiple) {
