@@ -98,15 +98,15 @@
     <div class="preview" id="preview">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
         <defs>
-          <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#0a8fa3;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#006494;stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#01696f;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#0a8fa3;stop-opacity:1" />
-          </linearGradient>
+           <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+             <stop offset="0%" style="stop-color:#5B5BD6;stop-opacity:1" />
+             <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:1" />
+             <stop offset="100%" style="stop-color:#F97316;stop-opacity:1" />
+           </linearGradient>
+           <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+             <stop offset="0%" style="stop-color:#5B5BD6;stop-opacity:1" />
+             <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+           </linearGradient>
           <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/>
           </filter>
@@ -116,25 +116,35 @@
         <circle cx="1100" cy="100" r="400" fill="url(#premiumGradient)" opacity="0.08"/>
         <circle cx="100" cy="580" r="350" fill="url(#premiumGradient)" opacity="0.08"/>
 
-        <g filter="url(#shadow)">
-          <rect x="80" y="150" width="260" height="260" rx="40" fill="url(#premiumGradient)" opacity="0.95"/>
-          <path d="M 160 220 L 160 340 Q 160 360 175 360 L 215 335 L 215 215 Z" fill="#f7f6f2" opacity="0.9"/>
-          <path d="M 240 215 L 240 335 Q 280 360 295 360 Q 310 360 310 340 L 310 220 Z" fill="#ffffff" opacity="0.85"/>
-          <line x1="190" y1="240" x2="190" y2="340" stroke="#f7f6f2" stroke-width="4" opacity="0.7"/>
-          <line x1="250" y1="240" x2="250" y2="340" stroke="#ffffff" stroke-width="4" opacity="0.6"/>
+        <!-- Favicon logo -->
+        <g transform="translate(100, 180) scale(3)">
+          <defs>
+            <linearGradient id="favGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#5B5BD6"/>
+              <stop offset="0.5" stop-color="#7C3AED"/>
+              <stop offset="1" stop-color="#F97316"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="18" fill="url(#favGradient)"/>
+          <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+          <circle cx="46" cy="40" r="11" fill="#ffffff"/>
+          <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#5B5BD6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </g>
 
-        <text x="400" y="300" font-family="Inter, -apple-system, sans-serif" font-size="120" font-weight="800" letter-spacing="-3">
+        <!-- Main title -->
+        <text x="480" y="280" font-family="Inter, -apple-system, sans-serif" font-size="96" font-weight="800" letter-spacing="-2">
           <tspan fill="url(#textGradient)">StudyMaster</tspan>
         </text>
 
-        <text x="400" y="360" font-family="Inter, -apple-system, sans-serif" font-size="32" font-weight="500" fill="#6b6965" letter-spacing="0.5">
+        <!-- Subtitle -->
+        <text x="480" y="340" font-family="Inter, -apple-system, sans-serif" font-size="28" font-weight="500" fill="url(#textGradient)" letter-spacing="0.5">
           Agente de Estudo com IA
         </text>
 
+        <!-- Feature highlight -->
         <g>
           <rect x="400" y="390" width="520" height="50" rx="25" fill="#e0eeec" opacity="0.8"/>
-          <text x="670" y="423" font-family="Inter, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#01696f" text-anchor="middle">⚡ Crie prompts personalizados em minutos</text>
+          <text x="670" y="423" font-family="Inter, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#5B5BD6" text-anchor="middle">🎯 Estude com IA personalizada e feedback imediato</text>
         </g>
 
         <text x="1150" y="600" font-family="Inter, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#bab9b4" text-anchor="end">
