@@ -984,9 +984,41 @@ Regras obrigatórias:
 
   console.log(`[RAG] ✓ ${validatedQuestions.length} questão(ões) gerada(s) e validada(s)`);
 
+  const qualityCheckedQuestions = [];
+  const rejectedCount = { layer1: 0, layer3: 0 };
+
+  for (const q of validatedQuestions) {
+    const qualityCheck = validateQuestionPipeline(
+      { matches: contextResult.sources.map((s) => ({ score: 0.85, metadata: s })) },
+      q,
+      contextResult.context
+    );
+
+    if (qualityCheck.success) {
+      qualityCheckedQuestions.push(qualityCheck.question);
+    } else {
+      console.warn(`[QUALITY] Questão ${q.id} rejeitada:`, qualityCheck.message);
+      if (qualityCheck.metadata.layer === 1) rejectedCount.layer1++;
+      if (qualityCheck.metadata.layer === 3) rejectedCount.layer3++;
+    }
+  }
+
+  if (qualityCheckedQuestions.length === 0) {
+    return {
+      success: false,
+      error: 'QUALITY_VALIDATION_FAILED',
+      userMessage: 'Material insuficiente para gerar questões confiáveis. Forneça mais conteúdo.',
+      statusCode: 422,
+      debug: {
+        rejectedByLayer1: rejectedCount.layer1,
+        rejectedByLayer3: rejectedCount.layer3,
+      },
+    };
+  }
+
   return {
     success: true,
-    questions: validatedQuestions,
+    questions: qualityCheckedQuestions,
     metadata: {
       mode: 'rag',
       subject: subjectConfig.label,
