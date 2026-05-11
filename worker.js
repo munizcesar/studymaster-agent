@@ -438,7 +438,7 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     return {
       context,
       sufficient,
-      sources: documents.map((d) => ({ text: d.text.slice(0, 100), source: d.source })),
+      sources: documents.map((d) => ({ text: d.text.slice(0, 100), source: d.source, score: d.score })),
       contextLength: context.length,
     };
   } catch (e) {
@@ -984,12 +984,19 @@ Regras obrigatórias:
 
   console.log(`[RAG] ✓ ${validatedQuestions.length} questão(ões) gerada(s) e validada(s)`);
 
+  // Fallback quando alguma fonte não trouxer score explícito no contexto recuperado.
+  const DEFAULT_CONTEXT_MATCH_SCORE = 0.85;
   const qualityCheckedQuestions = [];
-  const rejectedCount = { layer1: 0, layer3: 0 };
+  const rejectedCount = { layer1: 0, layer2: 0, layer3: 0, layer4: 0 };
 
   for (const q of validatedQuestions) {
     const qualityCheck = validateQuestionPipeline(
-      { matches: contextResult.sources.map((s) => ({ score: 0.85, metadata: s })) },
+      {
+        matches: contextResult.sources.map((s) => ({
+          score: typeof s.score === 'number' ? s.score : DEFAULT_CONTEXT_MATCH_SCORE,
+          metadata: s,
+        })),
+      },
       q,
       contextResult.context
     );
@@ -998,8 +1005,11 @@ Regras obrigatórias:
       qualityCheckedQuestions.push(qualityCheck.question);
     } else {
       console.warn(`[QUALITY] Questão ${q.id} rejeitada:`, qualityCheck.message);
-      if (qualityCheck.metadata.layer === 1) rejectedCount.layer1++;
-      if (qualityCheck.metadata.layer === 3) rejectedCount.layer3++;
+      const layer = qualityCheck.metadata?.layer;
+      const layerKey = layer ? `layer${layer}` : null;
+      if (layerKey && layerKey in rejectedCount) {
+        rejectedCount[layerKey]++;
+      }
     }
   }
 
@@ -1007,12 +1017,9 @@ Regras obrigatórias:
     return {
       success: false,
       error: 'QUALITY_VALIDATION_FAILED',
-      userMessage: 'Material insuficiente para gerar questões confiáveis. Forneça mais conteúdo.',
+      userMessage: 'Não foi possível gerar questões que atendam aos critérios de qualidade com o conteúdo fornecido.',
       statusCode: 422,
-      debug: {
-        rejectedByLayer1: rejectedCount.layer1,
-        rejectedByLayer3: rejectedCount.layer3,
-      },
+      debug: rejectedCount,
     };
   }
 
