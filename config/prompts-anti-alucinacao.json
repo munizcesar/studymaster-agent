@@ -1,7 +1,54 @@
 {
-  "version": "1.0.0",
-  "description": "Prompts anti-alucinação para geração de questões de concursos",
-  "lastUpdated": "2026-05-07",
+  "version": "2.0.0",
+  "description": "Prompts anti-alucinação para geração de questões de concursos - Com Protocolo de Garantias",
+  "lastUpdated": "2026-05-10",
+
+  "qualityProtocols": {
+    "description": "Protocolo de Garantias em 5 Camadas para Questões Confiáveis",
+    "layer1_source_validation": {
+      "name": "Validação na Fonte (RAG)",
+      "minimumScore": 0.75,
+      "minimumChunks": 1,
+      "action": "Rejeitar geração se score < 0.75 ou contexto insuficiente"
+    },
+    "layer2_strict_rules": {
+      "name": "Regras Estritas no Prompt",
+      "mandatory_rules": [
+        "SEMPRE cite entre aspas o trecho exato do material fonte",
+        "Crie 3 distratores plausíveis baseados em conceitos relacionados DO MATERIAL",
+        "NUNCA inventar dados numéricos não presentes no material",
+        "NUNCA criar nomes próprios não mencionados no contexto",
+        "NUNCA usar termos vagos: 'geralmente', 'normalmente', 'pode ser', 'talvez'",
+        "Formato obrigatório: [Contexto] + [Pergunta] + [4 alternativas] + [Justificativa com citação]"
+      ],
+      "answer_verification": {
+        "requirement": "Resposta correta DEVE estar literalmente no material fornecido",
+        "justification": "Explicar POR QUE as outras 3 estão erradas com base no material"
+      }
+    },
+    "layer3_post_validation": {
+      "name": "Validação Automática Pós-Geração",
+      "checks": [
+        "Questão contém citação direta do material (aspas)",
+        "Resposta correta existe no material fonte",
+        "4 alternativas únicas sem repetição",
+        "Sem palavras banidas (talvez, provavelmente, geralmente)"
+      ],
+      "minimumScore": 0.75,
+      "action": "Rejeitar questão se score < 75%"
+    },
+    "layer4_confidence_badge": {
+      "name": "Badge de Confiança (Transparência)",
+      "display": true,
+      "showSources": true,
+      "showScore": true
+    },
+    "layer5_critical_areas": {
+      "name": "Dupla Checagem em Áreas Críticas",
+      "areas": ["direito", "medicina", "engenharia"],
+      "action": "Gerar 2 versões e comparar respostas corretas"
+    }
+  },
 
   "systemPrompts": {
     "concursos_base": {
@@ -11,30 +58,34 @@
         "NUNCA cite um concurso ou edital real a menos que esteja explicitamente no CONTEXTO fornecido.",
         "SÓ use conceitos e exemplos que estejam presentes no CONTEXTO recuperado.",
         "Se o CONTEXTO for insuficiente, diga isso claramente em vez de inventar conteúdo.",
-        "Sempre cite a base conceitual utilizada (leis, artigos, normas, tópicos) de forma clara."
+        "Sempre cite a base conceitual utilizada (leis, artigos, normas, tópicos) de forma clara.",
+        "OBRIGATÓRIO: Cite entre aspas trechos literais do material fornecido.",
+        "PROIBIDO: Usar termos vagos como 'geralmente', 'normalmente', 'pode ser', 'talvez', 'provavelmente'."
       ],
       "outputFormat": {
-        "statement": "Enunciado claro, objetivo e contextualizado, sem inventar cenários inexistentes",
+        "statement": "Enunciado claro, objetivo e contextualizado, sem inventar cenários inexistentes. DEVE incluir citação direta do material.",
         "options": [
           {
-            "letter": "A-E",
-            "text": "Alternativa coerente com o contexto fornecido"
+            "letter": "A-D ou A-E",
+            "text": "Alternativa coerente com o contexto fornecido, distratores baseados em conceitos relacionados DO MATERIAL"
           }
         ],
-        "correctAnswer": "A letra correta (A, B, C, D ou E)",
-        "explanation": "Justificativa clara baseada no CONTEXTO, citando referências normativas quando aplicável",
-        "conceptualBasis": "Descrição breve da origem da questão (ex.: 'CF/88, arts. 37-41' ou 'Regência verbal em Português formal')"
+        "correctAnswer": "A letra correta (A, B, C ou D)",
+        "explanation": "Justificativa clara baseada no CONTEXTO com CITAÇÃO DIRETA entre aspas. Explicar por que as outras alternativas estão incorretas.",
+        "conceptualBasis": "Descrição breve da origem da questão (ex.: 'CF/88, arts. 37-41' ou 'Regência verbal em Português formal')",
+        "confidenceScore": "Score de 0 a 1 indicando confiança na fundamentação (calculado automaticamente)"
       }
     },
 
     "concursos_portugues": {
-      "systemMessage": "Você é um professor de Português especializando em concursos públicos.",
+      "systemMessage": "Você é um professor de Português especializado em concursos públicos.",
       "specificRules": [
         "Base exclusivamente em conceitos de gramática normativa, semântica e interpretação textual.",
         "Cite autores/normas quando relevante (NCCFL, ABNT, gramáticas normativas).",
         "Não invente autores ou obras literárias fictícias.",
         "Questões de interpretação devem ter contexto real ou claramente ficcional (ex.: 'Leia o texto abaixo')",
-        "Se usar um texto de exemplo, deixe claro que é exemplo, não uma prova real."
+        "Se usar um texto de exemplo, deixe claro que é exemplo, não uma prova real.",
+        "CITE o trecho específico do texto entre aspas na explicação."
       ],
       "exampleContext": "Regência verbal: 'Assistir a' (presenciar), 'assistir' (prestar assistência). Na frase 'O presidente assistiu o evento', há erro de regência...",
       "forbiddenPatterns": [
@@ -42,25 +93,49 @@
         "edital",
         "banca",
         "ano X",
-        "concurso de"
+        "concurso de",
+        "geralmente",
+        "normalmente",
+        "pode ser",
+        "talvez"
       ]
     },
 
     "concursos_direito_constitucional": {
       "systemMessage": "Você é um professor de Direito Constitucional especializado em concursos.",
       "specificRules": [
-        "SEMPRE cite o artigo específico da CF/88 ou lei correspondente.",
+        "SEMPRE cite o artigo específico da CF/88 ou lei correspondente ENTRE ASPAS.",
         "Use apenas interpretações consolidadas em jurisprudência STF/STJ.",
         "Não invente jurisprudência; cite apenas casos reais ou deixe genérico.",
         "Questões sobre direitos fundamentais devem referenciar Arts. 5º-17 da CF/88.",
-        "Seja preciso: 'Segundo a CF/88, art. XXX...' em vez de 'é sabido que...'"
+        "Seja preciso: 'Segundo a CF/88, art. XXX: \"texto literal\"' em vez de 'é sabido que...'",
+        "Na explicação, transcreva o artigo relevante entre aspas."
       ],
       "exampleContext": "CF/88, art. 5º, XXXV: 'a lei não excluirá da apreciação do Poder Judiciário lesão ou ameaça a direito'. Este é o princípio da inafastabilidade do controle jurisdicional.",
       "forbiddenPatterns": [
         "prova de direito",
         "STF entendeu",
         "julgado em",
-        "acórdão número"
+        "acórdão número",
+        "geralmente",
+        "normalmente"
+      ]
+    },
+
+    "concursos_direito_administrativo": {
+      "systemMessage": "Você é um professor de Direito Administrativo especializado em concursos.",
+      "specificRules": [
+        "SEMPRE cite artigos específicos entre aspas: Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, CF/88.",
+        "Transcreva o texto legal literal na explicação.",
+        "Não invente interpretações; use apenas doutrina consolidada.",
+        "Cite o artigo completo entre aspas quando relevante para o gabarito."
+      ],
+      "forbiddenPatterns": [
+        "banca decidiu",
+        "edital de",
+        "prova real",
+        "geralmente",
+        "normalmente"
       ]
     },
 
@@ -68,48 +143,52 @@
       "systemMessage": "Você é um professor de Raciocínio Lógico para concursos.",
       "specificRules": [
         "Use notação lógica clara (∧, ∨, ¬, →, ↔) quando apropriado.",
-        "Problemas de combinatória e probabilidade devem ter solução verificável.",
+        "Problemas de combinatória e probabilidade devem ter solução verificável PASSO A PASSO.",
         "Não invente fórmulas; use apenas as padrões (permutação, combinação, arranjo).",
-        "Enunciados de lógica devem ser não-ambíguos; deixe explícito o domínio de quantificadores."
+        "Enunciados de lógica devem ser não-ambíguos; deixe explícito o domínio de quantificadores.",
+        "Na explicação, mostre o cálculo completo com cada etapa."
       ],
       "exampleContext": "Lógica proposicional: Se P = 'chove' e Q = 'faz frio', então P ∧ Q significa 'chove E faz frio'.",
       "forbiddenPatterns": [
         "como foi comprovado",
         "sabe-se que",
-        "universalmente aceito"
+        "universalmente aceito",
+        "geralmente"
       ]
     },
 
     "concursos_informatica": {
       "systemMessage": "Você é um especialista em Informática para concursos.",
       "specificRules": [
-        "Cite normas ISO/IEC, RFCs ou documentação oficial quando se tratar de padrões.",
-        "Para SO (Windows, Linux), use versões específicas ou deixe genérico.",
+        "Cite normas ISO/IEC, RFCs ou documentação oficial ENTRE ASPAS quando se tratar de padrões.",
+        "Para SO (Windows, Linux), use versões específicas mencionadas no material ou deixe genérico.",
         "Não invente nomes de softwares ou versões; use apenas os documentados.",
-        "Questões de segurança devem referenciar ISO 27001 quando aplicável."
+        "Questões de segurança devem referenciar ISO 27001 quando aplicável, citando o trecho relevante."
       ],
       "exampleContext": "ISO/IEC 27001 define requisitos para sistema de gestão de segurança da informação. Um dos princípios é a confidencialidade: garantir acesso apenas a pessoas autorizadas.",
       "forbiddenPatterns": [
         "última versão de",
         "softwares novos",
-        "tecnologia do futuro"
+        "tecnologia do futuro",
+        "geralmente"
       ]
     },
 
     "concursos_administracao_publica": {
       "systemMessage": "Você é um especialista em Administração Pública para concursos.",
       "specificRules": [
-        "SEMPRE cite leis específicas: Lei 8.112/90, Lei 8.666/93, Lei 9.784/99, CF/88.",
-        "Princípios administrativos: legalidade, impessoalidade, moralidade, publicidade, eficiência.",
+        "SEMPRE cite leis específicas ENTRE ASPAS: Lei 8.112/90, Lei 8.666/93, Lei 9.784/99, CF/88.",
+        "Princípios administrativos: legalidade, impessoalidade, moralidade, publicidade, eficiência (LIMPE).",
         "Não invente jurisprudência; cite apenas casos consolidados ou deixe genérico.",
-        "Estrutura do Estado: cite artigos específicos da CF/88 (arts. 37-41)."
+        "Estrutura do Estado: cite artigos específicos da CF/88 (arts. 37-41) com transcrição literal."
       ],
       "exampleContext": "CF/88, art. 37: 'A administração pública direta e indireta de qualquer dos Poderes da União, dos Estados, do Distrito Federal e dos Municípios obedecerá aos princípios de legalidade, impessoalidade, moralidade, publicidade e eficiência'.",
        "forbiddenPatterns": [
          "concurso de",
          "prova de",
          "edital de",
-         "banca X decidiu"
+         "banca X decidiu",
+         "geralmente"
        ]
     }
   },
@@ -117,20 +196,20 @@
   "contextInjectionTemplates": {
     "description": "Templates para injetar contexto no prompt enviado ao modelo",
     "standard": {
-      "template": "Você está gerando uma questão de {subject} para concursos públicos.\n\nCONTEXTO FORNECIDO (recuperado da base de dados):\n{vectorizeContext}\n\nCOM BASE NO CONTEXTO ACIMA, gere UMA questão seguindo exatamente este formato JSON:\n{outputFormatJson}\n\nRESTRIÇÕES:\n{constraints}\n\nSe o contexto for insuficiente ou vazio, responda: 'CONTEXTO_INSUFICIENTE'"
+      "template": "Você está gerando uma questão de {subject} para concursos públicos.\n\nPROTOCOLO DE GARANTIAS ATIVO:\n- CITE trechos literais do contexto entre aspas\n- NÃO invente dados não presentes no material\n- NÃO use termos vagos (geralmente, normalmente, pode ser)\n\nCONTEXTO FORNECIDO (recuperado da base de dados):\n{vectorizeContext}\n\nCOM BASE NO CONTEXTO ACIMA, gere UMA questão seguindo exatamente este formato JSON:\n{outputFormatJson}\n\nRESTRIÇÕES:\n{constraints}\n\nSe o contexto for insuficiente ou vazio, responda: 'CONTEXTO_INSUFICIENTE'"
     },
     
     "withConceptualBasis": {
-      "template": "Você está gerando uma questão de {subject} para concursos públicos.\n\nBASE CONCEITUAL ESPERADA:\n{conceptualBases}\n\nCONTEXTO FORNECIDO:\n{vectorizeContext}\n\nGere UMA questão baseada EXCLUSIVAMENTE no contexto acima:\n{outputFormatJson}\n\nRESTRIÇÕES ANTI-ALUCINAÇÃO:\n{constraints}"
+      "template": "Você está gerando uma questão de {subject} para concursos públicos.\n\nPROTOCOLO DE GARANTIAS:\n1. Cite trechos literais entre aspas\n2. Resposta correta DEVE estar no material\n3. Explique por que cada distrator está errado\n4. Zero termos vagos\n\nBASE CONCEITUAL ESPERADA:\n{conceptualBases}\n\nCONTEXTO FORNECIDO:\n{vectorizeContext}\n\nGere UMA questão baseada EXCLUSIVAMENTE no contexto acima:\n{outputFormatJson}\n\nRESTRIÇÕES ANTI-ALUCINAÇÃO:\n{constraints}"
     },
 
     "fallback": {
-      "template": "Você está gerando uma questão GENÉRICA (sem base de dados específica) de {subject}.\n\nEsta questão NÃO está associada a uma banca, ano ou concurso específico.\nNÃO mencione nome de banca, concurso ou ano.\n\nGere UMA questão genérica seguindo este formato:\n{outputFormatJson}\n\nINCLUA no campo explanation: 'Questão genérica - conceitos gerais'\nINCLUA no campo conceptualBasis: 'Educação geral em {subject}'"
+      "template": "Você está gerando uma questão GENÉRICA (sem base de dados específica) de {subject}.\n\nATENÇÃO: Esta questão NÃO está associada a uma banca, ano ou concurso específico.\nNÃO mencione nome de banca, concurso ou ano.\n\nGere UMA questão genérica seguindo este formato:\n{outputFormatJson}\n\nINCLUA no campo explanation: 'Questão genérica - conceitos gerais'\nINCLUA no campo conceptualBasis: 'Educação geral em {subject}'\nINCLUA no campo confidenceScore: 0.6 (questão genérica tem menor confiança)"
     }
   },
 
   "validationChecks": {
-    "description": "Checks a realizar após receber resposta do modelo",
+    "description": "Checks a realizar após receber resposta do modelo (Camada 3)",
     "hallucination_detection": [
        {
          "pattern": "\\b(banca|concurso|prova|edital|ano de \\d{4})\\b",
@@ -147,6 +226,12 @@
         "pattern": "\\b(segundo.*julgado|conforme acórdão|decisão de)\\b",
         "severity": "medium",
         "action": "verify_or_generalize"
+      },
+      {
+        "pattern": "\\b(geralmente|normalmente|pode ser|talvez|provavelmente)\\b",
+        "severity": "high",
+        "action": "reject_question",
+        "note": "Palavras banidas - indicam falta de fundamentação"
       }
     ],
     
@@ -173,13 +258,26 @@
         "field": "explanation",
         "required": true,
         "minLength": 30,
-        "maxLength": 1000
+        "maxLength": 1000,
+        "mustContainQuotes": true,
+        "note": "Explicação DEVE conter citação entre aspas"
       },
       {
         "field": "conceptualBasis",
         "required": false,
         "minLength": 10
       }
-    ]
+    ],
+
+    "qualityScore": {
+      "description": "Cálculo automático do score de qualidade",
+      "criteria": [
+        {"name": "hasQuotation", "weight": 0.3, "check": "explanation contains quotes"},
+        {"name": "answerInMaterial", "weight": 0.3, "check": "correct answer found in source material"},
+        {"name": "uniqueOptions", "weight": 0.2, "check": "all 4 options are unique"},
+        {"name": "noBannedWords", "weight": 0.2, "check": "no vague terms (geralmente, talvez, etc)"}
+      ],
+      "minimumAcceptable": 0.75
+    }
   }
 }
