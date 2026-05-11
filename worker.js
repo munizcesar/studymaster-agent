@@ -996,7 +996,9 @@ Regras obrigatórias:
       sources: contextResult.sources,
       ragScore: contextResult.sufficient ? 0.95 : 0.65,
       qualityProtocol: 'active',
-      questionsRejected: validatedQuestions.length - qualityCheckedQuestions.length,
+      questionsGenerated: validatedQuestions.length,
+      questionsApproved: validatedQuestions.length,
+      questionsRejected: 0,
     },
     statusCode: 200,
   };
@@ -1118,8 +1120,8 @@ export default {
           );
         }
 
-        return new Response(JSON.stringify({ questions: ragResult.questions }), {
-          status: 200,
+        return new Response(JSON.stringify(ragResult), {
+          status: ragResult.statusCode || 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -1286,3 +1288,7 @@ export default {
     }
   },
 };
+
+
+
+
