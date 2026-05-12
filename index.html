@@ -485,6 +485,14 @@
     .option-btn.correct .option-key { background: var(--color-success); color: white; border-color: var(--color-success); }
     .option-btn.wrong { border-color: var(--color-error); background: rgba(192, 57, 43, 0.08); opacity: 0.85; }
     .option-btn.wrong .option-key { background: var(--color-error); color: white; border-color: var(--color-error); }
+    .option-btn.selected {
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.08);
+    }
+    .option-btn.selected .option-key {
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+    }
     .option-btn:disabled { cursor: default; }
     .explanation-box { display: none; margin-top: var(--space-3); padding: var(--space-4); background: rgba(22, 163, 74, 0.07); border-radius: var(--radius-md); border: 1px solid rgba(22, 163, 74, 0.2); font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-muted); }
     .explanation-box.visible { display: block; }
@@ -2957,10 +2965,11 @@ function renderAllQuestionsDesktop(questions) {
     const resBtn = document.getElementById(`q-resolver-${idx}`);
     
     // Seleção de alternativa
-    if (!qNavState.results[idx]) {
-      opts.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const allOptsForQuestion = list.querySelectorAll(`[data-question-idx="${idx}"].option-btn`);
+     if (!qNavState.results[idx]) {
+       opts.forEach(btn => {
+         btn.addEventListener('click', () => {
+           if (state.answered >= state.generatedQuestions.length) return;
+           const allOptsForQuestion = list.querySelectorAll(`[data-question-idx="${idx}"].option-btn`);
           allOptsForQuestion.forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
           qNavState.selected[idx] = btn.dataset.key;
@@ -3067,9 +3076,10 @@ function renderSingleQuestion(questions, idx) {
   if (!hasAnswered) {
     const opts   = list.querySelectorAll('.option-btn');
     const resBtn = document.getElementById('q-resolver');
-    opts.forEach(btn => {
-      btn.addEventListener('click', () => {
-        opts.forEach(b => b.classList.remove('selected'));
+     opts.forEach(btn => {
+       btn.addEventListener('click', () => {
+         if (state.answered >= state.generatedQuestions.length) return;
+         opts.forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         qNavState.selected[idx] = btn.dataset.key;
         resBtn.disabled = false;
@@ -3573,13 +3583,15 @@ window.addEventListener('resize', () => {
     if (qContainer && qContainer.classList.contains('visible') && currentMode !== lastViewportMode) {
       lastViewportMode = currentMode;
       
-      if (isDesktop) {
-        // Mobile -> Desktop: renderizar todas as questões
-        renderAllQuestionsDesktop(state.generatedQuestions);
-      } else {
-        // Desktop -> Mobile: renderizar questão única
-        renderSingleQuestion(state.generatedQuestions, qNavState.currentIdx);
-      }
+       if (isDesktop) {
+         // Mobile -> Desktop: renderizar todas as questões
+         renderAllQuestionsDesktop(state.generatedQuestions);
+       } else {
+         // Desktop -> Mobile: renderizar questão única
+         qNavState.current = 0;
+         qNavState.visited.clear();
+         renderSingleQuestion(state.generatedQuestions, 0);
+       }
       lucide.createIcons();
     }
     
