@@ -16,24 +16,8 @@ const corsHeaders = {
 // ════════════════════════════════════════════════════════════════════════════
 // CONFIGURAÇÃO RAG PARA CONCURSOS (baixo acoplamento, expansível)
 // ════════════════════════════════════════════════════════════════════════════
-//
-// TABELA DE MAPEAMENTO EXPLÍCITO: Filtro → Coleção Vectorize
-// ────────────────────────────────────────────────────────────────────────────
-// concursos.portugues                 → concursos_portugues
-// concursos.direito_constitucional    → concursos_direito_constitucional
-// concursos.direito_administrativo    → concursos_direito_administrativo
-// concursos.raciocinio_logico         → concursos_rlm (raciocínio lógico-matemático)
-// concursos.informatica               → concursos_informatica
-// concursos.administracao_publica     → concursos_adm_publica
-//
-// FUTURO (Arquitetura preparada, não implementado):
-// - area: "policial" | "tribunais" | "fiscal" | "administracao_geral" | ...
-// - estilo: "certo_errado" | "multipla_escolha" | "discursiva" | ...
-// ────────────────────────────────────────────────────────────────────────────
 
 const CONCURSOS_CONFIG = {
-  // Mapeamento EXPLÍCITO: filtro (chave) → Vectorize collection + metadados
-  // Padrão de chave interna: "concursos.<materia>"
   filters: {
     'concursos.portugues': {
       label: 'Português',
@@ -122,7 +106,6 @@ const CONCURSOS_CONFIG = {
     },
   },
 
-  // Mapeamento reverso: coleção → filtro (para debugging/logging)
   collectionToFilter: {
     'concursos_portugues': 'concursos.portugues',
     'concursos_direito_constitucional': 'concursos.direito_constitucional',
@@ -132,7 +115,6 @@ const CONCURSOS_CONFIG = {
     'concursos_adm_publica': 'concursos.administracao_publica',
   },
 
-  // Fallback gracioso quando contexto insuficiente ou filtro não mapeado
   fallbackMessage: 'Desculpe, ainda não temos base de dados suficiente para esta matéria. Tente novamente em breve!',
   invalidFilterMessage: (filter) => `O filtro "${filter}" não foi reconhecido. Escolha uma das matérias disponíveis: Português, Direito Constitucional, Direito Administrativo, Raciocínio Lógico, Informática ou Administração Pública.`,
 };
@@ -160,10 +142,6 @@ const AREA_MAP_VECTORIZE = {
 // PROTOCOLO DE GARANTIAS (Camadas 1, 3, 4)
 // ════════════════════════════════════════════════════════════════════════════
 
-/**
- * CAMADA 1: Validação RAG Score
- * Garante que questões são baseadas em material confiável
- */
 function validateRAGScore(ragResults, minScore = 0.75) {
   if (!ragResults?.matches || ragResults.matches.length === 0) {
     return {
@@ -198,10 +176,6 @@ function validateRAGScore(ragResults, minScore = 0.75) {
   };
 }
 
-/**
- * CAMADA 3: Validação Pós-Geração
- * Verifica se questão pode ser rastreada ao material fonte
- */
 function validateQuestionTraceability(question, contextText) {
   if (!contextText || contextText.length < 100) {
     return {
@@ -215,7 +189,6 @@ function validateQuestionTraceability(question, contextText) {
   const statementLower = question.statement.toLowerCase();
   const explanationLower = (question.explanation || '').toLowerCase();
 
-  // Extrai termos-chave da questão (palavras com 5+ caracteres)
   const extractKeyTerms = (text) => {
     return text
       .replace(/[^\w\sáàâãéèêíïóôõöúçñ]/gi, ' ')
@@ -237,7 +210,6 @@ function validateQuestionTraceability(question, contextText) {
     };
   }
 
-  // Conta quantos termos aparecem no contexto
   const matchedTerms = keyTerms.filter(term => contextLower.includes(term));
   const coverageRatio = matchedTerms.length / keyTerms.length;
 
@@ -259,10 +231,6 @@ function validateQuestionTraceability(question, contextText) {
   };
 }
 
-/**
- * CAMADA 4: Badge de Confiança
- * Gera indicador visual de qualidade da questão
- */
 function generateQualityBadge(ragScore, traceability) {
   const score = (ragScore * 0.6 + (parseFloat(traceability.coverage) / 100) * 0.4);
   
@@ -295,16 +263,7 @@ function generateQualityBadge(ragScore, traceability) {
   };
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// PIPELINE COMPLETO
-// ════════════════════════════════════════════════════════════════════════════
-
-/**
- * Valida questão através de todas as camadas
- * Retorna objeto { success: bool, question: object | null, metadata: object }
- */
 function validateQuestionPipeline(ragResults, question, contextText) {
-  // Camada 1: Valida RAG Score
   const ragValidation = validateRAGScore(ragResults, 0.75);
   if (!ragValidation.valid) {
     return {
@@ -315,7 +274,6 @@ function validateQuestionPipeline(ragResults, question, contextText) {
     };
   }
 
-  // Camada 3: Valida rastreabilidade
   const traceValidation = validateQuestionTraceability(question, contextText);
   if (!traceValidation.valid) {
     return {
@@ -326,7 +284,6 @@ function validateQuestionPipeline(ragResults, question, contextText) {
     };
   }
 
-  // Camada 4: Gera badge
   const badge = generateQualityBadge(ragValidation.score, traceValidation);
 
   return {
@@ -348,11 +305,6 @@ function validateQuestionPipeline(ragResults, question, contextText) {
 // FUNÇÕES RAG PARA CONCURSOS (3-STEP FLOW)
 // ════════════════════════════════════════════════════════════════════════════
 
-/**
- * PASSO 1: Validar se filtro está mapeado na tabela CONCURSOS_CONFIG.filters
- * @param {string} filter - ex: "concursos.portugues", "concursos.direito_administrativo"
- * @returns {Object} { valid: bool, config: filterConfig || null, error: string || null }
- */
 function validateConcursosFilter(filter) {
   const config = CONCURSOS_CONFIG.filters[filter];
   
@@ -369,14 +321,6 @@ function validateConcursosFilter(filter) {
   return { valid: true, config };
 }
 
-/**
- * PASSO 2: Recuperar contexto do Vectorize
- * @param {Object} env - Environment com VECTORIZE binding
- * @param {string} collection - Nome da coleção (ex: "concursos_portugues")
- * @param {string} query - Texto para busca semântica
- * @param {number} minLength - Tamanho mínimo esperado
- * @returns {Promise<Object>} { context, sufficient, sources, length }
- */
 async function fetchVectorizeContext(env, collection, query, minLength) {
   try {
     if (!env.VECTORIZE) {
@@ -447,9 +391,6 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
   }
 }
 
-/**
- * PASSO 3: Validar saída contra alucinação
- */
 function validateAgainstHallucination(question, subjectConfig) {
   const errors = [];
 
@@ -666,43 +607,20 @@ function extractJsonFromText(text) {
 // EXTRATOR DE TRANSCRIÇÃO DO YOUTUBE
 // ════════════════════════════════════════════════════════════════════════════
 //
-// POR QUE O MÉTODO ANTERIOR FALHAVA:
-// ─────────────────────────────────────────────────────────────────────────────
-// O Worker fazia fetch direto em youtube.com/watch?v=ID. O YouTube detecta
-// requisições server-side (IP de datacenter Cloudflare) e responde com:
-//   • Consent page (GDPR) → HTML sem ytInitialPlayerResponse
-//   • Login wall → status 200 mas playabilityStatus = "LOGIN_REQUIRED"
-//   • HTTP 429 → Too Many Requests (rate-limit de datacenter)
-//   • HTTP 403 → bloqueio geográfico ou por User-Agent de bot
-//   • Age-gate → playabilityStatus = "AGE_VERIFICATION_REQUIRED"
+// ESTRATÉGIAS (em ordem de prioridade):
 //
-// SOLUÇÃO MULTI-ESTRATÉGIA (sem chave de API):
-// ─────────────────────────────────────────────────────────────────────────────
-// Estratégia 1 — timedtext v1 (json3)
-//   GET https://www.youtube.com/api/timedtext?v=VIDEO_ID&lang=pt&fmt=json3
-//   Endpoint público, não requer cookies nem autenticação.
-//   Retorna JSON com array "events" contendo os segmentos de texto.
-//   Limitação: só funciona para legendas "auto" em canais que as habilitam;
-//   legendas manuais podem estar bloqueadas neste endpoint.
+// Estratégia 0 — YouTube Data API v3 (PRIMÁRIA — requer YOUTUBE_API_KEY)
+//   GET /youtube/v3/captions?part=snippet&videoId=ID&key=KEY
+//   Lista as trilhas de legenda disponíveis. Depois baixa a trilha escolhida
+//   via GET /youtube/v3/captions/{id}?tfmt=sbv&key=KEY
+//   ✅ Confiável, sem bloqueios de IP, sem scraping.
+//   ⚠️  Legenda manual pode retornar 403 se o canal tiver restringido o download.
+//      Nesse caso, o fallback de scraping entra automaticamente.
 //
-// Estratégia 2 — timedtext v1 (xml) → parse manual
-//   GET https://www.youtube.com/api/timedtext?v=VIDEO_ID&lang=pt
-//   Mesmo endpoint sem &fmt=json3 devolve XML. Parse simples de <text>.
-//
-// Estratégia 3 — ytInitialPlayerResponse via scraping mínimo
-//   Faz fetch da página /watch com User-Agent mobile (menos restrições),
-//   extrai o JSON embutido, navega em captionTracks → baseUrl.
-//   Mais frágil porque sujeito a consent/login wall, mas cobre vídeos
-//   com legendas manuais. Detecta explicitamente todos os estados de bloqueio.
-//
-// ALTERNATIVA ROBUSTA RECOMENDADA (para produção):
-// ─────────────────────────────────────────────────────────────────────────────
-// Integrar a API do YouTube Data v3 (gratuita, 10.000 req/dia):
-//   GET https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=VIDEO_ID&key=API_KEY
-//   + GET https://www.googleapis.com/youtube/v3/captions/{captionId}?tfmt=sbv&key=API_KEY
-// Isso garante acesso confiável a legendas sem depender de scraping.
-// Para ativar: adicione YOUTUBE_API_KEY como variável de ambiente no Worker.
-// ─────────────────────────────────────────────────────────────────────────────
+// Estratégia 1 — timedtext endpoint (json3)  [fallback]
+// Estratégia 2 — timedtext endpoint (xml)    [fallback]
+// Estratégia 3 — page scraping via /watch    [fallback]
+// ════════════════════════════════════════════════════════════════════════════
 
 function extractYouTubeVideoId(url) {
   try {
@@ -717,54 +635,145 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
-/**
- * Classifica se um erro/resposta do YouTube é um "bloqueio" (requer ação manual)
- * ou um erro genérico (problema técnico temporário).
- * Retorna { isBlocked: bool, reason: string }
- */
 function classifyYouTubeError(message, httpStatus) {
   const msg = (message || '').toLowerCase();
-
-  // Bloqueios definitivos — o usuário precisa agir manualmente
   const blockedPatterns = [
-    'login',
-    'sign in',
-    'faça login',
-    'confirmar que você não é um bot',
-    'bot',
-    'consent',
-    'age',
-    'age_verification',
-    'age_check',
-    'not available',
-    'não disponível',
-    'unavailable',
-    'private',
-    'privado',
-    'members only',
-    'requires purchase',
-    'geo',
-    'blocked in your country',
-    'not available in your country',
-    'playback',
-    'login_required',
-    'content_check_required',
-    'age_verification_required',
+    'login', 'sign in', 'faça login', 'confirmar que você não é um bot', 'bot',
+    'consent', 'age', 'age_verification', 'age_check',
+    'not available', 'não disponível', 'unavailable',
+    'private', 'privado', 'members only', 'requires purchase',
+    'geo', 'blocked in your country', 'not available in your country',
+    'playback', 'login_required', 'content_check_required', 'age_verification_required',
   ];
-
   const isBlockedByContent = blockedPatterns.some(p => msg.includes(p));
   const isBlockedByStatus = httpStatus === 429 || httpStatus === 403;
-
   return {
     isBlocked: isBlockedByContent || isBlockedByStatus,
     reason: isBlockedByContent ? 'content_restriction' : isBlockedByStatus ? `http_${httpStatus}` : 'unknown',
   };
 }
 
-/**
- * Estratégia 1: Endpoint público timedtext v1 — formato JSON3
- * Não requer cookies, sem autenticação. Funciona para legendas automáticas.
- */
+// ── Estratégia 0: YouTube Data API v3 ────────────────────────────────────────
+// Usa a chave YOUTUBE_API_KEY armazenada como Wrangler secret.
+// Fluxo: listar trilhas → escolher pt-BR/pt/en → baixar em formato sbv → parsear.
+async function tryYouTubeDataAPI(videoId, apiKey) {
+  if (!apiKey) return { success: false, reason: 'no_api_key' };
+
+  try {
+    // Passo 1: listar trilhas de legenda disponíveis
+    const listUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${apiKey}`;
+    const listRes = await fetch(listUrl, { signal: AbortSignal.timeout(8000) });
+
+    if (listRes.status === 403) {
+      // 403 na listagem = vídeo com legendas restritas pelo canal OU chave inválida
+      const errBody = await listRes.json().catch(() => ({}));
+      const reason = errBody?.error?.errors?.[0]?.reason || 'forbidden';
+      console.warn(`[YT-API] 403 na listagem de legendas: ${reason}`);
+      // Não marca isBlocked=true aqui — pode ser apenas restrição do canal, scraping pode funcionar
+      return { success: false, reason: `api_403_${reason}` };
+    }
+
+    if (!listRes.ok) {
+      console.warn(`[YT-API] Erro HTTP ${listRes.status} ao listar legendas`);
+      return { success: false, reason: `api_http_${listRes.status}` };
+    }
+
+    const listData = await listRes.json();
+    const tracks = listData?.items || [];
+
+    if (tracks.length === 0) {
+      console.log(`[YT-API] Nenhuma trilha de legenda encontrada via API`);
+      return { success: false, reason: 'no_captions_api' };
+    }
+
+    // Passo 2: priorizar pt-BR > pt > en > qualquer outro
+    const priority = ['pt-BR', 'pt', 'en'];
+    let chosen = null;
+    for (const lang of priority) {
+      chosen = tracks.find(t => t.snippet?.language === lang) || null;
+      if (chosen) break;
+    }
+    if (!chosen) chosen = tracks[0];
+
+    const captionId = chosen.id;
+    const chosenLang = chosen.snippet?.language || 'unknown';
+    const isAsr = chosen.snippet?.trackKind === 'asr'; // legenda automática
+
+    console.log(`[YT-API] Trilha escolhida: ${chosenLang} (${chosen.snippet?.trackKind}), id=${captionId}`);
+
+    // Passo 3: baixar conteúdo da legenda em formato sbv (SubViewer)
+    const downloadUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=sbv&key=${apiKey}`;
+    const dlRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(10000) });
+
+    if (dlRes.status === 403) {
+      // Canal restringiu o download da legenda (comum em canais grandes)
+      console.warn(`[YT-API] 403 ao baixar legenda — canal pode ter restringido downloads`);
+      return { success: false, reason: 'caption_download_forbidden' };
+    }
+
+    if (!dlRes.ok) {
+      console.warn(`[YT-API] Erro HTTP ${dlRes.status} ao baixar legenda`);
+      return { success: false, reason: `caption_download_http_${dlRes.status}` };
+    }
+
+    const sbvText = await dlRes.text();
+
+    // Passo 4: parsear formato sbv
+    // Formato sbv:
+    // 0:00:01.000,0:00:04.000
+    // Texto da legenda aqui
+    //
+    // 0:00:04.500,0:00:08.000
+    // Mais texto aqui
+    const lines = sbvText.split('\n');
+    const textLines = [];
+    const timePattern = /^\d+:\d{2}:\d{2}\.\d{3},\d+:\d{2}:\d{2}\.\d{3}$/;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || timePattern.test(trimmed)) continue;
+      // Decodifica entidades HTML básicas
+      const decoded = trimmed
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/<[^>]*>/g, '') // remove tags HTML/XML residuais
+        .trim();
+      if (decoded.length > 0) textLines.push(decoded);
+    }
+
+    if (textLines.length < 5) {
+      console.warn(`[YT-API] sbv parseado com menos de 5 linhas — possivelmente vazio`);
+      return { success: false, reason: 'sbv_too_short' };
+    }
+
+    // Deduplica linhas consecutivas idênticas
+    const deduped = textLines.filter((line, i) => i === 0 || line !== textLines[i - 1]);
+    const text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
+
+    if (text.length < 50) {
+      return { success: false, reason: 'text_too_short' };
+    }
+
+    console.log(`[YT-API] ✓ Transcrição via API: ${text.length} chars, lang=${chosenLang}, asr=${isAsr}`);
+
+    return {
+      success: true,
+      text,
+      lang: chosenLang,
+      isAuto: isAsr,
+      source: 'youtube-data-api-v3',
+    };
+
+  } catch (e) {
+    console.warn(`[YT-API] Exceção: ${e.message}`);
+    return { success: false, reason: e.message };
+  }
+}
+
+// ── Estratégia 1: timedtext JSON3 ─────────────────────────────────────────────
 async function tryTimedtextJson(videoId, langs = ['pt-BR', 'pt', 'en']) {
   for (const lang of langs) {
     try {
@@ -778,7 +787,6 @@ async function tryTimedtextJson(videoId, langs = ['pt-BR', 'pt', 'en']) {
         signal: AbortSignal.timeout(8000),
       });
 
-      // 429 ou 403 = bloqueio explícito
       if (res.status === 429 || res.status === 403) {
         return { success: false, blocked: true, status: res.status };
       }
@@ -792,7 +800,7 @@ async function tryTimedtextJson(videoId, langs = ['pt-BR', 'pt', 'en']) {
         .map(s => (s?.utf8 || '').replace(/\n/g, ' ').trim())
         .filter(s => s && s !== ' ');
 
-      if (segments.length < 5) continue; // muito pouco conteúdo, tenta próximo idioma
+      if (segments.length < 5) continue;
 
       const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
       const text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
@@ -800,16 +808,13 @@ async function tryTimedtextJson(videoId, langs = ['pt-BR', 'pt', 'en']) {
 
       return { success: true, text, lang, source: 'timedtext-json3' };
     } catch (e) {
-      // timeout ou erro de rede — tenta próximo idioma
       continue;
     }
   }
   return { success: false, blocked: false };
 }
 
-/**
- * Estratégia 2: Endpoint timedtext v1 — formato XML (fallback do JSON3)
- */
+// ── Estratégia 2: timedtext XML ───────────────────────────────────────────────
 async function tryTimedtextXml(videoId, langs = ['pt-BR', 'pt', 'en']) {
   for (const lang of langs) {
     try {
@@ -828,7 +833,6 @@ async function tryTimedtextXml(videoId, langs = ['pt-BR', 'pt', 'en']) {
       if (!res.ok) continue;
 
       const xml = await res.text();
-      // Extrai conteúdo dos tags <text ...>CONTEÚDO</text>
       const matches = [...xml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g)];
       if (matches.length < 5) continue;
 
@@ -856,13 +860,8 @@ async function tryTimedtextXml(videoId, langs = ['pt-BR', 'pt', 'en']) {
   return { success: false, blocked: false };
 }
 
-/**
- * Estratégia 3: Scraping de ytInitialPlayerResponse via página /watch
- * Usa User-Agent mobile para reduzir chance de consent page.
- * Detecta todos os estados de bloqueio explicitamente.
- */
+// ── Estratégia 3: page scraping ───────────────────────────────────────────────
 async function tryPageScraping(videoId) {
-  // User-Agent mobile tende a receber menos redirects de consent/GDPR
   const UA_MOBILE = 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
 
   let html;
@@ -885,23 +884,18 @@ async function tryPageScraping(videoId) {
     return { success: false, blocked: false, reason: e.message };
   }
 
-  // Detecta consent page (GDPR redirect)
   if (html.includes('consent.youtube.com') || html.includes('www.youtube.com/consent') || html.includes('"CONSENT"')) {
     return { success: false, blocked: true, reason: 'consent_page' };
   }
 
-  // Detecta login wall
   if (html.includes('"LOGIN_REQUIRED"') || html.includes('sign-in-required') || html.includes('"isLoginRequired":true')) {
     return { success: false, blocked: true, reason: 'login_required' };
   }
 
-  // Extrai ytInitialPlayerResponse
   const matchInitial = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});(?:\s*var\s|\s*<\/script)/s);
   if (!matchInitial) {
-    // Último recurso: tenta padrão mais permissivo
     const matchLoose = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;/);
     if (!matchLoose) return { success: false, blocked: false, reason: 'no_player_response' };
-    matchInitial || (matchInitial !== undefined ? null : null); // workaround lint
     try {
       return await _parsePlayerResponse(JSON.parse(matchLoose[1]), videoId);
     } catch {
@@ -924,12 +918,7 @@ async function _parsePlayerResponse(playerResponse, videoId) {
   if (status && status !== 'OK') {
     const reason = playerResponse?.playabilityStatus?.reason || status;
     const { isBlocked } = classifyYouTubeError(reason + ' ' + status, null);
-    return {
-      success: false,
-      blocked: isBlocked,
-      reason: status,
-      detail: reason,
-    };
+    return { success: false, blocked: isBlocked, reason: status, detail: reason };
   }
 
   const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
@@ -937,7 +926,6 @@ async function _parsePlayerResponse(playerResponse, videoId) {
     return { success: false, blocked: false, reason: 'no_captions' };
   }
 
-  // Prioriza pt-BR > pt > en > qualquer outro
   const priority = ['pt-BR', 'pt', 'en'];
   let chosen = null;
   for (const lang of priority) {
@@ -983,18 +971,27 @@ async function _parsePlayerResponse(playerResponse, videoId) {
   }
 }
 
-/**
- * Orquestrador principal: tenta as 3 estratégias em cascata.
- * Se todas falharem por bloqueio → retorna isBlocked:true com mensagem amigável.
- * Se falharem por motivo técnico → retorna erro genérico.
- */
-async function fetchYouTubeTranscript(videoId) {
+// ── Orquestrador principal ────────────────────────────────────────────────────
+async function fetchYouTubeTranscript(videoId, env) {
   const MAX_CHARS = 30000;
   const langs = ['pt-BR', 'pt', 'en'];
-
   let anyBlocked = false;
 
-  // ── Estratégia 1: timedtext JSON3 ────────────────────────────────────────
+  // ── Estratégia 0: YouTube Data API v3 (primária) ──────────────────────────
+  if (env?.YOUTUBE_API_KEY) {
+    console.log(`[YT] Estratégia 0 (YouTube Data API v3) para videoId=${videoId}`);
+    const r0 = await tryYouTubeDataAPI(videoId, env.YOUTUBE_API_KEY);
+    if (r0.success) {
+      console.log(`[YT] ✓ Estratégia 0 OK (${r0.lang})`);
+      const text = r0.text.length > MAX_CHARS ? r0.text.slice(0, MAX_CHARS) : r0.text;
+      return { text, videoId, lang: r0.lang, isAuto: r0.isAuto, truncated: r0.text.length > MAX_CHARS, charCount: text.length, source: r0.source };
+    }
+    console.log(`[YT] Estratégia 0 falhou: reason=${r0.reason} — tentando fallbacks de scraping`);
+  } else {
+    console.log(`[YT] YOUTUBE_API_KEY não configurada — pulando Estratégia 0`);
+  }
+
+  // ── Estratégia 1: timedtext JSON3 ─────────────────────────────────────────
   console.log(`[YT] Estratégia 1 (timedtext json3) para videoId=${videoId}`);
   const r1 = await tryTimedtextJson(videoId, langs);
   if (r1.success) {
@@ -1028,7 +1025,6 @@ async function fetchYouTubeTranscript(videoId) {
   console.log(`[YT] Estratégia 3 falhou: blocked=${r3.blocked}, reason=${r3.reason}`);
 
   // ── Todas as estratégias falharam ─────────────────────────────────────────
-  // Caso sem legendas (vídeo existe mas não tem transcrição)
   if (r3.reason === 'no_captions' || r1.reason === 'no_captions' || r2.reason === 'no_captions') {
     throw Object.assign(
       new Error('Este vídeo não possui transcrição ou legendas disponíveis. Apenas vídeos com legendas ativadas são suportados.'),
@@ -1036,7 +1032,6 @@ async function fetchYouTubeTranscript(videoId) {
     );
   }
 
-  // Caso de bloqueio definitivo → orienta o usuário a colar manualmente
   if (anyBlocked) {
     throw Object.assign(
       new Error(
@@ -1048,7 +1043,6 @@ async function fetchYouTubeTranscript(videoId) {
     );
   }
 
-  // Erro técnico genérico
   throw Object.assign(
     new Error(`Não foi possível extrair a transcrição (reason: ${r3.reason || 'unknown'}). Tente novamente ou cole o texto manualmente.`),
     { isBlocked: false }
@@ -1364,15 +1358,14 @@ export default {
           });
         }
 
-        const result = await fetchYouTubeTranscript(videoId);
+        // Passa env para que fetchYouTubeTranscript possa usar YOUTUBE_API_KEY
+        const result = await fetchYouTubeTranscript(videoId, env);
 
-        // Sucesso: retorna { text, videoId, lang, truncated, charCount, source }
         return new Response(JSON.stringify(result), {
           status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
       } catch (err) {
-        // Determina se é bloqueio (isBlocked na propriedade do erro) ou erro genérico
         const isBlocked = err.isBlocked === true;
         const status = isBlocked ? 403 : 502;
 
