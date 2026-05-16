@@ -424,61 +424,65 @@
     .free-side {
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: var(--space-4);
     }
-    .free-source-card {
-      border: 1px solid var(--color-border);
+    .free-action-panel {
+      border: 1px solid oklch(from var(--color-success) l c h / 0.28);
       border-radius: var(--radius-lg);
-      background: var(--color-surface-2);
+      background: oklch(from var(--color-success) l c h / 0.055);
       padding: var(--space-4);
     }
-    .free-source-head {
+    .free-action-title {
       display: flex;
       align-items: center;
       gap: var(--space-2);
-      margin-bottom: var(--space-2);
-      color: var(--color-primary);
-    }
-    .free-source-head strong { color: var(--color-text); font-size: var(--text-sm); }
-    .free-source-card p { color: var(--color-text-muted); font-size: var(--text-xs); }
-    .free-source-card.featured {
-      border-color: oklch(from var(--color-primary) l c h / 0.3);
-      background: oklch(from var(--color-primary) l c h / 0.05);
-    }
-    .free-source-card.soon {
-      opacity: 0.88;
-    }
-    .free-soon-badge {
-      display: inline-flex;
-      margin-top: var(--space-3);
-      padding: 2px 8px;
-      border-radius: var(--radius-full);
-      background: oklch(from var(--color-accent) l c h / 0.12);
-      color: var(--color-accent);
-      font-size: 11px;
+      margin-bottom: var(--space-3);
+      color: var(--color-success);
       font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
     }
-    .free-tip-list {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--space-3);
-      margin-bottom: var(--space-5);
+    .free-help-panel {
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      background: oklch(from var(--color-primary) l c h / 0.055);
+      border: 1px solid oklch(from var(--color-primary) l c h / 0.18);
     }
-    .free-tip {
+    .free-help-panel strong {
       display: flex;
+      align-items: center;
       gap: var(--space-2);
-      align-items: flex-start;
-      padding: var(--space-3);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      background: var(--color-surface-2);
+      margin-bottom: var(--space-3);
+      color: var(--color-text);
+      font-size: var(--text-sm);
+    }
+    .free-help-panel ul {
+      list-style: none;
+      display: grid;
+      gap: var(--space-2);
       color: var(--color-text-muted);
       font-size: var(--text-xs);
     }
-    .free-tip i { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
-    .free-tip strong { display: block; color: var(--color-text); font-size: var(--text-sm); margin-bottom: 2px; }
+    .free-help-panel li {
+      display: flex;
+      gap: var(--space-2);
+      align-items: start;
+    }
+    .free-help-panel li::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      margin-top: 0.55em;
+      flex-shrink: 0;
+    }
+    .free-youtube-note {
+      padding: var(--space-3) var(--space-4);
+      border-left: 3px solid var(--color-accent);
+      background: oklch(from var(--color-accent) l c h / 0.08);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      border-radius: var(--radius-md);
+    }
     .free-upload-copy {
       display: flex;
       flex-direction: column;
@@ -488,8 +492,6 @@
     .free-upload-copy i { color: var(--color-primary); margin-bottom: var(--space-1); }
     @media (max-width: 860px) {
       .free-workspace { grid-template-columns: 1fr; }
-      .free-side { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .free-tip-list { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .free-panel-header, .free-meter { flex-direction: column; align-items: flex-start; }
@@ -2014,7 +2016,7 @@ const state = {
   concursoSubStep: 'a', advancedOpen: false,
   dailyGoal: 10,
 };
-const MAX_EXTRACTED_CHARS = 30000;
+const MAX_EXTRACTED_CHARS = 120000;
 const scriptPromises = {};
 const STORAGE_KEYS = {
   streakDate: 'sm_streak_date',
@@ -2339,7 +2341,7 @@ function isStepValid(step) {
   if (step === 2) {
     if (state.mode === 'academic') return !!state.area && !!state.subject;
     if (state.mode === 'concurso') return !!state.concursosFiltersState?.discipline;
-    if (state.mode === 'livre') return state.freeText.length >= 50;
+    if (state.mode === 'livre') return state.freeText.trim().length > 0;
   }
   return true;
 }
@@ -2622,69 +2624,50 @@ function renderStep2Concurso(container) {
 function renderStep2Livre(container) {
   container.innerHTML = `
     <h2 class="step-title">Transforme qualquer material em treino</h2>
-    <p class="step-subtitle">Use PDF, imagem com OCR, DOCX, TXT ou uma transcrição colada. Quanto mais específico o material, melhores ficam as questões.</p>
-    <div class="free-tip-list" aria-label="Dicas para melhorar as questões">
-      <div class="free-tip">
-        <i data-lucide="target" width="16" height="16"></i>
-        <span><strong>Recorte inteligente</strong>Prefira o trecho que você precisa revisar agora.</span>
-      </div>
-      <div class="free-tip">
-        <i data-lucide="scan-text" width="16" height="16"></i>
-        <span><strong>OCR integrado</strong>Imagem e PDF escaneado viram texto de referência.</span>
-      </div>
-      <div class="free-tip">
-        <i data-lucide="clipboard-check" width="16" height="16"></i>
-        <span><strong>Pronto para prova</strong>O próximo passo gera perguntas com gabarito comentado.</span>
-      </div>
-    </div>
+    <p class="step-subtitle">Cole quanto quiser ou envie um arquivo. O sistema aceita materiais longos e usa esse conteúdo como base para montar as questões.</p>
     <div class="free-workspace">
       <div class="free-panel">
         <div class="free-panel-header">
           <div>
             <span class="free-panel-kicker"><i data-lucide="file-text" width="13" height="13"></i> Base do estudo</span>
             <strong class="free-panel-title">Texto que a IA vai usar como referência</strong>
-            <p class="free-panel-note">Cole aqui ou envie um arquivo no painel ao lado.</p>
+            <p class="free-panel-note">Um trecho curto já libera a próxima etapa, e materiais extensos também são aceitos.</p>
           </div>
           <span class="free-quality" id="free-quality"><i data-lucide="circle-alert" width="14" height="14"></i> Aguardando material</span>
         </div>
-        <textarea id="free-txt" class="free-editor" placeholder="Cole aqui edital, resumo, anotações, trecho de apostila ou a transcrição de uma aula/vídeo. Mínimo recomendado: 50 caracteres.">${state.freeText}</textarea>
+        <textarea id="free-txt" class="free-editor" placeholder="Cole aqui edital, resumo, anotações, apostila, questões comentadas ou transcrição de aula/vídeo.">${state.freeText}</textarea>
         <div class="free-meter">
           <span id="free-counter"><strong>${state.freeText.length}</strong> caracteres</span>
           <span id="free-depth">Base inicial</span>
         </div>
       </div>
-      <aside class="free-side" aria-label="Formas de adicionar material">
-        <div class="free-source-card featured">
-          <div class="free-source-head">
+      <aside class="free-side" aria-label="Ações e orientações do material livre">
+        <div class="free-action-panel">
+          <div class="free-action-title">
             <i data-lucide="upload-cloud" width="18" height="18"></i>
-            <strong>Enviar arquivo</strong>
+            Enviar material
           </div>
-          <p>PDF, DOCX, TXT, MD e imagens. Para fotos e páginas escaneadas, o OCR tenta extrair o texto automaticamente.</p>
+          <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
+          <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
+            <div class="free-upload-copy">
+              <i data-lucide="folder-up" width="24" height="24"></i>
+              <strong>Clique ou arraste o arquivo</strong>
+              <p style="color:var(--color-text-muted)">PDF, DOCX, TXT, MD, JPG, PNG ou WEBP</p>
+            </div>
+          </div>
         </div>
-        <div class="free-source-card">
-          <div class="free-source-head">
-            <i data-lucide="type" width="18" height="18"></i>
-            <strong>Colar conteúdo</strong>
-          </div>
-          <p>Ideal para resumos, editais, tópicos do cursinho e trechos específicos da matéria.</p>
+        <div class="free-help-panel">
+          <strong><i data-lucide="sparkles" width="16" height="16"></i> Para melhores questões</strong>
+          <ul>
+            <li>Use trechos com conceitos, exemplos, regras ou tópicos cobrados.</li>
+            <li>PDFs escaneados e imagens passam por OCR antes de virar texto.</li>
+            <li>Materiais maiores ajudam a gerar perguntas mais contextualizadas.</li>
+          </ul>
         </div>
-        <div class="free-source-card soon">
-          <div class="free-source-head">
-            <i data-lucide="youtube" width="18" height="18"></i>
-            <strong>YouTube</strong>
-          </div>
-          <p>Por enquanto, copie a transcrição do vídeo no YouTube e cole no campo principal. A extração automática fica para uma fase mais estável.</p>
-          <span class="free-soon-badge">Em evolução</span>
+        <div class="free-youtube-note">
+          <strong>YouTube:</strong> por enquanto, cole a transcrição do vídeo no campo de texto. A extração automática fica para uma fase futura mais confiável.
         </div>
       </aside>
-    </div>
-    <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
-    <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
-      <div class="free-upload-copy">
-        <i data-lucide="folder-up" width="24" height="24"></i>
-        <strong>Arraste seu arquivo aqui</strong>
-        <p style="color:var(--color-text-muted)">ou clique para selecionar PDF, DOCX, TXT, MD, JPG, PNG ou WEBP</p>
-      </div>
     </div>
     <div class="upload-progress" id="upload-progress">
       <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
@@ -2705,18 +2688,18 @@ function renderStep2Livre(container) {
     freeCounter.innerHTML = `<strong>${length.toLocaleString('pt-BR')}</strong> caracteres · <strong>${words.toLocaleString('pt-BR')}</strong> palavras`;
 
     freeQuality.classList.remove('ready', 'warning');
-    if (length >= 1200) {
+    if (length >= 4000) {
       freeQuality.classList.add('ready');
-      freeQuality.innerHTML = '<i data-lucide="check-circle-2" width="14" height="14"></i> Excelente base';
-      freeDepth.textContent = 'Material robusto para questões mais profundas';
-    } else if (length >= 50) {
-      freeQuality.classList.add('warning');
-      freeQuality.innerHTML = '<i data-lucide="badge-check" width="14" height="14"></i> Base suficiente';
-      freeDepth.textContent = 'Funciona melhor se houver conceitos, exemplos ou tópicos';
+      freeQuality.innerHTML = '<i data-lucide="check-circle-2" width="14" height="14"></i> Material extenso';
+      freeDepth.textContent = 'Ótimo para perguntas contextualizadas';
+    } else if (length >= 400) {
+      freeQuality.classList.add('ready');
+      freeQuality.innerHTML = '<i data-lucide="badge-check" width="14" height="14"></i> Boa base';
+      freeDepth.textContent = 'Bom volume para gerar questões focadas';
     } else if (length > 0) {
       freeQuality.classList.add('warning');
-      freeQuality.innerHTML = '<i data-lucide="circle-alert" width="14" height="14"></i> Pouco material';
-      freeDepth.textContent = 'Adicione mais texto para liberar a geração';
+      freeQuality.innerHTML = '<i data-lucide="arrow-right-circle" width="14" height="14"></i> Pronto para seguir';
+      freeDepth.textContent = 'Texto curto: ideal para perguntas objetivas';
     } else {
       freeQuality.innerHTML = '<i data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
       freeDepth.textContent = 'Base inicial';
