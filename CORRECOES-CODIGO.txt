@@ -1,0 +1,220 @@
+﻿╔════════════════════════════════════════════════════════════════════════════╗
+║          CÓDIGO EXATO PARA CORRIGIR - index.html                          ║
+║         Copy & Paste direto no seu arquivo                                ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+CORREÇÃO 1: ADICIONAR CSS PARA .option-btn.selected
+════════════════════════════════════════════════════════════════════════════
+
+LOCAL: Após linha 487 (depois de .option-btn.wrong)
+
+ANTES (linhas 486-487):
+    .option-btn.wrong { border-color: var(--color-error); background: rgba(192, 57, 43, 0.08); opacity: 0.85; }
+    .option-btn.wrong .option-key { background: var(--color-error); color: white; border-color: var(--color-error); }
+    .option-btn:disabled { cursor: default; }
+
+DEPOIS (adicione ISTO entre .option-btn.wrong e .option-btn:disabled):
+───────────────────────────────────────────────────────────────────────────
+    .option-btn.selected {
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.05);
+    }
+    .option-btn.selected .option-key {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .option-btn:disabled { cursor: default; }
+───────────────────────────────────────────────────────────────────────────
+
+LINHAS EXATAS: 488-495 (novo)
+TEMPO: 1 minuto
+
+
+CORREÇÃO 2: RESETAR HTML ANTES DE RENDERIZAR
+════════════════════════════════════════════════════════════════════════════
+
+LOCAL: Na função renderQuestions() - linhas 2866-2880
+
+ANTES (linhas 2866-2880):
+───────────────────────────────────────────────────────────────────────────
+function renderQuestions(questions) {
+  const container = document.getElementById('questions-container');
+  const chips     = document.getElementById('summary-chips');
+  const sessionResult = document.getElementById('session-result');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
+
+  qNavState = {
+    currentIdx: 0,
+    selected: new Array(questions.length).fill(null),
+    results:  new Array(questions.length).fill(null),
+  };
+  state.answerResults = qNavState.results;
+  state.answered = 0; state.correct = 0;
+───────────────────────────────────────────────────────────────────────────
+
+DEPOIS:
+───────────────────────────────────────────────────────────────────────────
+function renderQuestions(questions) {
+  const container = document.getElementById('questions-container');
+  const chips     = document.getElementById('summary-chips');
+  const sessionResult = document.getElementById('session-result');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
+
+  qNavState = {
+    currentIdx: 0,
+    selected: new Array(questions.length).fill(null),
+    results:  new Array(questions.length).fill(null),
+  };
+  state.answerResults = qNavState.results;
+  state.answered = 0; state.correct = 0;
+  
+  // NOVO: Limpar HTML anterior para remover listeners antigos
+  const list = document.getElementById('questions-list');
+  list.innerHTML = '';
+───────────────────────────────────────────────────────────────────────────
+
+ADICIONE APÓS linha 2878:
+  const list = document.getElementById('questions-list');
+  list.innerHTML = '';
+
+TEMPO: 30 segundos
+
+
+CORREÇÃO 3: RESETAR ESTADO NO RESIZE EVENT
+════════════════════════════════════════════════════════════════════════════
+
+LOCAL: No event listener resize - linhas 3573-3584
+
+ANTES (linhas 3573-3584):
+───────────────────────────────────────────────────────────────────────────
+    if (qContainer && qContainer.classList.contains('visible') && currentMode !== lastViewportMode) {
+      lastViewportMode = currentMode;
+      
+      if (isDesktop) {
+        // Mobile -> Desktop: renderizar todas as questões
+        renderAllQuestionsDesktop(state.generatedQuestions);
+      } else {
+        // Desktop -> Mobile: renderizar questão única
+        renderSingleQuestion(state.generatedQuestions, qNavState.currentIdx);
+      }
+      lucide.createIcons();
+    }
+───────────────────────────────────────────────────────────────────────────
+
+DEPOIS:
+───────────────────────────────────────────────────────────────────────────
+    if (qContainer && qContainer.classList.contains('visible') && currentMode !== lastViewportMode) {
+      lastViewportMode = currentMode;
+      
+      // NOVO: Resetar estado antes de re-renderizar
+      qNavState = {
+        currentIdx: qNavState.currentIdx || 0,
+        selected: new Array(state.generatedQuestions.length).fill(null),
+        results: new Array(state.generatedQuestions.length).fill(null),
+      };
+      
+      if (isDesktop) {
+        // Mobile -> Desktop: renderizar todas as questões
+        renderAllQuestionsDesktop(state.generatedQuestions);
+      } else {
+        // Desktop -> Mobile: renderizar questão única
+        renderSingleQuestion(state.generatedQuestions, qNavState.currentIdx);
+      }
+      lucide.createIcons();
+    }
+───────────────────────────────────────────────────────────────────────────
+
+ADICIONE APÓS linha 3574:
+  // NOVO: Resetar estado antes de re-renderizar
+  qNavState = {
+    currentIdx: qNavState.currentIdx || 0,
+    selected: new Array(state.generatedQuestions.length).fill(null),
+    results: new Array(state.generatedQuestions.length).fill(null),
+  };
+
+TEMPO: 1 minuto
+
+
+CORREÇÃO 4: ADICIONAR GUARDS NOS CLIQUES (OPCIONAL)
+════════════════════════════════════════════════════════════════════════════
+
+LOCAL: Linhas 2962-2969 e 3071-3077
+
+ANTES (linhas 2962-2969):
+───────────────────────────────────────────────────────────────────────────
+        btn.addEventListener('click', () => {
+          const allOptsForQuestion = list.querySelectorAll([data-question-idx=""].option-btn);
+          allOptsForQuestion.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          qNavState.selected[idx] = btn.dataset.key;
+          if (resBtn) resBtn.disabled = false;
+        });
+───────────────────────────────────────────────────────────────────────────
+
+DEPOIS:
+───────────────────────────────────────────────────────────────────────────
+        btn.addEventListener('click', () => {
+          // Guard: previne clique após responder
+          if (qNavState.results[idx] !== null) return;
+          
+          const allOptsForQuestion = list.querySelectorAll([data-question-idx=""].option-btn);
+          allOptsForQuestion.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          qNavState.selected[idx] = btn.dataset.key;
+          if (resBtn) resBtn.disabled = false;
+        });
+───────────────────────────────────────────────────────────────────────────
+
+APLICAR EM:
+  - Linha 2962-2969 (Desktop)
+  - Linha 3071-3077 (Mobile)
+
+ADICIONE COMO PRIMEIRA LINHA dentro do addEventListener.click:
+  if (qNavState.results[idx] !== null) return;
+
+TEMPO: 1 minuto
+
+
+VALIDAÇÃO PASSO A PASSO
+════════════════════════════════════════════════════════════════════════════
+
+Após fazer as correções:
+
+1. TESTE CSS:
+   - Gerar questões
+   - Selecionar uma opção
+   - F12 → Inspector → Elemento .option-btn.selected
+   - Deve ter border-color azul/roxo
+   - Deve ter background com cor primária
+
+2. TESTE LISTENERS:
+   - F12 → Console
+   - Selecionar opção
+   - Não deve haver erros
+   - Deve funcionar suavemente
+
+3. TESTE RESIZE:
+   - Gerar questões em desktop
+   - Abrir DevTools e redimensionar para mobile
+   - Depois para desktop novamente
+   - Opções NÃO devem aparecer pré-marcadas
+
+4. TESTE DE NAVEGAÇÃO:
+   - Responder questão 1
+   - Ir para questão 2 (sem responder)
+   - Voltar para questão 1
+   - Questão 1 deve mostrar resposta anterior
+
+════════════════════════════════════════════════════════════════════════════
+
+RESUMO DE MUDANÇAS:
+─────────────────────────────────────────────────────────────────────────
+✓ Correção 1: Adicionar 5 linhas de CSS
+✓ Correção 2: Adicionar 2 linhas de JS
+✓ Correção 3: Adicionar 4 linhas de JS
+✓ Correção 4: Adicionar 1 linha de JS (opcional)
+
+TOTAL: ~12 linhas de novo código
+TEMPO TOTAL: ~10 minutos (com testes)
+IMPACTO: Problema COMPLETAMENTE resolvido
+

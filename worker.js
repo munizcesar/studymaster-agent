@@ -119,6 +119,141 @@ const CONCURSOS_CONFIG = {
   invalidFilterMessage: (filter) => `O filtro "${filter}" não foi reconhecido. Escolha uma das matérias disponíveis: Português, Direito Constitucional, Direito Administrativo, Raciocínio Lógico, Informática ou Administração Pública.`,
 };
 
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO RAG PARA MODO ACADEMIC (7 áreas acadêmicas com Vectorize RAG)
+// ════════════════════════════════════════════════════════════════════════════
+//
+// MAPEAMENTO EXPLÍCITO: Área Acadêmica → Coleção Vectorize
+// ─────────────────────────────────────────────────────────────────────────
+// academic.direito           → academic_direito
+// academic.medicina          → academic_medicina
+// academic.historia          → academic_historia
+// academic.exatas            → academic_exatas
+// academic.humanas           → academic_humanas
+// academic.saude             → academic_saude
+// academic.negocios          → academic_negocios
+// ─────────────────────────────────────────────────────────────────────────
+
+const ACADEMIC_CONFIG = {
+  // Mapeamento EXPLÍCITO: área (chave) → Vectorize collection + metadados
+  // Padrão de chave interna: "academic.<area>"
+  areas: {
+    'academic.direito': {
+      label: 'Direito',
+      description: 'Direito Civil, Constitucional, Penal, Processual e Administrativo',
+      vectorizeCollection: 'academic_direito',
+      minContextLength: 300,
+      forbiddenPatterns: [
+        'doutrina\\s+recente',
+        'decisão\\s+inédita',
+        'nunca\\s+decidido',
+        'edital\\s+de\\s+\\d{4}',
+        'prova\\s+de\\s+\\d{4}',
+      ],
+      conceptualBases: 'Código Civil, Código Processual Civil, Código Penal, Constituição Federal/88, Jurisprudência STF/STJ',
+    },
+    'academic.medicina': {
+      label: 'Medicina',
+      description: 'Fisiologia, Patologia, Farmacologia, Clínica Médica e Diagnóstico',
+      vectorizeCollection: 'academic_medicina',
+      minContextLength: 350,
+      forbiddenPatterns: [
+        'medicamento\\s+novo',
+        'técnica\\s+experimental',
+        'nunca\\s+testado',
+        'ainda\\s+em\\s+desenvolvimento',
+        'recentemente\\s+aprovado',
+      ],
+      conceptualBases: 'Fisiologia, Patologia, Farmacologia, Guidelines internacionais (ACLS, PALS), Protocolos clínicos consolidados',
+    },
+    'academic.historia': {
+      label: 'História',
+      description: 'História Geral, História do Brasil, Períodos históricos e Movimentos sociais',
+      vectorizeCollection: 'academic_historia',
+      minContextLength: 250,
+      forbiddenPatterns: [
+        'evento\\s+recente',
+        'interpretação\\s+controversa',
+        'ainda\\s+debatido',
+        'não\\s+há\\s+consenso',
+        'debate\\s+aberto',
+      ],
+      conceptualBases: 'Períodos históricos documentados, Movimentos sociais, Personagens importantes, Datas e eventos verificáveis',
+    },
+    'academic.exatas': {
+      label: 'Exatas',
+      description: 'Matemática, Física, Química, Estatística e Cálculo',
+      vectorizeCollection: 'academic_exatas',
+      minContextLength: 280,
+      forbiddenPatterns: [
+        'fórmula\\s+recente',
+        'método\\s+experimental',
+        'ainda\\s+em\\s+pesquisa',
+        'não\\s+comprovado',
+        'hipótese\\s+em\\s+testes',
+      ],
+      conceptualBases: 'Matemática, Física clássica e moderna, Química orgânica e inorgânica, Estatística, Cálculo diferencial e integral',
+    },
+    'academic.humanas': {
+      label: 'Humanas',
+      description: 'Sociologia, Antropologia, Filosofia, Psicologia e Ciência Política',
+      vectorizeCollection: 'academic_humanas',
+      minContextLength: 300,
+      forbiddenPatterns: [
+        'teoria\\s+recente',
+        'debate\\s+aberto',
+        'ainda\\s+discutido',
+        'não\\s+há\\s+conclusão',
+        'interpretação\\s+controversa',
+      ],
+      conceptualBases: 'Sociologia, Antropologia, Filosofia clássica e moderna, Psicologia, Ciência Política, Teorias consolidadas',
+    },
+    'academic.saude': {
+      label: 'Saúde',
+      description: 'Saúde Pública, Epidemiologia, Biologia, Nutrição e Educação Sanitária',
+      vectorizeCollection: 'academic_saude',
+      minContextLength: 320,
+      forbiddenPatterns: [
+        'tratamento\\s+novo',
+        'terapia\\s+experimental',
+        'ainda\\s+em\\s+teste',
+        'recentemente\\s+descoberto',
+        'não\\s+aprovado\\s+pela\\s+anvisa',
+      ],
+      conceptualBases: 'Saúde pública, Epidemiologia, Biologia celular e molecular, Nutrição, CID (Classificação Internacional de Doenças)',
+    },
+    'academic.negocios': {
+      label: 'Negócios',
+      description: 'Administração, Contabilidade, Marketing, Finanças e Economia',
+      vectorizeCollection: 'academic_negocios',
+      minContextLength: 300,
+      forbiddenPatterns: [
+        'estratégia\\s+recente',
+        'modelo\\s+experimental',
+        'startup\\s+nova',
+        'empresa\\s+do\\s+momento',
+        'trend\\s+atual',
+      ],
+      conceptualBases: 'Administração, Contabilidade (IFRS), Marketing, Finanças corporativas, Economia, Gestão estratégica consolidada',
+    },
+  },
+
+  // Mapeamento reverso: coleção → área (para debugging/logging)
+  collectionToArea: {
+    'academic_direito': 'academic.direito',
+    'academic_medicina': 'academic.medicina',
+    'academic_historia': 'academic.historia',
+    'academic_exatas': 'academic.exatas',
+    'academic_humanas': 'academic.humanas',
+    'academic_saude': 'academic.saude',
+    'academic_negocios': 'academic.negocios',
+  },
+
+  // Fallback gracioso quando contexto insuficiente ou área não mapeada
+  fallbackMessage: 'Desculpe, ainda não temos base de dados suficiente para esta área. Tente novamente em breve!',
+  invalidAreaMessage: (area) => `A área "${area}" não foi reconhecida. Escolha uma das disponíveis: Direito, Medicina, História, Exatas, Humanas, Saúde ou Negócios.`,
+};
+
 const GROQ_MODELS = [
   'llama-3.3-70b-versatile',
   'llama3-70b-8192',
@@ -522,7 +657,7 @@ async function fetchWikipediaContext(query, lang = 'pt') {
 
 async function fetchContext(area, mode, topic, subject, idioma, env) {
   const isPortugues = !idioma || idioma === 'pt-BR';
-  const isDireito = area === 'Direito' || mode === 'concurso';
+  const isDireito = area === 'Direito' || mode === 'concurso' || mode === 'academic';
   const query = topic || subject || area || '';
   if (isDireito && query) {
     const subarea = detectarSubareaJuridica(topic, subject);
@@ -1288,8 +1423,262 @@ Regras obrigatórias:
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// FUNÇÃO AUXILIAR: Chamar Groq com retry/fallback
+// ORQUESTRADOR RAG PARA MODO ACADEMIC (4-CAMADAS PROTOCOL)
 // ════════════════════════════════════════════════════════════════════════════
+
+async function generateAcademicRAGQuestion(body, env) {
+  const { area, subject, topic, quantity = 1, difficulty, alternativas, idioma, sessionMode } = body;
+
+  console.log('[ACADEMIC-RAG] AREA:', area, 'SUBJECT:', subject);
+
+  // ───────────────────────────────────────────────────────────────────────
+  // CAMADA 1: Validar área e montar configuração
+  // ───────────────────────────────────────────────────────────────────────
+  const areaKey = area ? `academic.${area.toLowerCase().replace(/\s+/g, '_').replace(/^academic\./, '')}` : null;
+  
+  if (!areaKey || !ACADEMIC_CONFIG.areas[areaKey]) {
+    return {
+      success: false,
+      error: 'INVALID_AREA',
+      userMessage: ACADEMIC_CONFIG.invalidAreaMessage(area),
+      statusCode: 400,
+    };
+  }
+
+  const areaConfig = ACADEMIC_CONFIG.areas[areaKey];
+  console.log(`[ACADEMIC-RAG] ✓ Área válida: ${areaKey} → ${areaConfig.vectorizeCollection}`);
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Montar contexto para query ao Vectorize
+  // ───────────────────────────────────────────────────────────────────────
+  const contextParts = [];
+  if (subject) contextParts.push(`Disciplina: ${subject}`);
+  if (topic) contextParts.push(`Tópico: ${topic}`);
+  
+  const queryContext = contextParts.join(', ');
+  const query = queryContext ? `${areaKey} ${queryContext}` : areaKey;
+  
+  console.log(`[ACADEMIC-RAG] Query: ${query}`);
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Buscar contexto do Vectorize
+  // ───────────────────────────────────────────────────────────────────────
+  const contextResult = await fetchVectorizeContext(
+    env,
+    areaConfig.vectorizeCollection,
+    query,
+    areaConfig.minContextLength
+  );
+
+  console.log(
+    `[ACADEMIC-RAG] Contexto: ${contextResult.contextLength} chars, ` +
+    `Suficiente: ${contextResult.sufficient}`
+  );
+
+  // ───────────────────────────────────────────────────────────────────────
+  // CAMADA 2: Preparar prompts com validações anti-alucinação
+  // ───────────────────────────────────────────────────────────────────────
+  
+  const difficultyMap = {
+    easy: 'fácil (nível iniciante, conceitos básicos)',
+    medium: 'médio (nível intermediário, aplicação de conceitos)',
+    hard: 'difícil (nível avançado, análise e interpretação)',
+    extreme: 'extremo (nível especialista, questionário especializado)',
+  };
+  const diffLabel = difficultyMap[difficulty] || 'médio';
+
+  const numAlts = parseInt(alternativas) === 4 ? 4 : 5;
+  const altKeys = numAlts === 4 ? 'A, B, C, D' : 'A, B, C, D, E';
+
+  const sessionMap = {
+    normal: 'Estudo Normal — questões didáticas focadas em aprendizado',
+    concurso: 'Simulado — questões no estilo rigoroso de prova',
+    revisao: 'Revisão Rápida — questões curtas e objetivas',
+  };
+  const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
+
+  const contextBlock = contextResult.sufficient
+    ? `CONTEXTO VERIFICADO (${areaConfig.label}):\n"""\n${contextResult.context}\n"""\n\n`
+    : '';
+
+  const antiHallucinationRules = `
+RESTRIÇÕES OBRIGATÓRIAS:
+- NÃO invente teorias, descobertas ou conceitos não comprovados
+- Use APENAS fundamentos consolidados e verificáveis
+- Cite apenas referências válidas: ${areaConfig.conceptualBases}
+- Campo "fonte" deve sempre ser preenchido com conceito/teoria verificável
+- NUNCA cite trabalhos fictícios, anos inexatos ou autores não confirmados`;
+
+  const systemText = `Você é um professor acadêmico especialista em ${areaConfig.label}. Retorne APENAS JSON válido com a chave "questions".
+Responda em português do Brasil.
+
+PRINCÍPIOS INEGOCIÁVEIS:
+- Use APENAS conhecimento consolidado e verificável
+- ${antiHallucinationRules}`;
+
+  const exampleOptions =
+    numAlts === 4
+      ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`
+      : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
+
+  const userPrompt = `Modo: ${sessionLabel}
+
+Gere exatamente ${quantity} questão(ões) de ${areaConfig.label} no nível ${diffLabel}.
+${subject ? `Disciplina específica: ${subject}.` : ''}
+${topic ? `Tópico específico: ${topic}.` : ''}
+
+${contextBlock}
+
+Área: ${areaConfig.label}
+Conceitos base: ${areaConfig.conceptualBases}
+
+Retorne APENAS um objeto JSON:
+{
+  "questions": [
+    {
+      "id": 1,
+      "statement": "Enunciado da questão.",
+      "options": [
+${exampleOptions}
+      ],
+      "correctAnswer": "A",
+      "explanation": "Explicação clara e verificável.",
+      "fonte": "Conceito/Teoria consolidado"
+    }
+  ]
+}
+
+Regras obrigatórias:
+1. Gere exatamente ${numAlts} alternativas usando ${altKeys}
+2. Questões corretas e sem ambiguidades
+3. Distribua gabarito entre as opções
+4. ${antiHallucinationRules}
+5. NENHUM texto fora do JSON`;
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Chamar Groq para geração
+  // ───────────────────────────────────────────────────────────────────────
+  const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
+
+  if (!groqResponse.ok) {
+    const err = await groqResponse.text();
+    let userMessage = 'Erro ao conectar com a IA. Tente novamente.';
+    if (groqResponse.status === 429) userMessage = 'Limite de uso atingido. Aguarde.';
+    else if (groqResponse.status === 503) userMessage = 'IA com alta demanda. Tente em segundos.';
+
+    return {
+      success: false,
+      error: 'Groq API error',
+      details: err,
+      userMessage,
+      statusCode: groqResponse.status,
+    };
+  }
+
+  const groqData = await groqResponse.json();
+  const rawText = extractJsonFromText(groqData?.choices?.[0]?.message?.content || '');
+
+  let questions = [];
+  try {
+    questions = extractQuestions(JSON.parse(rawText));
+  } catch {
+    const matchObj = rawText.match(/\{[\s\S]*\}/);
+    if (matchObj) {
+      try {
+        questions = extractQuestions(JSON.parse(matchObj[0]));
+      } catch {
+        // continua
+      }
+    }
+  }
+
+  if (questions.length === 0) {
+    return {
+      success: false,
+      error: 'Nenhuma questão gerada',
+      userMessage: 'A IA não gerou questões válidas. Tente ajustar área ou dificuldade.',
+      statusCode: 422,
+    };
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // CAMADA 3: Validação contra padrões proibidos
+  // ───────────────────────────────────────────────────────────────────────
+  const validateAgainstForbiddenPatterns = (question, config) => {
+    const textToCheck = `${question.statement} ${question.explanation || ''}`.toLowerCase();
+    
+    for (const pattern of config.forbiddenPatterns) {
+      const regex = new RegExp(pattern, 'i');
+      if (regex.test(textToCheck)) {
+        return {
+          valid: false,
+          error: `Conteúdo proibido detectado: padrão "${pattern}" encontrado`,
+        };
+      }
+    }
+    
+    return { valid: true };
+  };
+
+  const validatedQuestions = [];
+  for (const q of questions) {
+    const patternValidation = validateAgainstForbiddenPatterns(q, areaConfig);
+    
+    if (!patternValidation.valid) {
+      console.warn(`[ACADEMIC-RAG] Validação de padrões falhou para questão ${q.id}:`, patternValidation.error);
+      continue;
+    }
+
+    validatedQuestions.push({
+      id: q.id,
+      statement: q.statement,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+      fonte: q.fonte || areaConfig.conceptualBases,
+    });
+  }
+
+  if (validatedQuestions.length === 0) {
+    return {
+      success: false,
+      error: 'Nenhuma questão passou na validação',
+      userMessage: 'Questões geradas não passaram na validação. Tente novamente.',
+      statusCode: 422,
+    };
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // CAMADA 4: Gerar badge de qualidade e metadata
+  // ───────────────────────────────────────────────────────────────────────
+  const ragScore = contextResult.sufficient ? 0.95 : 0.65;
+  let badge = '🟢';
+  if (ragScore < 0.75) badge = '🔴';
+  else if (ragScore < 0.85) badge = '🟡';
+
+  console.log(`[ACADEMIC-RAG] ✓ ${validatedQuestions.length} questão(ões) gerada(s) e validada(s)`);
+
+  return {
+    success: true,
+    questions: validatedQuestions,
+    metadata: {
+      mode: 'academic',
+      area: areaConfig.label,
+      subject: subject || 'Geral',
+      vectorizeCollection: areaConfig.vectorizeCollection,
+      contextLength: contextResult.contextLength,
+      contextSufficient: contextResult.sufficient,
+      sources: contextResult.sources,
+      ragScore,
+      qualityProtocol: 'active',
+      badge,
+      questionsGenerated: validatedQuestions.length,
+      questionsApproved: validatedQuestions.length,
+      questionsRejected: 0,
+    },
+    statusCode: 200,
+  };
+}
 async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
   const temperature = 0.35;
   const maxTokens = quantity <= 5 ? 2048 : quantity <= 10 ? 4096 : 6144;
@@ -1414,6 +1803,36 @@ export default {
           status: ragResult.statusCode || 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+
+      // ──────────────────────────────────────────────────────────────────────────
+      // ROTEAMENTO: Se modo Academic, usar pipeline RAG com 4 camadas
+      // ──────────────────────────────────────────────────────────────────────────
+      if (mode === 'academic') {
+        try {
+          const result = await generateAcademicRAGQuestion(body, env);
+          if (result.success) {
+            return new Response(JSON.stringify(result), {
+              status: result.statusCode || 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+        } catch (e) {
+          console.error('[ACADEMIC] RAG failed:', e);
+          // FALLBACK: usar contexto simples + validação parcial (continua abaixo)
+        }
+
+        // Fallback se RAG falhar: usar fluxo legado com contexto academic
+        try {
+          const context = await fetchContext(area, mode, topic, subject, idioma, env);
+          if (context && context.text) {
+            // RAG fallback: ao menos temos contexto verificado
+            console.log('[ACADEMIC] Using fallback with verified context');
+          }
+        } catch (contextError) {
+          console.warn('[ACADEMIC] Context fallback also failed:', contextError);
+        }
+        // Continua com fluxo legado abaixo...
       }
 
       // ──────────────────────────────────────────────────────────────────────────

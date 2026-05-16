@@ -1,0 +1,242 @@
+﻿╔════════════════════════════════════════════════════════════════════════════╗
+║         ANÁLISE COMPLETA: COMPORTAMENTO DE CLIQUE NAS OPÇÕES              ║
+║                     (index.html - StudyMaster Agent)                       ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+RESPOSTA 1: Qual é o CSS que controla a aparência de uma opção marcada?
+═════════════════════════════════════════════════════════════════════════════
+
+A) ANTES DE RESPONDER (Classe: .selected)
+   Linhas: NÃO ENCONTRADO - PROBLEMA CRÍTICO!
+   ❌ Não há .option-btn.selected { ... } definido no CSS
+
+B) APÓS RESPONDER - RESPOSTA CORRETA (Classe: .correct)
+   Linhas: 484-485
+   ✓ border-color: var(--color-success);          [VERDE]
+   ✓ background: rgba(22, 163, 74, 0.08);         [VERDE TRANSLÚCIDO]
+   ✓ .option-key { background: var(--color-success); color: white; }
+
+C) APÓS RESPONDER - RESPOSTA ERRADA (Classe: .wrong)
+   Linhas: 486-487
+   ✓ border-color: var(--color-error);            [VERMELHO]
+   ✓ background: rgba(192, 57, 43, 0.08);         [VERMELHO TRANSLÚCIDO]
+   ✓ opacity: 0.85;
+   ✓ .option-key { background: var(--color-error); color: white; }
+
+D) NO FULLSCREEN MODE (Classe: .qf-option.selected)
+   Linhas: 879-888
+   ✓ border-color: var(--color-primary);
+   ✓ background: oklch(from var(--color-primary) l c h / 0.05);
+   ✓ .qf-option-letter { background: var(--color-primary); }
+
+
+RESPOSTA 2: Qual é o JavaScript que adiciona/remove essas classes?
+═════════════════════════════════════════════════════════════════════════════
+
+FLUXO NO DESKTOP (renderAllQuestionsDesktop - Linhas 2915-3014):
+
+[1] RENDERIZAÇÃO (Linhas 2939-2944)
+    let cls = '';
+    if (hasAnswered) {
+      if (opt.key === q.correctAnswer) cls = ' correct';
+      else if (opt.key === selectedKey && opt.key !== q.correctAnswer) cls = ' wrong';
+    } else if (selectedKey === opt.key) {
+      cls = ' selected';  ← MARCA COMO SELECIONADA
+    }
+    HTML: <button class="option-btn" ...>
+
+[2] CLIQUE NA OPÇÃO (Linhas 2961-2968)
+    btn.addEventListener('click', () => {
+      allOptsForQuestion.forEach(b => b.classList.remove('selected'));  ← Remove anterior
+      btn.classList.add('selected');                                      ← Adiciona nova
+      qNavState.selected[idx] = btn.dataset.key;
+      if (resBtn) resBtn.disabled = false;
+    });
+
+[3] CLIQUE EM "RESOLVER" (Linhas 2972-2975)
+    const sKey = qNavState.selected[idx];
+    if (!sKey) return;
+    handleDesktopAnswer(questions, idx, sKey);
+
+[4] PROCESSAMENTO DA RESPOSTA (Linhas 2996-3001)
+    opts.forEach(b => {
+      b.disabled = true;
+      b.classList.remove('selected');  ← Remove .selected
+      if (b.dataset.key === q.correctAnswer) b.classList.add('correct');
+      else if (b.dataset.key === selectedKey && !isCorrect) b.classList.add('wrong');
+    });
+
+FLUXO NO MOBILE (renderSingleQuestion - Linhas 3017-3125):
+   ✓ Idêntico ao Desktop
+   ✓ Linhas 3071-3077: Clique
+   ✓ Linhas 3110-3115: Resposta
+
+
+RESPOSTA 3: Por que pode não estar funcionando em Desktop?
+═════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA 1 [CRÍTICO] - CSS FALTANDO
+┌─────────────────────────────────────────────────────────────────────────┐
+│ A classe .option-btn.selected NÃO TEM ESTILOS CSS!                     │
+│                                                                         │
+│ No Fullscreen Mode (.qf-option.selected):                            │
+│   ✓ border-color: var(--color-primary);                              │
+│   ✓ background: oklch(...);                                           │
+│   ✓ .qf-option-letter tem estilos                                    │
+│                                                                         │
+│ Na página normal (.option-btn.selected):                              │
+│   ❌ NADA! Não há regra CSS definida                                 │
+│   ❌ Resulta em: visual não diferente da não-selecionada             │
+│                                                                         │
+│ IMPACTO: Usuário clica em opção, mas ela não aparenta selecionada    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PROBLEMA 2 [ALTO] - MÚLTIPLOS EVENT LISTENERS
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Linhas 2960-2968:                                                       │
+│   if (!qNavState.results[idx]) {                                        │
+│     opts.forEach(btn => {                                              │
+│       btn.addEventListener('click', () => { ... });                    │
+│     });                                                                 │
+│   }                                                                     │
+│                                                                         │
+│ Problema: Se renderAllQuestionsDesktop() é chamado múltiplas vezes    │
+│   → A condição if (!qNavState.results[idx]) permanece verdadeira      │
+│   → addEventListener é ADICIONADO novamente                            │
+│   → Cada botão tem 2, 3, 4... listeners do mesmo tipo                 │
+│   → Cada clique ativa TODOS os listeners anteriores                   │
+│                                                                         │
+│ Cenário: Resize mobile→desktop, ou navegação rápida                  │
+│   → Múltiplos listeners acumulam                                       │
+│   → Comportamento inconsistente                                        │
+│                                                                         │
+│ IMPACTO: Cliques erráticos, seleções múltiplas, desempenho ruim       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PROBLEMA 3 [MÉDIO] - ESTADO NÃO RESETADO NO RESIZE
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Linhas 3559-3584 (resize event):                                        │
+│   if (currentMode !== lastViewportMode) {                              │
+│     if (isDesktop) {                                                   │
+│       renderAllQuestionsDesktop(state.generatedQuestions);             │
+│     }                                                                   │
+│   }                                                                     │
+│                                                                         │
+│ Problema: Antes de renderizar, NÃO reseta:                            │
+│   ❌ qNavState.selected                                                │
+│   ❌ qNavState.results                                                 │
+│   ❌ qNavState.currentIdx                                              │
+│                                                                         │
+│ Cenário: Usuário em mobile (respondendo questão 2), faz resize         │
+│   → renderSingleQuestion() renderizou questão 2                        │
+│   → qNavState tem estado parcial                                       │
+│   → renderAllQuestionsDesktop() usa qNavState sujo                     │
+│   → Questões mostram marcações erradas                                 │
+│                                                                         │
+│ IMPACTO: Após resize, opções aparecem pré-marcadas incorretamente     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PROBLEMA 4 [BAIXO] - FALTA VALIDAÇÃO EXTRA
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Cliques podem ocorrer após responder se houver race condition           │
+│ Sugestão: Adicionar guard if (qNavState.results[idx]) return;          │
+│           dentro do addEventListener.click                             │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+RESPOSTA 4: Qual seria a melhor forma de corrigir?
+═════════════════════════════════════════════════════════════════════════════
+
+CORREÇÃO 1 [CRÍTICO] - ADICIONAR CSS FALTANDO
+─────────────────────────────────────────────────────────────────────────
+Local: Logo após linha 487 (após .option-btn.wrong)
+
+Adicionar:
+  .option-btn.selected {
+    border-color: var(--color-primary);
+    background: oklch(from var(--color-primary) l c h / 0.05);
+  }
+  .option-btn.selected .option-key {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+Referência: Use .qf-option.selected (linhas 879-888) como modelo
+
+IMPACTO: ✓ Opções marcadas ficarão visualmente distintas
+
+
+CORREÇÃO 2 [ALTO] - EVITAR MÚLTIPLOS LISTENERS
+─────────────────────────────────────────────────────────────────────────
+Local: Linhas 2954-2979 em renderAllQuestionsDesktop()
+
+Método 1: Usar cloning para limpar listeners antigos
+  opts.forEach(btn => {
+    const newBtn = btn.cloneNode(true);  // ← Remove listeners
+    btn.replaceWith(newBtn);
+    newBtn.addEventListener('click', () => { ... });
+  });
+
+Método 2: Remover evento antes de adicionar
+  btn.removeEventListener('click', null);
+  btn.addEventListener('click', handler);
+
+Recomendação: Use o método 1 (mais seguro)
+
+IMPACTO: ✓ Cada clique ativa apenas 1 listener
+
+
+CORREÇÃO 3 [MÉDIO] - RESETAR ESTADO ANTES DE RENDERIZAR
+─────────────────────────────────────────────────────────────────────────
+Local 1: Na função renderQuestions() (linhas 2872-2876)
+  Adicionar LOGO APÓS inicializar qNavState:
+  
+  qNavState = { ... };
+  document.getElementById('questions-list').innerHTML = '';  // ← Limpa
+
+Local 2: No resize event listener (linhas 3573-3584)
+  Adicionar ANTES de renderizar:
+  
+  qNavState = {
+    currentIdx: 0,
+    selected: new Array(state.generatedQuestions.length).fill(null),
+    results: new Array(state.generatedQuestions.length).fill(null),
+  };
+
+IMPACTO: ✓ Resize não deixa estado sujo
+         ✓ Navegação não carrega estado antigo
+
+
+CORREÇÃO 4 [MENOR] - ADICIONAR GUARDS EXTRAS
+─────────────────────────────────────────────────────────────────────────
+Dentro de cada addEventListener.click:
+  
+  newBtn.addEventListener('click', () => {
+    if (qNavState.results[idx] !== null) return;  // ← Guard
+    // ... resto do código
+  });
+
+IMPACTO: ✓ Previne comportamento após responder
+
+
+PRIORIDADE DE IMPLEMENTAÇÃO
+═════════════════════════════════════════════════════════════════════════════
+1. CORREÇÃO 1 (CSS)          → Tempo: 1 min   | Impacto: CRÍTICO
+2. CORREÇÃO 3 (Reset)        → Tempo: 3 min   | Impacto: ALTO
+3. CORREÇÃO 2 (Listeners)    → Tempo: 10 min  | Impacto: ALTO
+4. CORREÇÃO 4 (Guards)       → Tempo: 2 min   | Impacto: MENOR
+
+Recomendação: Execute nesta ordem
+
+
+TESTE RECOMENDADO
+═════════════════════════════════════════════════════════════════════════════
+1. Abrir DevTools (F12)
+2. Selecionar uma opção
+3. Verificar: Inspector → elemento tem classe .selected?
+4. Computed Styles → há background/border visível?
+5. Teste de Resize:
+   - Gerar questões em mobile
+   - Resize para desktop (1200px)
+   - Verificar se questões não aparecem pré-marcadas
+
