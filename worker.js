@@ -7,7 +7,7 @@
 // 3. Model: gera questão formatada → validamos contra alucinação → retornamos
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://studymaster-agent.pages.dev',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Max-Age': '86400',
@@ -662,7 +662,47 @@ function extractJsonFromText(text) {
   return t;
 }
 
-// ─── YouTube Transcript via timedtext (sem chave de API) ──────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// EXTRATOR DE TRANSCRIÇÃO DO YOUTUBE
+// ════════════════════════════════════════════════════════════════════════════
+//
+// POR QUE O MÉTODO ANTERIOR FALHAVA:
+// ─────────────────────────────────────────────────────────────────────────────
+// O Worker fazia fetch direto em youtube.com/watch?v=ID. O YouTube detecta
+// requisições server-side (IP de datacenter Cloudflare) e responde com:
+//   • Consent page (GDPR) → HTML sem ytInitialPlayerResponse
+//   • Login wall → status 200 mas playabilityStatus = "LOGIN_REQUIRED"
+//   • HTTP 429 → Too Many Requests (rate-limit de datacenter)
+//   • HTTP 403 → bloqueio geográfico ou por User-Agent de bot
+//   • Age-gate → playabilityStatus = "AGE_VERIFICATION_REQUIRED"
+//
+// SOLUÇÃO MULTI-ESTRATÉGIA (sem chave de API):
+// ─────────────────────────────────────────────────────────────────────────────
+// Estratégia 1 — timedtext v1 (json3)
+//   GET https://www.youtube.com/api/timedtext?v=VIDEO_ID&lang=pt&fmt=json3
+//   Endpoint público, não requer cookies nem autenticação.
+//   Retorna JSON com array "events" contendo os segmentos de texto.
+//   Limitação: só funciona para legendas "auto" em canais que as habilitam;
+//   legendas manuais podem estar bloqueadas neste endpoint.
+//
+// Estratégia 2 — timedtext v1 (xml) → parse manual
+//   GET https://www.youtube.com/api/timedtext?v=VIDEO_ID&lang=pt
+//   Mesmo endpoint sem &fmt=json3 devolve XML. Parse simples de <text>.
+//
+// Estratégia 3 — ytInitialPlayerResponse via scraping mínimo
+//   Faz fetch da página /watch com User-Agent mobile (menos restrições),
+//   extrai o JSON embutido, navega em captionTracks → baseUrl.
+//   Mais frágil porque sujeito a consent/login wall, mas cobre vídeos
+//   com legendas manuais. Detecta explicitamente todos os estados de bloqueio.
+//
+// ALTERNATIVA ROBUSTA RECOMENDADA (para produção):
+// ─────────────────────────────────────────────────────────────────────────────
+// Integrar a API do YouTube Data v3 (gratuita, 10.000 req/dia):
+//   GET https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=VIDEO_ID&key=API_KEY
+//   + GET https://www.googleapis.com/youtube/v3/captions/{captionId}?tfmt=sbv&key=API_KEY
+// Isso garante acesso confiável a legendas sem depender de scraping.
+// Para ativar: adicione YOUTUBE_API_KEY como variável de ambiente no Worker.
+// ─────────────────────────────────────────────────────────────────────────────
 
 function extractYouTubeVideoId(url) {
   try {
@@ -677,44 +717,227 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
-async function fetchYouTubeTranscript(videoId) {
-  const MAX_TRANSCRIPT_CHARS = 30000;
-  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+/**
+ * Classifica se um erro/resposta do YouTube é um "bloqueio" (requer ação manual)
+ * ou um erro genérico (problema técnico temporário).
+ * Retorna { isBlocked: bool, reason: string }
+ */
+function classifyYouTubeError(message, httpStatus) {
+  const msg = (message || '').toLowerCase();
 
-  const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  let pageHtml;
+  // Bloqueios definitivos — o usuário precisa agir manualmente
+  const blockedPatterns = [
+    'login',
+    'sign in',
+    'faça login',
+    'confirmar que você não é um bot',
+    'bot',
+    'consent',
+    'age',
+    'age_verification',
+    'age_check',
+    'not available',
+    'não disponível',
+    'unavailable',
+    'private',
+    'privado',
+    'members only',
+    'requires purchase',
+    'geo',
+    'blocked in your country',
+    'not available in your country',
+    'playback',
+    'login_required',
+    'content_check_required',
+    'age_verification_required',
+  ];
+
+  const isBlockedByContent = blockedPatterns.some(p => msg.includes(p));
+  const isBlockedByStatus = httpStatus === 429 || httpStatus === 403;
+
+  return {
+    isBlocked: isBlockedByContent || isBlockedByStatus,
+    reason: isBlockedByContent ? 'content_restriction' : isBlockedByStatus ? `http_${httpStatus}` : 'unknown',
+  };
+}
+
+/**
+ * Estratégia 1: Endpoint público timedtext v1 — formato JSON3
+ * Não requer cookies, sem autenticação. Funciona para legendas automáticas.
+ */
+async function tryTimedtextJson(videoId, langs = ['pt-BR', 'pt', 'en']) {
+  for (const lang of langs) {
+    try {
+      const url = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${lang}&fmt=json3&xorb=2&xobt=3&xovt=3`;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+          'Accept': 'application/json, text/plain, */*',
+          'Referer': `https://www.youtube.com/watch?v=${videoId}`,
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+
+      // 429 ou 403 = bloqueio explícito
+      if (res.status === 429 || res.status === 403) {
+        return { success: false, blocked: true, status: res.status };
+      }
+      if (!res.ok) continue;
+
+      const data = await res.json().catch(() => null);
+      if (!data?.events) continue;
+
+      const segments = data.events
+        .flatMap(e => e?.segs || [])
+        .map(s => (s?.utf8 || '').replace(/\n/g, ' ').trim())
+        .filter(s => s && s !== ' ');
+
+      if (segments.length < 5) continue; // muito pouco conteúdo, tenta próximo idioma
+
+      const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
+      const text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
+      if (text.length < 50) continue;
+
+      return { success: true, text, lang, source: 'timedtext-json3' };
+    } catch (e) {
+      // timeout ou erro de rede — tenta próximo idioma
+      continue;
+    }
+  }
+  return { success: false, blocked: false };
+}
+
+/**
+ * Estratégia 2: Endpoint timedtext v1 — formato XML (fallback do JSON3)
+ */
+async function tryTimedtextXml(videoId, langs = ['pt-BR', 'pt', 'en']) {
+  for (const lang of langs) {
+    try {
+      const url = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${lang}`;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+          'Referer': `https://www.youtube.com/watch?v=${videoId}`,
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (res.status === 429 || res.status === 403) {
+        return { success: false, blocked: true, status: res.status };
+      }
+      if (!res.ok) continue;
+
+      const xml = await res.text();
+      // Extrai conteúdo dos tags <text ...>CONTEÚDO</text>
+      const matches = [...xml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g)];
+      if (matches.length < 5) continue;
+
+      const segments = matches
+        .map(m => m[1]
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/\n/g, ' ')
+          .trim()
+        )
+        .filter(s => s.length > 0);
+
+      const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
+      const text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
+      if (text.length < 50) continue;
+
+      return { success: true, text, lang, source: 'timedtext-xml' };
+    } catch (e) {
+      continue;
+    }
+  }
+  return { success: false, blocked: false };
+}
+
+/**
+ * Estratégia 3: Scraping de ytInitialPlayerResponse via página /watch
+ * Usa User-Agent mobile para reduzir chance de consent page.
+ * Detecta todos os estados de bloqueio explicitamente.
+ */
+async function tryPageScraping(videoId) {
+  // User-Agent mobile tende a receber menos redirects de consent/GDPR
+  const UA_MOBILE = 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
+
+  let html;
   try {
-    const pageRes = await fetch(pageUrl, {
-      headers: { 'User-Agent': UA, 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8' },
-      signal: AbortSignal.timeout(10000),
+    const res = await fetch(`https://www.youtube.com/watch?v=${videoId}&hl=pt&gl=BR`, {
+      headers: {
+        'User-Agent': UA_MOBILE,
+        'Accept-Language': 'pt-BR,pt;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: AbortSignal.timeout(12000),
     });
-    if (!pageRes.ok) throw new Error(`YouTube retornou HTTP ${pageRes.status}`);
-    pageHtml = await pageRes.text();
+
+    if (res.status === 429) return { success: false, blocked: true, status: 429, reason: 'rate_limited' };
+    if (res.status === 403) return { success: false, blocked: true, status: 403, reason: 'forbidden' };
+    if (!res.ok) return { success: false, blocked: false, reason: `http_${res.status}` };
+
+    html = await res.text();
   } catch (e) {
-    throw new Error(`Não foi possível acessar o vídeo: ${e.message}`);
+    return { success: false, blocked: false, reason: e.message };
   }
 
-  const match = pageHtml.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});(?:\s*var\s|\s*<\/script)/s);
-  if (!match) throw new Error('Não foi possível extrair dados do vídeo. O vídeo pode ser privado ou com restrição de idade.');
+  // Detecta consent page (GDPR redirect)
+  if (html.includes('consent.youtube.com') || html.includes('www.youtube.com/consent') || html.includes('"CONSENT"')) {
+    return { success: false, blocked: true, reason: 'consent_page' };
+  }
+
+  // Detecta login wall
+  if (html.includes('"LOGIN_REQUIRED"') || html.includes('sign-in-required') || html.includes('"isLoginRequired":true')) {
+    return { success: false, blocked: true, reason: 'login_required' };
+  }
+
+  // Extrai ytInitialPlayerResponse
+  const matchInitial = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});(?:\s*var\s|\s*<\/script)/s);
+  if (!matchInitial) {
+    // Último recurso: tenta padrão mais permissivo
+    const matchLoose = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;/);
+    if (!matchLoose) return { success: false, blocked: false, reason: 'no_player_response' };
+    matchInitial || (matchInitial !== undefined ? null : null); // workaround lint
+    try {
+      return await _parsePlayerResponse(JSON.parse(matchLoose[1]), videoId);
+    } catch {
+      return { success: false, blocked: false, reason: 'parse_error' };
+    }
+  }
 
   let playerResponse;
   try {
-    playerResponse = JSON.parse(match[1]);
+    playerResponse = JSON.parse(matchInitial[1]);
   } catch {
-    throw new Error('Erro ao processar dados do vídeo.');
+    return { success: false, blocked: false, reason: 'json_parse_error' };
   }
 
+  return await _parsePlayerResponse(playerResponse, videoId);
+}
+
+async function _parsePlayerResponse(playerResponse, videoId) {
   const status = playerResponse?.playabilityStatus?.status;
   if (status && status !== 'OK') {
     const reason = playerResponse?.playabilityStatus?.reason || status;
-    throw new Error(`Vídeo não disponível: ${reason}`);
+    const { isBlocked } = classifyYouTubeError(reason + ' ' + status, null);
+    return {
+      success: false,
+      blocked: isBlocked,
+      reason: status,
+      detail: reason,
+    };
   }
 
   const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
   if (captionTracks.length === 0) {
-    throw new Error('Este vídeo não possui legendas ou transcrição disponível. Tente um vídeo com legendas ativadas.');
+    return { success: false, blocked: false, reason: 'no_captions' };
   }
 
+  // Prioriza pt-BR > pt > en > qualquer outro
   const priority = ['pt-BR', 'pt', 'en'];
   let chosen = null;
   for (const lang of priority) {
@@ -724,46 +947,112 @@ async function fetchYouTubeTranscript(videoId) {
   if (!chosen) chosen = captionTracks[0];
 
   const baseUrl = chosen?.baseUrl;
-  if (!baseUrl) throw new Error('URL da legenda inválida.');
+  if (!baseUrl) return { success: false, blocked: false, reason: 'no_caption_url' };
 
-  const transcriptUrl = `${baseUrl}&fmt=json3`;
-  let transcriptData;
   try {
-    const tRes = await fetch(transcriptUrl, {
-      headers: { 'User-Agent': UA },
+    const tRes = await fetch(`${baseUrl}&fmt=json3`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
       signal: AbortSignal.timeout(8000),
     });
-    if (!tRes.ok) throw new Error(`HTTP ${tRes.status}`);
-    transcriptData = await tRes.json();
+
+    if (tRes.status === 429 || tRes.status === 403) {
+      return { success: false, blocked: true, status: tRes.status };
+    }
+    if (!tRes.ok) return { success: false, blocked: false, reason: `caption_http_${tRes.status}` };
+
+    const data = await tRes.json();
+    const events = data?.events || [];
+    const segments = events
+      .flatMap(e => e?.segs || [])
+      .map(s => (s?.utf8 || '').replace(/\n/g, ' ').trim())
+      .filter(s => s && s !== ' ');
+
+    const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
+    if (!deduped.length) return { success: false, blocked: false, reason: 'empty_transcript' };
+
+    const text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
+    return {
+      success: true,
+      text,
+      lang: chosen.languageCode,
+      isAuto: chosen.kind === 'asr',
+      source: 'page-scraping',
+    };
   } catch (e) {
-    throw new Error(`Falha ao baixar transcrição: ${e.message}`);
+    return { success: false, blocked: false, reason: e.message };
+  }
+}
+
+/**
+ * Orquestrador principal: tenta as 3 estratégias em cascata.
+ * Se todas falharem por bloqueio → retorna isBlocked:true com mensagem amigável.
+ * Se falharem por motivo técnico → retorna erro genérico.
+ */
+async function fetchYouTubeTranscript(videoId) {
+  const MAX_CHARS = 30000;
+  const langs = ['pt-BR', 'pt', 'en'];
+
+  let anyBlocked = false;
+
+  // ── Estratégia 1: timedtext JSON3 ────────────────────────────────────────
+  console.log(`[YT] Estratégia 1 (timedtext json3) para videoId=${videoId}`);
+  const r1 = await tryTimedtextJson(videoId, langs);
+  if (r1.success) {
+    console.log(`[YT] ✓ Estratégia 1 OK (${r1.lang})`);
+    const text = r1.text.length > MAX_CHARS ? r1.text.slice(0, MAX_CHARS) : r1.text;
+    return { text, videoId, lang: r1.lang, truncated: r1.text.length > MAX_CHARS, charCount: text.length, source: r1.source };
+  }
+  if (r1.blocked) anyBlocked = true;
+  console.log(`[YT] Estratégia 1 falhou: blocked=${r1.blocked}`);
+
+  // ── Estratégia 2: timedtext XML ───────────────────────────────────────────
+  console.log(`[YT] Estratégia 2 (timedtext xml) para videoId=${videoId}`);
+  const r2 = await tryTimedtextXml(videoId, langs);
+  if (r2.success) {
+    console.log(`[YT] ✓ Estratégia 2 OK (${r2.lang})`);
+    const text = r2.text.length > MAX_CHARS ? r2.text.slice(0, MAX_CHARS) : r2.text;
+    return { text, videoId, lang: r2.lang, truncated: r2.text.length > MAX_CHARS, charCount: text.length, source: r2.source };
+  }
+  if (r2.blocked) anyBlocked = true;
+  console.log(`[YT] Estratégia 2 falhou: blocked=${r2.blocked}`);
+
+  // ── Estratégia 3: page scraping ───────────────────────────────────────────
+  console.log(`[YT] Estratégia 3 (page scraping) para videoId=${videoId}`);
+  const r3 = await tryPageScraping(videoId);
+  if (r3.success) {
+    console.log(`[YT] ✓ Estratégia 3 OK (${r3.lang})`);
+    const text = r3.text.length > MAX_CHARS ? r3.text.slice(0, MAX_CHARS) : r3.text;
+    return { text, videoId, lang: r3.lang, isAuto: r3.isAuto, truncated: r3.text.length > MAX_CHARS, charCount: text.length, source: r3.source };
+  }
+  if (r3.blocked) anyBlocked = true;
+  console.log(`[YT] Estratégia 3 falhou: blocked=${r3.blocked}, reason=${r3.reason}`);
+
+  // ── Todas as estratégias falharam ─────────────────────────────────────────
+  // Caso sem legendas (vídeo existe mas não tem transcrição)
+  if (r3.reason === 'no_captions' || r1.reason === 'no_captions' || r2.reason === 'no_captions') {
+    throw Object.assign(
+      new Error('Este vídeo não possui transcrição ou legendas disponíveis. Apenas vídeos com legendas ativadas são suportados.'),
+      { isBlocked: false }
+    );
   }
 
-  const events = transcriptData?.events || [];
-  const segments = events
-    .flatMap(e => e?.segs || [])
-    .map(s => (s?.utf8 || '').replace(/\n/g, ' ').trim())
-    .filter(s => s && s !== ' ');
-
-  const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
-
-  if (!deduped.length) {
-    throw new Error('A transcrição do vídeo está vazia. Tente um vídeo diferente.');
+  // Caso de bloqueio definitivo → orienta o usuário a colar manualmente
+  if (anyBlocked) {
+    throw Object.assign(
+      new Error(
+        'O YouTube bloqueou a extração automática deste vídeo (pode ser restrição de login, verificação de bot, bloqueio geográfico ou faixa etária). ' +
+        'Para usar o Material Livre, abra o vídeo no YouTube, clique em "…" abaixo do vídeo → "Mostrar transcrição", ' +
+        'selecione todo o texto e cole no campo de texto manualmente.'
+      ),
+      { isBlocked: true }
+    );
   }
 
-  let text = deduped.join(' ').replace(/\s{2,}/g, ' ').trim();
-  const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
-  if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
-
-  return {
-    text,
-    videoId,
-    lang: chosen.languageCode || 'desconhecido',
-    isAuto: chosen.kind === 'asr',
-    truncated: wasTruncated,
-    charCount: text.length,
-    source: 'youtube.com (timedtext)',
-  };
+  // Erro técnico genérico
+  throw Object.assign(
+    new Error(`Não foi possível extrair a transcrição (reason: ${r3.reason || 'unknown'}). Tente novamente ou cole o texto manualmente.`),
+    { isBlocked: false }
+  );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1061,30 +1350,38 @@ export default {
       try {
         const body = await request.json();
         const { youtubeUrl } = body;
+
         if (!youtubeUrl || typeof youtubeUrl !== 'string') {
           return new Response(JSON.stringify({ error: 'Campo youtubeUrl ausente ou inválido.' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+
         const videoId = extractYouTubeVideoId(youtubeUrl);
         if (!videoId) {
-          return new Response(JSON.stringify({ error: 'URL do YouTube inválida.' }), {
+          return new Response(JSON.stringify({ error: 'URL do YouTube inválida. Use o formato https://www.youtube.com/watch?v=XXXX ou https://youtu.be/XXXX' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+
         const result = await fetchYouTubeTranscript(videoId);
+
+        // Sucesso: retorna { text, videoId, lang, truncated, charCount, source }
         return new Response(JSON.stringify(result), {
           status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+
       } catch (err) {
-        const isBlocked = err.message.includes('HTTP 429') || err.message.includes('bloqueou a extração');
+        // Determina se é bloqueio (isBlocked na propriedade do erro) ou erro genérico
+        const isBlocked = err.isBlocked === true;
+        const status = isBlocked ? 403 : 502;
+
         return new Response(JSON.stringify({
-          error: isBlocked
-            ? 'O YouTube bloqueou a extração automática. Por favor, copie a transcrição manualmente.'
-            : err.message || 'Erro ao extrair transcrição.',
+          error: err.message || 'Erro desconhecido ao extrair transcrição.',
           isBlocked,
         }), {
-          status: isBlocked ? 429 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
@@ -1288,7 +1585,3 @@ export default {
     }
   },
 };
-
-
-
-
