@@ -231,12 +231,83 @@
     }
     .slider-wrapper { display: flex; align-items: center; gap: var(--space-3); }
     input[type=range] { flex: 1; accent-color: var(--color-primary); }
-    .advanced-toggle-wrapper { margin-top: var(--space-4); border-top: 1px solid var(--color-divider); padding-top: var(--space-4); }
-    .advanced-toggle { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text-muted); font-size: var(--text-sm); font-weight: 500; }
-    .advanced-toggle .chevron { transition: transform 0.2s; }
-    .advanced-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-    .advanced-config { display: none; margin-top: var(--space-4); padding: var(--space-4); background: var(--color-surface-offset); border-radius: var(--radius-md); }
-    .advanced-config.open { display: block; }
+    .session-trust {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-5) 0 var(--space-6);
+    }
+    .session-trust-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+    }
+    .session-trust-item i { color: var(--color-success); flex-shrink: 0; margin-top: 2px; }
+    .session-trust-item strong { display: block; color: var(--color-text); font-size: var(--text-sm); margin-bottom: 2px; }
+    .session-config-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+    .session-config-card {
+      padding: var(--space-5);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-2);
+    }
+    .session-config-card.primary {
+      border-color: oklch(from var(--color-primary) l c h / 0.26);
+      background: oklch(from var(--color-primary) l c h / 0.045);
+    }
+    .session-config-card.full { grid-column: 1 / -1; }
+    .session-card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    .session-card-head i { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
+    .session-card-head .config-label { margin-bottom: 2px; }
+    .session-card-note { color: var(--color-text-muted); font-size: var(--text-xs); }
+    .session-mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+    .session-mode-card {
+      min-height: 92px;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
+      border-radius: var(--radius-md);
+    }
+    .session-mode-card i { margin-bottom: var(--space-1); }
+    .session-mode-card span { display: block; font-size: 11px; font-weight: 500; opacity: 0.78; margin-top: 2px; }
+    .slider-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .qty-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: white;
+      font-weight: 800;
+    }
     .categorias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3); }
     .categoria-btn { padding: var(--space-4); text-align: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .categoria-btn:hover { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.05); }
@@ -618,6 +689,27 @@
     .explanation-box { display: none; margin-top: var(--space-3); padding: var(--space-4); background: rgba(22, 163, 74, 0.07); border-radius: var(--radius-md); border: 1px solid rgba(22, 163, 74, 0.2); font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-muted); }
     .explanation-box.visible { display: block; }
     .explanation-box strong { color: var(--color-text); }
+    .question-proof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+      padding-top: var(--space-3);
+      border-top: 1px solid rgba(22, 163, 74, 0.18);
+    }
+    .proof-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      background: var(--color-surface);
+      border: 1px solid rgba(22, 163, 74, 0.25);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .proof-chip strong { color: var(--color-success); }
     @media (max-width: 600px) {
       .question-card { padding: var(--space-4); }
       .question-statement { font-size: var(--text-base); }
@@ -840,6 +932,10 @@
       .steps-bar { display: none; }
       .mode-grid { grid-template-columns: 1fr; }
       .mode-card { padding: var(--space-5); }
+      .session-trust { grid-template-columns: 1fr; }
+      .session-config-grid { grid-template-columns: 1fr; }
+      .session-mode-grid { grid-template-columns: 1fr; }
+      .session-mode-card { min-height: 74px; }
       .chip-group { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .chip { min-height: 42px; padding-inline: var(--space-3); border-radius: var(--radius-md); }
       .goal-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1485,94 +1581,142 @@
         <!-- STEP 3 -->
         <div class="wizard-step" id="step-3" data-step="3">
           <h2 class="step-title">Configure sua sessão</h2>
-          <p class="step-subtitle">Padrões já selecionados — ajuste se quiser</p>
+          <p class="step-subtitle">Escolha o ritmo do treino. As fontes, banca e conteúdo principal já vêm do passo anterior quando aplicável.</p>
 
-          <div class="config-group" id="config-difficulty">
-            <label class="config-label">Dificuldade</label>
-            <div class="chip-group" role="group">
-              <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> Fácil</button>
-              <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> Médio</button>
-              <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Difícil</button>
-              <button class="chip" data-difficulty="extreme"><span class="dot" style="background:#8b0000"></span> Extremo</button>
+          <div class="session-trust" aria-label="Garantias da sessão">
+            <div class="session-trust-item">
+              <i data-lucide="shield-check" width="16" height="16"></i>
+              <span><strong>Controle anti-alucinação</strong>As questões passam por regras de consistência e fonte.</span>
+            </div>
+            <div class="session-trust-item">
+              <i data-lucide="database" width="16" height="16"></i>
+              <span><strong>Fonte quando disponível</strong>Concursos e áreas acadêmicas usam base verificada/RAG.</span>
+            </div>
+            <div class="session-trust-item">
+              <i data-lucide="graduation-cap" width="16" height="16"></i>
+              <span><strong>Formato de estudo</strong>Você controla quantidade, estilo e nível da sessão.</span>
             </div>
           </div>
 
-          <div class="config-group">
-            <label class="config-label">Quantidade de questões: <strong id="qty-display">10</strong></label>
-            <div class="slider-wrapper">
-              <span>5</span>
+          <div class="session-config-grid">
+            <div class="session-config-card primary config-group" id="config-session">
+              <div class="session-card-head">
+                <i data-lucide="route" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Tipo de treino</label>
+                  <p class="session-card-note">Define o comportamento da explicação e da cobrança.</p>
+                </div>
+              </div>
+              <div class="session-mode-grid" role="group">
+                <button class="chip session-mode-card active" data-session="normal">
+                  <i data-lucide="book-open" width="16" height="16"></i>
+                  Estudo Normal
+                  <span>Aprender e revisar com explicações.</span>
+                </button>
+                <button class="chip session-mode-card" data-session="concurso">
+                  <i data-lucide="timer" width="16" height="16"></i>
+                  Simulado
+                  <span>Mais direto, com cara de prova.</span>
+                </button>
+                <button class="chip session-mode-card" data-session="revisao">
+                  <i data-lucide="refresh-cw" width="16" height="16"></i>
+                  Revisão Rápida
+                  <span>Perguntas objetivas para fixar.</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="session-config-card config-group" id="config-difficulty">
+              <div class="session-card-head">
+                <i data-lucide="sliders-horizontal" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Dificuldade</label>
+                  <p class="session-card-note">Comece em médio para equilibrar desafio e aprendizado.</p>
+                </div>
+              </div>
+              <div class="chip-group" role="group">
+                <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> Fácil</button>
+                <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> Médio</button>
+                <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Difícil</button>
+                <button class="chip" data-difficulty="extreme"><span class="dot" style="background:#8b0000"></span> Extremo</button>
+              </div>
+            </div>
+
+            <div class="session-config-card config-group" id="config-quantity">
+              <div class="session-card-head">
+                <i data-lucide="list-checks" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Quantidade de questões</label>
+                  <p class="session-card-note">Sessões menores são melhores para revisão diária.</p>
+                </div>
+              </div>
+              <div class="slider-value-row">
+                <span>5</span>
+                <span class="qty-pill" id="qty-display">10</span>
+                <span>50</span>
+              </div>
               <input type="range" id="qty-slider" min="5" max="50" step="5" value="10" aria-label="Quantidade de questões">
-              <span>50</span>
             </div>
-          </div>
-          <div class="config-group">
-            <label class="config-label">🎯 Meta diária de questões</label>
-            <div class="chip-group goal-chips" role="group" id="daily-goal-group">
-              <button class="chip" data-goal="5">5</button>
-              <button class="chip active" data-goal="10">10</button>
-              <button class="chip" data-goal="20">20</button>
-              <button class="chip" data-goal="30">30</button>
-              <button class="chip" data-goal="none">Sem meta</button>
-            </div>
-          </div>
 
-          <div class="config-group" id="config-type">
-            <label class="config-label">Tipo de questão</label>
-            <div class="chip-group" role="group">
-              <button class="chip active" data-qtype="mc">Múltipla Escolha</button>
-              <button class="chip" data-qtype="vf">Verdadeiro/Falso</button>
-              <button class="chip" data-qtype="mix">Misto</button>
-            </div>
-          </div>
-
-          <div class="config-group" id="config-alternativas">
-            <label class="config-label">Formato de resposta</label>
-            <div class="chip-group" role="group">
-              <button class="chip" data-alternativas="4">4 alternativas</button>
-              <button class="chip active" data-alternativas="5">5 alternativas</button>
-            </div>
-          </div>
-
-          <div class="config-group" id="config-idioma">
-            <label class="config-label">Idioma das questões</label>
-            <div class="chip-group" role="group">
-              <button class="chip active" data-idioma="pt-BR">Português (BR)</button>
-              <button class="chip" data-idioma="en">English (EN)</button>
-              <button class="chip" data-idioma="es">Español (ES)</button>
-            </div>
-          </div>
-
-          <div class="advanced-toggle-wrapper">
-            <button class="advanced-toggle" id="advanced-btn" aria-expanded="false">
-              <i data-lucide="settings-2" width="16" height="16"></i>
-              Configurações avançadas
-              <i data-lucide="chevron-down" width="16" height="16" class="chevron"></i>
-            </button>
-          </div>
-          <div class="advanced-config hidden" id="advanced-config">
-            <div class="config-group">
-              <label class="config-label">Modo da sessão</label>
+            <div class="session-config-card config-group" id="config-type">
+              <div class="session-card-head">
+                <i data-lucide="clipboard-list" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Tipo de questão</label>
+                  <p class="session-card-note">Múltipla escolha é o padrão mais familiar de prova.</p>
+                </div>
+              </div>
               <div class="chip-group" role="group">
-                <button class="chip active" data-session="normal"><i data-lucide="book-open" width="14" height="14"></i> Estudo Normal</button>
-                <button class="chip" data-session="concurso"><i data-lucide="trophy" width="14" height="14"></i> Simulado</button>
-                <button class="chip" data-session="revisao"><i data-lucide="refresh-cw" width="14" height="14"></i> Revisão Rápida</button>
+                <button class="chip active" data-qtype="mc">Múltipla escolha</button>
+                <button class="chip" data-qtype="vf">Verdadeiro/Falso</button>
+                <button class="chip" data-qtype="mix">Misto</button>
               </div>
             </div>
-            <div class="config-group" id="config-banca-focus">
-              <label class="config-label">Foco em banca <span style="font-weight:400;color:var(--color-text-muted)">(estilo da prova)</span></label>
-              <div class="chip-group" role="group">
-                <button class="chip active" data-banca="auto"><i data-lucide="bot" width="14" height="14"></i> Automático</button>
-                <button class="chip" data-banca="CEBRASPE">CEBRASPE / CESPE</button>
-                <button class="chip" data-banca="FCC">FCC</button>
-                <button class="chip" data-banca="VUNESP">VUNESP</button>
-                <button class="chip" data-banca="FGV">FGV</button>
-                <button class="chip" data-banca="CESGRANRIO">CESGRANRIO</button>
-                <button class="chip" data-banca="IDECAN">IDECAN</button>
-                <button class="chip" data-banca="IBFC">IBFC</button>
-                <button class="chip" data-banca="AOCP">AOCP</button>
-                <button class="chip" data-banca="FEPESE">FEPESE</button>
+
+            <div class="session-config-card config-group" id="config-alternativas">
+              <div class="session-card-head">
+                <i data-lucide="rows-3" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Formato de resposta</label>
+                  <p class="session-card-note">Use 5 alternativas para ENEM, vestibulares e muitos concursos.</p>
+                </div>
               </div>
-              <div id="banca-badge-wrapper" style="margin-top:var(--space-2)"></div>
+              <div class="chip-group" role="group">
+                <button class="chip" data-alternativas="4">4 alternativas</button>
+                <button class="chip active" data-alternativas="5">5 alternativas</button>
+              </div>
+            </div>
+
+            <div class="session-config-card config-group" id="config-idioma">
+              <div class="session-card-head">
+                <i data-lucide="languages" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Idioma das questões</label>
+                  <p class="session-card-note">Português do Brasil fica como padrão para estudos nacionais.</p>
+                </div>
+              </div>
+              <div class="chip-group" role="group">
+                <button class="chip active" data-idioma="pt-BR">Português (BR)</button>
+                <button class="chip" data-idioma="en">English (EN)</button>
+                <button class="chip" data-idioma="es">Español (ES)</button>
+              </div>
+            </div>
+
+            <div class="session-config-card config-group full">
+              <div class="session-card-head">
+                <i data-lucide="target" width="18" height="18"></i>
+                <div>
+                  <label class="config-label">Meta diária</label>
+                  <p class="session-card-note">Só controla seu acompanhamento diário; não muda a qualidade das questões.</p>
+                </div>
+              </div>
+              <div class="chip-group goal-chips" role="group" id="daily-goal-group">
+                <button class="chip" data-goal="5">5</button>
+                <button class="chip active" data-goal="10">10</button>
+                <button class="chip" data-goal="20">20</button>
+                <button class="chip" data-goal="30">30</button>
+                <button class="chip" data-goal="none">Sem meta</button>
+              </div>
             </div>
           </div>
         </div>
@@ -2028,7 +2172,7 @@ const state = {
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
   generatedQuestions: [], answered: 0, correct: 0, answerResults: [],
-  concursoSubStep: 'a', advancedOpen: false,
+  concursoSubStep: 'a',
   dailyGoal: 10,
 };
 const MAX_EXTRACTED_CHARS = 120000;
@@ -2289,7 +2433,6 @@ function init() {
         const selected = e.currentTarget;
         selected.classList.add('active');
         state[key] = selected.dataset[group];
-        if (group === 'banca') updateBancaBadge(state.bancaFoco);
         scrollToNextConfigGroup(selected);
       });
     });
@@ -2300,7 +2443,6 @@ function init() {
   setupChips('session', 'sessionMode');
   setupChips('alternativas', 'alternativas');
   setupChips('idioma', 'idioma');
-  setupChips('banca', 'bancaFoco');
 
   const slider = document.getElementById('qty-slider');
   slider.addEventListener('input', e => {
@@ -2316,14 +2458,6 @@ function init() {
   });
   updateDailyGoalUI();
 
-  document.getElementById('advanced-btn').addEventListener('click', e => {
-    state.advancedOpen = !state.advancedOpen;
-    e.currentTarget.setAttribute('aria-expanded', state.advancedOpen);
-    document.getElementById('advanced-config').classList.toggle('hidden');
-    document.getElementById('advanced-config').classList.toggle('open', state.advancedOpen);
-    if (state.advancedOpen) scrollChoiceIntoView('#advanced-config', 120);
-  });
-
   document.getElementById('next-btn').addEventListener('click', () => goToStep(state.currentStep + 1));
   document.getElementById('back-btn').addEventListener('click', () => goToStep(state.currentStep - 1));
   document.getElementById('restart-btn').addEventListener('click', () => {
@@ -2335,14 +2469,6 @@ function init() {
   document.getElementById('retry-btn').addEventListener('click', () => callWorkerAndRender());
   window.addEventListener('quizCompleted', handleQuizCompleted);
   updateNavButtons();
-}
-
-function updateBancaBadge(banca) {
-  const wrapper = document.getElementById('banca-badge-wrapper');
-  if (!wrapper) return;
-  if (!banca || banca === 'auto') { wrapper.innerHTML = ''; return; }
-  wrapper.innerHTML = `<span class="banca-badge"><i data-lucide="landmark" width="13" height="13"></i> Foco: ${banca}</span>`;
-  lucide.createIcons();
 }
 
 function selectMode(mode) {
@@ -3107,6 +3233,18 @@ function renderQuestions(questions) {
   scrollToWizard(100);
 }
 
+function renderQuestionProof(q) {
+  const proof = [];
+  if (q.fonte) {
+    proof.push(`<span class="proof-chip"><i data-lucide="book-open-check" width="12" height="12"></i> Fonte: <strong>${q.fonte}</strong></span>`);
+  }
+  const badge = q._qualityBadge;
+  if (badge?.confidence) {
+    proof.push(`<span class="proof-chip"><i data-lucide="shield-check" width="12" height="12"></i> Confiança: <strong>${badge.confidence}</strong>${badge.score ? ` · ${badge.score}` : ''}</span>`);
+  }
+  return proof.length ? `<div class="question-proof">${proof.join('')}</div>` : '';
+}
+
 function renderAllQuestionsDesktop(questions) {
   const list = document.getElementById('questions-list');
   const scoreTotal = document.getElementById('score-total');
@@ -3142,6 +3280,7 @@ function renderAllQuestionsDesktop(questions) {
         <button class="q-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="q-resolver-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
         <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp-${idx}">
           <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+          ${renderQuestionProof(q)}
         </div>
       </div>`;
   }).join('');
@@ -3242,6 +3381,7 @@ function renderSingleQuestion(questions, idx) {
       <button class="q-resolver-btn${hasAnswered || !selectedKey ? '' : ''} ${hasAnswered ? 'hidden' : ''}" id="q-resolver" ${selectedKey ? '' : 'disabled'}>Resolver</button>
       <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp">
         <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+        ${renderQuestionProof(q)}
       </div>
       <div class="q-nav-bar">
         <button class="q-nav-btn" id="q-prev" ${idx === 0 ? 'disabled' : ''}>
@@ -3435,6 +3575,7 @@ function createQFQuestionElement(q, idx) {
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
     <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
       <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      ${renderQuestionProof(q)}
     </div>`;
   
   return wrap;
@@ -3612,6 +3753,7 @@ function renderQFQuestion(idx) {
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
     <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
       <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      ${renderQuestionProof(q)}
     </div>`;
   qfBody.innerHTML = '';
   qfBody.appendChild(wrap);
