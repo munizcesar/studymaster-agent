@@ -1870,7 +1870,7 @@ export default {
         contextInfo = `Área: ${area}. Disciplina: ${subject}.${topic ? ` Tópico: ${topic}.` : ' (Matéria completa)'}`;
         externalContext = await fetchContext(area, mode, topic, subject, idioma, env);
       } else if (mode === 'livre' && freeText) {
-        contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 4000)}`;
+        contextInfo = `Material de estudo fornecido pelo usuário:\n${freeText.slice(0, 12000)}`;
       } else {
         const fallback = topic || subject || area || '';
         contextInfo = `Tópico: ${fallback || 'Conhecimentos gerais'}.`;
