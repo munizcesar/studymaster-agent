@@ -1784,7 +1784,6 @@ export default {
       // ──────────────────────────────────────────────────────────────────────────
       if (mode === 'concursos' && filter) {
         const ragResult = await generateConcursosRAGQuestion(body, env);
-
         if (!ragResult.success) {
           return new Response(
             JSON.stringify({
@@ -1978,10 +1977,28 @@ export default {
 
       questions = validateQuestions(questions);
 
+      // Validação forte para Material Livre
+      if (mode === 'livre' && freeText) {
+        const validatedLivre = [];
+        for (const q of questions) {
+          const traceValidation = validateQuestionTraceability(q, freeText);
+          if (traceValidation.valid) {
+            // Adiciona o badge de qualidade (simulando ragScore alto pois é texto fornecido pelo usuário)
+            q._qualityBadge = generateQualityBadge(0.95, traceValidation);
+            validatedLivre.push(q);
+          } else {
+            console.warn(`[LIVRE] Questão ${q.id} recusada. Motivo: ${traceValidation.message}`);
+          }
+        }
+        questions = validatedLivre;
+      }
+
       if (questions.length === 0) {
         return new Response(JSON.stringify({
-          error: 'Resposta vazia', rawText,
-          userMessage: 'A IA não gerou questões válidas. Tente ajustar o tópico ou dificuldade.',
+          error: 'Resposta vazia ou questões recusadas', rawText,
+          userMessage: (mode === 'livre' && freeText) 
+            ? 'A IA não conseguiu gerar questões estritamente baseadas no material enviado. O texto pode não conter informações suficientes.'
+            : 'A IA não gerou questões válidas. Tente ajustar o tópico ou dificuldade.',
         }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
