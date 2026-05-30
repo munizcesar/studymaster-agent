@@ -585,6 +585,46 @@
     .generating-label { font-size: var(--text-base); color: var(--color-text-muted); }
     .generating-sub { font-size: var(--text-sm); color: var(--color-text-faint); }
 
+    /* FASE 2: Skeleton Loader */
+    .skeleton {
+      background: linear-gradient(90deg, var(--color-surface-offset) 0%, var(--color-surface) 50%, var(--color-surface-offset) 100%);
+      background-size: 200% 100%;
+      animation: skeletonPulse 1.5s ease-in-out infinite;
+      border-radius: var(--radius-md);
+    }
+    @keyframes skeletonPulse {
+      0%, 100% { background-position: 200% 0; }
+      50% { background-position: -200% 0; }
+    }
+    .skeleton-header { height: 24px; width: 40%; margin-bottom: var(--space-2); }
+    .skeleton-text { height: 16px; width: 100%; margin-bottom: var(--space-2); }
+    .skeleton-option { height: 48px; width: 100%; margin-bottom: var(--space-2); }
+
+    /* FASE 2: Quality Badge */
+    .quality-badge {
+      display: flex; align-items: center; gap: var(--space-2);
+      margin-top: var(--space-4); padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md); border: 1px solid var(--color-border);
+      background: var(--color-surface-offset); font-size: var(--text-sm);
+    }
+    .quality-badge.confidence-alta {
+      background: oklch(from var(--color-success) l c h / 0.08);
+      border-color: oklch(from var(--color-success) l c h / 0.25);
+    }
+    .quality-badge.confidence-media {
+      background: oklch(from var(--color-accent) l c h / 0.08);
+      border-color: oklch(from var(--color-accent) l c h / 0.25);
+    }
+    .quality-badge.confidence-baixa {
+      background: oklch(from var(--color-error) l c h / 0.08);
+      border-color: oklch(from var(--color-error) l c h / 0.25);
+    }
+    .badge-emoji { font-size: 1.2em; }
+    .badge-info { flex: 1; }
+    .badge-info strong { display: block; font-weight: 700; margin-bottom: 2px; }
+    .badge-tooltip { display: block; font-size: var(--text-xs); opacity: 0.75; margin-top: 2px; }
+    .badge-score { font-weight: 700; min-width: 48px; text-align: right; }
+
     /* Questões */
     .questions-container { display: none; }
     .questions-container.visible { display: block; }
@@ -955,6 +995,22 @@
       .daily-perf { gap: 4px; padding: 3px; }
       .daily-perf .daily-hoje { display: none; }
       .daily-badge { padding: 4px 7px; font-size: 12px; }
+    }
+
+    /* FASE 2: Mobile-first 375px optimizations */
+    @media (max-width: 375px) {
+      .container { padding-left: var(--space-3); padding-right: var(--space-3); }
+      .wizard-card { padding: var(--space-4); }
+      .option-btn { padding: var(--space-2) var(--space-3); }
+      .option-key { min-width: 32px; width: 32px; height: 32px; }
+      .step-title { font-size: var(--text-lg); }
+      .question-statement { font-size: var(--text-base); }
+      .quality-badge { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+    }
+
+    /* FASE 2: Ensure 44x44px touch targets globally */
+    .option-btn, .chip, .btn-primary, .btn-back, .btn-next, .mode-card, .filter-card {
+      min-height: 44px;
     }
 
     /* ── Quiz Fullscreen Mode ── */
@@ -1735,6 +1791,19 @@
             <div class="spinner"></div>
             <p class="generating-label">Gerando suas questões com IA…</p>
             <p class="generating-sub">Isso leva alguns segundos</p>
+            <div style="margin-top: var(--space-6); width: 100%; max-width: 600px;">
+              <div class="question-card" style="padding: var(--space-5);">
+                <div class="skeleton skeleton-header"></div>
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text" style="width: 85%;"></div>
+                <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3);">
+                  <div class="skeleton skeleton-option"></div>
+                  <div class="skeleton skeleton-option"></div>
+                  <div class="skeleton skeleton-option"></div>
+                  <div class="skeleton skeleton-option"></div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="error-screen" id="error-screen">
             <div class="error-icon"><i data-lucide="alert-triangle" width="48" height="48" style="color:var(--color-error)"></i></div>
@@ -3286,6 +3355,15 @@ function renderAllQuestionsDesktop(questions) {
           }).join('')}
         </div>
         <button class="q-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="q-resolver-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
+        ${q._qualityBadge ? `
+        <div class="quality-badge confidence-${q._qualityBadge.confidence.toLowerCase()}" title="${q._qualityBadge.message}">
+          <span class="badge-emoji">${q._qualityBadge.emoji}</span>
+          <div class="badge-info">
+            <strong>Confiança ${q._qualityBadge.confidence}</strong>
+            <span class="badge-tooltip">${q._qualityBadge.message.replace(q._qualityBadge.emoji + ' ', '')}</span>
+          </div>
+          <span class="badge-score">${q._qualityBadge.score}</span>
+        </div>` : ''}
         <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp-${idx}">
           <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
           ${renderQuestionProof(q)}
@@ -3583,6 +3661,15 @@ function createQFQuestionElement(q, idx) {
       }).join('')}
     </div>
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
+    ${q._qualityBadge ? `
+    <div class="quality-badge confidence-${q._qualityBadge.confidence.toLowerCase()}" title="${q._qualityBadge.message}">
+      <span class="badge-emoji">${q._qualityBadge.emoji}</span>
+      <div class="badge-info">
+        <strong>Confiança ${q._qualityBadge.confidence}</strong>
+        <span class="badge-tooltip">${q._qualityBadge.message.replace(q._qualityBadge.emoji + ' ', '')}</span>
+      </div>
+      <span class="badge-score">${q._qualityBadge.score}</span>
+    </div>` : ''}
     <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
       <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
       ${renderQuestionProof(q)}

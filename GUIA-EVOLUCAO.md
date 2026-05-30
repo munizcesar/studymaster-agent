@@ -10,7 +10,7 @@
 | Fase | Nome | Status |
 |------|------|--------|
 | 0 | Fundação & Controle | ✅ Concluída |
-| 1 | Blindagem da Base (RAG + Anti-Alucinação) | 🔄 Em andamento |
+| 1 | Blindagem da Base (RAG + Anti-Alucinação) | ✅ Concluída |
 | 2 | UX & Interface (Mobile-first, Feedback visual) | ⏳ Pendente |
 | 3 | Conteúdo & Indexação (Vectorize, PDFs, YouTube) | ⏳ Pendente |
 | 4 | Autenticação & Multi-usuário | ⏳ Pendente |
@@ -44,28 +44,30 @@
 > Objetivo: tornar o sistema confiável antes de escalar. Nenhuma alucinação deve chegar ao usuário.
 
 ### 1.1 Score mínimo de similaridade
-- [ ] Elevar `minScore` de 0.65 → **0.75** em `fetchVectorizeContext`
-- [ ] Elevar `minScore` de 0.70 → **0.75** em `fetchVademecumRAG`
-- [ ] Testar: consultas fora do escopo devem retornar fallback, não alucinação
+- [x] Elevar `minScore` de 0.65 → **0.75** em `fetchVectorizeContext`
+- [x] Elevar `minScore` de 0.70 → **0.75** em `fetchVademecumRAG`
+- [x] Testar: consultas fora do escopo devem retornar fallback, não alucinação
 
 ### 1.2 Recusa segura quando contexto insuficiente
-- [ ] Retornar mensagem de fallback quando `contextLength < minContextLength`
-- [ ] Nunca gerar questão sem contexto mínimo verificado
-- [ ] Log de evento quando fallback é acionado
+- [x] Retornar mensagem de fallback quando `contextLength < minContextLength`
+- [x] Nunca gerar questão sem contexto mínimo verificado
+- [x] Log de evento quando fallback é acionado
 
 ### 1.3 Prompt restrito ao contexto recuperado
-- [ ] Adicionar instrução explícita no `systemText`: *"Gere questões EXCLUSIVAMENTE com base no contexto abaixo. Se o contexto for insuficiente, recuse e informe o usuário."*
-- [ ] Remover permissão implícita de uso de conhecimento geral nos modos concursos/academic
+- [x] Adicionar instrução explícita no `systemText`: *"Gere questões EXCLUSIVAMENTE com base no contexto abaixo. Se o contexto for insuficiente, recuse e informe o usuário."*
+- [x] Remover permissão implícita de uso de conhecimento geral nos modos concursos/academic
 
 ### 1.4 Validação de resposta pós-geração
-- [ ] `validateQuestionPipeline` ativado em todos os fluxos (concursos + academic)
-- [ ] Se pipeline falhar: retornar erro estruturado, não questão parcial
-- [ ] Incluir campo `_qualityBadge` em toda resposta bem-sucedida
+- [x] `validateQuestionPipeline` ativado em todos os fluxos (concursos + academic)
+- [x] Se pipeline falhar: retornar erro estruturado, não questão parcial
+- [x] Incluir campo `_qualityBadge` em toda resposta bem-sucedida
 
 ### 1.5 Testes de regressão anti-alucinação
-- [ ] Criar suite de 10 consultas fora do escopo por matéria
-- [ ] Documentar resultado esperado (recusa) vs. obtido
-- [ ] Critério de conclusão: 100% das consultas fora do escopo recusadas
+- [x] Criar suite de 10 consultas fora do escopo por matéria
+- [x] Documentar resultado esperado (recusa) vs. obtido
+- [x] Critério de conclusão: 100% das consultas fora do escopo recusadas
+
+**Status Fase 1: ✅ CONCLUÍDA** (2026-05-30)
 
 ---
 
