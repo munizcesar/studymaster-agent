@@ -36,7 +36,7 @@
 - [x] Função `validateRAGScore()` implementada com `minScore = 0.75`
 - [x] Retorna `RAG_EMPTY` quando não há matches
 - [x] Retorna `RAG_LOW_CONFIDENCE` quando score médio < 0.75
-- [ ] **Score configurável por matéria** (cada filtro define seu próprio `minScore`)
+- [x] **Score configurável por matéria** — cada filtro define `minScore` próprio via `config.minScore`
 - [ ] **Log estruturado** de rejeições por score baixo (campo `ragRejectLog` na resposta)
 
 ### 1.2 Recusa Segura (Safe Refusal)
@@ -51,9 +51,9 @@
 
 - [x] Contexto Vectorize injetado no prompt via `fetchVectorizeContext()`
 - [x] `validateQuestionTraceability()` verifica cobertura de termos (≥ 30%)
-- [ ] **Cobertura mínima elevada de 30% para 45%** nos modos concurso e academic
-- [ ] **Instrução explícita no system prompt**: "Use APENAS o contexto abaixo. Se o contexto for insuficiente, recuse."
-- [ ] **Bloco de contexto delimitado** no prompt com tags `<CONTEXT>...</CONTEXT>`
+- [x] **Cobertura mínima elevada para 45%** nos modos `concurso` e `academic`
+- [x] **Instrução explícita no system prompt**: "Use APENAS o contexto abaixo. Se o contexto for insuficiente, recuse."
+- [x] **Bloco de contexto delimitado** no prompt com tags `<CONTEXT>...</CONTEXT>`
 
 ### 1.4 Padrões Proibidos (Forbidden Patterns)
 
@@ -146,12 +146,13 @@
 
 | Data | Fase | Descrição | SHA |
 |------|------|-----------|-----|
-| 2026-05-30 | 1 | Guia mestre criado, Fase 1 mapeada | _(este commit)_ |
+| 2026-05-30 | 1 | Guia mestre criado, Fase 1 mapeada | eb41b20 |
+| 2026-05-30 | 1.1 + 1.3 | Score por matéria, cobertura 45%, bloco CONTEXT no prompt | _(este commit)_ |
 
 ---
 
 ## 🔧 Próximos 3 itens a implementar (Fase 1)
 
-1. **Score configurável por matéria** — cada filtro define `minScore` próprio no config
-2. **Cobertura mínima 30% → 45%** — ajuste em `validateQuestionTraceability()`
-3. **Instrução explícita no system prompt** — bloco `<CONTEXT>` + "use apenas o contexto abaixo"
+1. **Log de rejeições** — campo `ragRejectLog` no response JSON com motivo e score
+2. **Recusa padronizada** — JSON `{ refused: true, reason, suggestion }` em vez de string solta
+3. **Padrões proibidos globais** — array compartilhado entre todos os filtros/áreas
