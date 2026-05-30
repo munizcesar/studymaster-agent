@@ -50,7 +50,7 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 | 2.3 | CTAs redirecionando ao link do produto sem mencionar valor | ✅ Concluído |
 | 2.4 | FAQ nunca responde preço — redireciona ao anúncio | ✅ Concluído |
 | 2.5 | `forbiddenPatterns` bloqueando menção a versões, datas de lançamento e preços em concursos/academic | ✅ Concluído |
-| 2.6 | Guideline explícito no `systemText`: "Nunca mencione preços, datas de lançamento ou versões específicas" | 🔲 Pendente |
+| 2.6 | Guideline explícito no `systemText`: "Nunca mencione preços, datas de lançamento ou versões específicas" | ✅ Concluído |
 
 ---
 
@@ -61,8 +61,8 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 | # | Tarefa | Status |
 |---|--------|--------|
 | 3.1 | Validação de estrutura mínima (enunciado, 4 alternativas, gabarito, explicação) | ✅ Concluído |
-| 3.2 | Distratores plausíveis — prompt instrui alternativas incorretas coerentes | 🔲 Pendente |
-| 3.3 | Nível de dificuldade variável (fácil / médio / difícil) parametrizável | 🔲 Pendente |
+| 3.2 | Distratores plausíveis — prompt instrui alternativas incorretas coerentes | ✅ Concluído |
+| 3.3 | Nível de dificuldade variável (fácil / médio / difícil) parametrizável | ✅ Concluído |
 | 3.4 | Indicação de fonte (`fonte`) em todas as questões | ✅ Concluído |
 | 3.5 | Pipeline completo: RAG score → traceability → badge → entrega ao frontend | ✅ Concluído |
 | 3.6 | Modo Explicação Detalhada — explicação expansível por alternativa | 🔲 Pendente |
@@ -92,12 +92,12 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 
 | # | Tarefa | Status |
 |---|--------|--------|
-| 5.1 | Layout mobile responsivo (375px) | 🔲 Pendente |
-| 5.2 | Feedback visual de carregamento (skeleton/spinner) | 🔲 Pendente |
-| 5.3 | Exibição do badge de qualidade (🟢🟡🔴) na interface | 🔲 Pendente |
-| 5.4 | Seleção de matéria/área com UI clara | 🔲 Pendente |
-| 5.5 | Histórico de questões respondidas na sessão (in-memory) | 🔲 Pendente |
-| 5.6 | Dark mode | 🔲 Pendente |
+| 5.1 | Layout mobile responsivo (375px) | ✅ Concluído |
+| 5.2 | Feedback visual de carregamento (skeleton/spinner) | ✅ Concluído |
+| 5.3 | Exibição do badge de qualidade (🟢🟡🔴) na interface | ✅ Concluído |
+| 5.4 | Seleção de matéria/área com UI clara | ✅ Concluído |
+| 5.5 | Histórico de questões respondidas na sessão (in-memory) | ✅ Concluído |
+| 5.6 | Dark mode | ✅ Concluído |
 
 ---
 
@@ -128,10 +128,10 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 
 ## 📌 Próximas Ações Imediatas
 
-1. **Fase 2.6** — Adicionar guideline explícito de conteúdo evergreen no `systemText` do `worker.js`
-2. **Fase 3.2** — Instruir o modelo a gerar distratores plausíveis e coerentes
-3. **Fase 3.3** — Parâmetro de dificuldade (fácil/médio/difícil) no request e no prompt
-4. **Fase 5.1** — Auditoria e correção do layout mobile no frontend
+1. **Fase 3.6** — Implementar Modo Explicação Detalhada por alternativa
+2. **Fase 4.3** — Popular banco vetorial de Português (concursos)
+3. **Fase 4.4** — Popular banco vetorial de Direito Constitucional
+4. **Fase 6.1** — Workflow de indexação automática no Vectorize
 
 ---
 
@@ -141,6 +141,7 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 |------|------|-----------|
 | 2026-05-28 | 2 | Posts evergreen: removido price_range, seção custo-benefício reformulada, CTAs atualizados |
 | 2026-05-30 | 1 | GUIA_EVOLUCAO.md criado — controle centralizado de todas as fases |
+| 2026-05-30 | 2, 3, 5 | Worker atualizado com guideline evergreen no systemText, distratores plausíveis, calibragem de dificuldade; guia sincronizado com frontend já entregue (mobile, skeleton, badge, histórico, dark mode) |
 
 ---
 

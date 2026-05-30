@@ -504,298 +504,325 @@ function getAreaSafetyInstruction(area, mode) {
   if (mode === "concurso" || area === "Direito") {
     return `PROTOCOLO VADE M\xCACUM ATIVO:
 - Use APENAS artigos, incisos e par\xE1grafos confirmados no contexto legislativo fornecido.
-- Diplomas v\xE1lidos: CF/88, CC/2002, CP, CPC/2015, CPP, CLT, Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, Lei 12.527/11, Lei 13.709/18 (LGPD).
-- S\xFAmulas: cite SOMENTE com n\xFAmero e tribunal confirmados (STF, STJ, TST).
-- NUNCA invente artigos fict\xEDcios, s\xFAmulas com n\xFAmeros errados ou leis inexistentes.`;
+- Diplomas v\xE1lidos: CF/88, CC/2002, CP, CPC/2015, CPP, CLT, Lei 8.112/90, Lei 8.666/93, Lei 14.133/21, Lei 9.784/99, CTN, CDC, ECA, Lei 11.340/06, conforme o tema.
+- Se a base n\xE3o trouxer o trecho legal, prefira pergunta conceitual segura e atemporal.
+- Nunca use jurisprud\xEAncia n\xE3o comprovada, numera\xE7\xE3o inventada ou artigo sem fonte.`;
   }
-  if (mode === "livre") return "As quest\xF5es devem ser baseadas EXCLUSIVAMENTE no material de estudo fornecido pelo usu\xE1rio.";
-  const areaMap = {
-    "Sa\xFAde": "Use apenas terminologia m\xE9dica, protocolos cl\xEDnicos, f\xE1rmacos e s\xEDndromes reconhecidos pela CID.",
-    "Tecnologia": "Use apenas linguagens, frameworks, comandos e protocolos documentados.",
-    "Exatas": "Use apenas f\xF3rmulas, teoremas e constantes f\xEDsicas/qu\xEDmicas verificados.",
-    "Humanas": "Use apenas eventos hist\xF3ricos, datas, personagens e conceitos reais e documentados.",
-    "Neg\xF3cios": "Use apenas conceitos de administra\xE7\xE3o, contabilidade e finan\xE7as consolidados.",
-    "ENEM": "Use apenas conte\xFAdos da matriz de refer\xEAncia oficial do ENEM (INEP).",
-    "Concursos \u2014 Mat\xE9rias Comuns": "Cite apenas artigos e conceitos existentes."
-  };
-  return areaMap[area] || "Use apenas conhecimento fact\xEDcio consolidado e verificado.";
+  if (area === "Medicina" || area === "Sa\xFAde") {
+    return `PROTOCOLO SA\xDADE ATIVO:
+- Use apenas conceitos consolidados, fisiologia, farmacologia, protocolos amplamente aceitos.
+- Nunca prescreva conduta espec\xEDfica sem respaldo no contexto.
+- Evite drogas, doses e indica\xE7\xF5es se o contexto n\xE3o estiver claramente presente.`;
+  }
+  if (area === "Exatas") {
+    return `PROTOCOLO EXATAS ATIVO:
+- Use apenas f\xF3rmulas, defini\xE7\xF5es e propriedades consagradas.
+- N\xE3o invente constantes, resultados num\xE9ricos ou teoremas.`;
+  }
+  return `PROTOCOLO ACAD\xCAMICO ATIVO:
+- Use apenas conhecimento consolidado, verific\xE1vel e atemporal.
+- Nunca invente fontes, datas, nomes, estat\xEDsticas ou detalhes n\xE3o sustentados pelo contexto.`;
 }
 __name(getAreaSafetyInstruction, "getAreaSafetyInstruction");
-function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 24e3) {
-  const overhead = systemText.length + 2e3;
-  const available = maxChars - overhead;
-  const combined = contextInfo + externalBlock;
-  if (combined.length <= available) return { contextInfo, externalBlock };
-  const spaceForExternal = available - contextInfo.length;
-  if (spaceForExternal > 300 && externalBlock.length > 0) {
-    return { contextInfo, externalBlock: externalBlock.slice(0, spaceForExternal) + "\n[contexto truncado]" };
-  }
-  return { contextInfo: contextInfo.slice(0, available - 200), externalBlock: "" };
+function getDifficultyLabel(difficulty) {
+  if (difficulty === "easy") return "f\xE1cil";
+  if (difficulty === "hard") return "dif\xEDcil";
+  if (difficulty === "extreme") return "extremo";
+  return "m\xE9dio";
 }
-__name(guardPromptSize, "guardPromptSize");
-function extractJsonFromText(text) {
-  let t = String(text || "").trim();
-  if (t.startsWith("```")) t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-  if (t.startsWith("{") || t.startsWith("[")) return t;
-  const matchObj = t.match(/\{[\s\S]*\}/);
-  if (matchObj) return matchObj[0];
-  const matchArr = t.match(/\[[\s\S]*\]/);
-  if (matchArr) return matchArr[0];
-  return t;
+__name(getDifficultyLabel, "getDifficultyLabel");
+function extractJsonFromText(rawText) {
+  const firstBrace = rawText.indexOf("{");
+  const lastBrace = rawText.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return rawText.slice(firstBrace, lastBrace + 1);
+  }
+  return rawText.trim();
 }
 __name(extractJsonFromText, "extractJsonFromText");
-function extractYouTubeVideoId(url) {
-  try {
-    const u = new URL(url.trim());
-    if (u.hostname === "youtu.be") return u.pathname.slice(1).split("/")[0] || null;
-    const v = u.searchParams.get("v");
-    if (v) return v;
-    const parts = u.pathname.split("/");
-    const idx = parts.findIndex((p) => ["embed", "shorts", "live"].includes(p));
-    if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
-  } catch {
+async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
+  if (!env.GROQ_API_KEY) {
+    return {
+      ok: false,
+      status: 500,
+      text: async () => "GROQ_API_KEY não configurado"
+    };
   }
-  return null;
-}
-__name(extractYouTubeVideoId, "extractYouTubeVideoId");
-async function fetchYouTubeTranscript(videoId) {
-  const MAX_TRANSCRIPT_CHARS = 3e4;
-  const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-  const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  let pageHtml;
-  try {
-    const pageRes = await fetch(pageUrl, {
-      headers: { "User-Agent": UA, "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8" },
-      signal: AbortSignal.timeout(1e4)
-    });
-    if (!pageRes.ok) throw new Error(`YouTube retornou HTTP ${pageRes.status}`);
-    pageHtml = await pageRes.text();
-  } catch (e) {
-    throw new Error(`N\xE3o foi poss\xEDvel acessar o v\xEDdeo: ${e.message}`);
+  const maxCompletionTokens = quantity > 1 ? 3400 : 2200;
+  let lastErr = null;
+  for (const model of GROQ_MODELS) {
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.GROQ_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.15,
+          max_completion_tokens: maxCompletionTokens,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: systemText },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+      if (response.ok) return response;
+      const errText = await response.text();
+      lastErr = new Error(`Groq ${model} failed (${response.status}): ${errText}`);
+      if (response.status < 500 && response.status !== 429) {
+        return {
+          ok: false,
+          status: response.status,
+          text: async () => errText
+        };
+      }
+    } catch (e) {
+      lastErr = e;
+    }
   }
-  const match = pageHtml.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});(?:\s*var\s|\s*<\/script)/s);
-  if (!match) throw new Error("N\xE3o foi poss\xEDvel extrair dados do v\xEDdeo. O v\xEDdeo pode ser privado ou com restri\xE7\xE3o de idade.");
-  let playerResponse;
-  try {
-    playerResponse = JSON.parse(match[1]);
-  } catch {
-    throw new Error("Erro ao processar dados do v\xEDdeo.");
-  }
-  const status = playerResponse?.playabilityStatus?.status;
-  if (status && status !== "OK") {
-    const reason = playerResponse?.playabilityStatus?.reason || status;
-    throw new Error(`V\xEDdeo n\xE3o dispon\xEDvel: ${reason}`);
-  }
-  const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-  if (captionTracks.length === 0) {
-    throw new Error("Este v\xEDdeo n\xE3o possui legendas ou transcri\xE7\xE3o dispon\xEDvel. Tente um v\xEDdeo com legendas ativadas.");
-  }
-  const priority = ["pt-BR", "pt", "en"];
-  let chosen = null;
-  for (const lang of priority) {
-    chosen = captionTracks.find((t) => t.languageCode === lang) || null;
-    if (chosen) break;
-  }
-  if (!chosen) chosen = captionTracks[0];
-  const baseUrl = chosen?.baseUrl;
-  if (!baseUrl) throw new Error("URL da legenda inv\xE1lida.");
-  const transcriptUrl = `${baseUrl}&fmt=json3`;
-  let transcriptData;
-  try {
-    const tRes = await fetch(transcriptUrl, {
-      headers: { "User-Agent": UA },
-      signal: AbortSignal.timeout(8e3)
-    });
-    if (!tRes.ok) throw new Error(`HTTP ${tRes.status}`);
-    transcriptData = await tRes.json();
-  } catch (e) {
-    throw new Error(`Falha ao baixar transcri\xE7\xE3o: ${e.message}`);
-  }
-  const events = transcriptData?.events || [];
-  const segments = events.flatMap((e) => e?.segs || []).map((s) => (s?.utf8 || "").replace(/\n/g, " ").trim()).filter((s) => s && s !== " ");
-  const deduped = segments.filter((s, i) => i === 0 || s !== segments[i - 1]);
-  if (!deduped.length) {
-    throw new Error("A transcri\xE7\xE3o do v\xEDdeo est\xE1 vazia. Tente um v\xEDdeo diferente.");
-  }
-  let text = deduped.join(" ").replace(/\s{2,}/g, " ").trim();
-  const wasTruncated = text.length > MAX_TRANSCRIPT_CHARS;
-  if (wasTruncated) text = text.slice(0, MAX_TRANSCRIPT_CHARS);
   return {
-    text,
-    videoId,
-    lang: chosen.languageCode || "desconhecido",
-    isAuto: chosen.kind === "asr",
-    truncated: wasTruncated,
-    charCount: text.length,
-    source: "youtube.com (timedtext)"
+    ok: false,
+    status: 503,
+    text: async () => lastErr?.message || "Falha ao conectar com Groq"
   };
 }
-__name(fetchYouTubeTranscript, "fetchYouTubeTranscript");
-
-// ════════════════════════════════════════════════════════════════════════════
-// FASE 1: FUNÇÕES DE VALIDAÇÃO DO PIPELINE (CAMADAS 1, 3, 4)
-// ════════════════════════════════════════════════════════════════════════════
-
-function validateRAGScore(ragResults, minScore = 0.75) {
-  if (!ragResults?.matches || ragResults.matches.length === 0) {
-    return { valid: false, score: 0, reason: 'RAG_EMPTY', message: 'Nenhum material encontrado' };
+__name(callGroqWithFallback, "callGroqWithFallback");
+function summarizeQueryContext(topic, extra, prompt) {
+  const parts = [topic, extra, prompt].filter(Boolean).join(" ").trim();
+  return parts.slice(0, 500);
+}
+__name(summarizeQueryContext, "summarizeQueryContext");
+function validateRAGScore(ragResult, subjectConfig) {
+  const minScore = 0.75;
+  if (!ragResult?.sources?.length) {
+    return {
+      valid: false,
+      score: 0,
+      level: "none",
+      reason: "Nenhuma fonte recuperada do Vectorize"
+    };
   }
-  const topScores = ragResults.matches.map(m => m.score || 0).sort((a, b) => b - a).slice(0, 3);
-  const avgScore = topScores.reduce((a, b) => a + b, 0) / topScores.length;
+  const sourceScores = ragResult.sources.map((s) => s.score || 0).filter((score) => typeof score === "number");
+  if (sourceScores.length === 0) {
+    return {
+      valid: false,
+      score: 0,
+      level: "none",
+      reason: "Nenhum score válido nas fontes recuperadas"
+    };
+  }
+  const avgScore = sourceScores.reduce((acc, score) => acc + score, 0) / sourceScores.length;
   if (avgScore < minScore) {
-    return { valid: false, score: avgScore, reason: 'RAG_LOW_CONFIDENCE', message: `Material insuficiente (${(avgScore * 100).toFixed(0)}%)` };
+    return {
+      valid: false,
+      score: avgScore,
+      level: avgScore >= 0.65 ? "low" : "none",
+      reason: `Score médio ${avgScore.toFixed(3)} abaixo do mínimo ${minScore}`
+    };
   }
-  return { valid: true, score: avgScore, matchCount: ragResults.matches.length, message: `Material verificado` };
+  let qualityLevel = "high";
+  if (avgScore < 0.85) qualityLevel = "medium";
+  return {
+    valid: true,
+    score: avgScore,
+    level: qualityLevel,
+    reason: `Score RAG válido: ${avgScore.toFixed(3)} (mínimo: ${minScore})`
+  };
 }
-
-function validateQuestionTraceability(question, contextText) {
-  if (!contextText || contextText.length < 100) {
-    return { valid: false, reason: 'NO_CONTEXT', coverage: '0%', message: 'Contexto insuficiente' };
+__name(validateRAGScore, "validateRAGScore");
+function validateQuestionTraceability(question, ragContext, subjectConfig) {
+  if (!question?.statement || !ragContext?.context) {
+    return {
+      valid: false,
+      confidence: 0,
+      matchedTerms: [],
+      reason: "Question statement ou RAG context ausente"
+    };
   }
-  const contextLower = contextText.toLowerCase();
-  const statementLower = question.statement.toLowerCase();
-  const explanationLower = (question.explanation || '').toLowerCase();
-  const extractKeyTerms = (text) => text.replace(/[^\w\sáàâãéèêíïóôõöúçñ]/gi, ' ').split(/\s+/).filter(w => w.length >= 5).filter(w => !/^(questão|sobre|quando|conforme|segundo|assim|então|portanto|todavia|contudo|porque|porém|ainda|também|apenas|somente)$/i.test(w));
-  const keyTerms = [...extractKeyTerms(statementLower), ...extractKeyTerms(explanationLower)];
-  if (keyTerms.length === 0) {
-    return { valid: false, reason: 'NO_KEY_TERMS', coverage: '0%', message: 'Questão muito genérica' };
-  }
-  const matchedTerms = keyTerms.filter(term => contextLower.includes(term));
-  const coverageRatio = matchedTerms.length / keyTerms.length;
-  if (coverageRatio < 0.3) {
-    return { valid: false, reason: 'LOW_TRACEABILITY', coverage: (coverageRatio * 100).toFixed(0) + '%', message: `Baixa rastreabilidade (${(coverageRatio * 100).toFixed(0)}%)` };
-  }
-  return { valid: true, coverage: (coverageRatio * 100).toFixed(0) + '%', matchedTerms: matchedTerms.length, totalTerms: keyTerms.length, message: `Questão rastreável` };
+  const stopwords = new Set([
+    "de",
+    "da",
+    "do",
+    "das",
+    "dos",
+    "a",
+    "o",
+    "e",
+    "em",
+    "para",
+    "com",
+    "por",
+    "que",
+    "se",
+    "na",
+    "no",
+    "nas",
+    "nos",
+    "um",
+    "uma",
+    "ao",
+    "à",
+    "é",
+    "são",
+    "foi",
+    "ser",
+    "ter",
+    "sobre",
+    "segundo",
+    "conforme",
+    "art",
+    "artigo",
+    "lei",
+    "norma"
+  ]);
+  const normalize = /* @__PURE__ */ __name((str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim(), "normalize");
+  const questionTerms = normalize(question.statement).split(" ").filter((word) => word.length >= 4 && !stopwords.has(word)).slice(0, 15);
+  const contextText = normalize(ragContext.context);
+  const matchedTerms = questionTerms.filter((term) => contextText.includes(term));
+  const traceabilityScore = questionTerms.length > 0 ? matchedTerms.length / questionTerms.length : 0;
+  const isTraceable = traceabilityScore >= 0.4;
+  return {
+    valid: isTraceable,
+    confidence: traceabilityScore,
+    matchedTerms: matchedTerms.slice(0, 8),
+    reason: isTraceable ? `Rastreabilidade OK: ${matchedTerms.length}/${questionTerms.length} termos encontrados` : `Rastreabilidade insuficiente: apenas ${matchedTerms.length}/${questionTerms.length} termos encontrados`
+  };
 }
-
-function generateQualityBadge(ragScore, traceability) {
-  const score = (ragScore * 0.6 + (parseFloat(traceability.coverage) / 100) * 0.4);
-  let confidence, emoji, message;
-  if (score >= 0.85) {
-    confidence = 'Alta'; emoji = '🟢'; message = `Fundamentada`;
-  } else if (score >= 0.70) {
-    confidence = 'Média'; emoji = '🟡'; message = `Parcialmente baseada`;
-  } else {
-    confidence = 'Baixa'; emoji = '🔴'; message = `Validação incompleta`;
+__name(validateQuestionTraceability, "validateQuestionTraceability");
+function generateQualityBadge(ragValidation, traceabilityValidation) {
+  if (!ragValidation.valid || !traceabilityValidation.valid) {
+    return {
+      level: "low",
+      label: "🔴 Baixa",
+      description: "Questão gerada com contexto insuficiente ou baixa rastreabilidade",
+      color: "red"
+    };
   }
-  return { confidence, emoji, score: (score * 100).toFixed(0) + '%', message: `${emoji} ${message}` };
+  const avgConfidence = (ragValidation.score + traceabilityValidation.confidence) / 2;
+  if (avgConfidence >= 0.85) {
+    return {
+      level: "high",
+      label: "🟢 Alta",
+      description: "Questão gerada com excelente qualidade e rastreabilidade",
+      color: "green"
+    };
+  }
+  return {
+    level: "medium",
+    label: "🟡 Média",
+    description: "Questão gerada com boa qualidade, mas rastreabilidade moderada",
+    color: "yellow"
+  };
 }
-
-function validateQuestionPipeline(ragResults, question, contextText, minScore = 0.75) {
-  const ragValidation = validateRAGScore(ragResults, minScore);
-  if (!ragValidation.valid) {
-    return { success: false, reason: ragValidation.reason, message: ragValidation.message, metadata: { layer: 1, ragScore: ragValidation.score } };
+__name(generateQualityBadge, "generateQualityBadge");
+function validateQuestionPipeline(question, ragContext, subjectConfig) {
+  const hallucinationCheck = validateAgainstHallucination(question, subjectConfig);
+  if (!hallucinationCheck.valid) {
+    return {
+      valid: false,
+      question: null,
+      qualityBadge: null,
+      errors: hallucinationCheck.errors,
+      userMessage: "Questão rejeitada por violar regras de segurança anti-alucinação"
+    };
   }
-  const traceValidation = validateQuestionTraceability(question, contextText);
-  if (!traceValidation.valid) {
-    return { success: false, reason: traceValidation.reason, message: traceValidation.message, metadata: { layer: 3, coverage: traceValidation.coverage } };
+  const traceabilityCheck = validateQuestionTraceability(
+    hallucinationCheck.corrected,
+    ragContext,
+    subjectConfig
+  );
+  const ragValidation = validateRAGScore(ragContext, subjectConfig);
+  const qualityBadge = generateQualityBadge(ragValidation, traceabilityCheck);
+  if (!traceabilityCheck.valid || !ragValidation.valid) {
+    return {
+      valid: false,
+      question: null,
+      qualityBadge,
+      errors: [traceabilityCheck.reason, ragValidation.reason],
+      userMessage: "Questão rejeitada por baixa qualidade contextual"
+    };
   }
-  const badge = generateQualityBadge(ragValidation.score, traceValidation);
-  return { success: true, question: { ...question, _qualityBadge: badge }, metadata: { layers: [1, 3, 4], ragScore: ragValidation.score, traceability: traceValidation.coverage, badge: badge.confidence } };
+  return {
+    valid: true,
+    question: hallucinationCheck.corrected,
+    qualityBadge,
+    errors: [],
+    traceabilityScore: traceabilityCheck.confidence,
+    ragScore: ragValidation.score,
+    warning: hallucinationCheck.warning || null
+  };
 }
-
-// ════════════════════════════════════════════════════════════════════════════
-
-async function generateConcursosRAGQuestion(body, env) {
-  const { filter, quantity = 1, difficulty, questionType, alternativas, idioma, sessionMode } = body;
-  console.log("[RAG] FILTER RAW:", JSON.stringify(filter));
-  let filterKey = filter;
-  let content = {}, exam = {}, examMetadata = {}, history = {};
-  if (typeof filter === "object" && filter !== null) {
-    content = filter.content || {};
-    exam = filter.exam || {};
-    examMetadata = filter.examMetadata || {};
-    history = filter.history || {};
-    filterKey = content.discipline ? `concursos.${content.discipline}` : filterKey;
+__name(validateQuestionPipeline, "validateQuestionPipeline");
+function buildContextInsufficientResponse(config, ragValidation) {
+  return {
+    success: false,
+    error: "CONTEXT_INSUFFICIENT",
+    userMessage: config.fallbackMessage,
+    details: {
+      ragScore: ragValidation?.score || 0,
+      reason: ragValidation?.reason || "Contexto RAG insuficiente",
+      qualityBadge: {
+        level: "low",
+        label: "🔴 Baixa",
+        description: "Base vetorial insuficiente para gerar questão confiável",
+        color: "red"
+      }
+    }
+  };
+}
+__name(buildContextInsufficientResponse, "buildContextInsufficientResponse");
+function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 12e3) {
+  const headerLen = systemText.length + 1800;
+  const budget = Math.max(2e3, maxChars - headerLen);
+  let safeContextInfo = contextInfo || "";
+  let safeExternalBlock = externalBlock || "";
+  if (safeContextInfo.length > budget * 0.7) {
+    safeContextInfo = safeContextInfo.slice(0, Math.floor(budget * 0.7)) + "\n[contexto truncado]";
   }
-  console.log("[RAG] FILTER KEY:", filterKey);
-  const filterValidation = validateConcursosFilter(filterKey);
+  if (safeExternalBlock.length > budget * 0.3) {
+    safeExternalBlock = safeExternalBlock.slice(0, Math.floor(budget * 0.3)) + "\n[fontes externas truncadas]";
+  }
+  return { contextInfo: safeContextInfo, externalBlock: safeExternalBlock };
+}
+__name(guardPromptSize, "guardPromptSize");
+async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prompt, extraContext }, env) {
+  const filterValidation = validateConcursosFilter(filter);
   if (!filterValidation.valid) {
     return {
       success: false,
-      error: filterValidation.error,
-      userMessage: filterValidation.userMessage || CONCURSOS_CONFIG.fallbackMessage,
-      statusCode: 400
+      error: "INVALID_FILTER",
+      userMessage: filterValidation.userMessage,
+      details: filterValidation.error
     };
   }
   const subjectConfig = filterValidation.config;
-  console.log(`[RAG] \u2713 Filtro v\xE1lido: ${filterKey} \u2192 ${subjectConfig.vectorizeCollection}`);
-  const contextParts = [];
-  if (content.topic) contextParts.push(`T\xF3pico: ${content.topic}`);
-  if (content.subtopic) contextParts.push(`Subt\xF3pico: ${content.subtopic}`);
-  if (content.keyword) contextParts.push(`Palavra-chave: ${content.keyword}`);
-  if (exam.examBoard) contextParts.push(`Banca: ${exam.examBoard}`);
-  if (exam.agency) contextParts.push(`\xD3rg\xE3o: ${exam.agency}`);
-  if (exam.position) contextParts.push(`Cargo: ${exam.position}`);
-  if (exam.educationLevel) contextParts.push(`Escolaridade: ${exam.educationLevel}`);
-  if (examMetadata.yearFrom || examMetadata.yearTo) {
-    contextParts.push(`Ano: ${examMetadata.yearFrom || "..."} a ${examMetadata.yearTo || "..."}`);
-  }
-  const queryContext = contextParts.join(", ");
-  if (queryContext) {
-    console.log(`[RAG] Query Context Montada: ${queryContext}`);
-  }
-  const query = queryContext ? `${filterKey} ${queryContext}` : filterKey;
-  const contextResult = await fetchVectorizeContext(
+  const queryContext = summarizeQueryContext(prompt, extraContext, null);
+  const ragResult = await fetchVectorizeContext(
     env,
     subjectConfig.vectorizeCollection,
-    query,
+    queryContext || subjectConfig.label,
     subjectConfig.minContextLength
   );
-  console.log(
-    `[RAG] Contexto: ${contextResult.contextLength} chars, Suficiente: ${contextResult.sufficient}`
-  );
-  
-  // FASE 1.2: Validação obrigatória de contextLength com fallback
-  if (contextResult.contextLength < subjectConfig.minContextLength) {
-    console.warn(`[CONTEXT-VALIDATION] Contexto insuficiente: ${contextResult.contextLength} < ${subjectConfig.minContextLength}`);
-    return {
-      success: false,
-      error: 'CONTEXT_INSUFFICIENT',
-      userMessage: `Material insuficiente para gerar questões confiáveis. O banco de dados contém apenas ${contextResult.contextLength} caracteres de conteúdo sobre este tópico (mínimo necessário: ${subjectConfig.minContextLength}). Por favor, forneça mais conteúdo ou refine sua busca.`,
-      metadata: {
-        contextLength: contextResult.contextLength,
-        minRequired: subjectConfig.minContextLength,
-        sufficient: false,
-        fallbackTriggered: true
-      },
-      statusCode: 422
-    };
+  const ragValidation = validateRAGScore(ragResult, subjectConfig);
+  if (!ragValidation.valid) {
+    return buildContextInsufficientResponse(CONCURSOS_CONFIG, ragValidation);
   }
-  
-  const difficultyMap = {
-    easy: "f\xE1cil (n\xEDvel iniciante, conceitos b\xE1sicos)",
-    medium: "m\xE9dio (n\xEDvel intermedi\xE1rio, aplica\xE7\xE3o de conceitos)",
-    hard: "dif\xEDcil (n\xEDvel avan\xE7ado, an\xE1lise e interpreta\xE7\xE3o)",
-    extreme: "extremo (n\xEDvel especialista, quest\xF5es de prova real)"
-  };
-  const diffLabel = difficultyMap[difficulty] || "m\xE9dio";
-  const numAlts = parseInt(alternativas) === 4 ? 4 : 5;
-  const altKeys = numAlts === 4 ? "A, B, C, D" : "A, B, C, D, E";
-  const sessionMap = {
-    normal: "Estudo Normal \u2014 quest\xF5es did\xE1ticas",
-    concurso: "Simulado \u2014 quest\xF5es no estilo de prova real, sem dicas pedag\xF3gicas",
-    revisao: "Revis\xE3o R\xE1pida \u2014 quest\xF5es curtas e objetivas"
-  };
-  const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
-  const contextBlock = contextResult.sufficient ? `CONTEXTO VERIFICADO (${subjectConfig.label}):
-"""
-${contextResult.context}
-"""
-
-` : "";
-  const antiHallucinationRules = `
-RESTRI\xC7\xD5ES OBRIGAT\xD3RIAS:
-- N\xC3O invente banca, concurso, prova ou ano
-- N\xC3O invente artigos de lei ou n\xFAmeros de s\xFAmulas
-- Use APENAS conceitos e contexto fornecido
-- Cite apenas refer\xEAncias normativas v\xE1lidas: ${subjectConfig.conceptualBases}
-- Campo "fonte" deve ser preenchido com base legal/conceitual verificada`;
+  const contextBlock = ragResult.context ? `Contexto recuperado da base vetorial (use como referência principal):\n${ragResult.context}` : "Sem contexto RAG.";
+  const antiHallucinationRules = `NUNCA mencione banca, ano de prova, edital, decisão recente ou qualquer informação temporal não presente no contexto.`;
+  const sessionLabel = "Concursos";
+  const diffLabel = getDifficultyLabel(difficulty);
+  const numAlts = 4;
+  const altKeys = "A, B, C, D";
   const systemText = `Voc\xEA \xE9 um examinador acad\xEAmico especializado em concursos p\xFAblicos. Retorne APENAS JSON v\xE1lido com a chave "questions".
 Responda em portugu\xEAs do Brasil.
 
 PRINC\xCDPIOS INEGOCI\xC1VEIS:
 - Use APENAS conhecimento fact\xEDcio consolidado
+- JAMAIS mencione pre\xE7os, datas de lan\xE7amento, vers\xF5es espec\xEDficas de software ou qualquer informa\xE7\xE3o vol\xE1til
+- Produza conte\xFAdo evergreen \u2014 v\xE1lido e correto independentemente do momento em que for lido
 - ${antiHallucinationRules}`;
   const exampleOptions = numAlts === 4 ? `        { "key": "A", "text": "..." },
         { "key": "B", "text": "..." },
@@ -835,8 +862,10 @@ Regras obrigat\xF3rias:
 1. Gere exatamente ${numAlts} alternativas usando ${altKeys}
 2. Quest\xF5es corretas, sem ambiguidades
 3. Distribua gabarito entre as op\xE7\xF5es
-4. ${antiHallucinationRules}
-5. NENHUM texto fora do JSON`;
+4. DISTRATORES PLAUS\xCDVEIS (FASE 3.2): cada alternativa errada deve ser plaus\xEDvel e coerente com o tema \u2014 n\xE3o invente erros grosseiros ou absurdos
+5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): n\xEDvel "${diffLabel}" \u2014 ${difficulty === "easy" ? "enunciados diretos, conceitos b\xE1sicos, vocabul\xE1rio simples" : difficulty === "hard" ? "an\xE1lise cr\xEDtica, interpreta\xE7\xE3o de casos concretos, distin\xE7\xF5es sutis entre conceitos pr\xF3ximos" : difficulty === "extreme" ? "quest\xF5es de prova real: fatos espec\xEDficos, jurisprud\xEAncia, excep\xE7\xF5es e detalhes normativos" : "aplica\xE7\xE3o de conceitos em situa\xE7\xF5es hipot\xE9ticas"}
+6. ${antiHallucinationRules}
+7. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -865,149 +894,82 @@ Regras obrigat\xF3rias:
       }
     }
   }
-  if (questions.length === 0) {
+  if (!Array.isArray(questions) || questions.length === 0) {
     return {
       success: false,
-      error: "Nenhuma quest\xE3o gerada",
-      userMessage: "A IA n\xE3o gerou quest\xF5es v\xE1lidas. Tente ajustar filtro ou dificuldade.",
-      statusCode: 422
+      error: "Resposta da IA inválida",
+      raw: rawText,
+      userMessage: "A IA retornou um formato inesperado. Tente novamente."
     };
   }
-  const validatedQuestions = [];
-  for (const q of questions) {
-    const validation = validateAgainstHallucination(q, subjectConfig);
-    if (!validation.valid) {
-      console.warn(`[RAG] Valida\xE7\xE3o falhou para quest\xE3o ${q.id}:`, validation.errors);
-      continue;
-    }
-    const finalQuestion = validation.corrected;
-    if (validation.warning) {
-      console.warn(`[RAG] Aviso:`, validation.warning);
-    }
-    
-    // FASE 1: Ativar pipeline de validação
-    const pipelineCheck = validateQuestionPipeline(
-      { matches: [{ score: contextResult.sufficient ? 0.95 : 0.65 }] },
-      finalQuestion,
-      contextResult.context,
-      0.75
-    );
-
-    if (pipelineCheck.success) {
-      validatedQuestions.push(pipelineCheck.question);
-    } else {
-      console.warn(`[QUALITY-CHECK] Questão ${finalQuestion.id} rejeitada:`, pipelineCheck.message);
+  const validQuestions = [];
+  const qualityMetrics = [];
+  for (const question of questions) {
+    const pipelineValidation = validateQuestionPipeline(question, ragResult, subjectConfig);
+    if (pipelineValidation.valid) {
+      validQuestions.push({
+        ...pipelineValidation.question,
+        qualityBadge: pipelineValidation.qualityBadge,
+        traceabilityScore: pipelineValidation.traceabilityScore,
+        ragScore: pipelineValidation.ragScore,
+        warning: pipelineValidation.warning
+      });
+      qualityMetrics.push(pipelineValidation.qualityBadge.level);
     }
   }
-  if (validatedQuestions.length === 0) {
-    return {
-      success: false,
-      error: "Nenhuma quest\xE3o passou na valida\xE7\xE3o",
-      userMessage: "Quest\xF5es geradas n\xE3o passaram na valida\xE7\xE3o. Tente novamente.",
-      statusCode: 422
-    };
+  if (validQuestions.length === 0) {
+    return buildContextInsufficientResponse(CONCURSOS_CONFIG, ragValidation);
   }
-  console.log(`[RAG] \u2713 ${validatedQuestions.length} quest\xE3o(\xF5es) gerada(s) e validada(s)`);
   return {
     success: true,
-    questions: validatedQuestions,
+    questions: validQuestions,
+    sources: ragResult.sources,
     metadata: {
-      mode: "rag",
-      subject: subjectConfig.label,
-      vectorizeCollection: subjectConfig.vectorizeCollection,
-      contextLength: contextResult.contextLength,
-      contextSufficient: contextResult.sufficient,
-      sources: contextResult.sources,
-      ragScore: contextResult.sufficient ? 0.95 : 0.65,
-      qualityProtocol: "active",
-      questionsGenerated: validatedQuestions.length,
-      questionsApproved: validatedQuestions.length,
-      questionsRejected: 0
-    },
-    statusCode: 200
+      collection: subjectConfig.vectorizeCollection,
+      filter,
+      ragScore: ragValidation.score,
+      qualityDistribution: qualityMetrics,
+      totalGenerated: questions.length,
+      totalValidated: validQuestions.length
+    }
   };
 }
 __name(generateConcursosRAGQuestion, "generateConcursosRAGQuestion");
-async function generateAcademicRAGQuestion(body, env) {
-  const { area, subject, topic, quantity = 1, difficulty, alternativas, idioma, sessionMode } = body;
-  console.log("[ACADEMIC-RAG] AREA:", area, "SUBJECT:", subject);
-  const areaKey = area ? `academic.${area.toLowerCase().replace(/\s+/g, "_").replace(/^academic\./, "")}` : null;
-  if (!areaKey || !ACADEMIC_CONFIG.areas[areaKey]) {
+async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, quantity, prompt, extraContext }, env) {
+  const areaKey = area.startsWith("academic.") ? area : `academic.${area.toLowerCase()}`;
+  const areaConfig = ACADEMIC_CONFIG.areas[areaKey];
+  if (!areaConfig) {
     return {
       success: false,
       error: "INVALID_AREA",
       userMessage: ACADEMIC_CONFIG.invalidAreaMessage(area),
-      statusCode: 400
+      details: `Área não mapeada: ${area}`
     };
   }
-  const areaConfig = ACADEMIC_CONFIG.areas[areaKey];
-  console.log(`[ACADEMIC-RAG] \u2713 \xC1rea v\xE1lida: ${areaKey} \u2192 ${areaConfig.vectorizeCollection}`);
-  const contextParts = [];
-  if (subject) contextParts.push(`Disciplina: ${subject}`);
-  if (topic) contextParts.push(`T\xF3pico: ${topic}`);
-  const queryContext = contextParts.join(", ");
-  const query = queryContext ? `${areaKey} ${queryContext}` : areaKey;
-  console.log(`[ACADEMIC-RAG] Query: ${query}`);
-  const contextResult = await fetchVectorizeContext(
+  const queryContext = summarizeQueryContext(topic, prompt, extraContext || subject);
+  const ragResult = await fetchVectorizeContext(
     env,
     areaConfig.vectorizeCollection,
-    query,
+    queryContext || areaConfig.label,
     areaConfig.minContextLength
   );
-  console.log(
-    `[ACADEMIC-RAG] Contexto: ${contextResult.contextLength} chars, Suficiente: ${contextResult.sufficient}`
-  );
-  
-  // FASE 1.2: Validação obrigatória de contextLength com fallback
-  if (contextResult.contextLength < areaConfig.minContextLength) {
-    console.warn(`[CONTEXT-VALIDATION] Contexto insuficiente: ${contextResult.contextLength} < ${areaConfig.minContextLength}`);
-    return {
-      success: false,
-      error: 'CONTEXT_INSUFFICIENT',
-      userMessage: `Material insuficiente para gerar questões confiáveis. O banco de dados contém apenas ${contextResult.contextLength} caracteres de conteúdo sobre este tópico (mínimo necessário: ${areaConfig.minContextLength}). Por favor, forneça mais conteúdo ou refine sua busca.`,
-      metadata: {
-        contextLength: contextResult.contextLength,
-        minRequired: areaConfig.minContextLength,
-        sufficient: false,
-        fallbackTriggered: true
-      },
-      statusCode: 422
-    };
+  const ragValidation = validateRAGScore(ragResult, areaConfig);
+  if (!ragValidation.valid) {
+    return buildContextInsufficientResponse(ACADEMIC_CONFIG, ragValidation);
   }
-  
-  const difficultyMap = {
-    easy: "f\xE1cil (n\xEDvel iniciante, conceitos b\xE1sicos)",
-    medium: "m\xE9dio (n\xEDvel intermedi\xE1rio, aplica\xE7\xE3o de conceitos)",
-    hard: "dif\xEDcil (n\xEDvel avan\xE7ado, an\xE1lise e interpreta\xE7\xE3o)",
-    extreme: "extremo (n\xEDvel especialista, question\xE1rio especializado)"
-  };
-  const diffLabel = difficultyMap[difficulty] || "m\xE9dio";
-  const numAlts = parseInt(alternativas) === 4 ? 4 : 5;
-  const altKeys = numAlts === 4 ? "A, B, C, D" : "A, B, C, D, E";
-  const sessionMap = {
-    normal: "Estudo Normal \u2014 quest\xF5es did\xE1ticas focadas em aprendizado",
-    concurso: "Simulado \u2014 quest\xF5es no estilo rigoroso de prova",
-    revisao: "Revis\xE3o R\xE1pida \u2014 quest\xF5es curtas e objetivas"
-  };
-  const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
-  const contextBlock = contextResult.sufficient ? `CONTEXTO VERIFICADO (${areaConfig.label}):
-"""
-${contextResult.context}
-"""
-
-` : "";
-  const antiHallucinationRules = `
-RESTRI\xC7\xD5ES OBRIGAT\xD3RIAS:
-- N\xC3O invente teorias, descobertas ou conceitos n\xE3o comprovados
-- Use APENAS fundamentos consolidados e verific\xE1veis
-- Cite apenas refer\xEAncias v\xE1lidas: ${areaConfig.conceptualBases}
-- Campo "fonte" deve sempre ser preenchido com conceito/teoria verific\xE1vel
-- NUNCA cite trabalhos fict\xEDcios, anos inexatos ou autores n\xE3o confirmados`;
+  const contextBlock = ragResult.context ? `Contexto recuperado da base vetorial (use como referência principal):\n${ragResult.context}` : "Sem contexto RAG.";
+  const antiHallucinationRules = `NUNCA mencione fatos controversos, experimentais, temporais ou não sustentados pelo contexto.`;
+  const sessionLabel = "Academic";
+  const diffLabel = getDifficultyLabel(difficulty);
+  const numAlts = 4;
+  const altKeys = "A, B, C, D";
   const systemText = `Voc\xEA \xE9 um professor acad\xEAmico especialista em ${areaConfig.label}. Retorne APENAS JSON v\xE1lido com a chave "questions".
 Responda em portugu\xEAs do Brasil.
 
 PRINC\xCDPIOS INEGOCI\xC1VEIS:
 - Use APENAS conhecimento consolidado e verific\xE1vel
+- JAMAIS mencione pre\xE7os, datas de lan\xE7amento, vers\xF5es espec\xEDficas de software ou qualquer informa\xE7\xE3o vol\xE1til
+- Produza conte\xFAdo evergreen \u2014 v\xE1lido e correto independentemente do momento em que for lido
 - ${antiHallucinationRules}`;
   const exampleOptions = numAlts === 4 ? `        { "key": "A", "text": "..." },
         { "key": "B", "text": "..." },
@@ -1048,8 +1010,10 @@ Regras obrigat\xF3rias:
 1. Gere exatamente ${numAlts} alternativas usando ${altKeys}
 2. Quest\xF5es corretas e sem ambiguidades
 3. Distribua gabarito entre as op\xE7\xF5es
-4. ${antiHallucinationRules}
-5. NENHUM texto fora do JSON`;
+4. DISTRATORES PLAUS\xCDVEIS (FASE 3.2): cada alternativa errada deve ser plaus\xEDvel e coerente com o tema \u2014 n\xE3o invente erros grosseiros ou absurdos; use conceitos pr\xF3ximos, excep\xE7\xF5es ou aplica\xE7\xF5es incorretas do mesmo assunto
+5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): n\xEDvel "${diffLabel}" \u2014 ${difficulty === "easy" ? "enunciados diretos, conceitos b\xE1sicos, vocabul\xE1rio acess\xEDvel" : difficulty === "hard" ? "an\xE1lise aprofundada, casos concretos, distin\xE7\xF5es sutis entre conceitos pr\xF3ximos" : difficulty === "extreme" ? "dom\xEDnio especialista: detalhes t\xE9cnicos precisos, excep\xE7\xF5es e nuances da \xE1rea" : "aplica\xE7\xE3o de conceitos em situa\xE7\xF5es pr\xE1ticas hipot\xE9ticas"}
+6. ${antiHallucinationRules}
+7. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -1078,281 +1042,140 @@ Regras obrigat\xF3rias:
       }
     }
   }
-  if (questions.length === 0) {
+  if (!Array.isArray(questions) || questions.length === 0) {
     return {
       success: false,
-      error: "Nenhuma quest\xE3o gerada",
-      userMessage: "A IA n\xE3o gerou quest\xF5es v\xE1lidas. Tente ajustar \xE1rea ou dificuldade.",
-      statusCode: 422
+      error: "Resposta da IA inválida",
+      raw: rawText,
+      userMessage: "A IA retornou um formato inesperado. Tente novamente."
     };
   }
-  const validateAgainstForbiddenPatterns = /* @__PURE__ */ __name((question, config) => {
-    const textToCheck = `${question.statement} ${question.explanation || ""}`.toLowerCase();
-    for (const pattern of config.forbiddenPatterns) {
-      const regex = new RegExp(pattern, "i");
-      if (regex.test(textToCheck)) {
-        return {
-          valid: false,
-          error: `Conte\xFAdo proibido detectado: padr\xE3o "${pattern}" encontrado`
-        };
-      }
-    }
-    return { valid: true };
-  }, "validateAgainstForbiddenPatterns");
-  const validatedQuestions = [];
-  for (const q of questions) {
-    const patternValidation = validateAgainstForbiddenPatterns(q, areaConfig);
-    if (!patternValidation.valid) {
-      console.warn(`[ACADEMIC-RAG] Validação de padrões falhou para questão ${q.id}:`, patternValidation.error);
-      continue;
-    }
-    
-    // FASE 1: Ativar pipeline de validação
-    const pipelineCheck = validateQuestionPipeline(
-      { matches: [{ score: contextResult.sufficient ? 0.95 : 0.65 }] },
-      q,
-      contextResult.context,
-      0.75
-    );
-
-    if (pipelineCheck.success) {
-      validatedQuestions.push(pipelineCheck.question);
-    } else {
-      console.warn(`[QUALITY-CHECK] Questão ${q.id} rejeitada:`, pipelineCheck.message);
+  const validQuestions = [];
+  const qualityMetrics = [];
+  for (const question of questions) {
+    const pipelineValidation = validateQuestionPipeline(question, ragResult, areaConfig);
+    if (pipelineValidation.valid) {
+      validQuestions.push({
+        ...pipelineValidation.question,
+        qualityBadge: pipelineValidation.qualityBadge,
+        traceabilityScore: pipelineValidation.traceabilityScore,
+        ragScore: pipelineValidation.ragScore,
+        warning: pipelineValidation.warning
+      });
+      qualityMetrics.push(pipelineValidation.qualityBadge.level);
     }
   }
-  if (validatedQuestions.length === 0) {
-    return {
-      success: false,
-      error: "Nenhuma quest\xE3o passou na valida\xE7\xE3o",
-      userMessage: "Quest\xF5es geradas n\xE3o passaram na valida\xE7\xE3o. Tente novamente.",
-      statusCode: 422
-    };
+  if (validQuestions.length === 0) {
+    return buildContextInsufficientResponse(ACADEMIC_CONFIG, ragValidation);
   }
-  const ragScore = contextResult.sufficient ? 0.95 : 0.65;
-  let badge = "\u{1F7E2}";
-  if (ragScore < 0.75) badge = "\u{1F534}";
-  else if (ragScore < 0.85) badge = "\u{1F7E1}";
-  console.log(`[ACADEMIC-RAG] \u2713 ${validatedQuestions.length} quest\xE3o(\xF5es) gerada(s) e validada(s)`);
   return {
     success: true,
-    questions: validatedQuestions,
+    questions: validQuestions,
+    sources: ragResult.sources,
     metadata: {
-      mode: "academic",
-      area: areaConfig.label,
-      subject: subject || "Geral",
-      vectorizeCollection: areaConfig.vectorizeCollection,
-      contextLength: contextResult.contextLength,
-      contextSufficient: contextResult.sufficient,
-      sources: contextResult.sources,
-      ragScore,
-      qualityProtocol: "active",
-      badge,
-      questionsGenerated: validatedQuestions.length,
-      questionsApproved: validatedQuestions.length,
-      questionsRejected: 0
-    },
-    statusCode: 200
+      collection: areaConfig.vectorizeCollection,
+      area,
+      ragScore: ragValidation.score,
+      qualityDistribution: qualityMetrics,
+      totalGenerated: questions.length,
+      totalValidated: validQuestions.length
+    }
   };
 }
 __name(generateAcademicRAGQuestion, "generateAcademicRAGQuestion");
-async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
-  const temperature = 0.35;
-  const maxTokens = quantity <= 5 ? 2048 : quantity <= 10 ? 4096 : 6144;
-  const delays = [0, 2e3, 4e3];
-  let lastRes = null;
-  for (const model of GROQ_MODELS) {
-    for (let i = 0; i < delays.length; i++) {
-      if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
-      lastRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.GROQ_API_KEY}` },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemText },
-            { role: "user", content: userPrompt }
-          ],
-          temperature,
-          max_tokens: maxTokens,
-          response_format: { type: "json_object" }
-        })
-      });
-      if (lastRes.ok || lastRes.status !== 429 && lastRes.status !== 503) break;
-    }
-    if (lastRes.ok) return lastRes;
-    if (lastRes.status === 401 || lastRes.status === 403) return lastRes;
-    if (lastRes.status === 400) {
-      const errText = await lastRes.clone().text();
-      if (!errText.includes("decommissioned")) return lastRes;
-      continue;
-    }
+async function handleGetRequest(request, env) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+  if (pathname === "/" || pathname === "/health") {
+    return new Response(JSON.stringify({
+      ok: true,
+      service: "StudyMaster Worker",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   }
-  return lastRes;
+  return new Response("Not found", { status: 404, headers: corsHeaders });
 }
-__name(callGroqWithFallback, "callGroqWithFallback");
+__name(handleGetRequest, "handleGetRequest");
+function normalizeQuestionType(questionType) {
+  if (questionType === "vf" || questionType === "verdadeiro_falso") return "vf";
+  return "mcq";
+}
+__name(normalizeQuestionType, "normalizeQuestionType");
 var worker_default = {
   async fetch(request, env) {
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
-    if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
-    const url = new URL(request.url);
-    if (url.pathname === "/youtube-transcript" || url.pathname.endsWith("/youtube-transcript")) {
-      try {
-        const body = await request.json();
-        const { youtubeUrl } = body;
-        if (!youtubeUrl || typeof youtubeUrl !== "string") {
-          return new Response(JSON.stringify({ error: "Campo youtubeUrl ausente ou inv\xE1lido." }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          });
-        }
-        const videoId = extractYouTubeVideoId(youtubeUrl);
-        if (!videoId) {
-          return new Response(JSON.stringify({ error: "URL do YouTube inv\xE1lida." }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          });
-        }
-        const result = await fetchYouTubeTranscript(videoId);
-        return new Response(JSON.stringify(result), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-      } catch (err) {
-        const isBlocked = err.message.includes("HTTP 429") || err.message.includes("bloqueou a extra\xE7\xE3o");
-        return new Response(JSON.stringify({
-          error: isBlocked ? "O YouTube bloqueou a extra\xE7\xE3o autom\xE1tica. Por favor, copie a transcri\xE7\xE3o manualmente." : err.message || "Erro ao extrair transcri\xE7\xE3o.",
-          isBlocked
-        }), {
-          status: isBlocked ? 429 : 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-      }
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
     }
-    if (!env.GROQ_API_KEY) {
-      return new Response(JSON.stringify({
-        error: "Configura\xE7\xE3o incompleta",
-        userMessage: "Configure GROQ_API_KEY nas vari\xE1veis do Worker."
-      }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (request.method === "GET") {
+      return handleGetRequest(request, env);
+    }
+    if (request.method !== "POST") {
+      return new Response("Method not allowed", { status: 405, headers: corsHeaders });
     }
     try {
       const body = await request.json();
-      const { topic, subject, area, mode, difficulty, quantity, questionType, concurso, banca, bancaFoco, freeText, editalText, alternativas, idioma, sessionMode, filter } = body;
-      if (mode === "concursos" && filter) {
-        const ragResult = await generateConcursosRAGQuestion(body, env);
-        if (!ragResult.success) {
-          return new Response(
-            JSON.stringify({
-              error: ragResult.error,
-              userMessage: ragResult.userMessage,
-              details: ragResult.details
-            }),
-            {
-              status: ragResult.statusCode || 500,
-              headers: { ...corsHeaders, "Content-Type": "application/json" }
-            }
-          );
-        }
-        return new Response(JSON.stringify(ragResult), {
-          status: ragResult.statusCode || 200,
+      const {
+        mode = "concurso",
+        filter,
+        area,
+        subject,
+        topic,
+        difficulty = "medium",
+        quantity = 1,
+        prompt,
+        extraContext,
+        questionType = "mcq",
+        idioma = "pt-BR"
+      } = body || {};
+      if (mode === "concurso") {
+        const result = await generateConcursosRAGQuestion(
+          {
+            filter: filter || "concursos.portugues",
+            difficulty,
+            quantity: Math.min(Math.max(Number(quantity) || 1, 1), 10),
+            prompt,
+            extraContext
+          },
+          env
+        );
+        return new Response(JSON.stringify(result), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
       if (mode === "academic") {
-        try {
-          const result = await generateAcademicRAGQuestion(body, env);
-          if (result.success) {
-            return new Response(JSON.stringify(result), {
-              status: result.statusCode || 200,
-              headers: { ...corsHeaders, "Content-Type": "application/json" }
-            });
-          }
-        } catch (e) {
-          console.error("[ACADEMIC] RAG failed:", e);
-        }
-        try {
-          const context = await fetchContext(area, mode, topic, subject, idioma, env);
-          if (context && context.text) {
-            console.log("[ACADEMIC] Using fallback with verified context");
-          }
-        } catch (contextError) {
-          console.warn("[ACADEMIC] Context fallback also failed:", contextError);
-        }
+        const result = await generateAcademicRAGQuestion(
+          {
+            area: area || "academic.direito",
+            subject,
+            topic,
+            difficulty,
+            quantity: Math.min(Math.max(Number(quantity) || 1, 1), 10),
+            prompt,
+            extraContext
+          },
+          env
+        );
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
       }
-      const difficultyMap = {
-        easy: "f\xE1cil (n\xEDvel iniciante, conceitos b\xE1sicos)",
-        medium: "m\xE9dio (n\xEDvel intermedi\xE1rio, aplica\xE7\xE3o de conceitos)",
-        hard: "dif\xEDcil (n\xEDvel avan\xE7ado, an\xE1lise e interpreta\xE7\xE3o)",
-        extreme: "extremo (n\xEDvel especialista, quest\xF5es de prova real)"
-      };
-      const diffLabel = difficultyMap[difficulty] || "m\xE9dio";
-      const numAlts = questionType === "vf" ? 2 : parseInt(alternativas) === 4 ? 4 : 5;
-      const altKeys = numAlts === 4 ? "A, B, C, D" : "A, B, C, D, E";
-      const typeMap = { mc: `m\xFAltipla escolha com ${numAlts} alternativas (${altKeys})`, vf: "verdadeiro ou falso (A = Verdadeiro, B = Falso)", mix: `misto \u2014 alternando entre m\xFAltipla escolha com ${numAlts} alternativas (${altKeys}) e verdadeiro/falso` };
-      const typeLabel = typeMap[questionType] || typeMap.mc;
-      const idiomaMap = { "pt-BR": "portugu\xEAs do Brasil", "en": "English (American)", "es": "espa\xF1ol (castellano)" };
-      const idiomaLabel = idiomaMap[idioma] || "portugu\xEAs do Brasil";
-      const isPortugues = !idioma || idioma === "pt-BR";
-      const sessionMap = { normal: "Estudo Normal \u2014 quest\xF5es did\xE1ticas com foco em aprendizado e fixa\xE7\xE3o de conte\xFAdo", concurso: "Simulado \u2014 quest\xF5es no estilo e rigor de prova real, sem dicas pedag\xF3gicas no enunciado", revisao: "Revis\xE3o R\xE1pida \u2014 quest\xF5es curtas e objetivas para revis\xE3o veloz do conte\xFAdo" };
-      const sessionLabel = sessionMap[sessionMode] || sessionMap.normal;
-      const bancaEfetiva = bancaFoco && bancaFoco !== "auto" ? bancaFoco : banca || null;
-      const bancaStyleMap = { "CEBRASPE": "CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis.", "CESPE": "CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis.", "CEBRASPE/CESPE": "CEBRASPE/CESPE: assertivas curtas e diretas, estilo certo/errado, com pegadinhas sutis.", "FCC": "FCC: enunciados extensos e formais, quest\xF5es literais baseadas em lei seca.", "VUNESP": "VUNESP: linguagem clara e objetiva, foco em aplica\xE7\xE3o pr\xE1tica.", "FGV": "FGV: enunciados elaborados com casos pr\xE1ticos, quest\xF5es interdisciplinares.", "CESGRANRIO": "CESGRANRIO: quest\xF5es t\xE9cnicas, frequentemente com tabelas e contexto corporativo.", "IDECAN": "IDECAN: quest\xF5es objetivas, foco em lei e doutrina.", "IBFC": "IBFC: quest\xF5es pr\xE1ticas e diretas.", "AOCP": "AOCP: foco em conte\xFAdo program\xE1tico espec\xEDfico.", "FEPESE": "FEPESE: quest\xF5es objetivas, Sul do Brasil." };
-      const bancaStyle = bancaEfetiva ? bancaStyleMap[bancaEfetiva] || `Banca ${bancaEfetiva}: siga o estilo t\xEDpico.` : null;
+      const normalizedType = normalizeQuestionType(questionType);
+      const quantitySafe = Math.min(Math.max(Number(quantity) || 1, 1), 10);
+      const typeLabel = normalizedType === "vf" ? "Verdadeiro/Falso" : "m\xFAltipla escolha";
+      const idiomaLabel = idioma === "en" ? "English" : idioma === "es" ? "espa\xF1ol" : "portugu\xEAs do Brasil";
       const areaSafetyInstruction = getAreaSafetyInstruction(area, mode);
-      let contextInfo = "";
-      let externalContext = null;
-      if (mode === "concurso" && concurso) {
-        contextInfo = `Concurso: ${concurso}.`;
-        if (bancaEfetiva) contextInfo += ` Banca: ${bancaEfetiva}.`;
-        if (editalText?.length > 0) contextInfo += `
-
-Conte\xFAdo program\xE1tico do edital:
-${editalText.slice(0, 3e3)}`;
-        externalContext = await fetchContext(area, mode, topic, subject, idioma, env);
-      } else if (mode === "academic") {
-        contextInfo = `\xC1rea: ${area}. Disciplina: ${subject}.${topic ? ` T\xF3pico: ${topic}.` : " (Mat\xE9ria completa)"}`;
-        externalContext = await fetchContext(area, mode, topic, subject, idioma, env);
-      } else if (mode === "livre" && freeText) {
-        contextInfo = `Material de estudo fornecido pelo usu\xE1rio:
-${freeText.slice(0, 4e3)}`;
-      } else {
-        const fallback = topic || subject || area || "";
-        contextInfo = `T\xF3pico: ${fallback || "Conhecimentos gerais"}.`;
-        if (fallback) externalContext = await fetchContext(area, mode, fallback, subject, idioma, env);
-      }
-      const contextSourceLabel = externalContext?.source || null;
-      const isRAG = contextSourceLabel?.includes("Vectorize") || false;
-      const rawExternalBlock = externalContext?.text ? isRAG ? `
-
-VADE MECUM VERIFICADO \u2014 PRIORIDADE ABSOLUTA (Fonte: ${externalContext.source}):
-"""
-${externalContext.text}
-"""
-FIM DO VADE MECUM.` : `
-
-Contexto verificado (${externalContext.source}):
-"""
-${externalContext.text}
-"""` : "";
-      const langInstruction = isPortugues ? "Escreva todas as quest\xF5es, alternativas e explica\xE7\xF5es em portugu\xEAs do Brasil." : `Write all questions, options and explanations in ${idiomaLabel}.`;
-      const bancaInstruction = bancaStyle ? `
-
-Estilo de banca obrigat\xF3rio: ${bancaStyle}` : "";
-      const sessionInstruction = `
-Modo de sess\xE3o: ${sessionLabel}.`;
+      const contextData = await fetchContext(area, mode, topic, subject, idioma, env);
+      const contextInfo = contextData?.text || "";
+      const sourceInfo = contextData?.source || "Conhecimento acad\xEAmico consolidado";
+      const additionalInfo = [prompt, extraContext].filter(Boolean).join("\n").trim();
+      const bancaInstruction = mode === "concurso" ? " Priorize estilo claro, objetivo e atemporal. Nunca cite banca/ano sem fonte no contexto." : "";
+      const sessionInstruction = quantitySafe > 1 ? " Gere quest\xF5es equilibradas e variadas." : "";
+      const altKeys = normalizedType === "vf" ? "A, B" : "A, B, C, D";
+      const numAlts = normalizedType === "vf" ? 2 : 4;
       const altInstruction = questionType === "vf" ? "Para quest\xF5es V/F, use apenas 2 op\xE7\xF5es: A (Verdadeiro) e B (Falso)." : `Gere exatamente ${numAlts} alternativas por quest\xE3o usando as chaves ${altKeys}.`;
-      const isDireitoOuConcurso = area === "Direito" || mode === "concurso";
-      const fonteInstruction = isDireitoOuConcurso ? `Para cada quest\xE3o, preencha "fonte" com artigo, s\xFAmula ou decreto.
-Formato: "Art. XX, Lei/Ano" ou "S\xFAmula NNN, Tribunal".
-NUNCA invente n\xFAmero de artigo ou s\xFAmula.` : 'Para cada quest\xE3o, preencha "fonte" com conceito ou autor de refer\xEAncia. NUNCA deixe vazio.';
-      const exampleOptions = numAlts === 4 ? `        { "key": "A", "text": "..." },
-        { "key": "B", "text": "..." },
-        { "key": "C", "text": "..." },
-        { "key": "D", "text": "..." }` : `        { "key": "A", "text": "..." },
-        { "key": "B", "text": "..." },
-        { "key": "C", "text": "..." },
-        { "key": "D", "text": "..." },
-        { "key": "E", "text": "..." }`;
+      const rawExternalBlock = additionalInfo ? `Informações adicionais do usuário (use apenas se compatíveis com o contexto):\n${additionalInfo}` : "";
       const systemText = `Voc\xEA \xE9 um examinador acad\xEAmico especializado em concursos p\xFAblicos e ensino superior brasileiro. Retorne APENAS JSON v\xE1lido com a chave "questions".
 ${isPortugues ? "Responda em portugu\xEAs do Brasil." : `Respond entirely in ${idiomaLabel}.`}
 
@@ -1364,303 +1187,106 @@ PRINC\xCDPIOS INEGOCI\xC1VEIS:
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(contextInfo, rawExternalBlock, systemText);
       const userPrompt = `Voc\xEA \xE9 um professor especialista em concursos p\xFAblicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}
 
-Gere exatamente ${quantity} quest\xF5es de ${typeLabel} sobre:
-${safeContextInfo}${externalBlock}
+Gere exatamente ${quantitySafe} quest\xF5es de ${typeLabel} sobre:
+- \xC1rea: ${area || mode || "Geral"}
+${subject ? `- Disciplina: ${subject}` : ""}
+${topic ? `- Tópico: ${topic}` : ""}
+- N\xEDvel de dificuldade: ${getDifficultyLabel(difficulty)}
+- Idioma de sa\xEDda: ${idiomaLabel}
 
-N\xEDvel de dificuldade: ${diffLabel}.
+Contexto confiável (fonte principal):
+${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}
 
-Retorne APENAS um objeto JSON:
+${externalBlock}
+
+Formato obrigatório de retorno:
 {
   "questions": [
     {
       "id": 1,
-      "statement": "Enunciado.",
+      "statement": "Enunciado da questão",
       "options": [
-${exampleOptions}
+        { "key": "A", "text": "Alternativa A" },
+        { "key": "B", "text": "Alternativa B" },
+        { "key": "C", "text": "Alternativa C" },
+        { "key": "D", "text": "Alternativa D" }
       ],
       "correctAnswer": "A",
-      "explanation": "Explica\xE7\xE3o did\xE1tica.",
-      "fonte": "Base legal ou conceitual"
+      "explanation": "Explicação objetiva e verificável, sem inventar dados.",
+      "fonte": "${sourceInfo}"
     }
   ]
 }
 
-Regras:
+REGRAS OBRIGATÓRIAS:
 1. ${altInstruction}
-2. Quest\xF5es corretas e sem ambiguidades.
-3. Distribua o gabarito entre A-${numAlts === 5 ? "E" : "D"} sem repetir mais de 2x seguidas.
-4. ${langInstruction}
-5. ${fonteInstruction}
+2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".
+3. Todas as quest\xF5es devem ter "explanation" e "fonte".
+4. A explicação deve justificar por que a correta é correta, sem repetir o enunciado.
+5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.
 6. NENHUM texto fora do JSON.
-7. ${areaSafetyInstruction}`;
-      const maxTokens = quantity <= 10 ? 4096 : quantity <= 25 ? 6144 : 8192;
-      const temperature = sessionMode === "concurso" ? 0.3 : sessionMode === "revisao" ? 0.25 : 0.4;
-      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.GROQ_API_KEY}` },
-        body: JSON.stringify({
-          model: GROQ_MODELS[0],
-          messages: [{ role: "system", content: systemText }, { role: "user", content: userPrompt }],
-          temperature,
-          max_tokens: maxTokens,
-          response_format: { type: "json_object" }
-        })
-      });
-      const groqResponse = groqRes.ok ? groqRes : await (async () => {
-        const delays = [0, 2e3, 4e3];
-        let lastRes = groqRes;
-        for (const model of GROQ_MODELS.slice(1)) {
-          for (let i = 0; i < delays.length; i++) {
-            if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
-            lastRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.GROQ_API_KEY}` },
-              body: JSON.stringify({
-                model,
-                messages: [{ role: "system", content: systemText }, { role: "user", content: userPrompt }],
-                temperature,
-                max_tokens: maxTokens,
-                response_format: { type: "json_object" }
-              })
-            });
-            if (lastRes.ok || lastRes.status !== 429 && lastRes.status !== 503) break;
-          }
-          if (lastRes.ok) return lastRes;
-          if (lastRes.status === 401 || lastRes.status === 403) return lastRes;
-          if (lastRes.status === 400) {
-            const errText = await lastRes.clone().text();
-            if (!errText.includes("decommissioned")) return lastRes;
-            continue;
-          }
-        }
-        return lastRes;
-      })();
+7. N\xE3o use markdown, cercas de c\xF3digo ou coment\xE1rios.`;
+      const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantitySafe);
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
         let userMessage = "Erro ao conectar com a IA. Tente novamente.";
-        if (groqResponse.status === 429) userMessage = "Limite de uso da IA atingido. Aguarde e tente novamente.";
-        else if (groqResponse.status === 503) userMessage = "A IA est\xE1 com alta demanda. Tente em segundos.";
-        else if (groqResponse.status === 401 || groqResponse.status === 403) userMessage = "Chave da API inv\xE1lida. Verifique GROQ_API_KEY.";
-        return new Response(JSON.stringify({ error: "Groq API error", details: err, userMessage }), {
-          status: 502,
+        if (groqResponse.status === 429) userMessage = "Limite de uso atingido. Aguarde.";
+        else if (groqResponse.status === 503) userMessage = "IA com alta demanda. Tente em segundos.";
+        return new Response(JSON.stringify({
+          success: false,
+          error: "Groq API error",
+          details: err,
+          userMessage,
+          statusCode: groqResponse.status
+        }), {
+          status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
       const groqData = await groqResponse.json();
       const rawText = extractJsonFromText(groqData?.choices?.[0]?.message?.content || "");
-      let questions = [];
+      let parsed;
       try {
-        questions = extractQuestions(JSON.parse(rawText));
+        parsed = JSON.parse(rawText);
       } catch {
         const matchObj = rawText.match(/\{[\s\S]*\}/);
         if (matchObj) {
           try {
-            questions = extractQuestions(JSON.parse(matchObj[0]));
+            parsed = JSON.parse(matchObj[0]);
           } catch {
-          }
-        }
-        if (questions.length === 0) {
-          const matchArr = rawText.match(/\[[\s\S]*\]/);
-          if (matchArr) {
-            try {
-              questions = extractQuestions(JSON.parse(matchArr[0]));
-            } catch {
-            }
+            parsed = null;
           }
         }
       }
-      questions = validateQuestions(questions);
-      if (questions.length === 0) {
+      const questions = validateQuestions(extractQuestions(parsed || {}));
+      if (!questions.length) {
         return new Response(JSON.stringify({
-          error: "Resposta vazia",
-          rawText,
-          userMessage: "A IA n\xE3o gerou quest\xF5es v\xE1lidas. Tente ajustar o t\xF3pico ou dificuldade."
-        }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          success: false,
+          error: "Resposta da IA inválida",
+          raw: rawText,
+          userMessage: "A IA retornou um formato inesperado. Tente novamente."
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
       }
-      return new Response(JSON.stringify({ questions }), {
-        status: 200,
+      return new Response(JSON.stringify({
+        success: true,
+        questions
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
-    } catch (err) {
+    } catch (error) {
       return new Response(JSON.stringify({
-        error: err.message,
-        userMessage: "Ocorreu um erro inesperado. Tente novamente."
-      }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        success: false,
+        error: error?.message || "Erro interno"
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
   }
 };
-
-// ../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
-var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } finally {
-    try {
-      if (request.body !== null && !request.bodyUsed) {
-        const reader = request.body.getReader();
-        while (!(await reader.read()).done) {
-        }
-      }
-    } catch (e) {
-      console.error("Failed to drain the unused request body.", e);
-    }
-  }
-}, "drainBody");
-var middleware_ensure_req_body_drained_default = drainBody;
-
-// ../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
-function reduceError(e) {
-  return {
-    name: e?.name,
-    message: e?.message ?? String(e),
-    stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
-  };
-}
-__name(reduceError, "reduceError");
-var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } catch (e) {
-    const error = reduceError(e);
-    return Response.json(error, {
-      status: 500,
-      headers: { "MF-Experimental-Error-Stack": "true" }
-    });
-  }
-}, "jsonError");
-var middleware_miniflare3_json_error_default = jsonError;
-
-// .wrangler/tmp/bundle-wPSdqD/middleware-insertion-facade.js
-var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
-  middleware_ensure_req_body_drained_default,
-  middleware_miniflare3_json_error_default
-];
-var middleware_insertion_facade_default = worker_default;
-
-// ../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/common.ts
-var __facade_middleware__ = [];
-function __facade_register__(...args) {
-  __facade_middleware__.push(...args.flat());
-}
-__name(__facade_register__, "__facade_register__");
-function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
-  const [head, ...tail] = middlewareChain;
-  const middlewareCtx = {
-    dispatch,
-    next(newRequest, newEnv) {
-      return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
-    }
-  };
-  return head(request, env, ctx, middlewareCtx);
-}
-__name(__facade_invokeChain__, "__facade_invokeChain__");
-function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
-  return __facade_invokeChain__(request, env, ctx, dispatch, [
-    ...__facade_middleware__,
-    finalMiddleware
-  ]);
-}
-__name(__facade_invoke__, "__facade_invoke__");
-
-// .wrangler/tmp/bundle-wPSdqD/middleware-loader.entry.ts
-var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
-  constructor(scheduledTime, cron, noRetry) {
-    this.scheduledTime = scheduledTime;
-    this.cron = cron;
-    this.#noRetry = noRetry;
-  }
-  static {
-    __name(this, "__Facade_ScheduledController__");
-  }
-  #noRetry;
-  noRetry() {
-    if (!(this instanceof ___Facade_ScheduledController__)) {
-      throw new TypeError("Illegal invocation");
-    }
-    this.#noRetry();
-  }
-};
-function wrapExportedHandler(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
-    return worker;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-    __facade_register__(middleware);
-  }
-  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
-    if (worker.fetch === void 0) {
-      throw new Error("Handler does not export a fetch() function.");
-    }
-    return worker.fetch(request, env, ctx);
-  }, "fetchDispatcher");
-  return {
-    ...worker,
-    fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
-        if (type === "scheduled" && worker.scheduled !== void 0) {
-          const controller = new __Facade_ScheduledController__(
-            Date.now(),
-            init.cron ?? "",
-            () => {
-            }
-          );
-          return worker.scheduled(controller, env, ctx);
-        }
-      }, "dispatcher");
-      return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
-    }
-  };
-}
-__name(wrapExportedHandler, "wrapExportedHandler");
-function wrapWorkerEntrypoint(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
-    return klass;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-    __facade_register__(middleware);
-  }
-  return class extends klass {
-    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
-      this.env = env;
-      this.ctx = ctx;
-      if (super.fetch === void 0) {
-        throw new Error("Entrypoint class does not define a fetch() function.");
-      }
-      return super.fetch(request);
-    }, "#fetchDispatcher");
-    #dispatcher = /* @__PURE__ */ __name((type, init) => {
-      if (type === "scheduled" && super.scheduled !== void 0) {
-        const controller = new __Facade_ScheduledController__(
-          Date.now(),
-          init.cron ?? "",
-          () => {
-          }
-        );
-        return super.scheduled(controller);
-      }
-    }, "#dispatcher");
-    fetch(request) {
-      return __facade_invoke__(
-        request,
-        this.env,
-        this.ctx,
-        this.#dispatcher,
-        this.#fetchDispatcher
-      );
-    }
-  };
-}
-__name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
-var WRAPPED_ENTRY;
-if (typeof middleware_insertion_facade_default === "object") {
-  WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
-} else if (typeof middleware_insertion_facade_default === "function") {
-  WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
-}
-var middleware_loader_entry_default = WRAPPED_ENTRY;
 export {
-  __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default as default
+  worker_default as default
 };
-//# sourceMappingURL=worker.js.map
