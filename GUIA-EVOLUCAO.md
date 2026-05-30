@@ -1,204 +1,193 @@
-# 📋 GUIA MESTRE DE EVOLUÇÃO — StudyMaster Agent
+# 📋 GUIA DE EVOLUÇÃO — StudyMaster Agent
 
-> **Documento de controle vivo.** Cada item implementado recebe `[x]`. Cada sessão de trabalho deve começar aqui e terminar aqui, atualizando os checks.
->
-> **Regra:** nenhuma feature nova começa antes da fase anterior estar 100% concluída e estável em produção.
-
----
-
-## 🗺️ Visão Geral das Fases
-
-| Fase | Nome | Status | Prioridade |
-|------|------|--------|------------|
-| 1 | Blindagem da Base (Anti-alucinação) | 🟡 Em andamento | 🔴 Crítica |
-| 2 | Expansão do Conteúdo RAG | ⬜ Pendente | 🟠 Alta |
-| 3 | UX e Feedback ao Usuário | ⬜ Pendente | 🟡 Média |
-| 4 | Sistema de Login e Multi-usuário | ⬜ Pendente | 🟢 Futura |
-| 5 | Monetização e SaaS | ⬜ Pendente | 🟢 Futura |
+> **Documento vivo.** Tudo que for implementado recebe `[x]`. Nada começa sem estar listado aqui.
+> Atualizado em: 2026-05-30
 
 ---
 
-## ✅ FASE 1 — Blindagem da Base (Anti-alucinação)
+## 🗂️ Status Geral
 
-> **Objetivo:** o sistema deve recusar gerar questões quando o contexto RAG for insuficiente, e nunca fabricar informações.
-
-### 1.1 Score mínimo de similaridade no RAG
-- [x] `validateRAGScore()` implementado no `worker.js` com `minScore = 0.75`
-- [x] Retorno estruturado com `reason: 'RAG_EMPTY'` e `reason: 'RAG_LOW_CONFIDENCE'`
-- [x] Recusa segura: worker retorna erro amigável quando score insuficiente
-- [x] Score do top-3 matches usado como média ponderada
-
-### 1.2 Validação de rastreabilidade da questão
-- [x] `validateQuestionTraceability()` implementado
-- [x] Extração de termos-chave com filtro de stopwords em português
-- [x] Cobertura mínima de 30% dos termos da questão no contexto RAG
-- [x] Retorno com `coverage` percentual e `matchedTerms / totalTerms`
-
-### 1.3 Pipeline de validação unificado
-- [x] `validateQuestionPipeline()` chama camadas 1, 3 e 4 em sequência
-- [x] Badge de qualidade: 🟢 Alta / 🟡 Média / 🔴 Baixa
-- [x] `_qualityBadge` injetado no objeto `question` retornado ao frontend
-
-### 1.4 Padrões proibidos por matéria (anti-alucinação)
-- [x] `forbiddenPatterns` definidos para todas as 6 matérias de concursos
-- [x] `forbiddenPatterns` definidos para todas as 7 áreas do modo academic
-- [x] `validateAgainstHallucination()` detecta e remove padrões com `[informação removida]`
-- [x] Warning retornado quando padrões foram detectados e corrigidos
-
-### 1.5 Prompt restrito ao contexto recuperado
-- [x] `systemText` de concursos proibido de inventar artigos, súmulas, anos e bancas
-- [x] `getAreaSafetyInstruction()` retorna instrução específica por área/modo
-- [x] `guardPromptSize()` garante que contexto RAG + externo cabem em 24k chars
-- [ ] **TODO:** Adicionar instrução explícita no prompt: "Se o contexto não contiver informação suficiente, responda APENAS: `{\"error\": \"CONTEXT_INSUFFICIENT\"}`"
-
-### 1.6 Fallback gracioso ao usuário
-- [x] Mensagem de fallback definida em `CONCURSOS_CONFIG.fallbackMessage`
-- [x] Mensagem de fallback definida em `ACADEMIC_CONFIG.fallbackMessage`
-- [x] `invalidFilterMessage` e `invalidAreaMessage` com lista das opções válidas
-- [ ] **TODO:** Exibir no frontend o badge de qualidade (🟢/🟡/🔴) junto à questão gerada
+| Fase | Nome | Status |
+|------|------|--------|
+| 0 | Fundação & Controle | ✅ Concluída |
+| 1 | Blindagem da Base (RAG + Anti-Alucinação) | 🔄 Em andamento |
+| 2 | UX & Interface (Mobile-first, Feedback visual) | ⏳ Pendente |
+| 3 | Conteúdo & Indexação (Vectorize, PDFs, YouTube) | ⏳ Pendente |
+| 4 | Autenticação & Multi-usuário | ⏳ Pendente |
+| 5 | Monetização & Analytics | ⏳ Pendente |
 
 ---
 
-## ⬜ FASE 2 — Expansão do Conteúdo RAG
+## ✅ FASE 0 — Fundação & Controle
 
-> **Objetivo:** popular as coleções Vectorize com material de qualidade para aumentar coverage e score médio.
+> Objetivo: estrutura mínima operacional, documentação base e pipeline RAG funcional.
 
-### 2.1 Indexação de conteúdo para Concursos
-- [ ] Indexar artigos de Português (gramática, regência, interpretação)
-- [ ] Indexar CF/88 completa na coleção `concursos_direito_constitucional`
-- [ ] Indexar Lei 8.112/90 e Lei 9.784/99 na coleção `concursos_direito_administrativo`
-- [ ] Indexar exercícios de Raciocínio Lógico na coleção `concursos_rlm`
-- [ ] Indexar fundamentos de Informática na coleção `concursos_informatica`
-- [ ] Indexar conteúdo de Administração Pública na coleção `concursos_adm_publica`
-
-### 2.2 Indexação de conteúdo para Academic
-- [ ] Popular `academic_direito` (CC/2002, CP, CPC, CLT)
-- [ ] Popular `academic_medicina` (fisiologia, farmacologia, clínica)
-- [ ] Popular `academic_historia` (história do Brasil e geral)
-- [ ] Popular `academic_exatas` (matemática, física, química)
-- [ ] Popular `academic_humanas` (sociologia, filosofia, psicologia)
-- [ ] Popular `academic_saude` (saúde pública, epidemiologia)
-- [ ] Popular `academic_negocios` (administração, finanças, marketing)
-
-### 2.3 Qualidade do índice
-- [ ] Script `build_full_index.py` validado e rodando sem erros
-- [ ] Verificar score médio de cada coleção após indexação (meta: ≥ 0.75)
-- [ ] Documentar quantidade de chunks por coleção
+- [x] Worker Cloudflare deployado e funcional
+- [x] Integração Groq API com fallback de modelos (5 modelos)
+- [x] RAG via Vectorize com score mínimo 0.65
+- [x] Protocolo anti-alucinação: `validateRAGScore` + `validateQuestionTraceability`
+- [x] Filtros Concursos configurados (6 matérias)
+- [x] Filtros Academic configurados (7 áreas)
+- [x] `forbiddenPatterns` por filtro (sanitização de padrões alucinatórios)
+- [x] Badge de qualidade (`🟢🟡🔴`) gerado em cada resposta
+- [x] `guardPromptSize` para evitar overflow do contexto
+- [x] CORS configurado para `studymaster-agent.pages.dev`
+- [x] `index.html` com layout responsivo de questões
+- [x] Seção de preços removida do frontend (conteúdo evergreen)
+- [x] CTAs apontando para link externo (sem preços fixos)
+- [x] `GUIA-EVOLUCAO.md` criado como documento de controle
 
 ---
 
-## ⬜ FASE 3 — UX e Feedback ao Usuário
+## 🔄 FASE 1 — Blindagem da Base
 
-> **Objetivo:** o usuário entende a qualidade do que está recebendo e tem clareza quando o sistema não consegue ajudar.
+> Objetivo: tornar o sistema confiável antes de escalar. Nenhuma alucinação deve chegar ao usuário.
 
-### 3.1 Badge de qualidade no frontend
-- [ ] Exibir badge 🟢/🟡/🔴 junto à questão gerada
-- [ ] Tooltip explicando o significado de cada badge
-- [ ] Badge deve aparecer antes das alternativas, não depois
+### 1.1 Score mínimo de similaridade
+- [ ] Elevar `minScore` de 0.65 → **0.75** em `fetchVectorizeContext`
+- [ ] Elevar `minScore` de 0.70 → **0.75** em `fetchVademecumRAG`
+- [ ] Testar: consultas fora do escopo devem retornar fallback, não alucinação
 
-### 3.2 Mensagens de erro amigáveis
-- [ ] Quando `RAG_EMPTY`: mostrar mensagem + sugestão de matéria alternativa
-- [ ] Quando `RAG_LOW_CONFIDENCE`: mostrar score e sugestão de reformular a pergunta
-- [ ] Quando `CONTEXT_INSUFFICIENT`: mensagem clara sem expor detalhes técnicos
+### 1.2 Recusa segura quando contexto insuficiente
+- [ ] Retornar mensagem de fallback quando `contextLength < minContextLength`
+- [ ] Nunca gerar questão sem contexto mínimo verificado
+- [ ] Log de evento quando fallback é acionado
 
-### 3.3 Indicador de carregamento
-- [ ] Loading state visível durante a geração da questão
-- [ ] Timeout de 30s com mensagem de retry amigável
-- [ ] Botão "Tentar novamente" em caso de erro
+### 1.3 Prompt restrito ao contexto recuperado
+- [ ] Adicionar instrução explícita no `systemText`: *"Gere questões EXCLUSIVAMENTE com base no contexto abaixo. Se o contexto for insuficiente, recuse e informe o usuário."*
+- [ ] Remover permissão implícita de uso de conhecimento geral nos modos concursos/academic
 
-### 3.4 Histórico de questões na sessão
-- [ ] Exibir últimas 5 questões geradas na sessão atual (sem persistência)
-- [ ] Botão para regenerar questão com parâmetros iguais
+### 1.4 Validação de resposta pós-geração
+- [ ] `validateQuestionPipeline` ativado em todos os fluxos (concursos + academic)
+- [ ] Se pipeline falhar: retornar erro estruturado, não questão parcial
+- [ ] Incluir campo `_qualityBadge` em toda resposta bem-sucedida
 
-### 3.5 Mobile responsivo
-- [ ] Testar interface em 375px (iPhone SE)
-- [ ] Testar interface em 390px (iPhone 14)
+### 1.5 Testes de regressão anti-alucinação
+- [ ] Criar suite de 10 consultas fora do escopo por matéria
+- [ ] Documentar resultado esperado (recusa) vs. obtido
+- [ ] Critério de conclusão: 100% das consultas fora do escopo recusadas
+
+---
+
+## ⏳ FASE 2 — UX & Interface
+
+> Objetivo: experiência fluida em mobile, feedback visual claro, zero confusão de estado.
+
+### 2.1 Mobile-first (375px)
+- [ ] Revisar layout de questões em viewport 375px
 - [ ] Touch targets mínimos de 44x44px em todos os botões
+- [ ] Verificar sem scroll horizontal em mobile
+
+### 2.2 Estados de loading e erro
+- [ ] Skeleton loader durante geração da questão
+- [ ] Estado de erro com mensagem amigável (sem stack trace exposto)
+- [ ] Empty state quando nenhuma questão disponível
+
+### 2.3 Badge de qualidade visível
+- [ ] Exibir `_qualityBadge` (🟢🟡🔴) abaixo de cada questão
+- [ ] Tooltip explicando o que o badge significa
+
+### 2.4 Histórico de sessão
+- [ ] Manter lista de questões respondidas na sessão (in-memory)
+- [ ] Placar: X acertos / Y questões
+- [ ] Botão "Nova sessão" reseta tudo
+
+### 2.5 Acessibilidade básica
+- [ ] Contraste WCAG AA em todos os textos
+- [ ] `aria-label` em botões de ícone
+- [ ] Navegação completa por teclado (Tab/Enter/Space)
 
 ---
 
-## ⬜ FASE 4 — Sistema de Login e Multi-usuário
+## ⏳ FASE 3 — Conteúdo & Indexação
 
-> **Objetivo:** permitir que cada usuário tenha histórico, progresso e configurações persistidas.
-> **Regra:** esta fase só começa após a Fase 3 estar completa e estável.
+> Objetivo: ampliar base de conhecimento com materiais reais.
+
+### 3.1 PDFs
+- [ ] Pipeline de ingestão de PDF → chunks → embedding → Vectorize
+- [ ] Metadados obrigatórios por chunk: `{ source, area, page, chunk_id }`
+- [ ] Testar: 1 PDF por matéria de concurso (6 matérias)
+- [ ] Critério: score ≥ 0.75 em consultas sobre o conteúdo indexado
+
+### 3.2 YouTube
+- [ ] Extração de transcrição via YouTube Data API v3 (com `YOUTUBE_API_KEY`)
+- [ ] Fallback para scraping se API bloqueada
+- [ ] Chunks de transcrição → embedding → Vectorize
+- [ ] Testar: 2 vídeos por área
+
+### 3.3 Modo "Livre" (upload do usuário)
+- [ ] Upload de texto/PDF pelo usuário na sessão
+- [ ] Indexação temporária (in-memory, sem persistência)
+- [ ] Geração de questões baseada EXCLUSIVAMENTE no material enviado
+
+### 3.4 Curadoria de base existente
+- [ ] Auditar coleções Vectorize existentes (score médio por coleção)
+- [ ] Remover vetores com score < 0.60 nas buscas (qualidade da base)
+- [ ] Documentar: quais coleções têm material suficiente, quais precisam de reforço
+
+---
+
+## ⏳ FASE 4 — Autenticação & Multi-usuário
+
+> ⚠️ Esta fase começa SOMENTE após Fase 1 e Fase 2 concluídas.
+> Objetivo: sessões persistentes, progresso salvo, múltiplos usuários.
 
 ### 4.1 Autenticação básica
-- [ ] Definir estratégia: Cloudflare Access vs. JWT próprio vs. OAuth
-- [ ] Implementar login com email + senha (sem OAuth inicialmente)
-- [ ] Sessão via JWT com expiração de 7 dias
-- [ ] Logout e invalidação de token
+- [ ] Definir estratégia: Cloudflare Access vs. JWT próprio vs. OAuth (Google)
+- [ ] Documentar decisão em `DECISOES.md`
+- [ ] Implementar login/logout sem quebrar fluxo atual
 
-### 4.2 Perfil e progresso do usuário
-- [ ] Salvar questões respondidas por usuário (Cloudflare KV ou D1)
-- [ ] Score histórico por matéria/área
-- [ ] Contador de questões geradas e acertos
+### 4.2 Persistência de progresso
+- [ ] Storage de histórico por usuário (D1 ou KV)
+- [ ] Salvar: questões respondidas, acertos, matérias estudadas
+- [ ] Não salvar: conteúdo das questões (gerar sempre fresh)
 
 ### 4.3 Segurança
-- [ ] Rate limiting por usuário (máx. 50 questões/hora)
-- [ ] Validação de CORS restrita ao domínio de produção
-- [ ] Headers de segurança (`X-Content-Type-Options`, `X-Frame-Options`)
+- [ ] Rate limiting por IP/usuário no Worker
+- [ ] Sanitização de inputs antes de qualquer prompt
+- [ ] Nenhuma chave de API exposta no frontend
 
 ---
 
-## ⬜ FASE 5 — Monetização e SaaS
+## ⏳ FASE 5 — Monetização & Analytics
 
-> **Objetivo:** transformar o StudyMaster em produto com receita recorrente.
-> **Regra:** esta fase só começa após Login estar sólido e com usuários reais ativos.
+> Objetivo: entender uso, identificar valor, preparar modelo de receita.
 
-### 5.1 Planos e limites
-- [ ] Plano gratuito: 10 questões/dia
-- [ ] Plano Pro: questões ilimitadas + acesso a todas as matérias
-- [ ] Integração com Stripe ou Pagar.me para pagamento recorrente
+### 5.1 Analytics de uso
+- [ ] Eventos: `questao_gerada`, `questao_respondida`, `acerto`, `erro`, `filtro_usado`
+- [ ] Integrar Google Analytics 4 ou Cloudflare Analytics
+- [ ] Dashboard simples: questões/dia, matéria mais usada, taxa de acerto
 
-### 5.2 Painel administrativo
-- [ ] Métricas de uso por matéria/área
-- [ ] Usuários ativos diários/mensais
-- [ ] Score médio de qualidade RAG por coleção
+### 5.2 Limite gratuito
+- [ ] Definir: X questões/dia para não logados
+- [ ] Mensagem clara quando limite atingido
+- [ ] CTA para criar conta (Fase 4 pré-requisito)
 
-### 5.3 API pública
-- [ ] Documentação da API para integrações externas
-- [ ] Chave de API por usuário (plano Pro)
-- [ ] Rate limiting diferenciado por plano
-
----
-
-## 📝 Log de Sessões
-
-> Registrar aqui cada sessão de trabalho com data, o que foi feito e o que ficou pendente.
-
-### Sessão — 2026-05-28
-**Feito:**
-- Aplicadas correções evergreen no `config/prompts-anti-alucinacao.json` (remoção de preços, seção custo-benefício atemporal, CTAs genéricos)
-
-**Pendente para próxima sessão:**
-- Adicionar instrução explícita no prompt para retornar `{"error": "CONTEXT_INSUFFICIENT"}` quando contexto insuficiente (item 1.5 pendente)
-- Implementar exibição do badge de qualidade no frontend (item 1.6 pendente)
-
-### Sessão — 2026-05-30
-**Feito:**
-- Criado/atualizado este documento GUIA-EVOLUCAO.md como controle mestre
-- Mapeado estado atual do worker.js: validações RAG implementadas, padrões proibidos definidos, pipeline unificado operacional
-
-**Pendente para próxima sessão:**
-- Item 1.5: instrução `CONTEXT_INSUFFICIENT` no systemText
-- Item 1.6: badge de qualidade no index.html
-- Avaliar qual coleção Vectorize tem menor coverage para priorizar indexação (Fase 2)
+### 5.3 Modelo de receita
+- [ ] Definir: assinatura vs. freemium vs. pay-per-use
+- [ ] Documentar decisão em `DECISOES.md`
+- [ ] Implementar planos apenas após validar demanda orgânica
 
 ---
 
-## 🚫 Regras Invioláveis
+## 📌 Regras do Processo
 
-1. **Nunca inventar artigos, súmulas ou leis** — se não está no contexto RAG, não gera questão
-2. **Nunca mencionar preços, anos de prova ou bancas específicas** — conteúdo evergreen
-3. **Login fica por último** — não bloqueia nenhuma das Fases 1, 2 ou 3
-4. **Uma fase de cada vez** — não abrir frente nova com fase anterior incompleta
-5. **Todo check marcado = testado em produção**, não apenas implementado localmente
+1. **Nenhuma feature começa sem estar neste guia** com item `[ ]`
+2. **Cada item concluído vira `[x]`** com commit referenciando a mudança
+3. **Fases são sequenciais** — Fase 2 não inicia sem Fase 1 concluída
+4. **Exceção:** itens de UX críticos (bugs visuais graves) podem ser corrigidos a qualquer momento
+5. **Login (Fase 4) é o último bloco desbloqueado** — nunca antes
+6. **Preço, planos e monetização** nunca aparecem no frontend antes da Fase 5
+7. **Qualquer decisão arquitetural vai para `DECISOES.md`**
 
 ---
 
 ## 🔗 Documentos Relacionados
 
-- [PROTOCOLO-GARANTIAS.md](./PROTOCOLO-GARANTIAS.md) — detalhes das camadas de validação
-- [ARQUITETURA.md](./ARQUITETURA.md) — visão geral da arquitetura do sistema
-- [CHANGELOG.md](./CHANGELOG.md) — histórico de alterações
-- [00-LEIA-PRIMEIRO.md](./00-LEIA-PRIMEIRO.md) — onboarding e contexto do projeto
+| Documento | Finalidade |
+|-----------|------------|
+| [`DECISOES.md`](./DECISOES.md) | Registro de decisões arquiteturais |
+| [`PROTOCOLO-GARANTIAS.md`](./PROTOCOLO-GARANTIAS.md) | Protocolo anti-alucinação detalhado |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Histórico de mudanças |
+| [`ARQUITETURA.md`](./ARQUITETURA.md) | Visão geral da arquitetura |
+| [`worker.js`](./worker.js) | Worker principal (Cloudflare) |
