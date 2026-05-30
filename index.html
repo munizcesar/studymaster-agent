@@ -897,7 +897,18 @@
     .error-screen { display: none; text-align: center; padding: var(--space-12) var(--space-8); }
     .error-screen.visible { display: block; }
     .error-icon { font-size: 3rem; margin-bottom: var(--space-4); }
-    .error-msg { color: var(--color-text-muted); margin-bottom: var(--space-6); font-size: var(--text-sm); }
+    .error-msg { color: var(--color-text-muted); margin-bottom: var(--space-4); font-size: var(--text-sm); }
+    .error-suggestions { background: var(--color-surface-offset); border-radius: var(--radius-md); padding: var(--space-4); margin: 0 auto var(--space-4); display: inline-block; text-align: left; max-width: 480px; }
+    .error-suggestions p { margin-bottom: var(--space-2); font-weight: 700; color: var(--color-text); }
+    .error-suggestions ul { list-style: none; padding-left: var(--space-4); margin: 0; }
+    .error-suggestions li { position: relative; margin-bottom: var(--space-2); padding-left: var(--space-3); color: var(--color-text-muted); }
+    .error-suggestions li::before { content: '•'; position: absolute; left: 0; color: var(--color-primary); }
+    .session-result-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .session-summary { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-3); }
+    .session-history { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+    .session-history-item { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.75rem; border-radius: var(--radius-full); background: var(--color-surface); border: 1px solid var(--color-border); font-size: 0.82rem; }
+    .session-history-item.correct { color: var(--color-success); border-color: oklch(from var(--color-success) l c h / 0.25); }
+    .session-history-item.wrong { color: var(--color-error); border-color: oklch(from var(--color-error) l c h / 0.25); }
 
     /* Nav */
     .wizard-nav { display: flex; justify-content: space-between; margin-top: var(--space-6); }
@@ -1809,6 +1820,14 @@
             <div class="error-icon"><i data-lucide="alert-triangle" width="48" height="48" style="color:var(--color-error)"></i></div>
             <h3 style="margin-bottom:var(--space-2)">Erro ao gerar questões</h3>
             <p class="error-msg" id="error-msg">Não foi possível conectar ao servidor. Tente novamente em instantes.</p>
+            <div class="error-suggestions">
+              <p>O que fazer</p>
+              <ul>
+                <li>Verifique sua conexão de internet.</li>
+                <li>Tente novamente em alguns segundos.</li>
+                <li>Se estiver em modo Livre, confira o material ou o trecho enviado.</li>
+              </ul>
+            </div>
             <button class="btn-primary" id="retry-btn" style="max-width:300px;margin:0 auto;">
               <i data-lucide="refresh-cw" width="16" height="16"></i>
               Tentar novamente
@@ -1823,9 +1842,19 @@
             </div>
             <div id="questions-list"></div>
             <div class="hidden" id="session-result" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
-              <div style="font-weight:700;margin-bottom:6px">Resultado da sessão</div>
-              <div id="session-stats" style="color:var(--color-text-muted)"></div>
-              <button class="btn-primary hidden" id="retry-wrong-btn" style="margin-top:10px;max-width:320px">
+              <div class="session-result-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-3);">
+                <div>
+                  <div style="font-weight:700;margin-bottom:6px">Resultado da sessão</div>
+                  <div id="session-stats" style="color:var(--color-text-muted)"></div>
+                </div>
+                <button class="btn-primary" id="session-new-btn" style="margin-top:0;white-space:nowrap;">
+                  <i data-lucide="rotate-ccw" width="16" height="16"></i>
+                  Nova sessão
+                </button>
+              </div>
+              <div id="session-summary" style="color:var(--color-text);font-size:0.95rem;margin-bottom:var(--space-3);"></div>
+              <div id="session-history" style="display:flex;flex-wrap:wrap;gap:8px;font-size:0.9rem;color:var(--color-text-muted);"></div>
+              <button class="btn-primary hidden" id="retry-wrong-btn" style="margin-top:10px;max-width:320px;">
                 Refazer somente as erradas
               </button>
             </div>
@@ -2249,6 +2278,7 @@ const state = {
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
   generatedQuestions: [], answered: 0, correct: 0, answerResults: [],
+  sessionHistory: { answers: [], correct: 0, wrong: 0 },
   concursoSubStep: 'a',
   dailyGoal: 10,
 };
@@ -2544,6 +2574,12 @@ function init() {
     goToStep(1);
   });
   document.getElementById('retry-btn').addEventListener('click', () => callWorkerAndRender());
+  document.getElementById('session-new-btn').addEventListener('click', () => {
+    const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
+    if (sessionCompleted) window.dispatchEvent(new CustomEvent('quizCompleted'));
+    resetState();
+    goToStep(1);
+  });
   window.addEventListener('quizCompleted', handleQuizCompleted);
   updateNavButtons();
 }
@@ -2617,6 +2653,7 @@ function resetState() {
   };
   state.freeText = ''; state.editalText = ''; state.youtubeUrl = ''; state.bancaInferida = null;
   state.generatedQuestions = []; state.answered = 0; state.correct = 0; state.answerResults = [];
+  state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   state.mode = null;
 }
@@ -3241,6 +3278,7 @@ async function callWorkerAndRender() {
     if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
     state.generatedQuestions = data.questions;
     state.answered = 0; state.correct = 0;
+    state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
     genScreen.classList.add('hidden');
     renderQuestions(data.questions);
     // No mobile, entra automaticamente no Modo Foco
@@ -3252,10 +3290,40 @@ async function callWorkerAndRender() {
   }
 }
 
+function normalizeErrorMessage(raw) {
+  if (!raw) return 'Algo deu errado. Tente novamente em instantes.';
+  const msg = raw.toString();
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+    return 'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.';
+  }
+  if (msg.includes('HTTP 422') || msg.toLowerCase().includes('contexto insuficiente')) {
+    return 'Não há material suficiente para gerar questões. Ajuste o tópico ou informe outro conteúdo.';
+  }
+  if (msg.includes('HTTP 404')) {
+    return 'Serviço indisponível. Tente novamente mais tarde.';
+  }
+  if (msg.includes('Nenhuma questão retornada')) {
+    return 'Nenhuma questão foi gerada. Tente outro tema ou aumente a quantidade de conteúdo.';
+  }
+  return msg;
+}
+
 function showError(msg) {
   document.getElementById('generating-screen').classList.add('hidden');
-  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('questions-container').classList.remove('visible');
+  document.getElementById('session-result').classList.add('hidden');
+  document.getElementById('error-msg').textContent = normalizeErrorMessage(msg);
   document.getElementById('error-screen').classList.add('visible');
+}
+
+function recordSessionAnswer(idx, selectedKey, isCorrect) {
+  state.sessionHistory.answers[idx] = {
+    question: idx + 1,
+    selected: selectedKey,
+    correct: isCorrect,
+  };
+  if (isCorrect) state.sessionHistory.correct += 1;
+  else state.sessionHistory.wrong += 1;
 }
 
 // Estado da navegação de questão única
@@ -3293,6 +3361,7 @@ function renderQuestions(questions) {
     if (!wrongQuestions.length) return;
     state.generatedQuestions = wrongQuestions;
     state.answered = 0; state.correct = 0;
+    state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
     renderQuestions(wrongQuestions);
   };
 
@@ -3405,6 +3474,7 @@ function handleDesktopAnswer(questions, idx, selectedKey) {
   const isCorrect = selectedKey === q.correctAnswer;
   qNavState.results[idx] = isCorrect;
   state.answerResults[idx] = isCorrect;
+  recordSessionAnswer(idx, selectedKey, isCorrect);
   if (isCorrect) state.correct++;
   state.answered++;
   incrementTodayCount(1);
@@ -3521,6 +3591,7 @@ function handleSingleAnswer(questions, idx, selectedKey) {
   const isCorrect = selectedKey === q.correctAnswer;
   qNavState.results[idx] = isCorrect;
   state.answerResults[idx] = isCorrect;
+  recordSessionAnswer(idx, selectedKey, isCorrect);
   if (isCorrect) state.correct++;
   state.answered++;
   incrementTodayCount(1);
@@ -3550,11 +3621,24 @@ function handleSingleAnswer(questions, idx, selectedKey) {
 function showSessionResult() {
   const resultBox = document.getElementById('session-result');
   const stats = document.getElementById('session-stats');
+  const summary = document.getElementById('session-summary');
+  const history = document.getElementById('session-history');
   const retryWrongBtn = document.getElementById('retry-wrong-btn');
   const total = state.generatedQuestions.length;
   const correct = state.correct;
   const wrong = total - correct;
-  stats.textContent = `Você respondeu ${total} questões: ${correct} acertos e ${wrong} erros.`;
+  const percent = total ? Math.round((correct / total) * 100) : 0;
+  stats.textContent = `Você respondeu ${total} questões.`;
+  summary.innerHTML = `Acertos: <strong>${correct}</strong> · Erros: <strong>${wrong}</strong> · Rendimento: <strong>${percent}%</strong>`;
+  const answerHistory = state.sessionHistory.answers.filter(Boolean);
+  history.innerHTML = answerHistory.map(answer => {
+    const icon = answer.correct ? '✔️' : '❌';
+    const label = answer.correct ? 'Acerto' : 'Erro';
+    return `<span class="session-history-item ${answer.correct ? 'correct' : 'wrong'}">${icon} Q${answer.question}: ${label}</span>`;
+  }).join('');
+  if (!answerHistory.length) {
+    history.innerHTML = '<span style="color: var(--color-text-muted);">Nenhuma questão registrada no histórico.</span>';
+  }
   if (wrong > 0) retryWrongBtn.classList.remove('hidden');
   else retryWrongBtn.classList.add('hidden');
   resultBox.classList.remove('hidden');
