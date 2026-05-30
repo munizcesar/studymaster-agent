@@ -1,192 +1,204 @@
-# GUIA DE EVOLUÇÃO — StudyMaster
+# 📋 GUIA MESTRE DE EVOLUÇÃO — StudyMaster Agent
 
-> Documento mestre de controle de evolução do produto.  
-> Marque cada item com `[x]` ao concluir. Não pule fases sem critério cumprido.  
-> Última atualização: 2026-05-30
-
----
-
-## Estado atual do projeto
-
-- [x] Arquitetura base funcional: Worker + Vectorize + BGE-M3 + LLM
-- [x] Geração de questões estruturadas em JSON
-- [x] Frontend em Cloudflare Pages
-- [x] Filtros por área, disciplina e nível de dificuldade
-- [x] Feedback imediato com acerto/erro e explicação
-- [ ] Anti-alucinação blindada (Fase 1)
-- [ ] Relatório de sessão inteligente (Fase 3)
-- [ ] Login e persistência (Fase 5)
-- [ ] Monetização ativa (Fase 6)
+> **Documento de controle vivo.** Cada item implementado recebe `[x]`. Cada sessão de trabalho deve começar aqui e terminar aqui, atualizando os checks.
+>
+> **Regra:** nenhuma feature nova começa antes da fase anterior estar 100% concluída e estável em produção.
 
 ---
 
-## Diretrizes permanentes (não negociáveis)
+## 🗺️ Visão Geral das Fases
 
-### Produto
-
-- O LLM **nunca** é a fonte primária de fatos, gabaritos, pesos de edital ou legislação.
-- Fatos estruturais vêm de RAG (Vectorize), regras determinísticas ou arquivos versionados no repositório.
-- Nenhuma funcionalidade nova entra em produção sem critério mínimo de confiabilidade definido.
-- Toda fase concluída deve ser marcada neste documento com data.
-- Login fica por último — primeiro existir valor claro antes de exigir conta.
-
-### Anti-alucinação (regra de ouro)
-
-- O LLM gera **linguagem natural** — nunca fatos, números, artigos ou estruturas curriculares.
-- Questão só é gerada quando há contexto real suficiente no Vectorize.
-- Gabarito é salvo no momento da geração — nunca recalculado depois.
-- Diagnóstico e estatísticas são calculados por código determinístico, não por inferência livre.
-- Editais, bancas e pesos de disciplinas ficam em dados estruturados versionados neste repositório.
+| Fase | Nome | Status | Prioridade |
+|------|------|--------|------------|
+| 1 | Blindagem da Base (Anti-alucinação) | 🟡 Em andamento | 🔴 Crítica |
+| 2 | Expansão do Conteúdo RAG | ⬜ Pendente | 🟠 Alta |
+| 3 | UX e Feedback ao Usuário | ⬜ Pendente | 🟡 Média |
+| 4 | Sistema de Login e Multi-usuário | ⬜ Pendente | 🟢 Futura |
+| 5 | Monetização e SaaS | ⬜ Pendente | 🟢 Futura |
 
 ---
 
-## Fase 1 — Blindagem anti-alucinação
+## ✅ FASE 1 — Blindagem da Base (Anti-alucinação)
 
-**Objetivo:** tornar o motor de geração seguro e confiável antes de qualquer expansão.  
-**Status:** 🔴 Pendente  
-**Critério de conclusão:** nenhuma questão gerada quando contexto for insuficiente; zero gabarito recalculado.
+> **Objetivo:** o sistema deve recusar gerar questões quando o contexto RAG for insuficiente, e nunca fabricar informações.
 
-### Entregas
+### 1.1 Score mínimo de similaridade no RAG
+- [x] `validateRAGScore()` implementado no `worker.js` com `minScore = 0.75`
+- [x] Retorno estruturado com `reason: 'RAG_EMPTY'` e `reason: 'RAG_LOW_CONFIDENCE'`
+- [x] Recusa segura: worker retorna erro amigável quando score insuficiente
+- [x] Score do top-3 matches usado como média ponderada
 
-- [ ] Implementar score mínimo de similaridade cosine no Worker antes de chamar o LLM
-- [ ] Definir threshold inicial (sugerido: 0.72) e registrar em `DECISOES.md`
-- [ ] Filtrar contextos com score abaixo do mínimo antes de montar o prompt
-- [ ] Retornar mensagem honesta ao usuário quando contexto for insuficiente
-- [ ] Reescrever prompt de geração com instrução explícita de restrição ao contexto recuperado
-- [ ] Proibir no prompt: invenção de artigos de lei, súmulas, datas, nomes de casos e jurisprudência
-- [ ] Salvar gabarito e metadados da questão no momento da geração (estrutura em memória de sessão)
-- [ ] Exigir no prompt que explicação cite o trecho ou base que fundamenta a resposta
-- [ ] Criar estrutura mínima de log para auditoria: `{ topico, score_min, score_obtido, gerou, motivo_recusa }`
-- [ ] Testar recusa de geração em tópico sem cobertura no Vectorize
-- [ ] Validar que explicações param de inventar artigos inexistentes
+### 1.2 Validação de rastreabilidade da questão
+- [x] `validateQuestionTraceability()` implementado
+- [x] Extração de termos-chave com filtro de stopwords em português
+- [x] Cobertura mínima de 30% dos termos da questão no contexto RAG
+- [x] Retorno com `coverage` percentual e `matchedTerms / totalTerms`
 
-### Critério técnico mínimo
+### 1.3 Pipeline de validação unificado
+- [x] `validateQuestionPipeline()` chama camadas 1, 3 e 4 em sequência
+- [x] Badge de qualidade: 🟢 Alta / 🟡 Média / 🔴 Baixa
+- [x] `_qualityBadge` injetado no objeto `question` retornado ao frontend
 
-```
-score_minimo = 0.72
-contextos_confiaveis = matches.filter(m => m.score >= score_minimo)
-if (contextos_confiaveis.length < 2) → recusar geração, retornar erro informativo
-```
+### 1.4 Padrões proibidos por matéria (anti-alucinação)
+- [x] `forbiddenPatterns` definidos para todas as 6 matérias de concursos
+- [x] `forbiddenPatterns` definidos para todas as 7 áreas do modo academic
+- [x] `validateAgainstHallucination()` detecta e remove padrões com `[informação removida]`
+- [x] Warning retornado quando padrões foram detectados e corrigidos
 
----
+### 1.5 Prompt restrito ao contexto recuperado
+- [x] `systemText` de concursos proibido de inventar artigos, súmulas, anos e bancas
+- [x] `getAreaSafetyInstruction()` retorna instrução específica por área/modo
+- [x] `guardPromptSize()` garante que contexto RAG + externo cabem em 24k chars
+- [ ] **TODO:** Adicionar instrução explícita no prompt: "Se o contexto não contiver informação suficiente, responda APENAS: `{\"error\": \"CONTEXT_INSUFFICIENT\"}`"
 
-## Fase 2 — Expansão de filtros e cobertura acadêmica
-
-**Objetivo:** ampliar bancas, cargos, órgãos e legislação com base real indexada.  
-**Status:** 🔴 Pendente  
-**Critério de conclusão:** nenhum filtro novo publicado sem cobertura mínima no Vectorize.
-
-### Entregas
-
-- [ ] Expandir bancas: Cebraspe/CESPE, VUNESP, FGV, FCC, IBFC, AOCP, FUNDATEC, QUADRIX, IADES
-- [ ] Estruturar órgãos por hierarquia: segurança pública, tribunais, fiscal, controle
-- [ ] Estruturar cargos por órgão (ex: PC-SP → Investigador, Escrivão, Delegado, Perito)
-- [ ] Expandir filtros de legislação específica: CP, CPP, CF/88, LGPD, Lei Maria da Penha, Lei de Drogas, Estatuto do Desarmamento
-- [ ] Expandir ENEM com granularidade real por área e subtema
-- [ ] Expandir OAB com 1ª fase por disciplina
-- [ ] Expandir TI e certificações com áreas e exames específicos
-- [ ] Criar checklist de cobertura mínima por disciplina antes de publicar filtro novo
-- [ ] Documentar cobertura de vetores por área em `MAPA-CONTEUDO.md`
-
-### Regra obrigatória
-
-> Nenhum filtro novo vai para produção sem base real indexada correspondente no Vectorize.
+### 1.6 Fallback gracioso ao usuário
+- [x] Mensagem de fallback definida em `CONCURSOS_CONFIG.fallbackMessage`
+- [x] Mensagem de fallback definida em `ACADEMIC_CONFIG.fallbackMessage`
+- [x] `invalidFilterMessage` e `invalidAreaMessage` com lista das opções válidas
+- [ ] **TODO:** Exibir no frontend o badge de qualidade (🟢/🟡/🔴) junto à questão gerada
 
 ---
 
-## Fase 3 — Inteligência visível sem login
+## ⬜ FASE 2 — Expansão do Conteúdo RAG
 
-**Objetivo:** aumentar valor percebido e retenção antes de criar contas.  
-**Status:** 🔴 Pendente  
-**Critério de conclusão:** usuário sai da sessão entendendo onde foi bem, onde foi mal e o que estudar depois.
+> **Objetivo:** popular as coleções Vectorize com material de qualidade para aumentar coverage e score médio.
 
-### Entregas
+### 2.1 Indexação de conteúdo para Concursos
+- [ ] Indexar artigos de Português (gramática, regência, interpretação)
+- [ ] Indexar CF/88 completa na coleção `concursos_direito_constitucional`
+- [ ] Indexar Lei 8.112/90 e Lei 9.784/99 na coleção `concursos_direito_administrativo`
+- [ ] Indexar exercícios de Raciocínio Lógico na coleção `concursos_rlm`
+- [ ] Indexar fundamentos de Informática na coleção `concursos_informatica`
+- [ ] Indexar conteúdo de Administração Pública na coleção `concursos_adm_publica`
 
-- [ ] Criar memória temporária de sessão para respostas, disciplinas e desempenho
-- [ ] Calcular taxa de acerto por disciplina com lógica determinística (sem LLM)
-- [ ] Criar tela de resultado de sessão com acertos, erros e taxa por disciplina
-- [ ] Identificar pontos fortes, pontos médios e pontos fracos da sessão
-- [ ] Sugerir próxima sessão com base nos erros reais da sessão atual
-- [ ] Criar modo de dificuldade perceptível (fácil / médio / difícil)
-- [ ] Exibir contador de uso gratuito diário mesmo sem login
-- [ ] Fazer tela de resultado ter aparência de dashboard de evolução
+### 2.2 Indexação de conteúdo para Academic
+- [ ] Popular `academic_direito` (CC/2002, CP, CPC, CLT)
+- [ ] Popular `academic_medicina` (fisiologia, farmacologia, clínica)
+- [ ] Popular `academic_historia` (história do Brasil e geral)
+- [ ] Popular `academic_exatas` (matemática, física, química)
+- [ ] Popular `academic_humanas` (sociologia, filosofia, psicologia)
+- [ ] Popular `academic_saude` (saúde pública, epidemiologia)
+- [ ] Popular `academic_negocios` (administração, finanças, marketing)
 
----
-
-## Fase 4 — Pré-produto de assinatura
-
-**Objetivo:** construir desejo de continuidade e preparar a monetização antes da conta persistente.  
-**Status:** 🔴 Pendente  
-**Critério de conclusão:** produto comunica por que vale pagar antes mesmo de exigir login.
-
-### Entregas
-
-- [ ] Criar página de planos com proposta de valor clara
-- [ ] Definir plano gratuito com limite diário
-- [ ] Definir plano Pro com diferenciais objetivos
-- [ ] Criar preview bloqueado de histórico e evolução
-- [ ] Criar gerador de plano de estudos com dados estruturados de edital
-- [ ] Criar arquivo `data/editais.json` com concursos, disciplinas e pesos reais versionados
-- [ ] Adicionar aviso explícito de atualização por edital quando aplicável
-- [ ] Criar mecanismo de captura de interesse para futura ativação do plano pago
+### 2.3 Qualidade do índice
+- [ ] Script `build_full_index.py` validado e rodando sem erros
+- [ ] Verificar score médio de cada coleção após indexação (meta: ≥ 0.75)
+- [ ] Documentar quantidade de chunks por coleção
 
 ---
 
-## Fase 5 — Login e persistência real
+## ⬜ FASE 3 — UX e Feedback ao Usuário
 
-**Objetivo:** adicionar conta somente quando o produto já tiver valor recorrente comprovado.  
-**Status:** 🔴 Pendente  
-**Critério de conclusão:** a conta existe para preservar progresso, não apenas para liberar acesso.
+> **Objetivo:** o usuário entende a qualidade do que está recebendo e tem clareza quando o sistema não consegue ajudar.
 
-### Entregas
+### 3.1 Badge de qualidade no frontend
+- [ ] Exibir badge 🟢/🟡/🔴 junto à questão gerada
+- [ ] Tooltip explicando o significado de cada badge
+- [ ] Badge deve aparecer antes das alternativas, não depois
 
-- [ ] Implementar login com Google (OAuth)
-- [ ] Persistir histórico de sessões e respostas por usuário
-- [ ] Criar dashboard real com evolução semanal e taxa por disciplina
-- [ ] Criar sequência de dias estudados (streak)
-- [ ] Implementar revisão espaçada com algoritmo SM-2 determinístico
-- [ ] Criar relatórios recorrentes salvos por usuário
-- [ ] Vincular recursos premium ao plano do usuário
+### 3.2 Mensagens de erro amigáveis
+- [ ] Quando `RAG_EMPTY`: mostrar mensagem + sugestão de matéria alternativa
+- [ ] Quando `RAG_LOW_CONFIDENCE`: mostrar score e sugestão de reformular a pergunta
+- [ ] Quando `CONTEXT_INSUFFICIENT`: mensagem clara sem expor detalhes técnicos
 
----
+### 3.3 Indicador de carregamento
+- [ ] Loading state visível durante a geração da questão
+- [ ] Timeout de 30s com mensagem de retry amigável
+- [ ] Botão "Tentar novamente" em caso de erro
 
-## Fase 6 — Monetização ativa
+### 3.4 Histórico de questões na sessão
+- [ ] Exibir últimas 5 questões geradas na sessão atual (sem persistência)
+- [ ] Botão para regenerar questão com parâmetros iguais
 
-**Objetivo:** converter o produto em receita recorrente com confiança e clareza.  
-**Status:** 🔴 Pendente  
-**Critério de conclusão:** assinatura vendida como sistema de evolução do aluno, não como gerador de IA.
-
-### Entregas
-
-- [ ] Definir preço inicial do plano Pro
-- [ ] Integrar meio de pagamento adequado ao público brasileiro
-- [ ] Criar limite do plano gratuito com valor percebido suficiente para conversão
-- [ ] Criar oferta de teste ou período experimental se validado
-- [ ] Medir taxa de ativação, retorno e conversão após lançamento
-- [ ] Criar página de benefícios focada em evolução do aluno
+### 3.5 Mobile responsivo
+- [ ] Testar interface em 375px (iPhone SE)
+- [ ] Testar interface em 390px (iPhone 14)
+- [ ] Touch targets mínimos de 44x44px em todos os botões
 
 ---
 
-## Controle de qualidade (checar antes de publicar qualquer entrega)
+## ⬜ FASE 4 — Sistema de Login e Multi-usuário
 
-- [ ] A funcionalidade é coerente com a proposta de preparação inteligente
-- [ ] A funcionalidade reduz ou não aumenta risco de alucinação
-- [ ] A experiência é de produto, não de prompt disfarçado de interface
-- [ ] Existe benefício claro para retenção ou monetização futura
-- [ ] Existe documentação mínima para manutenção
+> **Objetivo:** permitir que cada usuário tenha histórico, progresso e configurações persistidas.
+> **Regra:** esta fase só começa após a Fase 3 estar completa e estável.
+
+### 4.1 Autenticação básica
+- [ ] Definir estratégia: Cloudflare Access vs. JWT próprio vs. OAuth
+- [ ] Implementar login com email + senha (sem OAuth inicialmente)
+- [ ] Sessão via JWT com expiração de 7 dias
+- [ ] Logout e invalidação de token
+
+### 4.2 Perfil e progresso do usuário
+- [ ] Salvar questões respondidas por usuário (Cloudflare KV ou D1)
+- [ ] Score histórico por matéria/área
+- [ ] Contador de questões geradas e acertos
+
+### 4.3 Segurança
+- [ ] Rate limiting por usuário (máx. 50 questões/hora)
+- [ ] Validação de CORS restrita ao domínio de produção
+- [ ] Headers de segurança (`X-Content-Type-Options`, `X-Frame-Options`)
 
 ---
 
-## Histórico de conclusões
+## ⬜ FASE 5 — Monetização e SaaS
 
-| Data | Fase | Entrega concluída |
-|------|------|-------------------|
-| 2026-05-30 | — | Documento GUIA-EVOLUCAO.md criado |
+> **Objetivo:** transformar o StudyMaster em produto com receita recorrente.
+> **Regra:** esta fase só começa após Login estar sólido e com usuários reais ativos.
+
+### 5.1 Planos e limites
+- [ ] Plano gratuito: 10 questões/dia
+- [ ] Plano Pro: questões ilimitadas + acesso a todas as matérias
+- [ ] Integração com Stripe ou Pagar.me para pagamento recorrente
+
+### 5.2 Painel administrativo
+- [ ] Métricas de uso por matéria/área
+- [ ] Usuários ativos diários/mensais
+- [ ] Score médio de qualidade RAG por coleção
+
+### 5.3 API pública
+- [ ] Documentação da API para integrações externas
+- [ ] Chave de API por usuário (plano Pro)
+- [ ] Rate limiting diferenciado por plano
 
 ---
 
-## Próxima ação imediata
+## 📝 Log de Sessões
 
-**Iniciar Fase 1 — Blindagem anti-alucinação.**
+> Registrar aqui cada sessão de trabalho com data, o que foi feito e o que ficou pendente.
 
-Primeira entrega: implementar o filtro de score mínimo de similaridade no `worker.js` e reescrever o prompt de geração com restrição explícita ao contexto recuperado.
+### Sessão — 2026-05-28
+**Feito:**
+- Aplicadas correções evergreen no `config/prompts-anti-alucinacao.json` (remoção de preços, seção custo-benefício atemporal, CTAs genéricos)
+
+**Pendente para próxima sessão:**
+- Adicionar instrução explícita no prompt para retornar `{"error": "CONTEXT_INSUFFICIENT"}` quando contexto insuficiente (item 1.5 pendente)
+- Implementar exibição do badge de qualidade no frontend (item 1.6 pendente)
+
+### Sessão — 2026-05-30
+**Feito:**
+- Criado/atualizado este documento GUIA-EVOLUCAO.md como controle mestre
+- Mapeado estado atual do worker.js: validações RAG implementadas, padrões proibidos definidos, pipeline unificado operacional
+
+**Pendente para próxima sessão:**
+- Item 1.5: instrução `CONTEXT_INSUFFICIENT` no systemText
+- Item 1.6: badge de qualidade no index.html
+- Avaliar qual coleção Vectorize tem menor coverage para priorizar indexação (Fase 2)
+
+---
+
+## 🚫 Regras Invioláveis
+
+1. **Nunca inventar artigos, súmulas ou leis** — se não está no contexto RAG, não gera questão
+2. **Nunca mencionar preços, anos de prova ou bancas específicas** — conteúdo evergreen
+3. **Login fica por último** — não bloqueia nenhuma das Fases 1, 2 ou 3
+4. **Uma fase de cada vez** — não abrir frente nova com fase anterior incompleta
+5. **Todo check marcado = testado em produção**, não apenas implementado localmente
+
+---
+
+## 🔗 Documentos Relacionados
+
+- [PROTOCOLO-GARANTIAS.md](./PROTOCOLO-GARANTIAS.md) — detalhes das camadas de validação
+- [ARQUITETURA.md](./ARQUITETURA.md) — visão geral da arquitetura do sistema
+- [CHANGELOG.md](./CHANGELOG.md) — histórico de alterações
+- [00-LEIA-PRIMEIRO.md](./00-LEIA-PRIMEIRO.md) — onboarding e contexto do projeto
