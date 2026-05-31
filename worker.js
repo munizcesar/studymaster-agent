@@ -33,8 +33,6 @@ var corsHeaders = {
   "Access-Control-Max-Age": "86400"
 };
 var CONCURSOS_CONFIG = {
-  // Mapeamento EXPLÍCITO: filtro (chave) → Vectorize collection + metadados
-  // Padrão de chave interna: "concursos.<materia>"
   filters: {
     "concursos.portugues": {
       label: "Portugu\xEAs",
@@ -122,7 +120,6 @@ var CONCURSOS_CONFIG = {
       conceptualBases: "CF/88, Lei 8.112/90 (regime jur\xEDdico), Lei 9.784/99, Lei 14.133/21 (nova lei de licita\xE7\xF5es)"
     }
   },
-  // Mapeamento reverso: coleção → filtro (para debugging/logging)
   collectionToFilter: {
     "concursos_portugues": "concursos.portugues",
     "concursos_direito_constitucional": "concursos.direito_constitucional",
@@ -131,13 +128,10 @@ var CONCURSOS_CONFIG = {
     "concursos_informatica": "concursos.informatica",
     "concursos_adm_publica": "concursos.administracao_publica"
   },
-  // Fallback gracioso quando contexto insuficiente ou filtro não mapeado
   fallbackMessage: "Desculpe, ainda n\xE3o temos base de dados suficiente para esta mat\xE9ria. Tente novamente em breve!",
   invalidFilterMessage: /* @__PURE__ */ __name((filter) => `O filtro "${filter}" n\xE3o foi reconhecido. Escolha uma das mat\xE9rias dispon\xEDveis: Portugu\xEAs, Direito Constitucional, Direito Administrativo, Racioc\xEDnio L\xF3gico, Inform\xE1tica ou Administra\xE7\xE3o P\xFAblica.`, "invalidFilterMessage")
 };
 var ACADEMIC_CONFIG = {
-  // Mapeamento EXPLÍCITO: área (chave) → Vectorize collection + metadados
-  // Padrão de chave interna: "academic.<area>"
   areas: {
     "academic.direito": {
       label: "Direito",
@@ -238,7 +232,6 @@ var ACADEMIC_CONFIG = {
       conceptualBases: "Administra\xE7\xE3o, Contabilidade (IFRS), Marketing, Finan\xE7as corporativas, Economia, Gest\xE3o estrat\xE9gica consolidada"
     }
   },
-  // Mapeamento reverso: coleção → área (para debugging/logging)
   collectionToArea: {
     "academic_direito": "academic.direito",
     "academic_medicina": "academic.medicina",
@@ -248,7 +241,6 @@ var ACADEMIC_CONFIG = {
     "academic_saude": "academic.saude",
     "academic_negocios": "academic.negocios"
   },
-  // Fallback gracioso quando contexto insuficiente ou área não mapeada
   fallbackMessage: "Desculpe, ainda n\xE3o temos base de dados suficiente para esta \xE1rea. Tente novamente em breve!",
   invalidAreaMessage: /* @__PURE__ */ __name((area) => `A \xE1rea "${area}" n\xE3o foi reconhecida. Escolha uma das dispon\xEDveis: Direito, Medicina, Hist\xF3ria, Exatas, Humanas, Sa\xFAde ou Neg\xF3cios.`, "invalidAreaMessage")
 };
@@ -275,20 +267,21 @@ function validateConcursosFilter(filter) {
 __name(validateConcursosFilter, "validateConcursosFilter");
 async function fetchVectorizeContext(env, collection, query, minLength) {
   try {
-    if (!env.VECTORIZE) {
-      console.warn(`[RAG] Vectorize n\xE3o configurado. Retornando contexto vazio.`);
+    // FIX: usar env.KNOWLEDGE_INDEX (binding correto no wrangler.toml)
+    if (!env.KNOWLEDGE_INDEX) {
+      console.warn(`[RAG] KNOWLEDGE_INDEX não configurado. Retornando contexto vazio.`);
       return { context: "", sufficient: false, sources: [], contextLength: 0 };
     }
     let embedding;
     try {
       if (!env.AI) {
-        console.warn(`[RAG] CF AI n\xE3o dispon\xEDvel. Retornando contexto vazio.`);
+        console.warn(`[RAG] CF AI não disponível. Retornando contexto vazio.`);
         return { context: "", sufficient: false, sources: [], contextLength: 0 };
       }
       const embeddingRes = await env.AI.run("@cf/baai/bge-m3", { text: [query.slice(0, 512)] });
       const vector = embeddingRes?.data?.[0];
       if (!vector || !Array.isArray(vector)) {
-        console.warn(`[RAG] Embedding inv\xE1lido. Retornando contexto vazio.`);
+        console.warn(`[RAG] Embedding inválido. Retornando contexto vazio.`);
         return { context: "", sufficient: false, sources: [], contextLength: 0 };
       }
       embedding = vector;
@@ -298,7 +291,8 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     }
     let results;
     try {
-      results = await env.VECTORIZE.query(embedding, {
+      // FIX: usar env.KNOWLEDGE_INDEX (binding correto no wrangler.toml)
+      results = await env.KNOWLEDGE_INDEX.query(embedding, {
         namespace: collection,
         topK: 5,
         returnMetadata: "all"
@@ -323,7 +317,7 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     return {
       context,
       sufficient,
-      sources: documents.map((d) => ({ text: d.text.slice(0, 100), source: d.source })),
+      sources: documents.map((d) => ({ text: d.text.slice(0, 100), source: d.source, score: d.score })),
       contextLength: context.length
     };
   } catch (e) {
@@ -628,40 +622,9 @@ function validateQuestionTraceability(question, ragContext, subjectConfig) {
     };
   }
   const stopwords = new Set([
-    "de",
-    "da",
-    "do",
-    "das",
-    "dos",
-    "a",
-    "o",
-    "e",
-    "em",
-    "para",
-    "com",
-    "por",
-    "que",
-    "se",
-    "na",
-    "no",
-    "nas",
-    "nos",
-    "um",
-    "uma",
-    "ao",
-    "à",
-    "é",
-    "são",
-    "foi",
-    "ser",
-    "ter",
-    "sobre",
-    "segundo",
-    "conforme",
-    "art",
-    "artigo",
-    "lei",
-    "norma"
+    "de", "da", "do", "das", "dos", "a", "o", "e", "em", "para", "com", "por",
+    "que", "se", "na", "no", "nas", "nos", "um", "uma", "ao", "à", "é", "são",
+    "foi", "ser", "ter", "sobre", "segundo", "conforme", "art", "artigo", "lei", "norma"
   ]);
   const normalize = /* @__PURE__ */ __name((str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim(), "normalize");
   const questionTerms = normalize(question.statement).split(" ").filter((word) => word.length >= 4 && !stopwords.has(word)).slice(0, 15);
@@ -801,9 +764,9 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   const diffLabel = getDifficultyLabel(difficulty);
   const numAlts = 4;
   const altKeys = "A, B, C, D";
-  const systemText = `Voc\xEA \xE9 um examinador acad\xEAmico especializado em concursos p\xFAblicos. Retorne APENAS JSON v\xE1lido com a chave "questions".\nResponda em portugu\xEAs do Brasil.\n\nPRINC\xCDPIOS INEGOCI\xC1VEIS:\n- Use APENAS conhecimento fact\xEDcio consolidado\n- JAMAIS mencione pre\xE7os, datas de lan\xE7amento, vers\xF5es espec\xEDficas de software ou qualquer informa\xE7\xE3o vol\xE1til\n- Produza conte\xFAdo evergreen \u2014 v\xE1lido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}`;
-  const exampleOptions = numAlts === 4 ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }` : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
-  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} quest\xE3o(\xF5es) de ${subjectConfig.label} no n\xEDvel ${diffLabel}.\nContexto espec\xEDfico solicitado: ${queryContext || "Nenhum espec\xEDfico."}\n\n${contextBlock}\n\nTema: ${subjectConfig.label}\nConceitos base: ${subjectConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da quest\xE3o.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explica\xE7\xE3o did\xE1tica e verific\xE1vel.",\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras obrigat\xF3rias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeys}\n2. Quest\xF5es corretas, sem ambiguidades\n3. Distribua gabarito entre as op\xE7\xF5es\n4. DISTRATORES PLAUS\xCDVEIS (FASE 3.2): cada alternativa errada deve ser plaus\xEDvel e coerente com o tema \u2014 n\xE3o invente erros grosseiros ou absurdos\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): n\xEDvel "${diffLabel}" \u2014 ${difficulty === "easy" ? "enunciados diretos, conceitos b\xE1sicos, vocabul\xE1rio simples" : difficulty === "hard" ? "an\xE1lise cr\xEDtica, interpreta\xE7\xE3o de casos concretos, distin\xE7\xF5es sutis entre conceitos pr\xF3ximos" : difficulty === "extreme" ? "quest\xF5es de prova real: fatos espec\xEDficos, jurisprud\xEAncia, excep\xE7\xF5es e detalhes normativos" : "aplica\xE7\xE3o de conceitos em situa\xE7\xF5es hipot\xE9ticas"}\n6. ${antiHallucinationRules}\n7. NENHUM texto fora do JSON`;
+  const systemText = `Você é um examinador acadêmico especializado em concursos públicos. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}`;
+  const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
+  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.\nContexto específico solicitado: ${queryContext || "Nenhum específico."}\n\n${contextBlock}\n\nTema: ${subjectConfig.label}\nConceitos base: ${subjectConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática e verificável.",\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeys}\n2. Questões corretas, sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${difficulty === "easy" ? "enunciados diretos, conceitos básicos, vocabulário simples" : difficulty === "hard" ? "análise crítica, interpretação de casos concretos, distinções sutis entre conceitos próximos" : difficulty === "extreme" ? "questões de prova real: fatos específicos, jurisprudência, exceções e detalhes normativos" : "aplicação de conceitos em situações hipotéticas"}\n6. ${antiHallucinationRules}\n7. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -901,9 +864,9 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
   const diffLabel = getDifficultyLabel(difficulty);
   const numAlts = 4;
   const altKeys = "A, B, C, D";
-  const systemText = `Voc\xEA \xE9 um professor acad\xEAmico especialista em ${areaConfig.label}. Retorne APENAS JSON v\xE1lido com a chave "questions".\nResponda em portugu\xEAs do Brasil.\n\nPRINC\xCDPIOS INEGOCI\xC1VEIS:\n- Use APENAS conhecimento consolidado e verific\xE1vel\n- JAMAIS mencione pre\xE7os, datas de lan\xE7amento, vers\xF5es espec\xEDficas de software ou qualquer informa\xE7\xE3o vol\xE1til\n- Produza conte\xFAdo evergreen \u2014 v\xE1lido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}`;
-  const exampleOptions = numAlts === 4 ? `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }` : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
-  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} quest\xE3o(\xF5es) de ${areaConfig.label} no n\xEDvel ${diffLabel}.\n${subject ? `Disciplina espec\xEDfica: ${subject}.` : ""}\n${topic ? `T\xF3pico espec\xEDfico: ${topic}.` : ""}\n\n${contextBlock}\n\n\xC1rea: ${areaConfig.label}\nConceitos base: ${areaConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da quest\xE3o.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explica\xE7\xE3o clara e verific\xE1vel.",\n      "fonte": "Conceito/Teoria consolidado"\n    }\n  ]\n}\n\nRegras obrigat\xF3rias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeys}\n2. Quest\xF5es corretas e sem ambiguidades\n3. Distribua gabarito entre as op\xE7\xF5es\n4. DISTRATORES PLAUS\xCDVEIS (FASE 3.2): cada alternativa errada deve ser plaus\xEDvel e coerente com o tema \u2014 n\xE3o invente erros grosseiros ou absurdos; use conceitos pr\xF3ximos, excep\xE7\xF5es ou aplica\xE7\xF5es incorretas do mesmo assunto\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): n\xEDvel "${diffLabel}" \u2014 ${difficulty === "easy" ? "enunciados diretos, conceitos b\xE1sicos, vocabul\xE1rio acess\xEDvel" : difficulty === "hard" ? "an\xE1lise aprofundada, casos concretos, distin\xE7\xF5es sutis entre conceitos pr\xF3ximos" : difficulty === "extreme" ? "dom\xEDnio especialista: detalhes t\xE9cnicos precisos, excep\xE7\xF5es e nuances da \xE1rea" : "aplica\xE7\xE3o de conceitos em situa\xE7\xF5es pr\xE1ticas hipot\xE9ticas"}\n6. ${antiHallucinationRules}\n7. NENHUM texto fora do JSON`;
+  const systemText = `Você é um professor acadêmico especialista em ${areaConfig.label}. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento consolidado e verificável\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}`;
+  const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
+  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${areaConfig.label} no nível ${diffLabel}.\n${subject ? `Disciplina específica: ${subject}.` : ""}\n${topic ? `Tópico específico: ${topic}.` : ""}\n\n${contextBlock}\n\nÁrea: ${areaConfig.label}\nConceitos base: ${areaConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação clara e verificável.",\n      "fonte": "Conceito/Teoria consolidado"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeys}\n2. Questões corretas e sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos; use conceitos próximos, exceções ou aplicações incorretas do mesmo assunto\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${difficulty === "easy" ? "enunciados diretos, conceitos básicos, vocabulário acessível" : difficulty === "hard" ? "análise aprofundada, casos concretos, distinções sutis entre conceitos próximos" : difficulty === "extreme" ? "domínio especialista: detalhes técnicos precisos, exceções e nuances da área" : "aplicação de conceitos em situações práticas hipotéticas"}\n6. ${antiHallucinationRules}\n7. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -1020,7 +983,6 @@ var worker_default = {
         idioma = "pt-BR"
       } = body || {};
 
-      // FIX: declarar isPortugues no escopo correto do handler (antes do uso em systemText)
       const isPortugues = !idioma || idioma === "pt-BR";
 
       if (mode === "concurso") {
@@ -1057,22 +1019,22 @@ var worker_default = {
       }
       const normalizedType = normalizeQuestionType(questionType);
       const quantitySafe = Math.min(Math.max(Number(quantity) || 1, 1), 10);
-      const typeLabel = normalizedType === "vf" ? "Verdadeiro/Falso" : "m\xFAltipla escolha";
-      const idiomaLabel = idioma === "en" ? "English" : idioma === "es" ? "espa\xF1ol" : "portugu\xEAs do Brasil";
+      const typeLabel = normalizedType === "vf" ? "Verdadeiro/Falso" : "múltipla escolha";
+      const idiomaLabel = idioma === "en" ? "English" : idioma === "es" ? "español" : "português do Brasil";
       const areaSafetyInstruction = getAreaSafetyInstruction(area, mode);
       const contextData = await fetchContext(area, mode, topic, subject, idioma, env);
       const contextInfo = contextData?.text || "";
-      const sourceInfo = contextData?.source || "Conhecimento acad\xEAmico consolidado";
+      const sourceInfo = contextData?.source || "Conhecimento acadêmico consolidado";
       const additionalInfo = [prompt, extraContext].filter(Boolean).join("\n").trim();
       const bancaInstruction = mode === "concurso" ? " Priorize estilo claro, objetivo e atemporal. Nunca cite banca/ano sem fonte no contexto." : "";
-      const sessionInstruction = quantitySafe > 1 ? " Gere quest\xF5es equilibradas e variadas." : "";
+      const sessionInstruction = quantitySafe > 1 ? " Gere questões equilibradas e variadas." : "";
       const altKeys = normalizedType === "vf" ? "A, B" : "A, B, C, D";
       const numAlts = normalizedType === "vf" ? 2 : 4;
-      const altInstruction = questionType === "vf" ? "Para quest\xF5es V/F, use apenas 2 op\xE7\xF5es: A (Verdadeiro) e B (Falso)." : `Gere exatamente ${numAlts} alternativas por quest\xE3o usando as chaves ${altKeys}.`;
+      const altInstruction = questionType === "vf" ? "Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso)." : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
       const rawExternalBlock = additionalInfo ? `Informações adicionais do usuário (use apenas se compatíveis com o contexto):\n${additionalInfo}` : "";
-      const systemText = `Voc\xEA \xE9 um examinador acad\xEAmico especializado em concursos p\xFAblicos e ensino superior brasileiro. Retorne APENAS JSON v\xE1lido com a chave "questions".\n${isPortugues ? "Responda em portugu\xEAs do Brasil." : `Respond entirely in ${idiomaLabel}.`}\n\nPRINC\xCDPIOS INEGOCI\xC1VEIS:\n- Use APENAS conhecimento fact\xEDcio consolidado e verificado.\n- NUNCA invente leis, artigos, n\xFAmeros, medicamentos, comandos, f\xF3rmulas ou qualquer dado.\n- O campo "fonte" de CADA quest\xE3o deve ser preenchido.\n- ${areaSafetyInstruction}`;
+      const systemText = `Você é um examinador acadêmico especializado em concursos públicos e ensino superior brasileiro. Retorne APENAS JSON válido com a chave "questions".\n${isPortugues ? "Responda em português do Brasil." : `Respond entirely in ${idiomaLabel}.`}\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado e verificado.\n- NUNCA invente leis, artigos, números, medicamentos, comandos, fórmulas ou qualquer dado.\n- O campo "fonte" de CADA questão deve ser preenchido.\n- ${areaSafetyInstruction}`;
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(contextInfo, rawExternalBlock, systemText);
-      const userPrompt = `Voc\xEA \xE9 um professor especialista em concursos p\xFAblicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantitySafe} quest\xF5es de ${typeLabel} sobre:\n- \xC1rea: ${area || mode || "Geral"}\n${subject ? `- Disciplina: ${subject}` : ""}\n${topic ? `- Tópico: ${topic}` : ""}\n- N\xEDvel de dificuldade: ${getDifficultyLabel(difficulty)}\n- Idioma de sa\xEDda: ${idiomaLabel}\n\nContexto confiável (fonte principal):\n${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}\n\n${externalBlock}\n\nFormato obrigatório de retorno:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão",\n      "options": [\n        { "key": "A", "text": "Alternativa A" },\n        { "key": "B", "text": "Alternativa B" },\n        { "key": "C", "text": "Alternativa C" },\n        { "key": "D", "text": "Alternativa D" }\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação objetiva e verificável, sem inventar dados.",\n      "fonte": "${sourceInfo}"\n    }\n  ]\n}\n\nREGRAS OBRIGATÓRIAS:\n1. ${altInstruction}\n2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".\n3. Todas as quest\xF5es devem ter "explanation" e "fonte".\n4. A explicação deve justificar por que a correta é correta, sem repetir o enunciado.\n5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.\n6. NENHUM texto fora do JSON.\n7. N\xE3o use markdown, cercas de c\xF3digo ou coment\xE1rios.`;
+      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantitySafe} questões de ${typeLabel} sobre:\n- Área: ${area || mode || "Geral"}\n${subject ? `- Disciplina: ${subject}` : ""}\n${topic ? `- Tópico: ${topic}` : ""}\n- Nível de dificuldade: ${getDifficultyLabel(difficulty)}\n- Idioma de saída: ${idiomaLabel}\n\nContexto confiável (fonte principal):\n${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}\n\n${externalBlock}\n\nFormato obrigatório de retorno:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão",\n      "options": [\n        { "key": "A", "text": "Alternativa A" },\n        { "key": "B", "text": "Alternativa B" },\n        { "key": "C", "text": "Alternativa C" },\n        { "key": "D", "text": "Alternativa D" }\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação objetiva e verificável, sem inventar dados.",\n      "fonte": "${sourceInfo}"\n    }\n  ]\n}\n\nREGRAS OBRIGATÓRIAS:\n1. ${altInstruction}\n2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".\n3. Todas as questões devem ter "explanation" e "fonte".\n4. A explicação deve justificar por que a correta é correta, sem repetir o enunciado.\n5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.\n6. NENHUM texto fora do JSON.\n7. Não use markdown, cercas de código ou comentários.`;
       const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantitySafe);
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
