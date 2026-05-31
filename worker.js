@@ -267,7 +267,6 @@ function validateConcursosFilter(filter) {
 __name(validateConcursosFilter, "validateConcursosFilter");
 async function fetchVectorizeContext(env, collection, query, minLength) {
   try {
-    // FIX: usar env.KNOWLEDGE_INDEX (binding correto no wrangler.toml)
     if (!env.KNOWLEDGE_INDEX) {
       console.warn(`[RAG] KNOWLEDGE_INDEX não configurado. Retornando contexto vazio.`);
       return { context: "", sufficient: false, sources: [], contextLength: 0 };
@@ -291,7 +290,6 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     }
     let results;
     try {
-      // FIX: usar env.KNOWLEDGE_INDEX (binding correto no wrangler.toml)
       results = await env.KNOWLEDGE_INDEX.query(embedding, {
         namespace: collection,
         topK: 5,
@@ -534,7 +532,7 @@ async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
       text: async () => "GROQ_API_KEY não configurado"
     };
   }
-  const maxCompletionTokens = quantity > 1 ? 3400 : 2200;
+  const maxCompletionTokens = quantity > 1 ? 4200 : 2800;
   let lastErr = null;
   for (const model of GROQ_MODELS) {
     try {
@@ -743,6 +741,15 @@ function guardPromptSize(contextInfo, externalBlock, systemText, maxChars = 12e3
   return { contextInfo: safeContextInfo, externalBlock: safeExternalBlock };
 }
 __name(guardPromptSize, "guardPromptSize");
+
+// ── FASE 3.6: Schema de optionExplanations ──────────────────────────────────
+// Bloco de exemplo JSON para o campo optionExplanations (reutilizado nos 3 fluxos)
+function buildOptionExplanationsSchema(altKeys) {
+  const lines = altKeys.map(k => `        "${k}": "Por que a alternativa ${k} está correta/incorreta."`).join(",\n");
+  return `{\n${lines}\n      }`;
+}
+__name(buildOptionExplanationsSchema, "buildOptionExplanationsSchema");
+
 async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prompt, extraContext }, env) {
   const filterValidation = validateConcursosFilter(filter);
   if (!filterValidation.valid) {
@@ -770,10 +777,12 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   const sessionLabel = "Concursos";
   const diffLabel = getDifficultyLabel(difficulty);
   const numAlts = 4;
-  const altKeys = "A, B, C, D";
+  const altKeys = ["A", "B", "C", "D"];
+  const altKeysStr = "A, B, C, D";
+  const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
   const systemText = `Você é um examinador acadêmico especializado em concursos públicos. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}`;
   const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
-  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.\nContexto específico solicitado: ${queryContext || "Nenhum específico."}\n\n${contextBlock}\n\nTema: ${subjectConfig.label}\nConceitos base: ${subjectConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática e verificável.",\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeys}\n2. Questões corretas, sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. ${antiHallucinationRules}\n7. NENHUM texto fora do JSON`;
+  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.\nContexto específico solicitado: ${queryContext || "Nenhum específico."}\n\n${contextBlock}\n\nTema: ${subjectConfig.label}\nConceitos base: ${subjectConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática e verificável da resposta correta.",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeysStr}\n2. Questões corretas, sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) explicando por que cada alternativa está correta ou incorreta\n7. ${antiHallucinationRules}\n8. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -870,10 +879,12 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
   const sessionLabel = "Academic";
   const diffLabel = getDifficultyLabel(difficulty);
   const numAlts = 4;
-  const altKeys = "A, B, C, D";
+  const altKeys = ["A", "B", "C", "D"];
+  const altKeysStr = "A, B, C, D";
+  const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
   const systemText = `Você é um professor acadêmico especialista em ${areaConfig.label}. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento consolidado e verificável\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}`;
   const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
-  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${areaConfig.label} no nível ${diffLabel}.\n${subject ? `Disciplina específica: ${subject}.` : ""}\n${topic ? `Tópico específico: ${topic}.` : ""}\n\n${contextBlock}\n\nÁrea: ${areaConfig.label}\nConceitos base: ${areaConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação clara e verificável.",\n      "fonte": "Conceito/Teoria consolidado"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeys}\n2. Questões corretas e sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos; use conceitos próximos, exceções ou aplicações incorretas do mesmo assunto\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. ${antiHallucinationRules}\n7. NENHUM texto fora do JSON`;
+  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${areaConfig.label} no nível ${diffLabel}.\n${subject ? `Disciplina específica: ${subject}.` : ""}\n${topic ? `Tópico específico: ${topic}.` : ""}\n\n${contextBlock}\n\nÁrea: ${areaConfig.label}\nConceitos base: ${areaConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação clara e verificável da resposta correta.",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "Conceito/Teoria consolidado"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeysStr}\n2. Questões corretas e sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos; use conceitos próximos, exceções ou aplicações incorretas do mesmo assunto\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) explicando por que cada alternativa está correta ou incorreta\n7. ${antiHallucinationRules}\n8. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -1037,20 +1048,22 @@ var worker_default = {
       const additionalInfo = [prompt, extraContext].filter(Boolean).join("\n").trim();
       const bancaInstruction = mode === "concurso" ? " Priorize estilo claro, objetivo e atemporal. Nunca cite banca/ano sem fonte no contexto." : "";
       const sessionInstruction = quantitySafe > 1 ? " Gere questões equilibradas e variadas." : "";
-      const altKeys = normalizedType === "vf" ? "A, B" : "A, B, C, D";
-      const numAlts = normalizedType === "vf" ? 2 : 4;
-      const altInstruction = questionType === "vf" ? "Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso)." : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeys}.`;
+      const altKeysList = normalizedType === "vf" ? ["A", "B"] : ["A", "B", "C", "D"];
+      const altKeysStr = altKeysList.join(", ");
+      const numAlts = altKeysList.length;
+      const altInstruction = questionType === "vf" ? "Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso)." : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeysStr}.`;
       const rawExternalBlock = additionalInfo ? `Informações adicionais do usuário (use apenas se compatíveis com o contexto):\n${additionalInfo}` : "";
       const diffLabel = getDifficultyLabel(difficulty);
       const diffInstruction = getDifficultyInstruction(difficulty);
+      const optionExplanationsExample = buildOptionExplanationsSchema(altKeysList);
 
       // FASE 2.6 — PRINCÍPIOS INEGOCIÁVEIS no fluxo genérico
       const systemText = `Você é um examinador acadêmico especializado em concursos públicos e ensino superior brasileiro. Retorne APENAS JSON válido com a chave "questions".\n${isPortugues ? "Responda em português do Brasil." : `Respond entirely in ${idiomaLabel}.`}\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado e verificado.\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil.\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido.\n- NUNCA invente leis, artigos, números, medicamentos, comandos, fórmulas ou qualquer dado.\n- O campo "fonte" de CADA questão deve ser preenchido.\n- ${areaSafetyInstruction}`;
 
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(contextInfo, rawExternalBlock, systemText);
 
-      // FASE 3.2 e 3.3 — distratores plausíveis e calibragem de dificuldade no fluxo genérico
-      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantitySafe} questões de ${typeLabel} sobre:\n- Área: ${area || mode || "Geral"}\n${subject ? `- Disciplina: ${subject}` : ""}\n${topic ? `- Tópico: ${topic}` : ""}\n- Nível de dificuldade: ${diffLabel}\n- Idioma de saída: ${idiomaLabel}\n\nContexto confiável (fonte principal):\n${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}\n\n${externalBlock}\n\nFormato obrigatório de retorno:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão",\n      "options": [\n        { "key": "A", "text": "Alternativa A" },\n        { "key": "B", "text": "Alternativa B" },\n        { "key": "C", "text": "Alternativa C" },\n        { "key": "D", "text": "Alternativa D" }\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação objetiva e verificável, sem inventar dados.",\n      "fonte": "${sourceInfo}"\n    }\n  ]\n}\n\nREGRAS OBRIGATÓRIAS:\n1. ${altInstruction}\n2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".\n3. Todas as questões devem ter "explanation" e "fonte".\n4. A explicação deve justificar por que a correta é correta, sem repetir o enunciado.\n5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.\n6. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — use conceitos próximos, exceções ou aplicações incorretas do mesmo assunto; nunca invente erros grosseiros ou absurdos.\n7. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${diffInstruction}.\n8. NENHUM texto fora do JSON.\n9. Não use markdown, cercas de código ou comentários.`;
+      // FASE 3.2, 3.3, 3.6 — distratores plausíveis, calibragem e explicação por alternativa
+      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantitySafe} questões de ${typeLabel} sobre:\n- Área: ${area || mode || "Geral"}\n${subject ? `- Disciplina: ${subject}` : ""}\n${topic ? `- Tópico: ${topic}` : ""}\n- Nível de dificuldade: ${diffLabel}\n- Idioma de saída: ${idiomaLabel}\n\nContexto confiável (fonte principal):\n${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}\n\n${externalBlock}\n\nFormato obrigatório de retorno:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão",\n      "options": [\n        { "key": "A", "text": "Alternativa A" },\n        { "key": "B", "text": "Alternativa B" },\n        { "key": "C", "text": "Alternativa C" },\n        { "key": "D", "text": "Alternativa D" }\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação objetiva e verificável da resposta correta.",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "${sourceInfo}"\n    }\n  ]\n}\n\nREGRAS OBRIGATÓRIAS:\n1. ${altInstruction}\n2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".\n3. Todas as questões devem ter "explanation" e "fonte".\n4. A explicação deve justificar por que a correta é correta, sem repetir o enunciado.\n5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.\n6. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — use conceitos próximos, exceções ou aplicações incorretas do mesmo assunto; nunca invente erros grosseiros ou absurdos.\n7. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${diffInstruction}.\n8. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) por letra, explicando por que cada alternativa está correta ou incorreta.\n9. NENHUM texto fora do JSON.\n10. Não use markdown, cercas de código ou comentários.`;
 
       const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantitySafe);
       if (!groqResponse.ok) {
