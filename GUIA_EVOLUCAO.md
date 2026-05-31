@@ -65,7 +65,7 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 | 3.3 | Nível de dificuldade variável (fácil / médio / difícil) parametrizável | ✅ Concluído |
 | 3.4 | Indicação de fonte (`fonte`) em todas as questões | ✅ Concluído |
 | 3.5 | Pipeline completo: RAG score → traceability → badge → entrega ao frontend | ✅ Concluído |
-| 3.6 | Modo Explicação Detalhada — explicação expansível por alternativa | 🔲 Pendente |
+| 3.6 | Modo Explicação Detalhada — explicação expansível por alternativa (`optionExplanations`) | ✅ Concluído |
 
 ---
 
@@ -128,10 +128,9 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 
 ## 📌 Próximas Ações Imediatas
 
-1. **Fase 3.6** — Implementar Modo Explicação Detalhada por alternativa
-2. **Fase 4.3** — Popular banco vetorial de Português (concursos)
-3. **Fase 4.4** — Popular banco vetorial de Direito Constitucional
-4. **Fase 6.1** — Workflow de indexação automática no Vectorize
+1. **Fase 4.3** — Popular banco vetorial de Português (concursos)
+2. **Fase 4.4** — Popular banco vetorial de Direito Constitucional
+3. **Fase 6.1** — Workflow de indexação automática no Vectorize
 
 ---
 
@@ -142,6 +141,7 @@ Construir uma plataforma educacional de geração de questões com **RAG (Retrie
 | 2026-05-28 | 2 | Posts evergreen: removido price_range, seção custo-benefício reformulada, CTAs atualizados |
 | 2026-05-30 | 1 | GUIA_EVOLUCAO.md criado — controle centralizado de todas as fases |
 | 2026-05-30 | 2, 3, 5 | Worker atualizado com guideline evergreen no systemText, distratores plausíveis, calibragem de dificuldade; guia sincronizado com frontend já entregue (mobile, skeleton, badge, histórico, dark mode) |
+| 2026-05-30 | 3.6 | Implementado optionExplanations no worker (3 fluxos) + painel expansível "Por que cada alternativa?" no frontend |
 
 ---
 
