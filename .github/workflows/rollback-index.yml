@@ -1,0 +1,30 @@
+name: Rollback index.html
+on:
+  workflow_dispatch:
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore index.html from commit 7b15261 and remove hero-badge
+        run: |
+          git checkout 7b1526195a6208351a6e666e70232d8534884a51 -- index.html
+          # Remove span hero-badge
+          sed -i '/<span class="hero-badge">/d' index.html
+          # Remove CSS .hero-badge block
+          python3 -c "
+import re, sys
+with open('index.html','r') as f: c=f.read()
+c=re.sub(r'\n\s*\.hero-badge \{[^}]+\}','',c)
+with open('index.html','w') as f: f.write(c)
+print('hero-badge restantes:', c.count('hero-badge'))
+"
+      - name: Commit and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'fix: rollback index.html + remove hero-badge'
+          git push
