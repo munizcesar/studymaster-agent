@@ -324,6 +324,71 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
   }
 }
 __name(fetchVectorizeContext, "fetchVectorizeContext");
+
+// ── FALLBACK INTELIGENTE — usa LLM knowledge quando RAG insuficiente ──────────
+async function generateWithoutRAG(area, mode, topic, subject, difficulty, quantity, idioma, filterConfig, env) {
+  const diffLabel = getDifficultyLabel(difficulty);
+  const diffInstruction = getDifficultyInstruction(difficulty);
+  const safetyInstruction = getAreaSafetyInstruction(area, mode);
+  const lang = !idioma || idioma === "pt-BR" ? "português do Brasil" : idioma;
+
+  const systemPrompt = `Você é um professor especialista em ${area} gerando questões para ${
+    mode === "concurso" ? "concurso público" : "uso acadêmico"
+  }.
+
+${safetyInstruction}
+
+REGRAS ABSOLUTAS (sem RAG disponível):
+- Use APENAS conhecimento consolidado, amplamente aceito e verificável
+- Para Direito: cite apenas artigos da CF/88, CC/2002, CP, CPC/2015, Lei 8.112/90, Lei 8.666/93, Lei 14.133/21 que você conhece com certeza
+- Para Informática: cite apenas conceitos técnicos padronizados (ISO, RFC, OWASP)
+- Para Português: use apenas regras gramaticais da norma culta (VOLP, ABNT)
+- NUNCA invente artigos, números, datas, nomes ou estatísticas
+- Se não tiver certeza de um detalhe específico, reformule para questão conceitual segura
+- Questões devem ser atemporais — válidas independente do ano
+
+Responda em ${lang}.`;
+
+  const altKeys = ["A", "B", "C", "D", "E"];
+  const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
+  const userPrompt = `Gere ${quantity} questão(ões) de múltipla escolha sobre:
+Área: ${area}
+${topic ? `Tópico: ${topic}` : ""}
+${subject ? `Assunto: ${subject}` : ""}
+Dificuldade: ${diffLabel} — ${diffInstruction}
+
+FORMATO JSON obrigatório:
+{
+  "questions": [
+    {
+      "statement": "enunciado completo",
+      "options": [
+        {"key": "A", "text": "alternativa A"},
+        {"key": "B", "text": "alternativa B"},
+        {"key": "C", "text": "alternativa C"},
+        {"key": "D", "text": "alternativa D"},
+        {"key": "E", "text": "alternativa E"}
+      ],
+      "correctAnswer": "A",
+      "explanation": "explicação detalhada da resposta correta e por que as demais estão erradas",
+      "optionExplanations": ${optionExplanationsExample},
+      "fonte": "Base legal ou conceitual utilizada",
+      "difficulty": "${difficulty}",
+      "area": "${area}"
+    }
+  ]
+}`;
+
+  const res = await callGroqWithFallback(systemPrompt, userPrompt, env, quantity);
+  if (!res.ok) throw new Error(`Groq fallback falhou: ${res.status}`);
+  const raw = await res.text();
+  const data = JSON.parse(raw);
+  const content = data.choices?.[0]?.message?.content || "";
+  const jsonStr = extractJsonFromText(content);
+  const parsed = JSON.parse(jsonStr);
+  return extractQuestions(parsed);
+}
+__name(generateWithoutRAG, "generateWithoutRAG");
 function validateAgainstHallucination(question, subjectConfig) {
   const errors = [];
   if (!question.statement || question.statement.trim().length < 20) {
@@ -769,7 +834,40 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
     subjectConfig.minContextLength
   );
   const ragValidation = validateRAGScore(ragResult, subjectConfig);
+  // FALLBACK INTELIGENTE — quando RAG insuficiente, usa LLM knowledge + safety protocols
   if (!ragValidation.valid) {
+    console.log(`[RAG] Contexto insuficiente (score: ${ragValidation.score?.toFixed(3) || 0}, razão: ${ragValidation.reason}). Usando fallback LLM.`);
+    try {
+      const fbArea = subjectConfig.label || filter || "Concursos";
+      const fbQuestions = await generateWithoutRAG(
+        fbArea, "concurso", prompt, extraContext, difficulty, quantity, "pt-BR", CONCURSOS_CONFIG, env
+      );
+      if (fbQuestions && fbQuestions.length > 0) {
+        const validFb = validateQuestions(fbQuestions);
+        if (validFb.length > 0) {
+          return {
+            success: true,
+            questions: validFb.map(q => ({
+              ...q,
+              qualityBadge: { level: "medium", label: "🟡 Média", description: "Questão gerada via LLM sem RAG", color: "yellow" },
+              ragFallback: true
+            })),
+            sources: [],
+            metadata: {
+              collection: subjectConfig.vectorizeCollection,
+              filter,
+              ragScore: 0,
+              ragFallback: true,
+              fallbackReason: ragValidation.reason,
+              totalGenerated: fbQuestions.length,
+              totalValidated: validFb.length
+            }
+          };
+        }
+      }
+    } catch (fbErr) {
+      console.error(`[RAG] Fallback LLM falhou: ${fbErr.message}`);
+    }
     return buildContextInsufficientResponse(CONCURSOS_CONFIG, ragValidation);
   }
   const contextBlock = ragResult.context ? `Contexto recuperado da base vetorial (use como referência principal):\n${ragResult.context}` : "Sem contexto RAG.";
@@ -871,7 +969,40 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
     areaConfig.minContextLength
   );
   const ragValidation = validateRAGScore(ragResult, areaConfig);
+  // FALLBACK INTELIGENTE — quando RAG insuficiente, usa LLM knowledge + safety protocols
   if (!ragValidation.valid) {
+    console.log(`[RAG] Contexto insuficiente (score: ${ragValidation.score?.toFixed(3) || 0}, razão: ${ragValidation.reason}). Usando fallback LLM.`);
+    try {
+      const fbArea = areaConfig.label || area || "Acadêmico";
+      const fbQuestions = await generateWithoutRAG(
+        fbArea, "academic", topic, subject, difficulty, quantity, "pt-BR", ACADEMIC_CONFIG, env
+      );
+      if (fbQuestions && fbQuestions.length > 0) {
+        const validFb = validateQuestions(fbQuestions);
+        if (validFb.length > 0) {
+          return {
+            success: true,
+            questions: validFb.map(q => ({
+              ...q,
+              qualityBadge: { level: "medium", label: "🟡 Média", description: "Questão gerada via LLM sem RAG", color: "yellow" },
+              ragFallback: true
+            })),
+            sources: [],
+            metadata: {
+              collection: areaConfig.vectorizeCollection,
+              area,
+              ragScore: 0,
+              ragFallback: true,
+              fallbackReason: ragValidation.reason,
+              totalGenerated: fbQuestions.length,
+              totalValidated: validFb.length
+            }
+          };
+        }
+      }
+    } catch (fbErr) {
+      console.error(`[RAG] Fallback LLM falhou: ${fbErr.message}`);
+    }
     return buildContextInsufficientResponse(ACADEMIC_CONFIG, ragValidation);
   }
   const contextBlock = ragResult.context ? `Contexto recuperado da base vetorial (use como referência principal):\n${ragResult.context}` : "Sem contexto RAG.";
