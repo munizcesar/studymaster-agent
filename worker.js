@@ -1134,7 +1134,7 @@ var worker_default = {
 
       const isPortugues = !idioma || idioma === "pt-BR";
 
-      if (mode === "concurso") {
+      if (mode === "concurso" || mode === "concursos") {
         const result = await generateConcursosRAGQuestion(
           {
             filter: filter || "concursos.portugues",

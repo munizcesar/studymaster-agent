@@ -3271,7 +3271,7 @@ async function callWorkerAndRender() {
     : state.bancaInferida;
 
   const payload = {
-    mode: state.mode === 'concurso' ? 'concursos' : state.mode,
+    mode: state.mode === 'concurso' ? 'concurso' : state.mode,
     filter: state.mode === 'concurso' ? buildConcursosFilterPayload() : state.filter,
     area: state.area,
     subject: state.subject,
