@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 """
 StudyMaster - Indexador Concursos v2
-6 matérias × 45 documentos = 270 docs
+Adiciona filtros extras de concursos para Direito Processual Penal, Tributário, Civil, Trabalhista, Legislação Específica e Atualidades.
 
-Matérias:
+Matérias originais:
   - Português (concursos_portugues)
   - Direito Constitucional (concursos_direito_constitucional)
   - Direito Administrativo (concursos_direito_administrativo)
   - Raciocínio Lógico (concursos_rlm)
   - Informática (concursos_informatica)
   - Administração Pública (concursos_adm_publica)
+
+Novas matérias extras:
+  - Direito Processual Penal (concursos_direito_processual_penal)
+  - Direito Tributário (concursos_direito_tributario)
+  - Direito Civil (concursos_direito_civil)
+  - Direito Trabalhista (concursos_direito_trabalhista)
+  - Legislação Específica (concursos_legislacao_especifica)
+  - Atualidades (concursos_atualidades)
 """
 
 import os, json, time, hashlib, requests
@@ -301,6 +309,101 @@ DOCUMENTOS = [
 
   {"id":"con-dc-45","area":"Concursos","disciplina":"Direito Constitucional","namespace":"concursos_direito_constitucional",
    "texto":"Concursos Direito Constitucional — Assistência Social — Art. 203 CF/88: Art. 203: assistência social prestada a quem dela necessitar, independente de contribuição — LOAS (Lei 8.742/93), BPC idoso e pessoa com deficiência, programas de transferência de renda, proteção a crianças e adolescentes em situação de risco."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA EXTRA: DIREITO PENAL
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-dp-01","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Teoria Geral do Crime: crime é fato típico, ilícito e culpável. Tipicidade material e formal, antijuridicidade e culpabilidade. Dolo e culpa, crime doloso e culposo, tentativa, consumação e crime impossível."},
+  {"id":"con-dp-02","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Tipicidade: elemento objetivo do crime. Fato típico composto por conduta, resultado naturalístico, nexo causal e tipicidade. Crime comissivo por ação, crime omissivo próprio e impróprio, conduta comissiva e omissiva."},
+  {"id":"con-dp-03","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Ilicitude: exclusão da ilicitude por estado de necessidade, legítima defesa, estrito cumprimento do dever legal e exercício regular de direito. Legítima defesa exige reação atual, moderada e proporcional."},
+  {"id":"con-dp-04","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Culpabilidade: imputabilidade, potencial consciência da ilicitude e exigibilidade de conduta diversa. Erro de tipo, erro de proibição e inexigibilidade de conduta diversa no crime culposo e doloso."},
+  {"id":"con-dp-05","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Dolo e Culpa: dolo direto e eventual; culpa consciente e inconsciente. Crime doloso exige vontade de praticar o resultado ou assumi-lo; culpa exige violação do dever de cuidado com previsibilidade e evitabilidade."},
+  {"id":"con-dp-06","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crime Doloso e Culposo: crime doloso apresenta vontade de agir com resultado proibido; culposo ocorre por imprudência, negligência ou imperícia sem vontade do resultado. Exemplo: homicídio doloso versus culposo na direção veicular."},
+  {"id":"con-dp-07","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Consumação e Tentativa: crime consumado ocorre quando todos os elementos do tipo se realizam. Tentativa ocorre quando o agente inicia execução e não se consuma por circunstâncias alheias à vontade do autor (art. 14, II CP)."},
+  {"id":"con-dp-08","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crime Impossível: excludente de punibilidade quando o meio empregado é inepto ou o resultado impossível, conforme art. 17, II CP. Inidoneidade do meio e ilicitude do objeto impedem a consumação."},
+  {"id":"con-dp-09","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Concurso de Pessoas: pluralidade de agentes. Autoria e participação assentadas em divisão de tarefas. Concurso material (vários delitos), concurso formal (mesmo delito por várias condutas) e crime continuado (várias condutas em continuidade delitiva)."},
+  {"id":"con-dp-10","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Concurso Material, Formal e Crime Continuado: concurso material = vários crimes com várias ações; concurso formal = uma ação que viola várias normas; crime continuado = pluralidade de condutas semelhantes com unidade de desígnio e identidade de vítimas."},
+  {"id":"con-dp-11","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crime Preterdoloso: conduta dolosa seguida de resultado culposo mais grave. Exemplo: lesão corporal grave seguida de morte não planejada. Doloso no primeiro ato, culposo no resultado posterior."},
+  {"id":"con-dp-12","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crime Hediondo: crimes tipificados como hediondos pela Lei 8.072/1990 com regime mais severo, sem anistia, graça ou indulto. Exemplos: homicídio qualificado, latrocínio, extorsão qualificada pela morte."},
+  {"id":"con-dp-13","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Homicídio Simples e Qualificado: homicídio simples art. 121 CP, quando mata alguém sem qualificadora. Homicídio qualificado usa meio cruel, motivo torpe, recurso que dificulta defesa ou feminicídio; majorantes podem aumentar pena."},
+  {"id":"con-dp-14","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Homicídio Privilegiado e Culposo: homicídio privilegiado tem motivo de relevante valor social ou moral, ou emoção violenta decorrente de injusta provocação. Homicídio culposo por imprudência, negligência ou imperícia, sem intenção de matar."},
+  {"id":"con-dp-15","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Lesões Corporais: art. 129 CP define lesão corporal como ofensa à integridade física ou saúde. Lesão leve, grave e gravíssima, com agravantes como incapacidade para as ocupações habituais por mais de 30 dias e perigo de morte."},
+  {"id":"con-dp-16","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes Contra o Patrimônio — Furto: art. 155 CP define furto como subtrair coisa alheia móvel para si ou terceiro. Furto qualificado por destruição, abuso de confiança, ou para facilitar outro crime."},
+  {"id":"con-dp-17","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Roubo: art. 157 CP descreve roubo como subtração com violência ou grave ameaça. Roubo majorado ocorre com emprego de arma, concurso de pessoas, restrição de liberdade da vítima ou se resulta em lesão corporal."},
+  {"id":"con-dp-18","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Extorsão: art. 158 CP — exigir vantagem mediante violência ou grave ameaça. Extorsão indireta e exação mediante violência; majorantes incluem restrição de liberdade e concurso de agentes."},
+  {"id":"con-dp-19","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Estelionato: art. 171 CP — obter vantagem ilícita dando à vítima erro mediante fraude. Caracteriza-se por fraude, indução ao erro, prejuízo patrimonial e vontade de obter vantagem indevida."},
+  {"id":"con-dp-20","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Apropriação Indébita: art. 168 CP — apropriar-se de coisa alheia móvel de que se tem a posse ou detenção. Difere do furto por início lícito da posse, seguida de desvio patrimonial."},
+  {"id":"con-dp-21","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Dano ao Patrimônio: art. 163 CP — destruir, inutilizar ou deteriorar bem alheio. Dano qualificado por emprego de substância inflamável, explosiva ou se resulta em perigo para a vida ou integridade física."},
+  {"id":"con-dp-22","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes Contra a Honra: calúnia (art. 138 CP), difamação (art. 139 CP) e injúria (art. 140 CP). Distinção importante entre imputar fato criminoso e ofender a dignidade ou decoro."},
+  {"id":"con-dp-23","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes Contra a Fé Pública: crimes de moeda falsa (arts. 289-295 CP), falsificação de documento público ou particular (arts. 297-302 CP), e uso de documento falso. Exigem aparência de autenticidade e finalidade de criação de confiança indevida."},
+  {"id":"con-dp-24","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes Contra a Administração Pública: corrupção ativa (art. 333 CP), corrupção passiva (art. 317 CP), peculato (art. 312 CP), concussão (art. 316 CP), prevaricação (art. 319 CP), advocacia administrativa (art. 321 CP)."},
+  {"id":"con-dp-25","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Peculato: art. 312 CP — apropriar-se de recurso público por quem o administra. Peculato culposo e mediante erro de outrem, com pena reduzida por colaboração efetiva."},
+  {"id":"con-dp-26","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Concussão e Extorsão Mediante Excesso de Exação: concussão (art. 316 CP) exige servidor exigir vantagem indevida; excessos de exação ocorrem quando cobra mais do que o direito, com violência ou grave ameaça."},
+  {"id":"con-dp-27","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Prevaricação e Advocacia Administrativa: prevaricação (art. 319 CP) é retardar ou deixar de praticar ato de ofício para satisfazer interesse pessoal; advocacia administrativa (art. 321 CP) é patrocinar interesse privado perante a administração pública, sendo servidor público ou agente a ele equiparado."},
+  {"id":"con-dp-28","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes Contra a Administração da Justiça: desobediência (art. 330 CP), desacato (art. 331 CP), denunciação caluniosa (art. 339 CP), falso testemunho (art. 342 CP). Caracteriza-se por ofender a atividade jurisdicional e sua confiança."},
+  {"id":"con-dp-29","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes Sexuais: estupro (art. 213 CP), atentado violento ao pudor (art. 214 CP), importunação sexual (art. 215-A CP), exploração sexual de vulnerável (art. 217-A CP). Tipicidade depende de violência, grave ameaça ou vulnerabilidade da vítima."},
+  {"id":"con-dp-30","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Tráfico de Drogas: art. 33 da Lei 11.343/2006 define tráfico, associação e uso. Diferenças entre usuário e traficante com base na quantidade, conduta e indícios de comercialização. Pena pode ser aumentada por organização criminosa."},
+  {"id":"con-dp-31","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Lavagem de Dinheiro: art. 1º da Lei 9.613/1998 descreve ocultar origem de recursos ilícitos. Operações financeiras, transações em espécie, mercado de câmbio, bens e serviços podem ser usados para dissimular o crime antecedente."},
+  {"id":"con-dp-32","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Medidas de Segurança: previstas no art. 96 do CP para inimputáveis e semi-imputáveis que cometerem crime por doença mental ou desenvolvimento incompleto. Internação em hospital de custódia ou tratamento ambulatorial sob guarda."},
+  {"id":"con-dp-33","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Prisão em Flagrante e Auto de Prisão: Art. 301 CPP define prisão em flagrante. Tipos: flagrante próprio, impróprio e esperado. Auto de prisão deverá ser lavrado e comunicado à autoridade judicial em 24 horas."},
+  {"id":"con-dp-34","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Liberdade Provisória e Medidas Cautelares: prisão preventiva, prisão temporária, fiança, monitoração eletrônica, proibição de contato e de frequentar certos lugares. Requisitos: prova da materialidade e indícios suficientes de autoria, necessidade da medida."},
+  {"id":"con-dp-35","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Direitos do Preso: presunção de inocência, comunicação imediata da prisão a autoridade competente, advogado, família e consulado. Visita íntima, médico, assistência jurídica e alimentação digna garantidos pela Constituição e pelo CPP."},
+  {"id":"con-dp-36","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Execução Penal e Regimes de Cumprimento: regimes fechado, semiaberto e aberto. Benefícios de progressão de regime, trabalho e estudo, livramento condicional e indulto. Lei de Execução Penal regula direitos dos presos e ressocialização."},
+  {"id":"con-dp-37","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Legítima Defesa e Estado de Necessidade: legítima defesa (art. 25 CP) exige defesa atual de injustiça, uso moderado de meios e preservação de direitos. Estado de necessidade (art. 24 CP) justifica sacrifício de bem jurídico menor para salvar direito próprio ou alheio."},
+  {"id":"con-dp-38","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Erro de Tipo e Erro de Proibição: erro de tipo vicia o elemento objetivo do tipo penal; erro de proibição pode excluir culpabilidade se o agente não conhece a ilicitude ou acha que age em estrito cumprimento do dever."},
+  {"id":"con-dp-39","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Coação Moral Irresistível e Obediência Hierárquica: coação moral irresistível (art. 22 CP) exonera o agente; obediência hierárquica não é causa de exclusão de ilicitude, salvo nas hipóteses do art. 23 do CP (estrito cumprimento do dever legal)."},
+  {"id":"con-dp-40","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Resultado Naturalístico e Nexo de Causalidade: o resultado deve ser naturalístico previsto no tipo. Nexo de causalidade exige a conduta como causa necessária e adequada do resultado, admitindo teoria da equivalência dos antecedente."},
+  {"id":"con-dp-41","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Ação Penal Pública, Privada e Condicionada: ação penal pública incondicionada (PGR), condicionada à representação ou requisição, e privada (ofendido ou representante). Prazos de prescrição e legitimidade ativa variam conforme o crime."},
+  {"id":"con-dp-42","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Prescrição da Ação Penal: prescrição da pretensão punitiva e executória. Regra geral art. 109 CP: pena maior prescreve mais rápido que menor; suspensão condicional do processo não interrompe prescrição, mas pode modificá-la."},
+  {"id":"con-dp-43","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Crimes de Perigo Comum e Abstrato: o crime de perigo concreto exige risco efetivo ao bem jurídico; o crime de perigo abstrato pune a simples conduta que, por si só, coloca em risco o bem jurídico, sem necessidade de ocorrência do resultado."},
+  {"id":"con-dp-44","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Ameaça e Difamação Eletrônica: art. 147 CP define ameaça; art. 139 define difamação. Na internet, as modalidades digitais configuram crime de forma análoga, com agravantes de divulgação pública e alcance ampliado."},
+  {"id":"con-dp-45","area":"Concursos","disciplina":"Direito Penal","namespace":"concursos_direito_penal",
+   "texto":"Concursos Direito Penal — Criminalidade Organizada e Organização Criminosa: Lei 12.850/2013 define organização criminosa como associação estruturada e estável para prática de crimes com divisão de tarefas. Investigação e cooperação premiada são instrumentos processuais típicos."},
 
   # ══════════════════════════════════════════════════════
   # MATÉRIA 3: DIREITO ADMINISTRATIVO
@@ -857,6 +960,131 @@ DOCUMENTOS = [
 
   {"id":"con-ap-45","area":"Concursos","disciplina":"Administracao Publica","namespace":"concursos_adm_publica",
    "texto":"Concursos Administracao Publica — Seguranca Publica e Politicas Integradas: SUSP Sistema Unico Seguranca Publica Lei 13.675/2018. Integracao PM PC PF inteligencia. PNUISP plano nacional. FUNDEB seguranca nao se aplica. Violencia domestica Maria da Penha 11.340/2006. Desarmamento Estatuto Desarmamento. Cameras corporais accountability. Drogas politica publica saude versus criminalizacao debate. Indicadores criminalidade Anuario BSP."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 7: DIREITO PROCESSUAL PENAL (concursos_direito_processual_penal)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-dpp-01","area":"Concursos","disciplina":"Direito Processual Penal","namespace":"concursos_direito_processual_penal",
+   "texto":"Concursos Direito Processual Penal — Ação Penal Pública e Privada: ação penal pública incondicionada pelo MP, pública condicionada à representação e privada pelo ofendido. Prazo de prescrição depende da pena aplicada. Conceito de incondicionada e condicionada, legitimação ativa e natureza da ação penal."},
+  {"id":"con-dpp-02","area":"Concursos","disciplina":"Direito Processual Penal","namespace":"concursos_direito_processual_penal",
+   "texto":"Concursos Direito Processual Penal — Prisão em Flagrante e Liberdade Provisória: flagrante próprio, impróprio e esperado. Auto de prisão em flagrante deve ser comunicado à autoridade competente em 24 horas. Liberdade provisória sem fiança, com fiança e com medidas cautelares diversas da prisão (art. 319 CPP)."},
+  {"id":"con-dpp-03","area":"Concursos","disciplina":"Direito Processual Penal","namespace":"concursos_direito_processual_penal",
+   "texto":"Concursos Direito Processual Penal — Inquérito Policial: finalidade de apurar autoria e materialidade. Oficiais de polícia judiciária, autoridade policial, prazo de 10 dias para preso e 30 dias para não preso. Reclamação por ilegalidade e arquivamento. Indisponibilidade da prova e sigilo do inquérito."},
+  {"id":"con-dpp-04","area":"Concursos","disciplina":"Direito Processual Penal","namespace":"concursos_direito_processual_penal",
+   "texto":"Concursos Direito Processual Penal — Provas e Nulidades: princípio do contraditório e ampla defesa. Provas ilícitas são inadmissíveis, salvo derivadas de prova lícita (teoria dos frutos da árvore envenenada). Nulidades absolutas e relativas. Exceção da verdade em crime hediondo não afasta nulidade de prova ilícita."},
+  {"id":"con-dpp-05","area":"Concursos","disciplina":"Direito Processual Penal","namespace":"concursos_direito_processual_penal",
+   "texto":"Concursos Direito Processual Penal — Recursos: apelação, embargos de declaração, recurso em sentido estrito, recurso especial e extraordinário. Prazo em dias úteis. Juiz natural, preclusão, publicação da sentença e início do prazo recursal. Recursos têm efeito devolutivo e, em alguns casos, suspensivo."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 8: DIREITO PROCESSUAL CIVIL (concursos_direito_processual_civil)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-dpc-01","area":"Concursos","disciplina":"Direito Processual Civil","namespace":"concursos_direito_processual_civil",
+   "texto":"Concursos Direito Processual Civil — Jurisdição e Ação: jurisdição é função do Estado de dizer o direito. Ação é o meio para suscitar o processo e obter tutela jurisdicional. Litisconsórcio, intervenção de terceiros e competência material, territorial e funcional."},
+  {"id":"con-dpc-02","area":"Concursos","disciplina":"Direito Processual Civil","namespace":"concursos_direito_processual_civil",
+   "texto":"Concursos Direito Processual Civil — Processo de Conhecimento: fases de postulatória, ordinatória, instrução e decisória. Petição inicial, resposta, audiência de conciliação e instrução. Produção de provas, depoimento pessoal, documentos e perícias."},
+  {"id":"con-dpc-03","area":"Concursos","disciplina":"Direito Processual Civil","namespace":"concursos_direito_processual_civil",
+   "texto":"Concursos Direito Processual Civil — Tutelas Provisórias: tutela de urgência e da evidência. Requisitos da tutela antecipada: probabilidade do direito e perigo de dano ou risco ao resultado útil do processo. Tutela cautelar e efeitos de provisório."},
+  {"id":"con-dpc-04","area":"Concursos","disciplina":"Direito Processual Civil","namespace":"concursos_direito_processual_civil",
+   "texto":"Concursos Direito Processual Civil — Recursos: apelação, agravo de instrumento, embargos de declaração, recurso especial e recurso extraordinário. Prazos, preclusão, juízo de admissibilidade e efeitos devolutivo e suspensivo."},
+  {"id":"con-dpc-05","area":"Concursos","disciplina":"Direito Processual Civil","namespace":"concursos_direito_processual_civil",
+   "texto":"Concursos Direito Processual Civil — Execução Civil: cumprimento de sentença, execução por quantia certa, medidas coercitivas e bloqueios eletrônicos. Embargos à execução, impugnação ao cumprimento, suspensão e extinção da execução."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 9: DIREITO TRIBUTÁRIO (concursos_direito_tributario)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-dtr-01","area":"Concursos","disciplina":"Direito Tributario","namespace":"concursos_direito_tributario",
+   "texto":"Concursos Direito Tributario — Sistema Tributário Nacional: tributos se dividem em impostos, taxas, contribuições de melhoria, contribuições especiais e empréstimos compulsórios. União, estados, DF e municípios têm competências tributárias definidas pela CF/88. Princípios da legalidade e da anterioridade tributária."},
+  {"id":"con-dtr-02","area":"Concursos","disciplina":"Direito Tributario","namespace":"concursos_direito_tributario",
+   "texto":"Concursos Direito Tributario — Princípios Tributários: legalidade, anterioridade, anterioridade nonagesimal, isonomia, vedação ao confisco, capacidade contributiva, non-reatividade. Princípio da vedação ao confisco impede tributos que possam aniquilar a base tributável."},
+  {"id":"con-dtr-03","area":"Concursos","disciplina":"Direito Tributario","namespace":"concursos_direito_tributario",
+   "texto":"Concursos Direito Tributario — Lançamento Tributário: lançamento por homologação, de ofício e por declaração. Crédito tributário nasce da ocorrência do fato gerador e da definição da base de cálculo. Notificação do lançamento e possibilidade de impugnação administrativa."},
+  {"id":"con-dtr-04","area":"Concursos","disciplina":"Direito Tributario","namespace":"concursos_direito_tributario",
+   "texto":"Concursos Direito Tributario — Execução Fiscal: inscrição em dívida ativa, Certidão de Dívida Ativa (CDA) como título executivo. Execução fiscal ajuizada pela União, estados, DF e municípios para cobrança de créditos tributários. Suspensão e extinção do crédito tributário."},
+  {"id":"con-dtr-05","area":"Concursos","disciplina":"Direito Tributario","namespace":"concursos_direito_tributario",
+   "texto":"Concursos Direito Tributario — Crimes contra a Ordem Tributária: Lei 8.137/90 e Lei 10.522/02. Sonegação fiscal, fraude à fiscalização, emissão de documento falso, omissão de declaração. Penas de reclusão e multa. Autoridade policial competente e ação penal pública."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 9: DIREITO CIVIL (concursos_direito_civil)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-dtc-01","area":"Concursos","disciplina":"Direito Civil","namespace":"concursos_direito_civil",
+   "texto":"Concursos Direito Civil — Parte Geral: personalidade jurídica, capacidade, domicílio, bens e fatos jurídicos. Negócios jurídicos: elementos, condições e forma. Vícios de consentimento: erro, dolo, coação, estado de perigo e lesão."},
+  {"id":"con-dtc-02","area":"Concursos","disciplina":"Direito Civil","namespace":"concursos_direito_civil",
+   "texto":"Concursos Direito Civil — Obrigações e Contratos: classificação das obrigações (de dar, fazer, não fazer, solidária, divisível, indivisível). Contratos: livre negociação, boa-fé objetiva, cláusulas abusivas, execução específica, resolução e indenização por inadimplência."},
+  {"id":"con-dtc-03","area":"Concursos","disciplina":"Direito Civil","namespace":"concursos_direito_civil",
+   "texto":"Concursos Direito Civil — Responsabilidade Civil: responsabilidade subjetiva por culpa e objetiva por risco. Elementos: conduta, dano, nexo causal e culpa. Indenização por danos materiais, morais e estéticos. Excludentes: estado de necessidade, estrito cumprimento de dever legal, legítima defesa."},
+  {"id":"con-dtc-04","area":"Concursos","disciplina":"Direito Civil","namespace":"concursos_direito_civil",
+   "texto":"Concursos Direito Civil — Direitos Reais: posse, propriedade, usufruto, uso, habitação, servidões e condomínio. Aquisição da propriedade: contrato e registro. Ação de usucapião, proteção possessória e meio de tutela da propriedade."},
+  {"id":"con-dtc-05","area":"Concursos","disciplina":"Direito Civil","namespace":"concursos_direito_civil",
+   "texto":"Concursos Direito Civil — Família e Sucessões: casamento, união estável, regime de bens, filiação, guarda e alimentos. Sucessão legítima e testamentária, herdeiros necessários, inventário e partilha. Direito de representação e colação."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 10: DIREITO TRABALHISTA (concursos_direito_trabalhista)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-dtt-01","area":"Concursos","disciplina":"Direito Trabalhista","namespace":"concursos_direito_trabalhista",
+   "texto":"Concursos Direito Trabalhista — Contrato de Trabalho: relação entre empregado e empregador, subordinação, onerosidade, pessoalidade e continuidade. Tipos de contrato: prazo indeterminado, determinado, intermitente, teletrabalho, trabalho temporário."},
+  {"id":"con-dtt-02","area":"Concursos","disciplina":"Direito Trabalhista","namespace":"concursos_direito_trabalhista",
+   "texto":"Concursos Direito Trabalhista — Jornada e Remuneração: jornada normal de 8 horas/44 horas semanais, horas extras, adicional noturno, descanso semanal remunerado, férias, FGTS. Remuneração inclui salário, adicionais, comissões e gratificações."},
+  {"id":"con-dtt-03","area":"Concursos","disciplina":"Direito Trabalhista","namespace":"concursos_direito_trabalhista",
+   "texto":"Concursos Direito Trabalhista — Direitos Trabalhistas: seguro-desemprego, licença-maternidade/paternidade, 13° salário, férias, estabilidade provisória, aposentadoria especial e convenções coletivas. Pressupostos de representação sindical."},
+  {"id":"con-dtt-04","area":"Concursos","disciplina":"Direito Trabalhista","namespace":"concursos_direito_trabalhista",
+   "texto":"Concursos Direito Trabalhista — Rescisão e Verbas Rescisórias: modalidade de rescisão, aviso prévio, saldo de salário, férias proporcionais, 13° proporcional, multa do FGTS e levantamento de contas. Homologação e prazos para pagamento."},
+  {"id":"con-dtt-05","area":"Concursos","disciplina":"Direito Trabalhista","namespace":"concursos_direito_trabalhista",
+   "texto":"Concursos Direito Trabalhista — Justiça do Trabalho: competência da JT, reclamação trabalhista, audiência inicial, conciliação, instrução e julgamento. Recursos trabalhistas comuns: embargos, recurso ordinário e recurso de revista."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 11: LEGISLAÇÃO ESPECÍFICA (concursos_legislacao_especifica)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-lesp-01","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Lei de Improbidade Administrativa: Lei 8.429/92 define atos de improbidade que enriquecem o agente, causam prejuízo ao patrimônio público ou atentam contra princípios da administração pública. Sanções incluem perda da função pública, suspensão dos direitos políticos e multa."},
+  {"id":"con-lesp-02","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Lei de Acesso à Informação: Lei 12.527/11 regulamenta o direito de acesso a informações públicas. Usuário pode solicitar dados sem justificar. Prazos de resposta de até 20 dias, prorrogáveis por mais 10 dias por motivo justificado."},
+  {"id":"con-lesp-03","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Estatuto dos Servidores Públicos: Lei 8.112/90 trata do regime jurídico dos servidores civis federais: provimento, vacância, remuneração, direitos, deveres, regime disciplinar, aposentadoria e punições. Concurso público é regra para investidura."},
+  {"id":"con-lesp-04","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Lei de Licitações e Contratos: Lei 14.133/21 disciplina licitações e contratos da administração pública, com princípios de isonomia, seleção da proposta mais vantajosa, publicidade e sustentabilidade. Modalidades e fases, regra do pregão, contratação direta em casos excepcionais."},
+  {"id":"con-lesp-05","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Lei de Proteção de Dados e Transparência: LGPD e LAI no setor público. Dados pessoais no âmbito público exigem base legal, segurança e controle de acesso. Transparência ativa e dados abertos devem respeitar sigilo e privacidade."},
+  {"id":"con-lesp-06","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Lei de Responsabilidade Fiscal: limites de gasto público, dívida consolidada, despesas com pessoal e transparência fiscal. Relatórios RREO e RGF, metas fiscais e processo de ajuste em caso de descumprimento."},
+  {"id":"con-lesp-07","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Lei Anticorrupção: Lei 12.846/2013 responsabiliza pessoas jurídicas por atos lesivos à administração pública. Programa de integridade, due diligence, penalidades, acordo de leniência e colaboração premiada empresarial."},
+  {"id":"con-lesp-08","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — LGPD no Setor Público: tratamento de dados pessoais por órgãos públicos, bases legais específicas, titular e encarregado de proteção de dados, proteção de dados sensíveis e compartilhamento interinstitucional."},
+  {"id":"con-lesp-09","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Contratações Públicas Sustentáveis: Lei 14.133/21 e diretrizes de sustentabilidade. Critérios de julgamento, preferências para micro e pequenas empresas, compras governamentais sustentáveis e responsabilidade socioambiental nas licitações."},
+  {"id":"con-lesp-10","area":"Concursos","disciplina":"Legislacao Especifica","namespace":"concursos_legislacao_especifica",
+   "texto":"Concursos Legislacao Especifica — Controle Interno e Externo: papel do TCU, CGU e controlador interno. Auditoria, fiscalização de contas, tomada de contas especial e processo de prestação de contas com base no artigo 70 da CF."},
+
+  # ══════════════════════════════════════════════════════
+  # MATÉRIA 12: ATUALIDADES (concursos_atualidades)
+  # ══════════════════════════════════════════════════════
+
+  {"id":"con-atu-01","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Economia Brasileira: inflação, juros, crescimento do PIB, desemprego e políticas fiscais. Programas de governo que impactam contas públicas, reforma tributária e controle de gastos."},
+  {"id":"con-atu-02","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Governo Digital: Estratégia de Governo Digital, transformação digital dos serviços públicos, gov.br, plataformas de identidade digital, interoperabilidade e inovação no setor público."},
+  {"id":"con-atu-03","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Sustentabilidade e Meio Ambiente: políticas públicas de mudança climática, transição energética, leis ambientais brasileiras e agendas internacionais de desenvolvimento sustentável."},
+  {"id":"con-atu-04","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Segurança Pública e Direitos Sociais: políticas públicas de segurança, prevenção à violência, direitos humanos, políticas de assistência social e impacto de programas sociais em concursos públicos."},
+  {"id":"con-atu-05","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Políticas Públicas e Reforma Administrativa: reformas recentes, governança pública, administração de crises e legislações em desenvolvimento que afetam concursos e a gestão pública."},
+  {"id":"con-atu-06","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Geopolítica e Conflitos Internacionais: tensões globais, acordos comerciais, blocos políticos, crises humanitárias e impacto econômico de conflitos entre grandes potências."},
+  {"id":"con-atu-07","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Eleições e Democracia: eleições recentes no Brasil e no mundo, mecanismos de voto, institucionalidade democrática, controle social e desafios à estabilidade política."},
+  {"id":"con-atu-08","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Transição Energética e Clima: metas do Acordo de Paris, energias renováveis, política de carbono, adaptação às mudanças climáticas e políticas brasileiras de mitigação ambiental."},
+  {"id":"con-atu-09","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Governo Digital e Cibersegurança: estratégias digitais no setor público, proteção de dados, segurança cibernética, ataques a infraestruturas críticas e políticas de resiliência nacional."},
+  {"id":"con-atu-10","area":"Concursos","disciplina":"Atualidades","namespace":"concursos_atualidades",
+   "texto":"Concursos Atualidades — Direitos Digitais e Privacidade: regulação sobre privacidade na internet, desinformação, liberdade de expressão, neutralidade de rede e proteção de dados pessoais em plataformas digitais."},
 ]
 
 # ─── Funções de indexação (mesma lógica do indexar-tecnologia.py) ─────────────

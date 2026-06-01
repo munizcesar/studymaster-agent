@@ -77,6 +77,118 @@ var CONCURSOS_CONFIG = {
       ],
       conceptualBases: "CF/88, Lei 8.112/90, Lei 8.666/93, Lei 9.784/99, Lei 14.133/21, Lei 12.527/11 (LAI)"
     },
+    "concursos.direito_penal": {
+      label: "Direito Penal",
+      description: "Teoria do crime, crimes contra a pessoa, patrimônio, administração pública e processo penal",
+      vectorizeCollection: "concursos_direito_penal",
+      minContextLength: 300,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "CP, CPP, teoria geral do crime, crimes contra a pessoa, patrimônio, administração pública"
+    },
+    "concursos.direito_processual_civil": {
+      label: "Direito Processual Civil",
+      description: "Jurisdição, ação, tutelas, recursos e execução civil",
+      vectorizeCollection: "concursos_direito_processual_civil",
+      minContextLength: 300,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "CPC, CF/88, STF/STJ, jurisdição, ação, recursos e execução civil"
+    },
+    "concursos.direito_processual_penal": {
+      label: "Direito Processual Penal",
+      description: "Procedimento penal, ação penal, prova, recursos e execução penal",
+      vectorizeCollection: "concursos_direito_processual_penal",
+      minContextLength: 300,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "CPP, CF/88, STF/STJ, provas penais, nulidades e execução penal"
+    },
+    "concursos.direito_tributario": {
+      label: "Direito Tributário",
+      description: "Sistema tributário, princípios, impostos, lançamento fiscal e execução tributária",
+      vectorizeCollection: "concursos_direito_tributario",
+      minContextLength: 300,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "CF/88, CTN, Lei 9.430/96, lançamento tributário, execução fiscal"
+    },
+    "concursos.direito_civil": {
+      label: "Direito Civil",
+      description: "Contratos, responsabilidade civil, direitos reais, família e sucessões",
+      vectorizeCollection: "concursos_direito_civil",
+      minContextLength: 300,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "CC/2002, contratos, responsabilidade civil, família, sucessões"
+    },
+    "concursos.direito_trabalhista": {
+      label: "Direito Trabalhista",
+      description: "Direitos do trabalhador, contrato de trabalho, jornada, rescisão e Justiça do Trabalho",
+      vectorizeCollection: "concursos_direito_trabalhista",
+      minContextLength: 300,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "CLT, CF/88, TST, MP 1100, rescisão, direitos trabalhistas"
+    },
+    "concursos.legislacao_especifica": {
+      label: "Legislação Específica",
+      description: "Leis de servidores, improbidade, acesso à informação, licitações e compliance",
+      vectorizeCollection: "concursos_legislacao_especifica",
+      minContextLength: 250,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "Lei 8.666/93, Lei 14.133/21, Lei 8.429/92, Lei 12.527/11, compliance"
+    },
+    "concursos.atualidades": {
+      label: "Atualidades",
+      description: "Economia, política, tecnologia, meio ambiente e políticas públicas recentes",
+      vectorizeCollection: "concursos_atualidades",
+      minContextLength: 200,
+      forbiddenPatterns: [
+        "banca\\s+\\w+\\s+decidiu",
+        "edital\\s+de\\s+\\d{4}",
+        "prova\\s+(real|espec\\xEDfica)",
+        "ano\\s+de\\s+\\d{4}",
+        "julgado\\s+em"
+      ],
+      conceptualBases: "Panorama político-econômico, políticas públicas, governo digital, sustentabilidade"
+    },
     "concursos.raciocinio_logico": {
       label: "Racioc\xEDnio L\xF3gico",
       description: "L\xF3gica formal, combinat\xF3ria, probabilidade, an\xE1lise de argumentos",
@@ -124,12 +236,20 @@ var CONCURSOS_CONFIG = {
     "concursos_portugues": "concursos.portugues",
     "concursos_direito_constitucional": "concursos.direito_constitucional",
     "concursos_direito_administrativo": "concursos.direito_administrativo",
+    "concursos_direito_penal": "concursos.direito_penal",
+    "concursos_direito_processual_civil": "concursos.direito_processual_civil",
+    "concursos_direito_processual_penal": "concursos.direito_processual_penal",
+    "concursos_direito_tributario": "concursos.direito_tributario",
+    "concursos_direito_civil": "concursos.direito_civil",
+    "concursos_direito_trabalhista": "concursos.direito_trabalhista",
+    "concursos_legislacao_especifica": "concursos.legislacao_especifica",
+    "concursos_atualidades": "concursos.atualidades",
     "concursos_rlm": "concursos.raciocinio_logico",
     "concursos_informatica": "concursos.informatica",
     "concursos_adm_publica": "concursos.administracao_publica"
   },
   fallbackMessage: "Desculpe, ainda n\xE3o temos base de dados suficiente para esta mat\xE9ria. Tente novamente em breve!",
-  invalidFilterMessage: /* @__PURE__ */ __name((filter) => `O filtro "${filter}" n\xE3o foi reconhecido. Escolha uma das mat\xE9rias dispon\xEDveis: Portugu\xEAs, Direito Constitucional, Direito Administrativo, Racioc\xEDnio L\xF3gico, Inform\xE1tica ou Administra\xE7\xE3o P\xFAblica.`, "invalidFilterMessage")
+  invalidFilterMessage: /* @__PURE__ */ __name((filter) => `O filtro "${filter}" n\xE3o foi reconhecido. Escolha uma das mat\xE9rias dispon\xEDveis: Portugu\xEAs, Direito Constitucional, Direito Administrativo, Direito Penal, Direito Processual Civil, Direito Processual Penal, Direito Tribut\xE1rio, Direito Civil, Direito Trabalhista, Legisla\xE7\xE3o Espec\xEDfica, Atualidades, Racioc\xEDnio L\xF3gico, Inform\xE1tica ou Administra\xE7\xE3o P\xFAblica.`, "invalidFilterMessage")
 };
 var ACADEMIC_CONFIG = {
   areas: {
