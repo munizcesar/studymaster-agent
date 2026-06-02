@@ -11,3 +11,6 @@ dist/
 .cache/
 .cloudflare/
 .wrangler/
+__pycache__/
+*.py[cod]
+data/
