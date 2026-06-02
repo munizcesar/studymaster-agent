@@ -20,11 +20,54 @@ Novas matérias extras:
   - Atualidades (concursos_atualidades)
 """
 
-import os, json, time, hashlib, requests
+import argparse
+import os
+import json
+import time
+import hashlib
+import requests
 
 ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
 API_TOKEN  = os.environ.get("CLOUDFLARE_API_TOKEN", "")
 INDEX_NAME = "studymaster-knowledge"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Indexar conteúdos de Concursos para Cloudflare Vectorize"
+    )
+    parser.add_argument(
+        "--account-id",
+        help="Cloudflare Account ID (ou use CLOUDFLARE_ACCOUNT_ID)"
+    )
+    parser.add_argument(
+        "--api-token",
+        help="Cloudflare API Token (ou use CLOUDFLARE_API_TOKEN)"
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=20,
+        help="Número de documentos enviados por lote"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Grava os documentos localmente em vez de enviar ao Vectorize"
+    )
+    parser.add_argument(
+        "--output",
+        default="data/concursos-dry-run.json",
+        help="Arquivo de saída para dry run"
+    )
+    return parser.parse_args()
+
+
+def configure_credentials(args):
+    global ACCOUNT_ID, API_TOKEN
+    ACCOUNT_ID = args.account_id or ACCOUNT_ID
+    API_TOKEN = args.api_token or API_TOKEN
+    return ACCOUNT_ID, API_TOKEN
 
 DOCUMENTOS = [
 
@@ -1119,28 +1162,62 @@ def upsert_vetores(vetores: list) -> dict:
     return res.json()
 
 
+def salvar_dry_run(documentos: list, output_path: str):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(documentos, f, indent=2, ensure_ascii=False)
+    print(f"Dry run salvo em: {output_path}")
+
+
 def main():
+    args = parse_args()
+    configure_credentials(args)
     account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ACCOUNT_ID)
     token   = os.environ.get("CLOUDFLARE_API_TOKEN", API_TOKEN)
-    if not account or not token:
-        print("ERRO: Configure as variáveis de ambiente:")
+
+    if not args.dry_run and (not account or not token):
+        print("ERRO: Configure as variáveis de ambiente ou passe as credenciais via argumentos:")
         print('   $env:CLOUDFLARE_ACCOUNT_ID="seu_id"')
         print('   $env:CLOUDFLARE_API_TOKEN="seu_token"')
+        print('   python scripts/indexar-concursos-v2.py --account-id seu_id --api-token seu_token')
         return
 
     print("StudyMaster - Indexador Concursos v2")
     print(f"Total de documentos: {len(DOCUMENTOS)}")
-    print("Testando API Cloudflare...")
-    try:
-        emb = gerar_embedding("teste concursos")
-        print(f"  OK API - {len(emb)} dims\n")
-    except Exception as e:
-        print(f"  ERRO: {e}")
+    print(f"Batch size: {args.batch_size}")
+    print(f"Dry run: {args.dry_run}")
+
+    if args.dry_run and (not account or not token):
+        print("Modo dry run sem credenciais: gravando apenas metadados locais")
+        output_docs = [
+            {
+                "id": f"{item['id']}-{hashlib.md5(item['texto'].encode()).hexdigest()[:8]}",
+                "namespace": item.get("namespace", "concursos_geral"),
+                "metadata": {
+                    "text": item["texto"][:1000],
+                    "area": item["area"],
+                    "disciplina": item["disciplina"],
+                    "namespace": item.get("namespace", "concursos_geral"),
+                    "fonte": f"Conteúdo Programático Concursos — {item['disciplina']}",
+                },
+            }
+            for item in DOCUMENTOS
+        ]
+        salvar_dry_run(output_docs, args.output)
+        print(f"\nDry run completo: {len(output_docs)} documentos preparados (sem embeddings)")
         return
 
-    batch, total, BATCH_SIZE = [], 0, 20
+    if not args.dry_run:
+        print("Testando API Cloudflare...")
+        try:
+            emb = gerar_embedding("teste concursos")
+            print(f"  OK API - {len(emb)} dims\n")
+        except Exception as e:
+            print(f"  ERRO: {e}")
+            return
+
+    batch, total, BATCH_SIZE = [], 0, args.batch_size
     for i, item in enumerate(DOCUMENTOS):
-        import hashlib
         chunk_id = f"{item['id']}-{hashlib.md5(item['texto'].encode()).hexdigest()[:8]}"
         try:
             emb = gerar_embedding(item["texto"])
@@ -1163,19 +1240,39 @@ def main():
         })
 
         if len(batch) >= BATCH_SIZE or i == len(DOCUMENTOS) - 1:
-            try:
-                upsert_vetores(batch)
+            if args.dry_run:
                 total += len(batch)
-                print(f"  OK {total}/{len(DOCUMENTOS)} documentos indexados")
-            except Exception as e:
-                print(f"  ERRO Upsert: {e}")
+            else:
+                try:
+                    upsert_vetores(batch)
+                    total += len(batch)
+                    print(f"  OK {total}/{len(DOCUMENTOS)} documentos indexados")
+                except Exception as e:
+                    print(f"  ERRO Upsert: {e}")
             batch = []
             time.sleep(1.5)
 
-    print(f"\nOK Concursos v2 indexado: {total} documentos no Vectorize")
-    print("Matérias: Português, Dir. Constitucional, Dir. Administrativo, RL, Informática, Adm. Pública")
+    if args.dry_run:
+        output_docs = [
+            {
+                "id": f"{item['id']}-{hashlib.md5(item['texto'].encode()).hexdigest()[:8]}",
+                "namespace": item.get("namespace", "concursos_geral"),
+                "metadata": {
+                    "text": item["texto"][:1000],
+                    "area": item["area"],
+                    "disciplina": item["disciplina"],
+                    "namespace": item.get("namespace", "concursos_geral"),
+                    "fonte": f"Conteúdo Programático Concursos — {item['disciplina']}",
+                },
+            }
+            for item in DOCUMENTOS
+        ]
+        salvar_dry_run(output_docs, args.output)
+        print(f"\nDry run completo: {total} documentos preparados")
+    else:
+        print(f"\nOK Concursos v2 indexado: {total} documentos no Vectorize")
+        print("Matérias: Português, Dir. Constitucional, Dir. Administrativo, RL, Informática, Adm. Pública, Direito Processual Penal, Direito Tributário, Direito Civil, Direito Trabalhista, Legislação Específica, Atualidades")
 
 
 if __name__ == "__main__":
-    import hashlib
     main()
