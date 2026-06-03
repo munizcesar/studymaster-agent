@@ -946,11 +946,13 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
     };
   }
   const subjectConfig = filterValidation.config;
-  const queryContext = summarizeQueryContext(prompt, extraContext, null);
+  // Garante que o label da matéria sempre está na query para o Vectorize
+  const queryContext = summarizeQueryContext(subjectConfig.label, prompt, extraContext);
+  console.log(`[RAG] Matéria: ${filter} → Coleção: ${subjectConfig.vectorizeCollection} | Query: ${queryContext}`);
   const ragResult = await fetchVectorizeContext(
     env,
     subjectConfig.vectorizeCollection,
-    queryContext || subjectConfig.label,
+    queryContext,
     subjectConfig.minContextLength
   );
   const ragValidation = validateRAGScore(ragResult, subjectConfig);
@@ -1081,11 +1083,12 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
       details: `Área não mapeada: ${area}`
     };
   }
-  const queryContext = summarizeQueryContext(topic, prompt, extraContext || subject);
+  const queryContext = summarizeQueryContext(areaConfig.label, topic || subject, prompt || extraContext);
+  console.log(`[RAG] Área: ${areaKey} → Coleção: ${areaConfig.vectorizeCollection} | Query: ${queryContext}`);
   const ragResult = await fetchVectorizeContext(
     env,
     areaConfig.vectorizeCollection,
-    queryContext || areaConfig.label,
+    queryContext,
     areaConfig.minContextLength
   );
   const ragValidation = validateRAGScore(ragResult, areaConfig);
