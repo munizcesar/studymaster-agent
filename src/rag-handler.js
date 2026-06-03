@@ -309,9 +309,17 @@ function validateAgainstHallucination(question, subject, vectorizeSources = []) 
  * @returns {Promise<Object>} Questão validada ou erro
  */
 async function generateQuestionWithRAG(params) {
-  const { mode, filter, subject, vectorizeClient, llmClient } = params;
+  let { mode, filter, subject, vectorizeClient, llmClient } = params;
+
+  // A fonte de verdade para a matéria selecionada pelo usuário é sempre o filtro.
+  // Se subject vier vazio, diferente ou inconsistente, normaliza para o mesmo valor de filter.
+  if (!subject || subject !== filter) {
+    console.warn(`[RAG] subject inconsistente ou ausente: usando filter como fonte de verdade (${filter})`);
+    subject = filter;
+  }
 
   console.log(`[RAG] Iniciando pipeline para: ${mode}.${filter}`);
+  console.log(`[RAG] Matéria final usada: filter=${filter}, subject=${subject}`);
 
   // PASSO 1: Validar mapeamento filtro → coleção
   const mapping = validateFilterMapping(mode, filter);
@@ -331,7 +339,7 @@ async function generateQuestionWithRAG(params) {
   const contextResult = await retrieveVectorizeContext(
     vectorizeClient,
     mapping.collection,
-    subject,
+    filter,
     mapping.minContextLength
   );
 
