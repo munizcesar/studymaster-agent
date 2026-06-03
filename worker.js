@@ -1074,8 +1074,31 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   };
 }
 __name(generateConcursosRAGQuestion, "generateConcursosRAGQuestion");
+// [FIX] Mapa explícito: nomes legíveis do frontend → chaves internas do ACADEMIC_CONFIG
+// Necessário porque nomes com acentos (Saúde, Negócios, História) não normalizam
+// corretamente via toLowerCase() — "Saúde".toLowerCase() = "saúde" ≠ "saude".
+const AREA_NAME_TO_KEY = {
+  "direito":    "academic.direito",
+  "medicina":   "academic.medicina",
+  "história":   "academic.historia",
+  "historia":   "academic.historia",
+  "exatas":     "academic.exatas",
+  "humanas":    "academic.humanas",
+  "saúde":      "academic.saude",
+  "saude":      "academic.saude",
+  "negócios":   "academic.negocios",
+  "negocios":   "academic.negocios",
+  "tecnologia": "academic.exatas",   // fallback: não existe academic.tecnologia — usa exatas
+};
 async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, quantity, prompt, extraContext }, env) {
-  const areaKey = area.startsWith("academic.") ? area : `academic.${area.toLowerCase()}`;
+  // [FIX] Resolução de chave: prefixado > mapa explícito > lowercase direto
+  let areaKey;
+  if (area.startsWith("academic.")) {
+    areaKey = area;
+  } else {
+    areaKey = AREA_NAME_TO_KEY[area.toLowerCase()] || `academic.${area.toLowerCase()}`;
+  }
+  console.log(`[RAG] Area recebida: "${area}" → chave resolvida: "${areaKey}"`);
   const areaConfig = ACADEMIC_CONFIG.areas[areaKey];
   if (!areaConfig) {
     return {
@@ -1253,6 +1276,9 @@ var worker_default = {
         quantity = 1,
         prompt,
         extraContext,
+        freeText,
+        editalText,
+        youtubeUrl,
         questionType = "mcq",
         idioma = "pt-BR"
       } = body || {};
@@ -1323,7 +1349,7 @@ var worker_default = {
       const contextData = await fetchContext(area, mode, topic, subject, idioma, env);
       const contextInfo = contextData?.text || "";
       const sourceInfo = contextData?.source || "Conhecimento acadêmico consolidado";
-      const additionalInfo = [prompt, extraContext].filter(Boolean).join("\n").trim();
+      const additionalInfo = [prompt, extraContext, freeText, editalText, youtubeUrl].filter(Boolean).join("\n").trim();
       const bancaInstruction = mode === "concurso" ? " Priorize estilo claro, objetivo e atemporal. Nunca cite banca/ano sem fonte no contexto." : "";
       const sessionInstruction = quantitySafe > 1 ? " Gere questões equilibradas e variadas." : "";
       const altKeysList = normalizedType === "vf" ? ["A", "B"] : ["A", "B", "C", "D"];
