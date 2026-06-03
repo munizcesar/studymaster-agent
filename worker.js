@@ -632,7 +632,7 @@ async function fetchWikipediaContext(query, lang = "pt") {
 __name(fetchWikipediaContext, "fetchWikipediaContext");
 async function fetchContext(area, mode, topic, subject, idioma, env) {
   const isPortugues = !idioma || idioma === "pt-BR";
-  const isDireito = area === "Direito" || mode === "concurso" || mode === "academic";
+  const isDireito = area === "Direito"; // [FIX] Restrito: só ativa bloco jurídico quando área é explicitamente Direito
   const query = topic || subject || area || "";
   if (isDireito && query) {
     const subarea = detectarSubareaJuridica(topic, subject);
@@ -936,6 +936,8 @@ function buildOptionExplanationsSchema(altKeys) {
 __name(buildOptionExplanationsSchema, "buildOptionExplanationsSchema");
 
 async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prompt, extraContext }, env) {
+  // [FIX] Log explícito dos parâmetros recebidos antes de qualquer processamento
+  console.log(`[RAG] Recebido filter=${filter} difficulty=${difficulty} quantity=${quantity}`);
   const filterValidation = validateConcursosFilter(filter);
   if (!filterValidation.valid) {
     return {
@@ -1258,9 +1260,20 @@ var worker_default = {
       const isPortugues = !idioma || idioma === "pt-BR";
 
       if (mode === "concurso" || mode === "concursos") {
+        // [FIX] Removido fallback hardcoded "concursos.portugues" — filter deve vir explícito no body
+        if (!filter) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: "MISSING_FILTER",
+            userMessage: "O campo \"filter\" é obrigatório para o modo concurso. Escolha uma das matérias disponíveis: Português, Direito Constitucional, Direito Administrativo, Direito Penal, etc."
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
         const result = await generateConcursosRAGQuestion(
           {
-            filter: filter || "concursos.portugues",
+            filter,
             difficulty,
             quantity: Math.min(Math.max(Number(quantity) || 1, 1), 10),
             prompt,
@@ -1273,9 +1286,20 @@ var worker_default = {
         });
       }
       if (mode === "academic") {
+        // [FIX] Removido fallback hardcoded "academic.direito" — area deve vir explícita no body
+        if (!area) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: "MISSING_AREA",
+            userMessage: "O campo \"area\" é obrigatório para o modo academic. Escolha uma das disponíveis: Direito, Medicina, História, Exatas, Humanas, Saúde ou Negócios."
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
         const result = await generateAcademicRAGQuestion(
           {
-            area: area || "academic.direito",
+            area,
             subject,
             topic,
             difficulty,
