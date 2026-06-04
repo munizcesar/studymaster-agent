@@ -106,7 +106,7 @@
     }
     .logo:hover { opacity: 0.8; }
     .logo span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    .logo-icon { width: 40px; height: 40px; flex-shrink: 0; }
+    .logo-icon { width: 42px; height: 42px; flex-shrink: 0; }
     .logo-wordmark,
     .footer-logo {
       display: inline-flex;
@@ -1591,28 +1591,28 @@
         <a href="#" class="logo" id="logo-home" aria-label="AIVOS - Voltar ao inicio">
           <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
             <defs>
-              <linearGradient id="aivosMarkCold" x1="12" y1="9" x2="42" y2="50" gradientUnits="userSpaceOnUse">
+              <linearGradient id="aivosMarkLeft" x1="15" y1="9" x2="32" y2="56" gradientUnits="userSpaceOnUse">
                 <stop offset="0" stop-color="#0D47FF"/>
-                <stop offset="0.52" stop-color="#00B8FF"/>
+                <stop offset="0.58" stop-color="#154DFF"/>
                 <stop offset="1" stop-color="#7C4DFF"/>
               </linearGradient>
-              <linearGradient id="aivosMarkHot" x1="28" y1="39" x2="53" y2="53" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#7C4DFF"/>
-                <stop offset="0.55" stop-color="#FF2D20"/>
+              <linearGradient id="aivosMarkRight" x1="31" y1="9" x2="52" y2="56" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#0D47FF"/>
+                <stop offset="0.48" stop-color="#7C4DFF"/>
+                <stop offset="0.76" stop-color="#FF2D20"/>
                 <stop offset="1" stop-color="#FF6A00"/>
               </linearGradient>
-              <filter id="aivosGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="2.4" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.28 0 0 0 0 1 0 0 0 .45 0"/>
-                <feBlend in="SourceGraphic"/>
-              </filter>
+              <linearGradient id="aivosMarkBridge" x1="22" y1="43" x2="45" y2="43" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#7C4DFF"/>
+                <stop offset="0.42" stop-color="#9B2FFF"/>
+                <stop offset="1" stop-color="#FF2D20"/>
+              </linearGradient>
             </defs>
             <rect width="64" height="64" rx="16" fill="#0A0F2C"/>
-            <path d="M11 52L28.5 14.5C30.9 9.4 38.1 9.4 40.5 14.5L55 45.7C57.4 50.8 51.2 55.5 46.9 51.8L35.1 41.7C33.4 40.2 30.9 40.2 29.2 41.7L18.1 51.4C13.8 55.1 8.6 57.1 11 52Z" fill="url(#aivosMarkHot)" opacity="0.95"/>
-            <path d="M11 52L28.5 14.5C30.9 9.4 38.1 9.4 40.5 14.5L55 45.7" fill="none" stroke="url(#aivosMarkCold)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" filter="url(#aivosGlow)"/>
-            <path d="M24.5 47.8L33.1 39.9C34.7 38.4 37.2 38.4 38.9 39.9L49.5 49.2" fill="none" stroke="url(#aivosMarkHot)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 52L29.7 13.8C31.2 10.6 35.7 10.6 37.2 13.8L54 52" fill="none" stroke="url(#aivosMarkRight)" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 52L29.7 13.8C31.2 10.6 35.7 10.6 37.2 13.8" fill="none" stroke="url(#aivosMarkLeft)" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22.5 46.5L31 38.7C32.6 37.2 35.1 37.2 36.8 38.7L45.6 46.5" fill="none" stroke="url(#aivosMarkBridge)" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="logo-wordmark" aria-hidden="true"><span class="logo-ai">AIV</span><span class="logo-os">OS</span></span>
         </a>
         <div class="header-actions">
           <div class="daily-perf" id="daily-perf" aria-live="polite">
@@ -2626,7 +2626,7 @@ function syncThemeIcon() {
 }
 
 function init() {
-  const savedTheme = safeGet('aivos-theme');
+  const savedTheme = safeStorageGet('aivos-theme');
   if (savedTheme === 'light' || savedTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', savedTheme);
   }
@@ -2648,7 +2648,7 @@ function init() {
     const isDark = root.getAttribute('data-theme') === 'dark';
     const nextTheme = isDark ? 'light' : 'dark';
     root.setAttribute('data-theme', nextTheme);
-    safeSet('aivos-theme', nextTheme);
+    safeStorageSet('aivos-theme', nextTheme);
     syncThemeIcon();
     lucide.createIcons();
   });
