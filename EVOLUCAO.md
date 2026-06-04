@@ -1,195 +1,553 @@
-# 📋 StudyMaster — Guia Mestre de Evolução
+# DOCUMENTO OFICIAL DE EVOLUCAO DO PRODUTO
 
-> Documento de controle incremental. Cada item implementado recebe `✅`. Itens pendentes ficam como `⬜`. Nunca remover itens concluídos — eles formam o histórico real do projeto.
+# AIVOS - Roadmap Estrategico V3.0
 
----
+> Status: Documento Oficial do Projeto
+>
+> Este documento substitui integralmente os roadmaps anteriores e passa a ser a referencia principal para evolucao do produto.
 
-## 🗺️ Visão Geral das Fases
+## Acao Obrigatoria
 
-| Fase | Nome | Status |
-|------|------|--------|
-| 1 | Blindagem da base (anti-alucinação) | 🔄 Em progresso |
-| 2 | Qualidade de geração de questões | ⬜ Aguardando |
-| 3 | Expansão de matérias e conteúdo | ⬜ Aguardando |
-| 4 | Experiência do usuário (UX/UI) | ⬜ Aguardando |
-| 5 | Multi-usuário e autenticação | ⬜ Aguardando (última) |
-
----
-
-## ✅ Fase 0 — Fundação (concluída)
-
-- ✅ Worker Cloudflare com Groq API funcional
-- ✅ Integração Vectorize RAG para concursos (6 matérias mapeadas)
-- ✅ Integração Vectorize RAG para acadêmico (7 áreas mapeadas)
-- ✅ `validateRAGScore()` — bloqueia score abaixo de 0.75
-- ✅ `validateQuestionTraceability()` — rastreabilidade mínima 30%
-- ✅ `validateAgainstHallucination()` — remove padrões proibidos
-- ✅ `generateQualityBadge()` — badge 🟢🟡🔴 por confiança
-- ✅ `validateQuestionPipeline()` — pipeline unificado camadas 1+3+4
-- ✅ Fallback gracioso (LexML → Wikipedia → mensagem clara)
-- ✅ CORS restrito ao domínio `studymaster-agent.pages.dev`
-- ✅ Forbidden patterns por matéria (anti-referência a bancas/provas)
-- ✅ Seção de preços evergreen (sem valores fixos, só link para anúncio)
+- [x] Substituir o documento evolutivo atual do repositorio por este documento.
+- [x] Manter este arquivo como fonte oficial das decisoes estrategicas.
+- [ ] Toda nova funcionalidade devera respeitar as diretrizes aqui definidas.
+- [ ] Cada etapa concluida devera receber `[x]` neste documento antes de avancar.
 
 ---
 
-## 🔄 Fase 1 — Blindagem da Base
+## Visao do Produto
 
-> Objetivo: tornar o sistema incapaz de gerar questões fora do material indexado.
+### O que a AIVOS e
 
-### 1.1 Score mínimo de similaridade
+AIVOS e um sistema inteligente de evolucao do conhecimento.
 
-- ✅ Threshold de 0.75 implementado em `validateRAGScore()`
-- ⬜ Aumentar threshold para **0.80** após testes de qualidade
-- ⬜ Logar scores em KV ou Analytics Engine para análise
+Nao e:
 
-### 1.2 Recusa segura quando contexto insuficiente
+- Banco de questoes
+- Chat de IA
+- Gerador de prompts
+- Plataforma tradicional de cursos
+- Cursinho online
 
-- ✅ `fetchVectorizeContext()` retorna `sufficient: false` com fallback
-- ⬜ Mensagem de recusa diferenciada por motivo (`RAG_EMPTY` vs `RAG_LOW_CONFIDENCE`)
-- ⬜ Header de resposta `X-RAG-Reason` para debugging no frontend
+AIVOS e:
 
-### 1.3 Prompt restrito ao conteúdo recuperado
-
-- ✅ Contexto Vectorize injetado no system prompt
-- ⬜ Adicionar instrução explícita: *"Você DEVE responder APENAS com base no CONTEXTO abaixo. Se a resposta não estiver no contexto, recuse."*
-- ⬜ Separador visual claro no prompt: `--- CONTEXTO AUTORIZADO ---`
-
-### 1.4 Cobertura de matérias Vectorize
-
-- ✅ 6 filtros de concursos mapeados
-- ✅ 7 áreas acadêmicas mapeadas
-- ⬜ Verificar se todas as coleções Vectorize estão indexadas com conteúdo real
-- ⬜ Script de auditoria: contar vetores por coleção
+- Sistema Inteligente de Aprendizagem
+- Plataforma de Evolucao Continua
+- Ecossistema de Questoes, Trilhas e Inteligencia Aplicada
+- Ferramenta para aprovacao, dominio de conteudo e crescimento intelectual
 
 ---
 
-## ⬜ Fase 2 — Qualidade de Geração
+## Principio Fundamental
 
-> Objetivo: questões mais variadas, bem distribuídas e com feedback pedagógico útil.
+## Evoluir, nao reconstruir
 
-### 2.1 Distribuição de dificuldade
+O projeto ja possui:
 
-- ⬜ Parâmetro `difficulty: easy | medium | hard` na requisição
-- ⬜ Instrução de dificuldade injetada no prompt por nível
-- ⬜ Badge de dificuldade na resposta ao usuário
+- Estrutura funcional
+- Protocolos
+- Prompts especializados
+- Fluxos consolidados
+- Interface validada
+- Conhecimento acumulado
 
-### 2.2 Variação de tipo de questão
+Regra oficial:
 
-- ⬜ Suporte a `questionType: multiple_choice | true_false | fill_blank`
-- ⬜ Parser de resposta adaptado por tipo
-- ⬜ Validação de estrutura por tipo
+> Evoluir > Reaproveitar > Melhorar > Expandir
 
-### 2.3 Explicação pedagógica aprimorada
-
-- ⬜ Explicação deve referenciar trecho específico do contexto RAG
-- ⬜ Adicionar campo `sourceReference` na resposta com trecho de origem
-- ⬜ Exibir referência no frontend com link ou destaque
-
-### 2.4 Anti-repetição
-
-- ⬜ Hash das últimas 10 questões por sessão (KV ou memória local)
-- ⬜ Instrução no prompt: "Não repita questões já feitas nesta sessão"
-- ⬜ Endpoint `/session/clear` para resetar histórico
+E proibido reconstruir funcionalidades existentes sem justificativa tecnica clara.
 
 ---
 
-## ⬜ Fase 3 — Expansão de Conteúdo
+## Identidade da Marca
 
-> Objetivo: ampliar cobertura e manter material atualizado.
+### Nome Oficial
 
-### 3.1 Indexação de conteúdo real
+AIVOS
 
-- ⬜ Script de indexação: PDF → chunks → embeddings → Vectorize
-- ⬜ Protocolo de revisão antes de indexar (sem material duvidoso)
-- ⬜ Metadata obrigatória por chunk: `{ source, area, topic, date_indexed }`
+### Conceito da Marca
 
-### 3.2 Novas matérias de concurso
+AIVOS representa:
 
-- ⬜ Atualidades/Conhecimentos Gerais
-- ⬜ Inglês (nível intermediário)
-- ⬜ Finanças Públicas
+AI:
 
-### 3.3 Novas áreas acadêmicas
+- Inteligencia
+- Analise
+- Aprendizado
+- Evolucao
+- Tecnologia
 
-- ⬜ Engenharia (Fundamentos)
-- ⬜ Ciências da Computação
-- ⬜ Educação / Pedagogia
+OS:
 
-### 3.4 Atualização periódica
-
-- ⬜ GitHub Action semanal para auditoria de gaps de conteúdo
-- ⬜ Alerta automático quando coleção tem < 50 vetores
-
----
-
-## ⬜ Fase 4 — UX / Frontend
-
-> Objetivo: interface que reflita a qualidade do backend.
-
-### 4.1 Exibição do Quality Badge
-
-- ⬜ Componente visual 🟢🟡🔴 por questão
-- ⬜ Tooltip explicando o que significa cada cor
-- ⬜ Ocultar questões 🔴 por padrão (mostrar só com aviso)
-
-### 4.2 Feedback do usuário
-
-- ⬜ Botão "Questão incorreta / mal formulada" por questão
-- ⬜ Endpoint `/feedback` que salva no KV com timestamp
-- ⬜ Dashboard admin simples para revisar feedbacks
-
-### 4.3 Mobile-first
-
-- ⬜ Revisar layout em 375px (iPhone SE)
-- ⬜ Touch targets mínimos de 44px em botões
-- ⬜ Modo escuro consistente em todos os estados
-
-### 4.4 Acessibilidade
-
-- ⬜ Atributos `aria-label` em todos os ícones sem texto
-- ⬜ Hierarquia correta de headings (h1 → h2 → h3)
-- ⬜ Contraste WCAG AA em todos os textos
+- Sistema
+- Organizacao
+- Operacao
+- Performance
+- Resultado
 
 ---
 
-## ⬜ Fase 5 — Multi-usuário e Autenticação
+## Diretriz Visual da Marca
 
-> ⚠️ Esta fase é deliberadamente a última. O sistema deve ser robusto pedagogicamente antes de escalar para múltiplos usuários.
+A diferenciacao visual deve ser explicita.
 
-### 5.1 Sistema de autenticação
+### AI
 
-- ⬜ Definir provider: Cloudflare Access, Auth.js ou JWT próprio
-- ⬜ Fluxo de login/logout
-- ⬜ Proteção de rotas sensíveis
+Utilizar gradiente frio.
 
-### 5.2 Perfis de usuário
+Representa:
 
-- ⬜ Histórico de questões por usuário (KV ou D1)
-- ⬜ Progresso por matéria / área
-- ⬜ Metas de estudo configuráveis
+- Inteligencia
+- Tecnologia
+- Diagnostico
+- IA
+- Estrategia
 
-### 5.3 Segurança
+Sugestao:
 
-- ⬜ Rate limiting por usuário (não só por IP)
-- ⬜ Validação de sessão em cada request ao worker
-- ⬜ Logs de auditoria para ações sensíveis
+```text
+#00B8FF -> #7C4DFF
+```
 
-### 5.4 Escalabilidade
+### OS
 
-- ⬜ Migrar estado de sessão de memória para Durable Objects
-- ⬜ Revisão de limites do plano Cloudflare Workers
+Utilizar gradiente quente.
+
+Representa:
+
+- Acao
+- Resultado
+- Performance
+- Execucao
+
+Sugestao:
+
+```text
+#FF2D20 -> #FF6A00
+```
+
+### Exemplo Conceitual
+
+AI = Inteligencia
+
+OS = Sistema
+
+Juntos:
+
+> AIVOS: inteligencia transformada em execucao.
 
 ---
 
-## 📌 Regras do Guia
+## Novo Posicionamento
 
-1. **Nunca apague itens concluídos** — eles formam o histórico do projeto.
-2. **Só avance de fase quando a anterior estiver ≥ 80% concluída.**
-3. **Fase 5 (autenticação) é sempre a última** — funcionalidade pedagógica tem prioridade.
-4. **Cada commit relevante deve referenciar o item deste guia** (ex: `fix: fase 1.3 — prompt restrito ao contexto RAG`).
-5. **Conteúdo indexado deve ser verificado antes de entrar em produção** — sem material duvidoso no Vectorize.
+AIVOS deve ser percebida como:
+
+- 50% Tecnologia
+- 30% Performance
+- 20% Aprendizado
+
+Nunca o contrario.
 
 ---
 
-*Última atualização: 2026-05-30*
+## Identidade Visual
+
+### Objetivo
+
+Transmitir:
+
+- Tecnologia
+- Inteligencia
+- Performance
+- Evolucao
+- Confiabilidade
+
+Evitar aparencia de:
+
+- Escola
+- Faculdade
+- Cursinho
+- Ferramenta experimental
+- Gerador de prompts
+
+---
+
+## Paleta Oficial
+
+### Dark Mode Principal
+
+| Token | Cor |
+|---|---|
+| Fundo Principal | `#0A0F2C` |
+| Fundo Secundario | `#121A45` |
+| Azul Primario | `#0D47FF` |
+| Azul Destaque | `#00B8FF` |
+| Vermelho Energia | `#FF2D20` |
+| Texto Principal | `#FFFFFF` |
+| Texto Secundario | `#B8C2D9` |
+| Bordas | `#26325F` |
+
+### Light Mode Oficial
+
+| Token | Cor |
+|---|---|
+| Fundo Principal | `#F7F9FC` |
+| Fundo Secundario | `#FFFFFF` |
+| Azul Primario | `#0D47FF` |
+| Azul Destaque | `#00B8FF` |
+| Vermelho Energia | `#FF2D20` |
+| Texto Principal | `#111827` |
+| Texto Secundario | `#6B7280` |
+| Bordas | `#E5E7EB` |
+
+---
+
+## Sistema de Temas
+
+### Obrigatorio
+
+A plataforma devera possuir:
+
+- [x] Dark Mode Oficial
+- [x] Light Mode Oficial
+- [x] Alternancia instantanea
+- [x] Persistencia da preferencia do usuario
+- [x] Compatibilidade total entre os temas
+
+### Regra Estrategica
+
+Dark Mode sera a identidade principal.
+
+Light Mode sera a identidade de produtividade e leitura.
+
+---
+
+## Logotipo
+
+### Remover Definitivamente
+
+- Livros
+- Capelos
+- Diplomas
+- Lapis
+- Cerebros genericos
+- Icones cliches de IA
+
+### Novo Conceito
+
+Representar:
+
+- Evolucao
+- Movimento
+- Direcao
+- Inteligencia
+- Performance
+
+### Requisitos
+
+- [x] Minimalista
+- [x] Escalavel
+- [x] Atemporal
+- [x] Tecnologico
+- [x] Reconhecivel em favicon
+
+---
+
+## Arquitetura do Produto
+
+### Questoes
+
+Objetivo: transformar pratica em evolucao mensuravel.
+
+Funcionalidades:
+
+- [ ] Questoes por banca
+- [ ] Questoes por disciplina
+- [ ] Questoes por assunto
+- [ ] Questoes por concurso
+- [ ] Simulados
+- [ ] Revisoes
+- [ ] Estatisticas
+- [ ] Questoes adaptativas
+
+### Laboratorio IA
+
+Objetivo: transformar qualquer conteudo em aprendizado estruturado.
+
+Funcionalidades:
+
+- [ ] PDFs
+- [ ] Editais
+- [ ] Apostilas
+- [ ] Artigos
+- [ ] Flashcards
+- [ ] Resumos
+- [ ] Explicacoes
+- [ ] Revisoes
+- [ ] Oficina de Redacao
+
+### Trilhas
+
+Objetivo: criar jornadas completas de aprendizado.
+
+Entrada:
+
+- Edital
+- PDF
+- Texto
+
+Saida:
+
+- [ ] Modulos
+- [ ] Cronograma
+- [ ] Avaliacoes
+- [ ] Questoes
+- [ ] Revisoes
+
+### Redacao
+
+Funcionalidades:
+
+- [ ] Planejamento
+- [ ] Estrutura
+- [ ] Correcao
+- [ ] Reescrita
+- [ ] Evolucao historica
+
+### Radar
+
+Objetivo: identificar pontos fortes e fracos.
+
+Exibir:
+
+- [ ] Materias dominadas
+- [ ] Materias intermediarias
+- [ ] Materias criticas
+- [ ] Recomendacoes
+
+### Historico
+
+Objetivo: permitir continuidade completa do aprendizado.
+
+Registrar:
+
+- [ ] Tempo estudado
+- [ ] Questoes respondidas
+- [ ] Aproveitamento
+- [ ] Trilhas
+- [ ] Modulos concluidos
+- [ ] Evolucao historica
+
+### Leitor de Edital
+
+Prioridade maxima.
+
+O sistema devera:
+
+- [ ] Ler o edital
+- [ ] Identificar disciplinas
+- [ ] Extrair conteudos programaticos
+- [ ] Organizar prioridades
+- [ ] Criar cronograma
+- [ ] Gerar trilha automaticamente
+- [ ] Gerar questoes automaticamente
+- [ ] Gerar revisoes automaticamente
+- [ ] Gerar plano de estudo automaticamente
+
+---
+
+## Protocolo Anti-Questao Fraca
+
+Obrigatorio.
+
+- [ ] Regra 1: proibido conceito obvio.
+- [ ] Regra 2: proibido copiar definicao literal.
+- [ ] Regra 3: proibido resposta evidente.
+- [ ] Regra 4: distratores plausiveis.
+- [ ] Regra 5: exigir raciocinio.
+- [ ] Regra 6: respeitar perfil da banca.
+- [ ] Regra 7: classificacao automatica em facil, media e dificil.
+- [ ] Regra 8: score de qualidade obrigatorio.
+- [ ] Questoes abaixo do limite minimo devem ser descartadas.
+
+---
+
+## Funcionalidade Protegida
+
+## Questao Unica no Mobile
+
+Status: Funcionalidade Estrategica Protegida
+
+### Decisao Oficial
+
+O sistema atual de questao unica no mobile nao podera ser removido.
+
+### Justificativa
+
+Melhora:
+
+- Concentracao
+- Retencao
+- Foco
+- Experiencia mobile
+
+Alem disso:
+
+- Diferencia a AIVOS da concorrencia
+- Reduz distracoes
+- Facilita revisoes
+
+### Permitido
+
+- [ ] Melhorias visuais
+- [ ] Indicadores
+- [ ] Feedbacks
+- [ ] Estatisticas
+- [ ] Acessibilidade
+
+### Proibido
+
+- Listas extensas de questoes
+- Interface estilo tabela
+- Quebra do fluxo atual
+
+---
+
+## Diretriz Mobile-First
+
+Toda nova funcionalidade devera ser pensada primeiro para celular.
+
+Mobile e referencia.
+
+Desktop e adaptacao.
+
+---
+
+## Dashboard
+
+Adicionar:
+
+- [ ] Tempo estudado
+- [ ] Questoes respondidas
+- [ ] Aproveitamento
+- [ ] Evolucao semanal
+- [ ] Evolucao mensal
+- [ ] Trilhas ativas
+- [ ] Recomendacoes
+
+---
+
+## Reformulacao dos Prompts
+
+Usuario nao escolhe prompts.
+
+Usuario escolhe objetivos.
+
+Exemplos:
+
+- Aprender tema
+- Criar resumo
+- Criar flashcards
+- Revisar conteudo
+- Simular prova
+- Montar plano de estudos
+
+A plataforma seleciona os protocolos internamente.
+
+---
+
+## Criterios para Novas Funcionalidades
+
+Toda nova funcionalidade deve responder:
+
+- [ ] Aumenta aprovacao?
+- [ ] Aumenta retencao?
+- [ ] Aumenta percepcao de valor?
+- [ ] Funciona bem no mobile?
+- [ ] Mantem simplicidade?
+
+Se a maioria das respostas for negativa, a funcionalidade deve ser reavaliada.
+
+---
+
+## Roadmap Oficial
+
+### Fase 1 - Rebranding AIVOS
+
+- [x] Substituir marca antiga por AIVOS
+- [x] Atualizar logotipo
+- [x] Atualizar favicon
+- [ ] Atualizar landing page
+- [ ] Atualizar documentacao
+- [x] Atualizar identidade visual
+- [x] Implementar Dark Mode
+- [x] Implementar Light Mode
+- [ ] Criar Design System
+
+### Fase 2 - Qualidade
+
+- [ ] Implementar protocolo anti-questao fraca
+- [ ] Implementar score de qualidade
+- [ ] Implementar classificacao de dificuldade
+- [ ] Melhorar simulados
+
+### Fase 3 - Historico
+
+- [ ] Historico persistente
+- [ ] Continuacao automatica
+- [ ] Dashboard
+- [ ] Metricas
+
+### Fase 4 - Laboratorio IA
+
+- [ ] PDFs
+- [ ] Resumos
+- [ ] Flashcards
+- [ ] Explicacoes
+- [ ] Oficina de redacao
+
+### Fase 5 - Trilhas
+
+- [ ] Leitor de edital
+- [ ] Extracao automatica de disciplinas
+- [ ] Geracao de modulos
+- [ ] Cronograma inteligente
+- [ ] Avaliacoes
+
+### Fase 6 - Diferenciacao
+
+- [ ] Radar de evolucao
+- [ ] Diagnostico de desempenho
+- [ ] Recomendacoes automaticas
+- [ ] Revisao adaptativa
+- [ ] Tutor IA personalizado
+
+---
+
+## Meta Final
+
+Construir a AIVOS como uma plataforma de tecnologia educacional de alta performance capaz de unir:
+
+- Questoes de alta qualidade
+- Aprendizado estruturado
+- Trilhas inteligentes
+- Evolucao mensuravel
+- Inteligencia artificial util
+- Experiencia mobile superior
+- Diagnostico continuo
+
+Objetivo final: criar um produto dificil de copiar, escalavel e preparado para competir com os principais players do mercado de educacao digital.
+
+---
+
+## Registro Final
+
+- Este documento substitui oficialmente os documentos evolutivos anteriores do repositorio.
+- Toda evolucao futura devera respeitar as decisoes estrategicas definidas neste documento.
+- Alteracoes estruturais deverao ser justificadas e registradas antes da implementacao.
+
+Versao: 3.0
+
+Projeto: AIVOS
+
+Status: Documento Mestre Oficial de Evolucao do Produto.

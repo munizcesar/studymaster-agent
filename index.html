@@ -1,13 +1,13 @@
 ﻿<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyMaster — Gerador de Questões com IA</title>
-  <meta name="description" content="Gere questões de estudo personalizadas com Inteligência Artificial para faculdade, concursos públicos ou qualquer material. Grátis, sem cadastro.">
+  <title>AIVOS — Inteligência que evolui resultados</title>
+  <meta name="description" content="Sistema inteligente de evolução do conhecimento com questões, trilhas personalizadas e IA aplicada ao aprendizado.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <meta property="og:title" content="StudyMaster — Gerador de Questões com IA">
-  <meta property="og:description" content="Gere questões de estudo personalizadas com Inteligência Artificial para faculdade, concursos públicos ou qualquer material. Grátis, sem cadastro.">
+  <meta property="og:title" content="AIVOS — Inteligência que evolui resultados">
+  <meta property="og:description" content="Sistema inteligente de evolução do conhecimento com questões, trilhas personalizadas e IA aplicada ao aprendizado.">
   <meta property="og:image" content="https://studymaster-agent.pages.dev/og-image-wa-v2.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -20,26 +20,28 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --color-bg:             #f7f6f2;
-      --color-surface:        #f9f8f5;
-      --color-surface-2:      #fbfbf9;
-      --color-surface-offset: #f3f0ec;
-      --color-divider:        #dcd9d5;
-      --color-border:         #d4d1ca;
-      --color-text:           #28251d;
-      --color-text-muted:     #605e55;
-      --color-text-faint:     #8d8c84;
-      --color-primary:        #5B5BD6;
-      --color-primary-mid:    #7C3AED;
-      --color-primary-hover:  #4747C2;
-      --color-accent:         #F97316;
+      --color-bg:             #F7F9FC;
+      --color-surface:        #FFFFFF;
+      --color-surface-2:      #F7F9FC;
+      --color-surface-offset: #EEF3FF;
+      --color-divider:        #E5E7EB;
+      --color-border:         #E5E7EB;
+      --color-text:           #111827;
+      --color-text-muted:     #6B7280;
+      --color-text-faint:     #8C96A8;
+      --color-primary:        #0D47FF;
+      --color-primary-mid:    #00B8FF;
+      --color-primary-hover:  #0836C9;
+      --color-accent:         #FF2D20;
       --color-success:        #16A34A;
-      --color-error:          #c0392b;
-      --grad-brand: linear-gradient(135deg, #5B5BD6 0%, #7C3AED 55%, #F97316 100%);
-      --grad-brand-h: linear-gradient(135deg, #4747C2 0%, #6D28D9 55%, #EA6C00 100%);
-      --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
-      --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
-      --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+      --color-error:          #FF2D20;
+      --grad-ai: linear-gradient(135deg, #0D47FF 0%, #00B8FF 48%, #7C4DFF 100%);
+      --grad-os: linear-gradient(135deg, #FF2D20 0%, #FF6A00 100%);
+      --grad-brand: linear-gradient(135deg, #0D47FF 0%, #00B8FF 34%, #7C4DFF 54%, #FF2D20 78%, #FF6A00 100%);
+      --grad-brand-h: linear-gradient(135deg, #0836C9 0%, #0095D6 34%, #6636E8 54%, #D91F15 78%, #E05500 100%);
+      --shadow-sm: 0 1px 2px oklch(0.2 0.03 260 / 0.06);
+      --shadow-md: 0 4px 12px oklch(0.2 0.03 260 / 0.08);
+      --shadow-lg: 0 12px 32px oklch(0.2 0.03 260 / 0.12);
       --radius-sm: 0.375rem;
       --radius-md: 0.5rem;
       --radius-lg: 0.75rem;
@@ -60,26 +62,28 @@
       --space-20: 5rem;
     }
     [data-theme="dark"] {
-      --color-bg:             #171614;
-      --color-surface:        #1c1b19;
-      --color-surface-2:      #201f1d;
-      --color-surface-offset: #1d1c1a;
-      --color-divider:        #262523;
-      --color-border:         #393836;
-      --color-text:           #cdccca;
-      --color-text-muted:     #a8a7a1;
-      --color-text-faint:     #8d8c88;
-      --color-primary:        #818CF8;
-      --color-primary-mid:    #A78BFA;
-      --color-primary-hover:  #6366F1;
-      --color-accent:         #FB923C;
+      --color-bg:             #0A0F2C;
+      --color-surface:        #121A45;
+      --color-surface-2:      #10173D;
+      --color-surface-offset: #172052;
+      --color-divider:        #26325F;
+      --color-border:         #26325F;
+      --color-text:           #FFFFFF;
+      --color-text-muted:     #B8C2D9;
+      --color-text-faint:     #8793B5;
+      --color-primary:        #0D47FF;
+      --color-primary-mid:    #00B8FF;
+      --color-primary-hover:  #2D63FF;
+      --color-accent:         #FF2D20;
       --color-success:        #4ADE80;
-      --color-error:          #e05a4a;
-      --grad-brand: linear-gradient(135deg, #818CF8 0%, #A78BFA 55%, #FB923C 100%);
-      --grad-brand-h: linear-gradient(135deg, #6366F1 0%, #8B5CF6 55%, #EA580C 100%);
-      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
-      --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
-      --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+      --color-error:          #FF2D20;
+      --grad-ai: linear-gradient(135deg, #0D47FF 0%, #00B8FF 48%, #7C4DFF 100%);
+      --grad-os: linear-gradient(135deg, #FF2D20 0%, #FF6A00 100%);
+      --grad-brand: linear-gradient(135deg, #0D47FF 0%, #00B8FF 34%, #7C4DFF 54%, #FF2D20 78%, #FF6A00 100%);
+      --grad-brand-h: linear-gradient(135deg, #2D63FF 0%, #22C7FF 34%, #8D66FF 54%, #FF473D 78%, #FF7C24 100%);
+      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);
+      --shadow-md: 0 4px 12px oklch(0 0 0 / 0.34);
+      --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.44);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { max-width: 100%; overflow-x: hidden; }
@@ -102,7 +106,27 @@
     }
     .logo:hover { opacity: 0.8; }
     .logo span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    .logo-icon { width: 32px; height: 32px; flex-shrink: 0; }
+    .logo-icon { width: 40px; height: 40px; flex-shrink: 0; }
+    .logo-wordmark,
+    .footer-logo {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 1px;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+    .logo-ai {
+      background: var(--grad-ai);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo-os {
+      background: var(--grad-os);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .theme-toggle { padding: var(--space-2); color: var(--color-text-muted); border-radius: var(--radius-full); transition: background var(--transition); }
     .theme-toggle:hover { background: var(--color-surface-offset); }
 
@@ -1564,21 +1588,31 @@
   <header class="site-header">
     <div class="container">
       <div class="header-inner">
-        <a href="#" class="logo" id="logo-home" aria-label="StudyMaster — Voltar ao início">
+        <a href="#" class="logo" id="logo-home" aria-label="AIVOS - Voltar ao inicio">
           <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
             <defs>
-              <linearGradient id="logoGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#5B5BD6"/>
-                <stop offset="0.5" stop-color="#7C3AED"/>
-                <stop offset="1" stop-color="#F97316"/>
+              <linearGradient id="aivosMarkCold" x1="12" y1="9" x2="42" y2="50" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#0D47FF"/>
+                <stop offset="0.52" stop-color="#00B8FF"/>
+                <stop offset="1" stop-color="#7C4DFF"/>
               </linearGradient>
+              <linearGradient id="aivosMarkHot" x1="28" y1="39" x2="53" y2="53" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#7C4DFF"/>
+                <stop offset="0.55" stop-color="#FF2D20"/>
+                <stop offset="1" stop-color="#FF6A00"/>
+              </linearGradient>
+              <filter id="aivosGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.4" result="blur"/>
+                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.28 0 0 0 0 1 0 0 0 .45 0"/>
+                <feBlend in="SourceGraphic"/>
+              </filter>
             </defs>
-            <rect width="64" height="64" rx="18" fill="url(#logoGrad)"/>
-            <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
-            <circle cx="46" cy="40" r="11" fill="#ffffff"/>
-            <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#5B5BD6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect width="64" height="64" rx="16" fill="#0A0F2C"/>
+            <path d="M11 52L28.5 14.5C30.9 9.4 38.1 9.4 40.5 14.5L55 45.7C57.4 50.8 51.2 55.5 46.9 51.8L35.1 41.7C33.4 40.2 30.9 40.2 29.2 41.7L18.1 51.4C13.8 55.1 8.6 57.1 11 52Z" fill="url(#aivosMarkHot)" opacity="0.95"/>
+            <path d="M11 52L28.5 14.5C30.9 9.4 38.1 9.4 40.5 14.5L55 45.7" fill="none" stroke="url(#aivosMarkCold)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" filter="url(#aivosGlow)"/>
+            <path d="M24.5 47.8L33.1 39.9C34.7 38.4 37.2 38.4 38.9 39.9L49.5 49.2" fill="none" stroke="url(#aivosMarkHot)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>StudyMaster</span>
+          <span class="logo-wordmark" aria-hidden="true"><span class="logo-ai">AIV</span><span class="logo-os">OS</span></span>
         </a>
         <div class="header-actions">
           <div class="daily-perf" id="daily-perf" aria-live="polite">
@@ -1593,7 +1627,7 @@
             </span>
           </div>
           <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
-            <i data-lucide="moon" width="20" height="20" id="theme-icon"></i>
+            <i data-lucide="sun" width="20" height="20" id="theme-icon"></i>
           </button>
         </div>
       </div>
@@ -2002,11 +2036,11 @@
       <div class="compare-table-wrapper">
         <div class="section-header">
           <p class="section-eyebrow">Comparativo</p>
-          <h2>Com StudyMaster vs. Sem StudyMaster</h2>
+          <h2>Com AIVOS vs. Sem AIVOS</h2>
         </div>
         <table class="compare-table">
           <thead>
-            <tr><th>Situação</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem StudyMaster</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com StudyMaster</th></tr>
+            <tr><th>Situação</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem AIVOS</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com AIVOS</th></tr>
           </thead>
           <tbody>
             <tr><td>Criar questões</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
@@ -2024,13 +2058,13 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-brand">
-          <span class="footer-logo">StudyMaster</span>
-          <p class="footer-tagline">Gerador de questões com IA — gratuito e sem cadastro.</p>
+          <span class="footer-logo"><span class="logo-ai">AIV</span><span class="logo-os">OS</span></span>
+          <p class="footer-tagline">Inteligência que evolui resultados.</p>
         </div>
         <div class="footer-meta">
           <span>Powered by <strong>Groq AI</strong></span>
           <span class="footer-divider">·</span>
-          <span>© 2025 StudyMaster</span>
+          <span>© 2025 AIVOS</span>
         </div>
       </div>
     </div>
@@ -2584,7 +2618,19 @@ function goHome() {
   scrollToTop();
 }
 
+function syncThemeIcon() {
+  const icon = document.getElementById('theme-icon');
+  if (!icon) return;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+}
+
 function init() {
+  const savedTheme = safeGet('aivos-theme');
+  if (savedTheme === 'light' || savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }
+  syncThemeIcon();
   lucide.createIcons();
   state.dailyGoal = getDailyGoal();
   ensureTodayReset();
@@ -2600,8 +2646,10 @@ function init() {
   document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
     const root = document.documentElement;
     const isDark = root.getAttribute('data-theme') === 'dark';
-    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    document.getElementById('theme-icon').setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+    const nextTheme = isDark ? 'light' : 'dark';
+    root.setAttribute('data-theme', nextTheme);
+    safeSet('aivos-theme', nextTheme);
+    syncThemeIcon();
     lucide.createIcons();
   });
 
@@ -3395,7 +3443,7 @@ function normalizeErrorMessage(raw) {
 
 function showError(msg) {
   const normalized = normalizeErrorMessage(msg);
-  console.error('StudyMaster error:', msg);
+  console.error('AIVOS error:', msg);
   document.getElementById('generating-screen').classList.add('hidden');
   document.getElementById('questions-container').classList.remove('visible');
   document.getElementById('session-result').classList.add('hidden');
@@ -3586,7 +3634,7 @@ function handleDesktopAnswer(questions, idx, selectedKey) {
   const expBox = document.getElementById(`qn-exp-${idx}`);
   if (expBox) expBox.classList.add('visible');
 
-  if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+  if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
   
   if (state.answered === questions.length) {
     setTimeout(showSessionResult, 600);
@@ -3701,7 +3749,7 @@ function handleSingleAnswer(questions, idx, selectedKey) {
   const expBox = document.getElementById('qn-exp');
   if (expBox) expBox.classList.add('visible');
 
-  if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+  if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
   if (state.answered === questions.length) {
     setTimeout(showSessionResult, 600);
   }
@@ -3889,7 +3937,7 @@ function attachQFQuestionEventListeners(wrap, idx) {
         });
         resBtn.classList.add('hidden');
         document.getElementById(`qf-exp-${idx}`).classList.add('visible');
-        if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+        if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
         
         // Verificar se todas as questões foram respondidas
         if (qfState.answered === qfState.questions.length) {
@@ -3951,7 +3999,7 @@ function renderQFResultInline() {
   
   qfBody.appendChild(resultCard);
   lucide.createIcons();
-  confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#5B5BD6','#7C3AED','#F97316','#16A34A'] });
+  confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00','#16A34A'] });
   
   document.getElementById('qf-retry-inline-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
   document.getElementById('qf-close-inline-btn').addEventListener('click', closeFullscreen);
@@ -4062,7 +4110,7 @@ function renderQFQuestion(idx) {
       });
       resBtn.classList.add('hidden');
       document.getElementById(`qf-exp-${idx}`).classList.add('visible');
-      if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#5B5BD6','#7C3AED','#F97316'] });
+      if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
       
       setTimeout(() => {
         const exp = document.getElementById(`qf-exp-${idx}`);
@@ -4114,7 +4162,7 @@ function renderQFResult() {
       </div>
     </div>`;
   lucide.createIcons();
-  confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#5B5BD6','#7C3AED','#F97316','#16A34A'] });
+  confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00','#16A34A'] });
   document.getElementById('qf-retry-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
   document.getElementById('qf-close-btn').addEventListener('click', closeFullscreen);
 }

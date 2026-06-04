@@ -1,13 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="StudyMaster favicon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AIVOS favicon">
   <defs>
-    <linearGradient id="favGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#5B5BD6"/>
-      <stop offset="0.5" stop-color="#7C3AED"/>
-      <stop offset="1" stop-color="#F97316"/>
+    <linearGradient id="aivosCold" x1="12" y1="9" x2="42" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0D47FF"/>
+      <stop offset="0.52" stop-color="#00B8FF"/>
+      <stop offset="1" stop-color="#7C4DFF"/>
     </linearGradient>
+    <linearGradient id="aivosHot" x1="28" y1="39" x2="53" y2="53" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C4DFF"/>
+      <stop offset="0.55" stop-color="#FF2D20"/>
+      <stop offset="1" stop-color="#FF6A00"/>
+    </linearGradient>
+    <filter id="aivosGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.28 0 0 0 0 1 0 0 0 .45 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="18" fill="url(#favGradient)"/>
-  <path d="M14 22h28M14 31h20M14 40h24" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
-  <circle cx="46" cy="40" r="11" fill="#ffffff"/>
-  <path d="M41.5 40.5l3.2 3.2 6.5-6.5" stroke="#5B5BD6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect width="64" height="64" rx="16" fill="#0A0F2C"/>
+  <path d="M11 52L28.5 14.5C30.9 9.4 38.1 9.4 40.5 14.5L55 45.7C57.4 50.8 51.2 55.5 46.9 51.8L35.1 41.7C33.4 40.2 30.9 40.2 29.2 41.7L18.1 51.4C13.8 55.1 8.6 57.1 11 52Z" fill="url(#aivosHot)" opacity="0.95"/>
+  <path d="M11 52L28.5 14.5C30.9 9.4 38.1 9.4 40.5 14.5L55 45.7" fill="none" stroke="url(#aivosCold)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" filter="url(#aivosGlow)"/>
+  <path d="M24.5 47.8L33.1 39.9C34.7 38.4 37.2 38.4 38.9 39.9L49.5 49.2" fill="none" stroke="url(#aivosHot)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
