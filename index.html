@@ -419,16 +419,47 @@
     .caf-active-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-3); min-height: 28px; }
 
     .upload-area {
-      border: 2px dashed var(--color-border);
+      border: 2px dashed oklch(from var(--color-success) l c h / 0.35);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-8) var(--space-6);
       text-align: center;
       cursor: pointer;
-      transition: border-color var(--transition), background var(--transition);
+      transition: all var(--transition);
       margin-top: var(--space-4);
+      background: linear-gradient(135deg, oklch(from var(--color-success) l c h / 0.04) 0%, oklch(from var(--color-success) l c h / 0.02) 100%);
+      position: relative;
+      overflow: hidden;
     }
-    .upload-area:hover { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.03); }
-    .upload-area.dragging { border-color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.06); }
+    .upload-area::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 50% 50%, oklch(from var(--color-success) l c h / 0.08) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity var(--transition);
+      pointer-events: none;
+    }
+    .upload-area:hover {
+      border-color: var(--color-success);
+      background: linear-gradient(135deg, oklch(from var(--color-success) l c h / 0.08) 0%, oklch(from var(--color-success) l c h / 0.04) 100%);
+      box-shadow: 0 8px 24px oklch(from var(--color-success) l c h / 0.1);
+      transform: translateY(-2px);
+    }
+    .upload-area:hover::before {
+      opacity: 1;
+    }
+    .upload-area.dragging {
+      border-color: var(--color-success);
+      background: linear-gradient(135deg, oklch(from var(--color-success) l c h / 0.12) 0%, oklch(from var(--color-success) l c h / 0.06) 100%);
+      box-shadow: 0 12px 32px oklch(from var(--color-success) l c h / 0.15);
+      transform: scale(1.02);
+    }
+    .upload-area.dragging::before {
+      opacity: 1;
+    }
     .upload-progress { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--color-text-muted); display: none; }
     .upload-progress.visible { display: block; }
     .upload-progress-bar { height: 4px; background: var(--color-divider); border-radius: var(--radius-full); margin-top: var(--space-2); overflow: hidden; }
@@ -459,19 +490,25 @@
       align-items: start;
     }
     .free-panel {
-      border: 1px solid var(--color-border);
+      border: 1.5px solid var(--color-border);
       border-radius: var(--radius-lg);
-      background: var(--color-surface-2);
+      background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
       overflow: hidden;
+      box-shadow: 0 8px 32px oklch(0 0 0 / 0.08);
+      transition: all var(--transition);
+    }
+    .free-panel:hover {
+      box-shadow: 0 12px 48px oklch(0 0 0 / 0.12);
+      border-color: var(--color-primary-mid);
     }
     .free-panel-header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--space-4);
-      padding: var(--space-4) var(--space-5);
-      border-bottom: 1px solid var(--color-divider);
-      background: var(--color-surface);
+      padding: var(--space-6) var(--space-6);
+      border-bottom: 2px solid var(--color-divider);
+      background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-offset) 100%);
     }
     .free-panel-kicker {
       display: inline-flex;
@@ -482,9 +519,21 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      margin-bottom: var(--space-1);
+      margin-bottom: var(--space-2);
+      background: oklch(from var(--color-primary) l c h / 0.1);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      width: fit-content;
     }
-    .free-panel-title { display: block; font-size: var(--text-base); }
+    .free-panel-title { 
+      display: block; 
+      font-size: var(--text-base);
+      font-weight: 700;
+      background: var(--grad-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .free-panel-note { color: var(--color-text-muted); font-size: var(--text-xs); margin-top: var(--space-1); }
     .free-quality {
       display: inline-flex;
@@ -510,14 +559,23 @@
       background: oklch(from var(--color-accent) l c h / 0.08);
     }
     .free-editor {
-      min-height: 300px;
+      min-height: 320px;
       border: 0;
       border-radius: 0;
       background: var(--color-bg);
-      line-height: 1.65;
-      padding: var(--space-5);
+      line-height: 1.8;
+      padding: var(--space-6);
+      font-size: var(--text-sm);
+      transition: all var(--transition);
     }
-    .free-editor:focus { box-shadow: inset 0 0 0 2px oklch(from var(--color-primary) l c h / 0.22); }
+    .free-editor::placeholder {
+      color: var(--color-text-faint);
+      opacity: 0.7;
+    }
+    .free-editor:focus { 
+      box-shadow: inset 0 0 0 2px oklch(from var(--color-primary) l c h / 0.22);
+      background: var(--color-surface-2);
+    }
     .free-meter {
       display: flex;
       justify-content: space-between;
@@ -533,12 +591,43 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-4);
+      position: relative;
+    }
+    .free-side::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -1px;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-mid) 50%, var(--color-primary) 100%);
+      border-radius: var(--radius-full);
+      opacity: 0.6;
     }
     .free-action-panel {
-      border: 1px solid oklch(from var(--color-success) l c h / 0.28);
+      border: 2px solid oklch(from var(--color-success) l c h / 0.35);
       border-radius: var(--radius-lg);
-      background: oklch(from var(--color-success) l c h / 0.055);
-      padding: var(--space-4);
+      background: linear-gradient(135deg, oklch(from var(--color-success) l c h / 0.08) 0%, oklch(from var(--color-success) l c h / 0.04) 100%);
+      padding: var(--space-5);
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    .free-action-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, oklch(from var(--color-success) l c h / 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .free-action-panel:hover {
+      border-color: oklch(from var(--color-success) l c h / 0.5);
+      box-shadow: 0 8px 24px oklch(from var(--color-success) l c h / 0.12);
+      transform: translateY(-2px);
     }
     .free-action-title {
       display: flex;
@@ -547,12 +636,37 @@
       margin-bottom: var(--space-3);
       color: var(--color-success);
       font-weight: 800;
+      position: relative;
+      z-index: 1;
+      font-size: var(--text-base);
     }
     .free-help-panel {
-      padding: var(--space-4);
+      padding: var(--space-5);
       border-radius: var(--radius-lg);
-      background: oklch(from var(--color-primary) l c h / 0.055);
-      border: 1px solid oklch(from var(--color-primary) l c h / 0.18);
+      background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.08) 0%, oklch(from var(--color-primary) l c h / 0.04) 100%);
+      border: 1.5px solid oklch(from var(--color-primary) l c h / 0.25);
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    .free-help-panel::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, oklch(from var(--color-primary) l c h / 0.08) 0%, transparent 70%);
+      animation: float 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(10px, -10px); }
+    }
+    .free-help-panel:hover {
+      border-color: oklch(from var(--color-primary) l c h / 0.35);
+      box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.12);
     }
     .free-help-panel strong {
       display: flex;
@@ -561,36 +675,41 @@
       margin-bottom: var(--space-3);
       color: var(--color-text);
       font-size: var(--text-sm);
+      position: relative;
+      z-index: 1;
+      font-weight: 700;
     }
     .free-help-panel ul {
       list-style: none;
       display: grid;
-      gap: var(--space-2);
+      gap: var(--space-3);
       color: var(--color-text-muted);
       font-size: var(--text-xs);
+      position: relative;
+      z-index: 1;
+      line-height: 1.6;
     }
     .free-help-panel li {
       display: flex;
       gap: var(--space-2);
       align-items: start;
+      transition: all var(--transition);
+    }
+    .free-help-panel li:hover {
+      color: var(--color-primary);
+      transform: translateX(4px);
     }
     .free-help-panel li::before {
       content: "";
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: var(--radius-full);
-      background: var(--color-primary);
-      margin-top: 0.55em;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
+      margin-top: 0.4em;
       flex-shrink: 0;
+      box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.2);
     }
-    .free-youtube-note {
-      padding: var(--space-3) var(--space-4);
-      border-left: 3px solid var(--color-accent);
-      background: oklch(from var(--color-accent) l c h / 0.08);
-      color: var(--color-text-muted);
-      font-size: var(--text-xs);
-      border-radius: var(--radius-md);
-    }
+
     .free-upload-copy {
       display: flex;
       flex-direction: column;
@@ -3079,9 +3198,7 @@ function renderStep2Livre(container) {
             <li>Materiais maiores ajudam a gerar perguntas mais contextualizadas.</li>
           </ul>
         </div>
-        <div class="free-youtube-note">
-          <strong>YouTube:</strong> por enquanto, cole a transcrição do vídeo no campo de texto. A extração automática fica para uma fase futura mais confiável.
-        </div>
+
       </aside>
     </div>
     <div class="upload-progress" id="upload-progress">
