@@ -1253,6 +1253,102 @@ function normalizeQuestionType(questionType) {
   return "mcq";
 }
 __name(normalizeQuestionType, "normalizeQuestionType");
+async function handleEssayCoachSession(sessionState, env) {
+  const { history, banca } = sessionState;
+  const bancaSafe = banca || "ENEM";
+
+  const systemPrompt = `Voc\u00ea \u00e9 um sistema avan\u00e7ado de treinamento de reda\u00e7\u00e3o para concursos p\u00fablicos e ENEM.
+Seu objetivo \u00e9 transformar o usu\u00e1rio em um candidato de alta performance atrav\u00e9s de dois modos integrados.
+
+Banca escolhida: ${bancaSafe}. Adapte seu rigor e estilo de corre\u00e7\u00e3o para essa banca.
+
+Voc\u00ea atua atrav\u00e9s de uma m\u00e1quina de estados r\u00edgida:
+Etapas obrigat\u00f3rias: thesis -> argument1 -> argument2 -> conclusion -> review -> final
+PROIBIDO pular etapas no modo coach.
+
+MODO 1: COACH DE ESCRITA (Principal)
+Ativar quando o usu\u00e1rio fornecer apenas um tema ou ideia curta.
+Fluxo:
+1. Receba o tema -> valide e melhore a tese -> mude stage para "thesis"
+2. Valide a tese do aluno -> pe\u00e7a argumento 1 -> mude stage para "argument1"
+3. Valide argumento 1 -> pe\u00e7a argumento 2 -> mude stage para "argument2"
+4. Valide argumento 2 -> pe\u00e7a conclus\u00e3o/proposta de interven\u00e7\u00e3o -> mude stage para "conclusion"
+5. Valide conclus\u00e3o -> revise tudo -> mude stage para "review"
+6. Gere a vers\u00e3o nota 1000 completa -> mude stage para "final"
+Regras: nunca avan\u00e7ar sem resposta do aluno. Sempre sugerir melhoria antes de avan\u00e7ar.
+
+MODO 2: CORRE\u00c7\u00c3O DIRETA
+Ativar quando o usu\u00e1rio colar uma reda\u00e7\u00e3o longa (mais de 200 palavras) ou escrever "FINALIZAR REDA\u00c7\u00c3O".
+A\u00e7\u00e3o: pule todas as etapas, avalie C1-C5 com notas reais (0-200 cada), d\u00ea feedback detalhado e gere reescrita nota 1000.
+Mude stage para "final" imediatamente.
+
+ATUALIZA\u00c7\u00c3O DE SCORES:
+- No modo coach: atualize c1-c5 progressivamente a cada etapa validada (max 200 por compet\u00eancia).
+- Na corre\u00e7\u00e3o direta: avalie c1-c5 com rigor real da banca ${bancaSafe}.
+
+REGRA CR\u00cdTICA DE RESPOSTA:
+Voc\u00ea DEVE retornar APENAS um JSON v\u00e1lido, sem texto fora do JSON, seguindo EXATAMENTE:
+{
+  "reply": "Texto de resposta ao usu\u00e1rio em markdown",
+  "state": {
+    "stage": "thesis|argument1|argument2|conclusion|review|final",
+    "scores": { "c1": 0, "c2": 0, "c3": 0, "c4": 0, "c5": 0 },
+    "summary": "Resumo de at\u00e9 3 frases do que o aluno j\u00e1 produziu"
+  }
+}`;
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...history.slice(-20) // cap history to last 20 messages to avoid token overflow
+  ];
+
+  const groqKey = env.GROQ_API_KEY;
+  if (!groqKey) throw new Error("GROQ_API_KEY n\u00e3o configurada");
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${groqKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages,
+      temperature: 0.35,
+      max_tokens: 2048,
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "unknown");
+    throw new Error(`Groq API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Resposta vazia do modelo");
+
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error("JSON inv\u00e1lido retornado pelo modelo");
+  }
+
+  // Validate and sanitize response shape
+  const stage = parsed?.state?.stage || sessionState.stage || "thesis";
+  const scores = parsed?.state?.scores || sessionState.scores || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
+  const summary = parsed?.state?.summary || sessionState.summary || "";
+  const reply = parsed?.reply || "";
+
+  return {
+    reply,
+    state: { stage, scores, summary }
+  };
+}
+__name(handleEssayCoachSession, "handleEssayCoachSession");
+
 var worker_default = {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -1284,6 +1380,27 @@ var worker_default = {
       } = body || {};
 
       const isPortugues = !idioma || idioma === "pt-BR";
+
+      if (mode === "redacao") {
+        try {
+          const sessionState = body.sessionState;
+          if (!sessionState || !Array.isArray(sessionState.history)) {
+            return new Response(JSON.stringify({
+              reply: "Sess\u00e3o inv\u00e1lida. Recarregue a p\u00e1gina e tente novamente.",
+              state: { stage: "thesis", scores: { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 }, summary: "" }
+            }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const result = await handleEssayCoachSession(sessionState, env);
+          return new Response(JSON.stringify(result), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        } catch (coachErr) {
+          return new Response(JSON.stringify({
+            reply: "\u26a0\ufe0f Ocorreu um erro interno no Coach. Tente novamente.",
+            state: { stage: body.sessionState?.stage || "thesis", scores: body.sessionState?.scores || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 }, summary: body.sessionState?.summary || "" }
+          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
 
       if (mode === "concurso" || mode === "concursos") {
         // [FIX] Removido fallback hardcoded "concursos.portugues" — filter deve vir explícito no body
