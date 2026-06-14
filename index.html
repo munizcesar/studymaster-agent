@@ -2863,8 +2863,16 @@ function init() {
   });
   updateDailyGoalUI();
 
-  document.getElementById('next-btn').addEventListener('click', () => goToStep(state.currentStep + 1));
-  document.getElementById('back-btn').addEventListener('click', () => goToStep(state.currentStep - 1));
+  document.getElementById('next-btn').addEventListener('click', () => {
+    let target = state.currentStep + 1;
+    if (state.mode === 'redacao' && target === 3) target = 4;
+    goToStep(target);
+  });
+  document.getElementById('back-btn').addEventListener('click', () => {
+    let target = state.currentStep - 1;
+    if (state.mode === 'redacao' && target === 3) target = 2;
+    goToStep(target);
+  });
   document.getElementById('restart-btn').addEventListener('click', () => {
     const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
     if (sessionCompleted) window.dispatchEvent(new CustomEvent('quizCompleted'));
@@ -2894,6 +2902,12 @@ function selectMode(mode) {
 function goToStep(target) {
   if (target < 1 || target > 4) return;
   state.direction = target > state.currentStep ? 'forward' : 'backward';
+  
+  // Bulletproof bypass for step 3 in redacao mode
+  if (state.mode === 'redacao' && target === 3) {
+    target = state.direction === 'forward' ? 4 : 2;
+  }
+  
   const currEl = document.getElementById(`step-${state.currentStep}`);
   const nextEl = document.getElementById(`step-${target}`);
   if (!currEl || !nextEl || target === state.currentStep) return;
