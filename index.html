@@ -4677,7 +4677,7 @@ function startRedacaoSession() { console.log('START REDACAO', JSON.parse(JSON.st
   document.getElementById('redacao-chat-messages').innerHTML = '';
 
   // Load persisted session; state.redacaoState.banca was set in renderStep2Redacao — already in state
-  // loadRedacaoStateLocally();
+  loadRedacaoStateLocally();
 
   if (!state.redacaoState.sessionId) {
     state.redacaoState.sessionId = crypto.randomUUID();
@@ -4781,6 +4781,7 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
+
 
 
 
