@@ -2891,7 +2891,7 @@ function init() {
 }
 
 function selectMode(mode) {
-  if (state.mode && state.mode !== mode && state.mode !== 'redacao') resetState();
+  if (state.mode && state.mode !== mode) resetState();
   state.mode = mode;
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   document.querySelector(`.mode-card[data-mode="${mode}"]`).classList.add('selected');
@@ -2955,7 +2955,7 @@ function updateNavButtons() {
   }
 }
 
-function resetState() { console.log('RESET EXECUTADO', new Error().stack);
+function resetState() {
   state.area = null; state.subject = null; state.topic = null;
   state.concurso = null; state.concursoCategory = null; state.concursoSubStep = 'a';
   state.filter = null;
@@ -4610,7 +4610,7 @@ function startRedacaoSession() {
   document.getElementById('redacao-chat-messages').innerHTML = '';
 
   // Load persisted session; state.redacaoState.banca was set in renderStep2Redacao — already in state
-  // loadRedacaoStateLocally();
+  loadRedacaoStateLocally();
 
   if (!state.redacaoState.sessionId) {
     state.redacaoState.sessionId = crypto.randomUUID();
@@ -4714,7 +4714,4 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
-
-
-
 

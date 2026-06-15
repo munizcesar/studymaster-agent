@@ -1,0 +1,22 @@
+﻿{
+    "sessionState":  {
+                         "scores":  {
+                                        "c3":  0,
+                                        "c4":  0,
+                                        "c2":  0,
+                                        "c5":  0,
+                                        "c1":  0
+                                    },
+                         "banca":  "ENEM",
+                         "stage":  "thesis",
+                         "sessionId":  "teste",
+                         "summary":  "",
+                         "history":  [
+                                         {
+                                             "content":  "Tema: impactos da inteligência artificial na educação",
+                                             "role":  "user"
+                                         }
+                                     ]
+                     },
+    "mode":  "redacao"
+}
