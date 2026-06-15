@@ -2836,7 +2836,7 @@ function goHome() {
   currEl.classList.remove('active');
   step1El.classList.add('active');
   state.currentStep = 1;
-  resetState();
+  if (state.mode !== 'redacao') resetState();
   updateStepBar(1);
   updateNavButtons();
   scrollToTop();
@@ -2926,14 +2926,12 @@ function init() {
   document.getElementById('restart-btn').addEventListener('click', () => {
     const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
     if (sessionCompleted) window.dispatchEvent(new CustomEvent('quizCompleted'));
-    resetState();
     goToStep(1);
   });
   document.getElementById('retry-btn').addEventListener('click', () => callWorkerAndRender());
   document.getElementById('session-new-btn').addEventListener('click', () => {
     const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
-    if (sessionCompleted) window.dispatchEvent(new CustomEvent('quizCompleted'));
-    resetState();
+    const bancaAtual = state.redacaoState.banca; resetRedacaoSession(); state.redacaoState.banca = bancaAtual;
     goToStep(1);
   });
   window.addEventListener('quizCompleted', handleQuizCompleted);
@@ -3003,6 +3001,25 @@ function updateNavButtons() {
     bBtn.classList.remove('hidden'); nBtn.classList.remove('hidden');
     nBtn.disabled = !isStepValid(state.currentStep);
   }
+}
+
+
+function resetRedacaoSession() {
+  state.redacaoState = {
+    sessionId: null,
+    history: [],
+    stage: 'thesis',
+    summary: '',
+    scores: { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 },
+    banca: 'ENEM'
+  };
+
+  try {
+    localStorage.removeItem('sm_redacao_state');
+  } catch {}
+
+  const msgs = document.getElementById('redacao-chat-messages');
+  if (msgs) msgs.innerHTML = '';
 }
 
 function resetState() { console.log('RESET EXECUTADO', new Error().stack);
@@ -4764,6 +4781,10 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
+
+
+
+
 
 
 
