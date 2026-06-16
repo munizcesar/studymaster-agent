@@ -1,0 +1,49 @@
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/index.html b/index.html[m
+[1mindex a7a58f0..d74fc99 100644[m
+[1m--- a/index.html[m
+[1m+++ b/index.html[m
+[36m@@ -4515,12 +4515,26 @@[m [mfunction loadRedacaoStateLocally() {[m
+       const parsed = JSON.parse(saved);[m
+       if (parsed && parsed.sessionId) {[m
+         state.redacaoState = parsed;[m
+[32m+[m[32m        console.log('RESTORE SESSION', state.redacaoState);[m
+[32m+[m[32m        console.log('RESTORE HISTORY LEN', state.redacaoState.history?.length);[m
+[32m+[m[32m        const container = document.getElementById('redacao-chat-messages');[m
+[32m+[m[32m        if (container) {[m
+[32m+[m[32m          container.innerHTML = '';[m
+[32m+[m
+[32m+[m[32m          (state.redacaoState.history || []).forEach(msg => {[m
+[32m+[m[32m            console.log('RENDERING MSG', msg.role, msg.content?.slice(0,50));[m
+[32m+[m[32m            renderRedacaoMessage(msg.role, msg.content);[m
+[32m+[m[32m          });[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        updateRedacaoSidebar();[m
+       }[m
+     } catch {}[m
+   }[m
+ }[m
+ [m
+ function renderRedacaoMessage(role, content) {[m
+[32m+[m[32m  console.log('RENDER CALLED', role, content?.slice?.(0,50));[m
+   const container = document.getElementById('redacao-chat-messages');[m
+   const div = document.createElement('div');[m
+   div.className = `chat-msg ${role}`;[m
+[36m@@ -4674,7 +4688,6 @@[m [mfunction startRedacaoSession() { console.log('START REDACAO', JSON.parse(JSON.st[m
+ [m
+   const chatWrapper = document.getElementById('redacao-chat-wrapper');[m
+   chatWrapper.classList.remove('hidden');[m
+[31m-  document.getElementById('redacao-chat-messages').innerHTML = '';[m
+ [m
+   // Load persisted session; state.redacaoState.banca was set in renderStep2Redacao — already in state[m
+   loadRedacaoStateLocally();[m
+[36m@@ -4794,3 +4807,8 @@[m [mwindow.addEventListener('resize', () => {[m
+ [m
+ [m
+ [m
+[41m+[m
+[41m+[m
+[41m+[m
+[41m+[m
+[41m+[m
