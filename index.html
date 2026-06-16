@@ -4515,12 +4515,26 @@ function loadRedacaoStateLocally() {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.sessionId) {
         state.redacaoState = parsed;
+        console.log('RESTORE SESSION', state.redacaoState);
+        console.log('RESTORE HISTORY LEN', state.redacaoState.history?.length);
+        const container = document.getElementById('redacao-chat-messages');
+        if (container) {
+          container.innerHTML = '';
+
+          (state.redacaoState.history || []).forEach(msg => {
+            console.log('RENDERING MSG', msg.role, msg.content?.slice(0,50));
+            renderRedacaoMessage(msg.role, msg.content);
+          });
+        }
+
+        updateRedacaoSidebar();
       }
     } catch {}
   }
 }
 
 function renderRedacaoMessage(role, content) {
+  console.log('RENDER CALLED', role, content?.slice?.(0,50));
   const container = document.getElementById('redacao-chat-messages');
   const div = document.createElement('div');
   div.className = `chat-msg ${role}`;
@@ -4674,7 +4688,6 @@ function startRedacaoSession() { console.log('START REDACAO', JSON.parse(JSON.st
 
   const chatWrapper = document.getElementById('redacao-chat-wrapper');
   chatWrapper.classList.remove('hidden');
-  document.getElementById('redacao-chat-messages').innerHTML = '';
 
   // Load persisted session; state.redacaoState.banca was set in renderStep2Redacao — already in state
   loadRedacaoStateLocally();
@@ -4781,6 +4794,11 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
+
+
+
+
+
 
 
 
