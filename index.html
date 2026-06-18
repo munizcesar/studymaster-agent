@@ -1752,6 +1752,8 @@
     .rs-score-box span { font-size: 11px; color: var(--color-text-muted); }
     .rs-finish-btn { margin-top: auto; background: var(--color-surface); border: 1px solid var(--color-border); padding: var(--space-3); border-radius: var(--radius-md); font-weight: 600; color: var(--color-text); cursor: pointer; transition: all var(--transition); display: flex; align-items: center; justify-content: center; gap: var(--space-2); }
     .rs-finish-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.05); }
+    .rs-progress-bar { height: 8px; background: var(--color-divider); border-radius: var(--radius-full); overflow: hidden; }
+    .rs-progress-fill { height: 100%; background: var(--grad-brand); border-radius: var(--radius-full); transition: width 0.5s ease; }
     @media (max-width: 860px) {
       .redacao-chat-wrapper { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column-reverse; }
       .chat-messages { min-height: 400px; }
@@ -2335,6 +2337,16 @@
                   <div class="rs-stage-item" id="rs-stage-argument2"><i data-lucide="circle" width="14" height="14"></i> 3. Argumento 2</div>
                   <div class="rs-stage-item" id="rs-stage-conclusion"><i data-lucide="circle" width="14" height="14"></i> 4. Conclusão</div>
                   <div class="rs-stage-item" id="rs-stage-review"><i data-lucide="circle" width="14" height="14"></i> 5. Revisão Final</div>
+                </div>
+                <div style="margin-top: var(--space-4);">
+                  <div class="rs-section-title"><i data-lucide="trending-up" width="14" height="14"></i> Progresso da Redação</div>
+                  <div class="rs-progress-bar">
+                    <div class="rs-progress-fill" id="rs-progress-fill" style="width: 0%"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1);">
+                    <span id="rs-progress-text">0/5 etapas</span>
+                    <span id="rs-progress-percent">0%</span>
+                  </div>
                 </div>
               </div>
               <div>
@@ -5213,6 +5225,7 @@ function updateRedacaoSidebar() {
   // Atualizar estágios
   const stages = ['thesis', 'argument1', 'argument2', 'conclusion', 'review'];
   let currentFound = false;
+  let completedCount = 0;
   stages.forEach((stageId, idx) => {
     const el = document.getElementById(`rs-stage-${stageId}`);
     if (!el) return;
@@ -5237,6 +5250,7 @@ function updateRedacaoSidebar() {
     } else if (!currentFound) {
       el.classList.add('done');
       el.innerHTML = `${iconDone} ${label}`;
+      completedCount++;
     } else {
       el.innerHTML = `${iconBase} ${label}`;
     }
@@ -5252,7 +5266,14 @@ function updateRedacaoSidebar() {
         el.innerHTML = `<i data-lucide="check-circle-2" width="14" height="14"></i> ${stageLabels[stageId]}`;
       }
     });
+    completedCount = 5;
   }
+  
+  // Atualizar barra de progresso
+  const progressPercent = Math.round((completedCount / 5) * 100);
+  document.getElementById('rs-progress-fill').style.width = `${progressPercent}%`;
+  document.getElementById('rs-progress-text').textContent = `${completedCount}/5 etapas`;
+  document.getElementById('rs-progress-percent').textContent = `${progressPercent}%`;
   
   lucide.createIcons();
   
@@ -5397,9 +5418,28 @@ function startRedacaoSession() {
   const finishBtn = document.getElementById('rs-finish-btn');
   const newFinishBtn = finishBtn.cloneNode(true);
   finishBtn.replaceWith(newFinishBtn);
-  newFinishBtn.addEventListener('click', () => {
+  newFinishBtn.addEventListener('click', async () => {
     if (confirm('Gerar avalia\u00e7\u00e3o completa e reda\u00e7\u00e3o nota 1000?')) {
-      handleRedacaoSend('FINALIZAR REDA\u00c7\u00c3O E GERAR AVALIA\u00c7\u00c3O COMPLETA COM REESCRITA NOTA 1000');
+      await handleRedacaoSend('FINALIZAR REDA\u00c7\u00c3O E GERAR AVALIA\u00c7\u00c3O COMPLETA COM REESCRITA NOTA 1000');
+      
+      // Após finalizar, registrar no DigitalTwin
+      if (window.digitalTwin && state.redacaoState.stage === 'final') {
+        const essayText = state.redacaoState.history
+          .filter(m => m.role === 'user')
+          .map(m => m.content)
+          .join('\n\n');
+        
+        await window.digitalTwin.recordEssay({
+          text: essayText,
+          scores: state.redacaoState.scores,
+          banca: state.redacaoState.banca,
+          feedback: state.redacaoState.summary || '',
+          stage: state.redacaoState.stage,
+          summary: state.redacaoState.summary || ''
+        });
+        
+        console.log('[REDAÇÃO DEBUG] Essay recorded in DigitalTwin');
+      }
     }
   });
 }

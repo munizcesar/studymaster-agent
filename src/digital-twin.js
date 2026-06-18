@@ -313,7 +313,9 @@ class DigitalTwin {
       text,
       scores,
       banca,
-      feedback
+      feedback,
+      stage,
+      summary
     } = essayData;
 
     const record = {
@@ -322,6 +324,8 @@ class DigitalTwin {
       scores: scores || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 },
       banca: banca || 'ENEM',
       feedback: feedback || '',
+      stage: stage || 'thesis',
+      summary: summary || '',
       timestamp: Date.now()
     };
 
