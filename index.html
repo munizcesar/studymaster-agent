@@ -3360,7 +3360,13 @@ function goToStep(target) {
     updateStepBar(target);
     updateNavButtons();
     scrollToWizard(50);
-    if (target === 4) callWorkerAndRender();
+    if (target === 4) {
+      if (state.mode === 'redacao') {
+        startRedacaoSession();
+      } else {
+        callWorkerAndRender();
+      }
+    }
   }, 250);
 }
 
@@ -5174,13 +5180,18 @@ function loadRedacaoStateLocally() {
 }
 
 function renderRedacaoMessage(role, content) {
-  console.log('RENDER CALLED', role, content?.slice?.(0,50));
+  console.log('[REDAÇÃO DEBUG] renderRedacaoMessage called', { role, contentLength: content?.length, contentPreview: content?.slice?.(0,50) });
   const container = document.getElementById('redacao-chat-messages');
+  if (!container) {
+    console.error('[REDAÇÃO DEBUG] Container redacao-chat-messages not found!');
+    return;
+  }
   const div = document.createElement('div');
   div.className = `chat-msg ${role}`;
   div.innerHTML = formatMarkdownToHTML(content);
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
+  console.log('[REDAÇÃO DEBUG] Message rendered and scrolled');
 }
 
 function formatMarkdownToHTML(text) {
@@ -5257,6 +5268,7 @@ function updateRedacaoSidebar() {
 }
 
 async function handleRedacaoSend(forceMessage = null) {
+  console.log('[REDAÇÃO DEBUG] handleRedacaoSend called', { forceMessage, mode: state.mode });
   const inputEl = document.getElementById('redacao-chat-input');
   const btn = document.getElementById('redacao-chat-send');
   let msg = forceMessage || inputEl.value.trim();
@@ -5268,7 +5280,7 @@ async function handleRedacaoSend(forceMessage = null) {
   btn.disabled = true;
   
   // Append user message to local history BEFORE building payload
-  state.redacaoState.history.push({ role: 'user', content: msg }); console.log('HISTORY USER', state.redacaoState.history.length);
+  state.redacaoState.history.push({ role: 'user', content: msg }); console.log('[REDAÇÃO DEBUG] HISTORY USER', state.redacaoState.history.length);
   renderRedacaoMessage('user', msg);
   
   const payload = {
@@ -5285,12 +5297,14 @@ async function handleRedacaoSend(forceMessage = null) {
   container.scrollTop = container.scrollHeight;
 
   try {
+    console.log('[REDAÇÃO DEBUG] Sending request to worker', payload);
     const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     const data = await res.json();
+    console.log('[REDAÇÃO DEBUG] Response received from AI', data);
     
     const loadEl = document.getElementById('redacao-loading');
     if (loadEl) loadEl.remove();
@@ -5302,7 +5316,8 @@ async function handleRedacaoSend(forceMessage = null) {
     if (data.state.stage) state.redacaoState.stage = data.state.stage;
     if (data.state.scores) state.redacaoState.scores = data.state.scores;
     if (data.state.summary) state.redacaoState.summary = data.state.summary;
-    state.redacaoState.history.push({ role: 'assistant', content: data.reply }); console.log('HISTORY ASSISTANT', state.redacaoState.history.length);
+    state.redacaoState.history.push({ role: 'assistant', content: data.reply }); console.log('[REDAÇÃO DEBUG] HISTORY ASSISTANT', state.redacaoState.history.length);
+    console.log('[REDAÇÃO DEBUG] Updated redacaoState', state.redacaoState);
     
     saveRedacaoStateLocally();
     renderRedacaoMessage('coach', data.reply);
@@ -5321,38 +5336,50 @@ async function handleRedacaoSend(forceMessage = null) {
   }
 }
 
-function startRedacaoSession() { console.log('START REDACAO', JSON.parse(JSON.stringify(state.redacaoState)));
+function startRedacaoSession() {
+  console.log('[REDAÇÃO DEBUG] startRedacaoSession called', JSON.parse(JSON.stringify(state.redacaoState)));
   document.getElementById('generating-screen').classList.add('hidden');
   document.getElementById('error-screen').classList.remove('visible');
   document.getElementById('questions-container').classList.remove('visible');
 
   const chatWrapper = document.getElementById('redacao-chat-wrapper');
+  if (!chatWrapper) {
+    console.error('[REDAÇÃO DEBUG] Chat wrapper not found!');
+    return;
+  }
   chatWrapper.classList.remove('hidden');
+  console.log('[REDAÇÃO DEBUG] Chat wrapper shown');
 
   // Load persisted session; state.redacaoState.banca was set in renderStep2Redacao — already in state
   loadRedacaoStateLocally();
 
   if (!state.redacaoState.sessionId) {
     state.redacaoState.sessionId = crypto.randomUUID();
+    console.log('[REDAÇÃO DEBUG] Created new session', state.redacaoState.sessionId);
     // banca comes from state set by renderStep2Redacao select listener; default ENEM if missing
     if (!state.redacaoState.banca) state.redacaoState.banca = 'ENEM';
     saveRedacaoStateLocally();
   }
 
-  console.log('HISTORY LEN BEFORE RENDER', state.redacaoState.history.length); if (state.redacaoState.history.length === 0) {
+  console.log('[REDAÇÃO DEBUG] HISTORY LEN BEFORE RENDER', state.redacaoState.history.length);
+  if (state.redacaoState.history.length === 0) {
     const banca = state.redacaoState.banca || 'ENEM';
     const initialMsg = `Ol\u00e1! Sou seu **Coach de Reda\u00e7\u00e3o** para o **${banca}**.\n\nComo quer come\u00e7ar?\n\u2022 Me diga o **tema** e te guio etapa por etapa (tese \u2192 argumentos \u2192 conclus\u00e3o).\n\u2022 Ou cole uma **reda\u00e7\u00e3o completa** para corre\u00e7\u00e3o imediata com notas C1\u2013C5.`;
     renderRedacaoMessage('coach', initialMsg);
     state.redacaoState.history.push({ role: 'assistant', content: initialMsg });
     saveRedacaoStateLocally();
+    console.log('[REDAÇÃO DEBUG] Initial message sent and saved');
   } else {
+    console.log('[REDAÇÃO DEBUG] Restoring history from localStorage', state.redacaoState.history.length, 'messages');
     state.redacaoState.history.forEach(m => {
       renderRedacaoMessage(m.role === 'user' ? 'user' : 'coach', m.content);
     });
+    console.log('[REDAÇÃO DEBUG] History restored');
   }
 
   updateRedacaoSidebar();
   lucide.createIcons();
+  console.log('[REDAÇÃO DEBUG] startRedacaoSession completed');
 
   // Attach listeners — replace element clones to avoid duplicate handlers
   const sendBtn = document.getElementById('redacao-chat-send');
