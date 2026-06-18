@@ -22,6 +22,16 @@
   <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="src/digital-twin.js"></script>
+  <script src="src/gap-detector.js"></script>
+  <script src="src/forgetting-predictor.js"></script>
+  <script src="src/risk-detector.js"></script>
+  <script src="src/mastery-certifier.js"></script>
+  <script src="src/approval-dashboard.js"></script>
+  <script src="src/ai-auditor.js"></script>
+  <script src="src/proactive-mentor.js"></script>
+  <script src="src/approval-predictor.js"></script>
+  <script src="src/aivos-360-integration.js"></script>
   <style>
     :root {
       --color-bg:             #F7F9FC;
@@ -2615,7 +2625,26 @@ const state = {
   sessionHistory: { answers: [], correct: 0, wrong: 0 },
   concursoSubStep: 'a',
   dailyGoal: 10,
+  questionStartTime: null, // Para tracking de tempo de resposta no DigitalTwin
 };
+
+// Inicializar AIVOS 360 Coaching (Sistema completo)
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.initAIVOS360) {
+    try {
+      await window.initAIVOS360();
+      console.log('[AIVOS 360] Sistema inicializado com sucesso');
+      
+      // Exibir relatório de status no console
+      const aivos360 = window.getAIVOS360();
+      if (aivos360) {
+        console.log(aivos360.getStatusReport());
+      }
+    } catch (error) {
+      console.error('[AIVOS 360] Erro na inicialização:', error);
+    }
+  }
+});
 const MAX_EXTRACTED_CHARS = 120000;
 const scriptPromises = {};
 const STORAGE_KEYS = {
@@ -3758,6 +3787,28 @@ function recordSessionAnswer(idx, selectedKey, isCorrect) {
   };
   if (isCorrect) state.sessionHistory.correct += 1;
   else state.sessionHistory.wrong += 1;
+
+  // Integrar com AIVOS 360 (Sistema completo)
+  if (window.getAIVOS360 && state.generatedQuestions && state.generatedQuestions[idx]) {
+    const aivos360 = window.getAIVOS360();
+    if (aivos360 && aivos360.isReady()) {
+      const q = state.generatedQuestions[idx];
+      const startTime = state.questionStartTime || Date.now();
+      const timeToAnswer = Date.now() - startTime;
+      
+      aivos360.processQuestionAnswer({
+        questionId: q.id || `q_${idx}`,
+        discipline: state.mode === 'concurso' ? (state.concurso?.label || 'Geral') : (state.topic || state.subject || 'Geral'),
+        topic: state.topic || state.subject || 'Geral',
+        difficulty: state.difficulty || 'medium',
+        selected: selectedKey,
+        correct: q.correctAnswer,
+        isCorrect: isCorrect,
+        timeToAnswer: timeToAnswer,
+        statement: q.statement || ''
+      }).catch(err => console.error('[AIVOS 360] Erro ao processar resposta:', err));
+    }
+  }
 }
 
 // Estado da navegação de questão única
