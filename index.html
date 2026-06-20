@@ -238,9 +238,10 @@
       background-clip: text;
     }
     .hero-subtitle { font-size: var(--text-lg); color: var(--color-text); max-width: 600px; line-height: 1.6; }
-    .hero-benefits { display: flex; gap: var(--space-3); margin-top: var(--space-6); flex-wrap: wrap; }
-    .hero-benefit { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; color: var(--color-text); }
-    .hero-benefit i { color: var(--color-primary); }
+    .hero-benefits { display: flex; gap: var(--space-4); margin-top: var(--space-6); flex-wrap: wrap; }
+    .hero-benefit { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: 500; color: var(--color-text-muted); }
+    .hero-benefit i { color: var(--color-primary); width: 16px; height: 16px; }
+    .hero-benefit:not(:last-child)::after { content: '•'; margin-left: var(--space-2); color: var(--color-divider); }
 
     @media (max-width: 768px) {
       .hero { padding-bottom: calc(var(--space-8) + 1rem); }
