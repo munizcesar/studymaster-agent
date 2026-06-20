@@ -2693,114 +2693,6 @@
             </button>
           </div>
         </div>
-
-        <!-- STEP AIVOS 360 DASHBOARD -->
-        <div class="wizard-step" id="step-aivos360" data-step="aivos360">
-          <h2 class="step-title">Dashboard AIVOS 360</h2>
-          <p class="step-subtitle">Visão completa do seu desempenho e plano de ação personalizado</p>
-
-          <div class="aivos360-dashboard">
-            <!-- Top Metrics Row -->
-            <div class="aivos360-metrics-grid">
-              <div class="aivos360-metric-card">
-                <div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div>
-                <div class="metric-content">
-                  <span class="metric-label">Probabilidade de Aprovação</span>
-                  <strong class="metric-value" id="aivos360-approval-prob">--%</strong>
-                </div>
-              </div>
-              <div class="aivos360-metric-card">
-                <div class="metric-icon"><i data-lucide="award" width="24" height="24"></i></div>
-                <div class="metric-content">
-                  <span class="metric-label">Nível Geral de Domínio</span>
-                  <strong class="metric-value" id="aivos360-mastery-level">--%</strong>
-                </div>
-              </div>
-              <div class="aivos360-metric-card">
-                <div class="metric-icon"><i data-lucide="flame" width="24" height="24"></i></div>
-                <div class="metric-content">
-                  <span class="metric-label">Streak de Estudo</span>
-                  <strong class="metric-value" id="aivos360-streak">-- dias</strong>
-                </div>
-              </div>
-            </div>
-
-            <!-- Risk and Gaps Row -->
-            <div class="aivos360-row">
-              <div class="aivos360-card">
-                <h3 class="aivos360-card-title"><i data-lucide="alert-triangle" width="18" height="18"></i> Disciplinas em Risco</h3>
-                <div id="aivos360-risk-list" class="aivos360-list">
-                  <p class="aivos360-empty">Carregando...</p>
-                </div>
-              </div>
-              <div class="aivos360-card">
-                <h3 class="aivos360-card-title"><i data-lucide="search" width="18" height="18"></i> Lacunas Ocultas Detectadas</h3>
-                <div id="aivos360-gaps-list" class="aivos360-list">
-                  <p class="aivos360-empty">Carregando...</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Reviews and Evolution Row -->
-            <div class="aivos360-row">
-              <div class="aivos360-card">
-                <h3 class="aivos360-card-title"><i data-lucide="calendar-clock" width="18" height="18"></i> Próximas Revisões Previstas</h3>
-                <div id="aivos360-reviews-list" class="aivos360-list">
-                  <p class="aivos360-empty">Carregando...</p>
-                </div>
-              </div>
-              <div class="aivos360-card">
-                <h3 class="aivos360-card-title"><i data-lucide="trending-up" width="18" height="18"></i> Evolução Semanal</h3>
-                <div id="aivos360-evolution-chart" class="aivos360-evolution">
-                  <p class="aivos360-empty">Carregando...</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mapa de Evolução -->
-            <div class="aivos360-card aivos360-full-width">
-              <h3 class="aivos360-card-title"><i data-lucide="map" width="18" height="18"></i> Mapa de Evolução por Disciplina</h3>
-              <div id="aivos360-evolution-map" class="aivos360-map-grid">
-                <p class="aivos360-empty">Carregando...</p>
-              </div>
-            </div>
-
-            <!-- Plano de Ação do Mentor -->
-            <div class="aivos360-card aivos360-full-width aivos360-action-plan">
-              <h3 class="aivos360-card-title"><i data-lucide="lightbulb" width="18" height="18"></i> Plano de Ação do Mentor</h3>
-              <div class="aivos360-action-grid">
-                <div class="aivos360-action-item">
-                  <span class="action-label">O que estudar hoje</span>
-                  <div id="aivos360-study-today" class="action-content">Carregando...</div>
-                </div>
-                <div class="aivos360-action-item">
-                  <span class="action-label">O que revisar hoje</span>
-                  <div id="aivos360-review-today" class="action-content">Carregando...</div>
-                </div>
-                <div class="aivos360-action-item">
-                  <span class="action-label">O que está atrasado</span>
-                  <div id="aivos360-overdue" class="action-content">Carregando...</div>
-                </div>
-                <div class="aivos360-action-item">
-                  <span class="action-label">Maior gargalo atual</span>
-                  <div id="aivos360-bottleneck" class="action-content">Carregando...</div>
-                </div>
-                <div class="aivos360-action-item aivos360-action-highlight">
-                  <span class="action-label">Próximo passo recomendado</span>
-                  <div id="aivos360-next-step" class="action-content">Carregando...</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Back Button -->
-            <div style="margin-top: var(--space-6); text-align: center;">
-              <button class="btn-ghost" id="aivos360-back-btn">
-                <i data-lucide="arrow-left" width="16" height="16"></i>
-                Voltar para o início
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="wizard-nav" id="wizard-nav">
@@ -3203,6 +3095,18 @@ const state = {
     scores: { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 },
     banca: 'ENEM'
   },
+  aivos360State: {
+    concurso: null,
+    cargo: null,
+    banca: null,
+    dataProva: null,
+    horasDia: null,
+    nivel: null,
+    experiencia: null,
+    redacoesPorSemana: 1,
+    frequenciaSimulados: 'mensal',
+    metasSemanais: ''
+  },
   editalText: '', freeText: '', youtubeUrl: '',
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
   alternativas: 5, idioma: 'pt-BR', bancaFoco: 'auto',
@@ -3564,12 +3468,6 @@ function selectMode(mode) {
     hero.classList.add('compact');
   }
 
-  // Special handling for AIVOS 360 mode - go directly to dashboard
-  if (mode === 'aivos360') {
-    goToAIVOS360Dashboard();
-    return;
-  }
-
   renderStep2();
   setTimeout(() => goToStep(2), 150);
 }
@@ -3593,12 +3491,20 @@ function goToStep(target) {
     currEl.classList.remove('active', `step-exit-${state.direction}`);
     nextEl.classList.add('active', `step-enter-${state.direction}`);
     state.currentStep = target;
+    
+    // Render step 3 for aivos360 mode
+    if (target === 3 && state.mode === 'aivos360') {
+      renderStep3Aivos360();
+    }
+    
     updateStepBar(target);
     updateNavButtons();
     scrollToWizard(50);
     if (target === 4) {
       if (state.mode === 'redacao') {
         startRedacaoSession();
+      } else if (state.mode === 'aivos360') {
+        renderAivos360Dashboard();
       } else {
         callWorkerAndRender();
       }
@@ -3606,232 +3512,6 @@ function goToStep(target) {
   }, 250);
 }
 
-function goToAIVOS360Dashboard() {
-  const currEl = document.getElementById(`step-${state.currentStep}`);
-  const aivos360El = document.getElementById('step-aivos360');
-  if (!currEl || !aivos360El) return;
-  
-  currEl.classList.remove('active');
-  aivos360El.classList.add('active');
-  state.currentStep = 'aivos360';
-  
-  // Hide wizard nav buttons for AIVOS 360
-  document.getElementById('back-btn').classList.add('hidden');
-  document.getElementById('next-btn').classList.add('hidden');
-  
-  scrollToWizard(50);
-  
-  // Populate dashboard with data from AIVOS modules
-  populateAIVOS360Dashboard();
-  
-  // Initialize back button
-  const backBtn = document.getElementById('aivos360-back-btn');
-  backBtn.onclick = () => {
-    aivos360El.classList.remove('active');
-    document.getElementById('step-1').classList.add('active');
-    state.currentStep = 1;
-    state.mode = null;
-    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
-    updateNavButtons();
-    lucide.createIcons();
-  };
-  
-  lucide.createIcons();
-}
-
-async function populateAIVOS360Dashboard() {
-  try {
-    const aivos360 = getAIVOS360();
-    if (!aivos360 || !aivos360.isInitialized) {
-      await initAIVOS360();
-    }
-    
-    const aivos360Instance = getAIVOS360();
-    if (!aivos360Instance) {
-      console.error('AIVOS 360 not initialized');
-      return;
-    }
-    
-    const modules = aivos360Instance.modules;
-    
-    // Get approval probability
-    if (modules.approvalPredictor) {
-      const prediction = modules.approvalPredictor.getLatestPrediction();
-      const approvalProb = prediction ? prediction.probability : 0;
-      document.getElementById('aivos360-approval-prob').textContent = `${Math.round(approvalProb)}%`;
-    }
-    
-    // Get mastery level
-    if (modules.masteryCertifier) {
-      const summary = modules.masteryCertifier.getMasterySummary();
-      const masteryLevel = summary ? summary.overallMastery : 0;
-      document.getElementById('aivos360-mastery-level').textContent = `${Math.round(masteryLevel)}%`;
-    }
-    
-    // Get streak from digital twin
-    if (modules.digitalTwin) {
-      const profile = modules.digitalTwin.getProfile();
-      const streak = profile?.performance?.streak || 0;
-      document.getElementById('aivos360-streak').textContent = `${streak} dias`;
-    }
-    
-    // Get risk disciplines
-    if (modules.riskDetector) {
-      const risks = modules.riskDetector.getRiskScores();
-      const riskList = document.getElementById('aivos360-risk-list');
-      if (risks && Object.keys(risks).length > 0) {
-        riskList.innerHTML = '';
-        Object.entries(risks).slice(0, 5).forEach(([discipline, score]) => {
-          if (score > 0.5) {
-            const item = document.createElement('div');
-            item.className = 'aivos360-list-item';
-            item.innerHTML = `
-              <span class="aivos360-list-item-name">${discipline}</span>
-              <span class="aivos360-list-item-value" style="color: ${score > 0.7 ? 'var(--color-error)' : '#D4A827'}">${Math.round(score * 100)}%</span>
-            `;
-            riskList.appendChild(item);
-          }
-        });
-        if (riskList.children.length === 0) {
-          riskList.innerHTML = '<p class="aivos360-empty">Nenhuma disciplina em risco</p>';
-        }
-      } else {
-        riskList.innerHTML = '<p class="aivos360-empty">Nenhuma disciplina em risco</p>';
-      }
-    }
-    
-    // Get gaps
-    if (modules.gapDetector) {
-      const gaps = modules.gapDetector.getGaps();
-      const gapsList = document.getElementById('aivos360-gaps-list');
-      if (gaps && gaps.length > 0) {
-        gapsList.innerHTML = '';
-        gaps.slice(0, 5).forEach(gap => {
-          const item = document.createElement('div');
-          item.className = 'aivos360-list-item';
-          item.innerHTML = `
-            <span class="aivos360-list-item-name">${gap.topic || gap.discipline}</span>
-            <span class="aivos360-list-item-value">${gap.severity || 'Média'}</span>
-          `;
-          gapsList.appendChild(item);
-        });
-      } else {
-        gapsList.innerHTML = '<p class="aivos360-empty">Nenhuma lacuna detectada</p>';
-      }
-    }
-    
-    // Get review schedule
-    if (modules.forgettingPredictor) {
-      const reviews = modules.forgettingPredictor.getReviewSchedule();
-      const reviewsList = document.getElementById('aivos360-reviews-list');
-      if (reviews && reviews.length > 0) {
-        reviewsList.innerHTML = '';
-        reviews.slice(0, 5).forEach(review => {
-          const item = document.createElement('div');
-          item.className = 'aivos360-list-item';
-          const date = new Date(review.dueDate);
-          const dateStr = date.toLocaleDateString('pt-BR');
-          item.innerHTML = `
-            <span class="aivos360-list-item-name">${review.topic}</span>
-            <span class="aivos360-list-item-value">${dateStr}</span>
-          `;
-          reviewsList.appendChild(item);
-        });
-      } else {
-        reviewsList.innerHTML = '<p class="aivos360-empty">Nenhuma revisão pendente</p>';
-      }
-    }
-    
-    // Get evolution map (mastery levels by discipline)
-    if (modules.masteryCertifier) {
-      const masteryLevels = modules.masteryCertifier.getMasteryLevels();
-      const mapGrid = document.getElementById('aivos360-evolution-map');
-      if (masteryLevels && Object.keys(masteryLevels).length > 0) {
-        mapGrid.innerHTML = '';
-        Object.entries(masteryLevels).forEach(([discipline, level]) => {
-          const item = document.createElement('div');
-          const percent = Math.round(level * 100);
-          let statusClass = 'warning';
-          if (percent >= 70) statusClass = 'mastered';
-          else if (percent <= 40) statusClass = 'critical';
-          
-          item.className = `aivos360-map-item ${statusClass}`;
-          item.innerHTML = `
-            <span class="aivos360-map-discipline">${discipline}</span>
-            <span class="aivos360-map-percent">${percent}%</span>
-          `;
-          mapGrid.appendChild(item);
-        });
-      } else {
-        mapGrid.innerHTML = '<p class="aivos360-empty">Nenhum dado de evolução disponível</p>';
-      }
-    }
-    
-    // Get proactive mentor messages for action plan
-    if (modules.proactiveMentor) {
-      const messages = modules.proactiveMentor.getActiveMessages();
-      
-      // Study today
-      const studyToday = document.getElementById('aivos360-study-today');
-      studyToday.textContent = messages.find(m => m.type === 'study')?.recommendation || 'Nenhuma recomendação';
-      
-      // Review today
-      const reviewToday = document.getElementById('aivos360-review-today');
-      reviewToday.textContent = messages.find(m => m.type === 'review')?.recommendation || 'Nenhuma revisão pendente';
-      
-      // Overdue
-      const overdue = document.getElementById('aivos360-overdue');
-      overdue.textContent = messages.find(m => m.type === 'overdue')?.recommendation || 'Nada atrasado';
-      
-      // Bottleneck
-      const bottleneck = document.getElementById('aivos360-bottleneck');
-      bottleneck.textContent = messages.find(m => m.type === 'bottleneck')?.recommendation || 'Nenhum gargalo identificado';
-      
-      // Next step
-      const nextStep = document.getElementById('aivos360-next-step');
-      nextStep.textContent = messages.find(m => m.type === 'next_step')?.recommendation || 'Continue estudando regularmente';
-    }
-    
-    // Weekly evolution (simplified - show last 7 days accuracy)
-    if (modules.digitalTwin) {
-      const profile = modules.digitalTwin.getProfile();
-      const history = profile?.performance?.questions?.history || [];
-      const evolutionChart = document.getElementById('aivos360-evolution-chart');
-      
-      if (history.length > 0) {
-        evolutionChart.innerHTML = '';
-        const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-        const today = new Date();
-        
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date(today);
-          date.setDate(date.getDate() - i);
-          const dateStr = date.toISOString().split('T')[0];
-          
-          const dayQuestions = history.filter(q => q.timestamp && q.timestamp.startsWith(dateStr));
-          const correct = dayQuestions.filter(q => q.isCorrect).length;
-          const accuracy = dayQuestions.length > 0 ? Math.round((correct / dayQuestions.length) * 100) : 0;
-          
-          const item = document.createElement('div');
-          item.className = 'aivos360-evolution-item';
-          item.innerHTML = `
-            <span class="aivos360-evolution-label">${days[date.getDay()]}</span>
-            <div class="aivos360-evolution-bar">
-              <div class="aivos360-evolution-fill" style="width: ${accuracy}%"></div>
-            </div>
-            <span class="aivos360-evolution-value">${accuracy}%</span>
-          `;
-          evolutionChart.appendChild(item);
-        }
-      } else {
-        evolutionChart.innerHTML = '<p class="aivos360-empty">Nenhum dado de evolução disponível</p>';
-      }
-    }
-    
-  } catch (error) {
-    console.error('Error populating AIVOS 360 dashboard:', error);
-  }
-}
 
 function updateStepBar(target) {
   document.querySelectorAll('.step-indicator').forEach((ind, idx) => {
@@ -3848,6 +3528,10 @@ function isStepValid(step) {
     if (state.mode === 'concurso') return !!state.concursosFiltersState?.discipline;
     if (state.mode === 'livre') return state.freeText.trim().length > 0;
     if (state.mode === 'redacao') return true;
+    if (state.mode === 'aivos360') return !!state.aivos360State?.concurso && !!state.aivos360State?.cargo && !!state.aivos360State?.banca && !!state.aivos360State?.dataProva && !!state.aivos360State?.horasDia && !!state.aivos360State?.nivel;
+  }
+  if (step === 3) {
+    if (state.mode === 'aivos360') return !!state.aivos360State?.redacoesPorSemana && !!state.aivos360State?.frequenciaSimulados;
   }
   return true;
 }
@@ -3920,6 +3604,7 @@ function renderStep2() {
   if (state.mode === 'academic') renderStep2Academic(container);
   else if (state.mode === 'concurso') renderStep2Concurso(container);
   else if (state.mode === 'redacao') renderStep2Redacao(container);
+  else if (state.mode === 'aivos360') renderStep2Aivos360(container);
   else renderStep2Livre(container);
 }
 
@@ -4215,6 +3900,258 @@ function renderStep2Redacao(container) {
     state.redacaoState.banca = e.target.value;
     updateNavButtons();
   });
+}
+
+function renderStep2Aivos360(container) {
+  container.innerHTML = `
+    <h2 class="step-title">Diagnóstico Inicial</h2>
+    <p class="step-subtitle">O Mentor AIVOS 360 precisa conhecer sua preparação para criar um plano personalizado.</p>
+    
+    <div class="config-group">
+      <label class="config-label">Concurso</label>
+      <select id="aivos360-concurso">
+        <option value="">Selecione...</option>
+        <option value="policia-civil">Polícia Civil</option>
+        <option value="policia-militar">Polícia Militar</option>
+        <option value="tribunal">Tribunal</option>
+        <option value="prefeitura">Prefeitura</option>
+        <option value="federal">Concurso Federal</option>
+        <option value="estadual">Concurso Estadual</option>
+        <option value="outro">Outro</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Cargo</label>
+      <input type="text" id="aivos360-cargo" placeholder="Ex: Delegado, Escrivão, Analista..." value="${state.aivos360State?.cargo || ''}">
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Banca</label>
+      <select id="aivos360-banca">
+        <option value="">Selecione...</option>
+        <option value="cespe">CESPE/CEBRASPE</option>
+        <option value="vunesp">VUNESP</option>
+        <option value="fcc">FCC</option>
+        <option value="fgv">FGV</option>
+        <option value="cetro">CETRO</option>
+        <option value="consulplan">CONSULPLAN</option>
+        <option value="outro">Outra</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Data da Prova</label>
+      <input type="date" id="aivos360-data-prova" value="${state.aivos360State?.dataProva || ''}">
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Horas disponíveis por dia</label>
+      <input type="number" id="aivos360-horas-dia" min="1" max="12" placeholder="Ex: 4" value="${state.aivos360State?.horasDia || ''}">
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Nível atual</label>
+      <select id="aivos360-nivel">
+        <option value="">Selecione...</option>
+        <option value="iniciante">Iniciante (primeira vez)</option>
+        <option value="basico">Básico (já estudou pouco)</option>
+        <option value="intermediario">Intermediário (estuda há algum tempo)</option>
+        <option value="avancado">Avançado (já fez outras provas)</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Experiência anterior</label>
+      <textarea id="aivos360-experiencia" rows="3" placeholder="Descreva brevemente sua experiência com concursos anteriores...">${state.aivos360State?.experiencia || ''}</textarea>
+    </div>
+  `;
+
+  // Add event listeners
+  document.getElementById('aivos360-concurso').addEventListener('change', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.concurso = e.target.value;
+  });
+
+  document.getElementById('aivos360-cargo').addEventListener('input', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.cargo = e.target.value;
+  });
+
+  document.getElementById('aivos360-banca').addEventListener('change', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.banca = e.target.value;
+  });
+
+  document.getElementById('aivos360-data-prova').addEventListener('change', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.dataProva = e.target.value;
+  });
+
+  document.getElementById('aivos360-horas-dia').addEventListener('input', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.horasDia = e.target.value;
+  });
+
+  document.getElementById('aivos360-nivel').addEventListener('change', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.nivel = e.target.value;
+  });
+
+  document.getElementById('aivos360-experiencia').addEventListener('input', (e) => {
+    state.aivos360State = state.aivos360State || {};
+    state.aivos360State.experiencia = e.target.value;
+  });
+}
+
+function renderStep3Aivos360() {
+  const container = document.getElementById('step-3');
+  container.innerHTML = `
+    <h2 class="step-title">Configure seu Plano de Estudos</h2>
+    <p class="step-subtitle">Defina a intensidade e frequência das suas atividades de estudo.</p>
+    
+    <div class="config-group">
+      <label class="config-label">Quantidade de redações por semana</label>
+      <input type="number" id="aivos360-redacoes-semana" min="0" max="7" value="${state.aivos360State?.redacoesPorSemana || 1}">
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Frequência de simulados</label>
+      <select id="aivos360-simulados">
+        <option value="semanal" ${state.aivos360State?.frequenciaSimulados === 'semanal' ? 'selected' : ''}>Semanal</option>
+        <option value="quinzenal" ${state.aivos360State?.frequenciaSimulados === 'quinzenal' ? 'selected' : ''}>Quinzenal</option>
+        <option value="mensal" ${state.aivos360State?.frequenciaSimulados === 'mensal' ? 'selected' : ''}>Mensal</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Metas semanais</label>
+      <textarea id="aivos360-metas" rows="3" placeholder="Ex: Resolver 50 questões, estudar 20h, fazer 1 simulado...">${state.aivos360State?.metasSemanais || ''}</textarea>
+    </div>
+  `;
+
+  // Add event listeners
+  document.getElementById('aivos360-redacoes-semana').addEventListener('input', (e) => {
+    state.aivos360State.redacoesPorSemana = parseInt(e.target.value) || 1;
+  });
+
+  document.getElementById('aivos360-simulados').addEventListener('change', (e) => {
+    state.aivos360State.frequenciaSimulados = e.target.value;
+  });
+
+  document.getElementById('aivos360-metas').addEventListener('input', (e) => {
+    state.aivos360State.metasSemanais = e.target.value;
+  });
+
+  lucide.createIcons();
+}
+
+function renderAivos360Dashboard() {
+  const container = document.getElementById('step-4');
+  container.innerHTML = `
+    <h2 class="step-title">Dashboard AIVOS 360</h2>
+    <p class="step-subtitle">Visão completa do seu desempenho e plano de ação personalizado</p>
+    
+    <div class="aivos360-dashboard">
+      <!-- Top Metrics Row -->
+      <div class="aivos360-metrics-grid">
+        <div class="aivos360-metric-card">
+          <div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div>
+          <div class="metric-content">
+            <span class="metric-label">Probabilidade de Aprovação</span>
+            <strong class="metric-value" id="aivos360-approval-prob">--%</strong>
+          </div>
+        </div>
+        <div class="aivos360-metric-card">
+          <div class="metric-icon"><i data-lucide="award" width="24" height="24"></i></div>
+          <div class="metric-content">
+            <span class="metric-label">Nível Geral de Domínio</span>
+            <strong class="metric-value" id="aivos360-mastery-level">--%</strong>
+          </div>
+        </div>
+        <div class="aivos360-metric-card">
+          <div class="metric-icon"><i data-lucide="flame" width="24" height="24"></i></div>
+          <div class="metric-content">
+            <span class="metric-label">Streak de Estudo</span>
+            <strong class="metric-value" id="aivos360-streak">-- dias</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Plan -->
+      <div class="aivos360-card aivos360-full-width aivos360-action-plan">
+        <h3 class="aivos360-card-title"><i data-lucide="lightbulb" width="18" height="18"></i> Plano de Ação do Mentor</h3>
+        <div class="aivos360-action-grid">
+          <div class="aivos360-action-item">
+            <span class="action-label">O que estudar hoje</span>
+            <div id="aivos360-study-today" class="action-content">Carregando...</div>
+          </div>
+          <div class="aivos360-action-item">
+            <span class="action-label">O que revisar hoje</span>
+            <div id="aivos360-review-today" class="action-content">Carregando...</div>
+          </div>
+          <div class="aivos360-action-item">
+            <span class="action-label">O que está atrasado</span>
+            <div id="aivos360-overdue" class="action-content">Carregando...</div>
+          </div>
+          <div class="aivos360-action-item">
+            <span class="action-label">Maior gargalo atual</span>
+            <div id="aivos360-bottleneck" class="action-content">Carregando...</div>
+          </div>
+          <div class="aivos360-action-item aivos360-action-highlight">
+            <span class="action-label">Próximo passo recomendado</span>
+            <div id="aivos360-next-step" class="action-content">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back Button -->
+      <div style="margin-top: var(--space-6); text-align: center;">
+        <button class="btn-ghost" id="aivos360-back-btn">
+          <i data-lucide="arrow-left" width="16" height="16"></i> Voltar para início
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Initialize back button
+  const backBtn = document.getElementById('aivos360-back-btn');
+  backBtn.onclick = () => {
+    resetState();
+  };
+
+  // Populate dashboard with data
+  populateAivos360DashboardSimple();
+
+  lucide.createIcons();
+}
+
+function populateAivos360DashboardSimple() {
+  // Simple dashboard population based on diagnosis
+  const daysUntilExam = state.aivos360State?.dataProva ? 
+    Math.ceil((new Date(state.aivos360State.dataProva) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+  
+  document.getElementById('aivos360-approval-prob').textContent = daysUntilExam ? 
+    `${Math.min(100, Math.max(10, 50 + (daysUntilExam > 180 ? 20 : 0) + (state.aivos360State?.nivel === 'avancado' ? 15 : 0)))}%` : '--%';
+  
+  document.getElementById('aivos360-mastery-level').textContent = 
+    state.aivos360State?.nivel === 'avancado' ? '60%' : 
+    state.aivos360State?.nivel === 'intermediario' ? '40%' : 
+    state.aivos360State?.nivel === 'basico' ? '20%' : '10%';
+  
+  document.getElementById('aivos360-streak').textContent = '0 dias';
+  
+  document.getElementById('aivos360-study-today').textContent = 
+    `Estudar ${state.aivos360State?.horasDia || 4}h de ${state.aivos360State?.concurso || 'concurso'}`;
+  
+  document.getElementById('aivos360-review-today').textContent = 'Nenhuma revisão pendente';
+  
+  document.getElementById('aivos360-overdue').textContent = 'Nada atrasado';
+  
+  document.getElementById('aivos360-bottleneck').textContent = 'Nenhum gargalo identificado';
+  
+  document.getElementById('aivos360-next-step').textContent = 
+    `Comece estudando para ${state.aivos360State?.banca || 'banca selecionada'}`;
 }
 
 function renderStep2Livre(container) {
