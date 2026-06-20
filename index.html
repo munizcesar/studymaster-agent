@@ -153,6 +153,18 @@
       border-bottom: 1px solid var(--color-divider);
       position: relative;
       overflow: hidden;
+      transition: all var(--transition);
+    }
+    .hero.compact {
+      padding: var(--space-6) 0;
+      padding-block: 2rem;
+    }
+    .hero.compact .hero-bg-svg {
+      opacity: 0.3;
+    }
+    .hero.compact .hero-title,
+    .hero.compact .hero-subtitle {
+      display: none;
     }
     .hero::before {
       content: '';
@@ -3591,13 +3603,19 @@ function selectMode(mode) {
   state.mode = mode;
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   document.querySelector(`.mode-card[data-mode="${mode}"]`).classList.add('selected');
-  
+
+  // Hide institutional elements when mode is selected
+  const hero = document.querySelector('.hero');
+  if (hero) {
+    hero.classList.add('compact');
+  }
+
   // Special handling for AIVOS 360 mode - go directly to dashboard
   if (mode === 'aivos360') {
     goToAIVOS360Dashboard();
     return;
   }
-  
+
   renderStep2();
   setTimeout(() => goToStep(2), 150);
 }
@@ -3925,6 +3943,13 @@ function resetState() { console.log('RESET EXECUTADO', new Error().stack);
   // Reset redacao coach state + clear persisted session
   state.redacaoState = { sessionId: null, history: [], stage: 'thesis', summary: '', scores: { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 }, banca: 'ENEM' };
   try { localStorage.removeItem('sm_redacao_state'); } catch {}
+
+  // Restore institutional elements when going back to step 1
+  const hero = document.querySelector('.hero');
+  if (hero) {
+    hero.classList.remove('compact');
+  }
+
   const chatWrapper = document.getElementById('redacao-chat-wrapper');
   if (chatWrapper) {
     chatWrapper.classList.add('hidden');
