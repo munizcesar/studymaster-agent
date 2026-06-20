@@ -238,11 +238,16 @@
       background-clip: text;
     }
     .hero-subtitle { font-size: var(--text-lg); color: var(--color-text); max-width: 600px; line-height: 1.6; }
+    .hero-benefits { display: flex; gap: var(--space-3); margin-top: var(--space-6); flex-wrap: wrap; }
+    .hero-benefit { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; color: var(--color-text); }
+    .hero-benefit i { color: var(--color-primary); }
 
     @media (max-width: 768px) {
       .hero { padding-bottom: calc(var(--space-8) + 1rem); }
       .hero-title { font-size: clamp(2rem, 8vw, 2.625rem); }
       .hero-subtitle { font-size: var(--text-base); }
+      .hero-benefits { gap: var(--space-2); }
+      .hero-benefit { font-size: var(--text-xs); padding: var(--space-1) var(--space-2); }
       .wizard-section { padding-top: var(--space-8); }
     }
 
@@ -273,7 +278,7 @@
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
-      padding: var(--space-6);
+      padding: var(--space-5);
       background: var(--color-surface);
       border: 2px solid var(--color-border);
       border-radius: var(--radius-xl);
@@ -281,7 +286,7 @@
       color: var(--color-text);
       position: relative;
       overflow: hidden;
-      min-height: 280px;
+      min-height: 200px;
     }
     .mode-card:hover {
       border-color: var(--color-primary-mid);
@@ -1290,7 +1295,9 @@
     .compare-table td:last-child { background: oklch(from var(--color-primary) l c h / 0.04); font-weight: 500; }
     .compare-table-wrapper { max-width: 100%; overflow-x: auto; }
     .compare-table-wrapper .compare-table { min-width: 0; }
-    .profiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+    .profiles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+    @media (max-width: 900px) { .profiles-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .profiles-grid { grid-template-columns: 1fr; } }
     .profile-card { padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); cursor: default; }
     .profile-tag {
       font-size: var(--text-xs);
@@ -2291,6 +2298,12 @@
     <div class="container">
       <h1 class="hero-title">Sua plataforma completa<br><span>de aprovação em concursos</span></h1>
       <p class="hero-subtitle">Questões inteligentes, redação com correção completa e mentor pessoal de desempenho em um só lugar.</p>
+      <div class="hero-benefits">
+        <span class="hero-benefit"><i data-lucide="clipboard-list" width="16" height="16"></i> Questões</span>
+        <span class="hero-benefit"><i data-lucide="brain" width="16" height="16"></i> Redação</span>
+        <span class="hero-benefit"><i data-lucide="file-text" width="16" height="16"></i> Materiais</span>
+        <span class="hero-benefit"><i data-lucide="graduation-cap" width="16" height="16"></i> Planejamento</span>
+      </div>
     </div>
   </section>
 
@@ -2813,67 +2826,15 @@
         <div class="steps-list">
           <div class="how-step">
             <span class="how-number">01</span>
-            <div><strong>Escolha seu modo</strong><p>Acadêmico para faculdade, Concurso para editais, Livre para qualquer material.</p></div>
+            <div><strong>Escolha o modo</strong><p>Concursos, Material Livre, Redação ou Mentor.</p></div>
           </div>
           <div class="how-step">
             <span class="how-number">02</span>
-            <div><strong>Configure a sessão</strong><p>Dificuldade, quantidade, idioma e banca em menos de 30 segundos.</p></div>
+            <div><strong>Configure a sessão</strong><p>Dificuldade, quantidade e tipo em segundos.</p></div>
           </div>
           <div class="how-step">
             <span class="how-number">03</span>
-            <div><strong>A IA gera na hora</strong><p>Questões criadas diretamente na tela — com gabarito comentado para cada resposta.</p></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="marketing-section marketing-section-surface">
-    <div class="container">
-      <div class="profile-cards">
-        <div class="section-header">
-          <p class="section-eyebrow">Feito para quem estuda de verdade</p>
-          <h2>Para quem é?</h2>
-        </div>
-        <div class="profiles-grid">
-          <div class="profile-card">
-            <p class="profile-tag">Para você se...</p>
-            <div class="profile-header">
-              <i data-lucide="clipboard-list" width="22" height="22"></i>
-              <strong>Concurseiros</strong>
-            </div>
-            <p>Simule bancas como CESPE, VUNESP e FCC com questões no estilo real.</p>
-          </div>
-          <div class="profile-card">
-            <p class="profile-tag">Para você se...</p>
-            <div class="profile-header">
-              <i data-lucide="scale" width="22" height="22"></i>
-              <strong>Advogados / OAB</strong>
-            </div>
-            <p>Prepare-se para a 1ª e 2ª fase com prompts no padrão FGV.</p>
-          </div>
-          <div class="profile-card">
-            <p class="profile-tag">Para você se...</p>
-            <div class="profile-header">
-              <i data-lucide="shield" width="22" height="22"></i>
-              <strong>Segurança Pública</strong>
-            </div>
-            <p>PC, PM, GCM, Bombeiros — questões por cargo e legislação específica.</p>
-          </div>
-          <div class="profile-card">
-            <p class="profile-tag">Para você se...</p>
-            <div class="profile-header">
-              <i data-lucide="heart-pulse" width="22" height="22"></i>
-              <strong>Área da Saúde</strong>
-            </div>
-            <p>Concursos de enfermagem, farmácia e residências médicas com foco clínico.</p>
-          </div>
-          <div class="profile-card">
-            <p class="profile-tag">Para você se...</p>
-            <div class="profile-header">
-              <i data-lucide="monitor" width="22" height="22"></i>
-              <strong>TI &amp; Tecnologia</strong>
-            </div>
-            <p>Certificações e concursos de TI com questões atualizadas.</p>
+            <div><strong>Estude</strong><p>Questões geradas na hora com correção completa.</p></div>
           </div>
         </div>
       </div>
