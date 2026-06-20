@@ -255,7 +255,7 @@
     .step-subtitle { font-size: var(--text-sm); color: var(--color-text); margin-bottom: var(--space-6); line-height: 1.5; }
 
     /* Step 1 */
-    .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
+    .mode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
     .mode-card {
       display: flex;
       flex-direction: column;
@@ -320,22 +320,6 @@
       margin-bottom: var(--space-4);
       flex-grow: 1;
     }
-    .mode-card-main {
-      border-color: var(--color-primary-mid);
-      box-shadow: var(--shadow-md);
-      position: relative;
-    }
-    .mode-card-main::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--grad-brand);
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    }
-
     .mode-benefits {
       margin-top: auto;
       padding: 0;
@@ -2331,7 +2315,7 @@
           <h2 class="step-title">Como você quer estudar hoje?</h2>
           <p class="step-subtitle">Escolha o modo de estudo ideal para o seu objetivo</p>
             <div class="mode-grid">
-              <button class="mode-card mode-card-main" data-mode="concurso" aria-label="Concursos Públicos">
+              <button class="mode-card" data-mode="concurso" aria-label="Concursos Públicos">
                 <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Concursos Públicos</strong>
