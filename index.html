@@ -4206,35 +4206,92 @@ function renderStep2Aivos360(container) {
     <p class="step-subtitle">O Mentor AIVOS 360 precisa conhecer sua preparação para criar um plano personalizado.</p>
     
     <div class="config-group">
-      <label class="config-label">Concurso</label>
+      <label class="config-label">Tipo de Concurso</label>
       <select id="aivos360-concurso">
         <option value="">Selecione...</option>
-        <option value="policia-civil">Polícia Civil</option>
-        <option value="policia-militar">Polícia Militar</option>
-        <option value="tribunal">Tribunal</option>
-        <option value="prefeitura">Prefeitura</option>
-        <option value="federal">Concurso Federal</option>
-        <option value="estadual">Concurso Estadual</option>
-        <option value="outro">Outro</option>
+        <optgroup label="Segurança Pública">
+          <option value="policia-civil" ${state.aivos360State?.concurso === 'policia-civil' ? 'selected' : ''}>Polícia Civil</option>
+          <option value="policia-militar" ${state.aivos360State?.concurso === 'policia-militar' ? 'selected' : ''}>Polícia Militar</option>
+          <option value="policia-federal" ${state.aivos360State?.concurso === 'policia-federal' ? 'selected' : ''}>Polícia Federal (PF)</option>
+          <option value="policia-rodoviaria" ${state.aivos360State?.concurso === 'policia-rodoviaria' ? 'selected' : ''}>Polícia Rodoviária Federal (PRF)</option>
+          <option value="bombeiro" ${state.aivos360State?.concurso === 'bombeiro' ? 'selected' : ''}>Corpo de Bombeiros</option>
+          <option value="agepen" ${state.aivos360State?.concurso === 'agepen' ? 'selected' : ''}>Agente Penitenciário (AGEPEN)</option>
+          <option value="guarda-municipal" ${state.aivos360State?.concurso === 'guarda-municipal' ? 'selected' : ''}>Guarda Municipal</option>
+        </optgroup>
+        <optgroup label="Poder Judiciário e MP">
+          <option value="trf" ${state.aivos360State?.concurso === 'trf' ? 'selected' : ''}>TRF – Tribunal Regional Federal</option>
+          <option value="tre" ${state.aivos360State?.concurso === 'tre' ? 'selected' : ''}>TRE – Tribunal Regional Eleitoral</option>
+          <option value="trt" ${state.aivos360State?.concurso === 'trt' ? 'selected' : ''}>TRT – Tribunal Regional do Trabalho</option>
+          <option value="stj" ${state.aivos360State?.concurso === 'stj' ? 'selected' : ''}>STJ – Superior Tribunal de Justiça</option>
+          <option value="stf" ${state.aivos360State?.concurso === 'stf' ? 'selected' : ''}>STF – Supremo Tribunal Federal</option>
+          <option value="tce" ${state.aivos360State?.concurso === 'tce' ? 'selected' : ''}>TCE – Tribunal de Contas Estadual</option>
+          <option value="tcu" ${state.aivos360State?.concurso === 'tcu' ? 'selected' : ''}>TCU – Tribunal de Contas da União</option>
+          <option value="tjsp" ${state.aivos360State?.concurso === 'tjsp' ? 'selected' : ''}>TJSP – Tribunal de Justiça de SP</option>
+          <option value="tribunal-estadual" ${state.aivos360State?.concurso === 'tribunal-estadual' ? 'selected' : ''}>Tribunal de Justiça Estadual (outros)</option>
+          <option value="mp" ${state.aivos360State?.concurso === 'mp' ? 'selected' : ''}>Ministério Público</option>
+          <option value="dpf" ${state.aivos360State?.concurso === 'dpf' ? 'selected' : ''}>Defensoria Pública</option>
+        </optgroup>
+        <optgroup label="Federal e EBTT">
+          <option value="federal" ${state.aivos360State?.concurso === 'federal' ? 'selected' : ''}>Concurso Federal (genérico)</option>
+          <option value="receita-federal" ${state.aivos360State?.concurso === 'receita-federal' ? 'selected' : ''}>Receita Federal (AFRFB/ATRFB)</option>
+          <option value="inss" ${state.aivos360State?.concurso === 'inss' ? 'selected' : ''}>INSS – Previdência Social</option>
+          <option value="banco-brasil" ${state.aivos360State?.concurso === 'banco-brasil' ? 'selected' : ''}>Banco do Brasil</option>
+          <option value="caixa" ${state.aivos360State?.concurso === 'caixa' ? 'selected' : ''}>Caixa Econômica Federal</option>
+          <option value="bacen" ${state.aivos360State?.concurso === 'bacen' ? 'selected' : ''}>Banco Central do Brasil (BACEN)</option>
+          <option value="correios" ${state.aivos360State?.concurso === 'correios' ? 'selected' : ''}>Correios (ECT)</option>
+          <option value="serpro" ${state.aivos360State?.concurso === 'serpro' ? 'selected' : ''}>SERPRO</option>
+          <option value="agu" ${state.aivos360State?.concurso === 'agu' ? 'selected' : ''}>AGU – Advocacia-Geral da União</option>
+          <option value="aneel" ${state.aivos360State?.concurso === 'aneel' ? 'selected' : ''}>ANEEL / Agências Reguladoras</option>
+        </optgroup>
+        <optgroup label="Estadual e Municipal">
+          <option value="estadual" ${state.aivos360State?.concurso === 'estadual' ? 'selected' : ''}>Concurso Estadual (genérico)</option>
+          <option value="prefeitura" ${state.aivos360State?.concurso === 'prefeitura' ? 'selected' : ''}>Prefeitura / Câmara Municipal</option>
+          <option value="sefaz" ${state.aivos360State?.concurso === 'sefaz' ? 'selected' : ''}>SEFAZ – Secretaria da Fazenda</option>
+          <option value="procuradoria" ${state.aivos360State?.concurso === 'procuradoria' ? 'selected' : ''}>Procuradoria (PGE/PGM)</option>
+        </optgroup>
+        <optgroup label="Saúde e Educação">
+          <option value="sus" ${state.aivos360State?.concurso === 'sus' ? 'selected' : ''}>Concurso de Saúde (SUS/Hospitais)</option>
+          <option value="professor-estado" ${state.aivos360State?.concurso === 'professor-estado' ? 'selected' : ''}>Professor – Rede Estadual</option>
+          <option value="professor-federal" ${state.aivos360State?.concurso === 'professor-federal' ? 'selected' : ''}>Professor – EBTT / IFES</option>
+          <option value="residencia" ${state.aivos360State?.concurso === 'residencia' ? 'selected' : ''}>Residência Médica / Multiprofissional</option>
+        </optgroup>
+        <option value="outro">Outro (digitar no cargo)</option>
       </select>
     </div>
 
     <div class="config-group">
-      <label class="config-label">Cargo</label>
-      <input type="text" id="aivos360-cargo" placeholder="Ex: Delegado, Escrivão, Analista..." value="${state.aivos360State?.cargo || ''}">
+      <label class="config-label">Cargo / Função</label>
+      <input type="text" id="aivos360-cargo" placeholder="Ex: Delegado, Escrivão, Analista, Auditor..." value="${state.aivos360State?.cargo || ''}">
     </div>
 
     <div class="config-group">
-      <label class="config-label">Banca</label>
+      <label class="config-label">Banca Organizadora</label>
       <select id="aivos360-banca">
         <option value="">Selecione...</option>
-        <option value="cespe">CESPE/CEBRASPE</option>
-        <option value="vunesp">VUNESP</option>
-        <option value="fcc">FCC</option>
-        <option value="fgv">FGV</option>
-        <option value="cetro">CETRO</option>
-        <option value="consulplan">CONSULPLAN</option>
-        <option value="outro">Outra</option>
+        <optgroup label="Grandes Bancas">
+          <option value="cespe" ${state.aivos360State?.banca === 'cespe' ? 'selected' : ''}>CESPE / CEBRASPE</option>
+          <option value="fcc" ${state.aivos360State?.banca === 'fcc' ? 'selected' : ''}>FCC – Fundação Carlos Chagas</option>
+          <option value="vunesp" ${state.aivos360State?.banca === 'vunesp' ? 'selected' : ''}>VUNESP</option>
+          <option value="fgv" ${state.aivos360State?.banca === 'fgv' ? 'selected' : ''}>FGV – Fundação Getulio Vargas</option>
+          <option value="quadrix" ${state.aivos360State?.banca === 'quadrix' ? 'selected' : ''}>QUADRIX</option>
+          <option value="idecan" ${state.aivos360State?.banca === 'idecan' ? 'selected' : ''}>IDECAN</option>
+        </optgroup>
+        <optgroup label="Bancas Regionais">
+          <option value="consulplan" ${state.aivos360State?.banca === 'consulplan' ? 'selected' : ''}>CONSULPLAN</option>
+          <option value="cetro" ${state.aivos360State?.banca === 'cetro' ? 'selected' : ''}>CETRO</option>
+          <option value="ibfc" ${state.aivos360State?.banca === 'ibfc' ? 'selected' : ''}>IBFC</option>
+          <option value="ibade" ${state.aivos360State?.banca === 'ibade' ? 'selected' : ''}>IBADE</option>
+          <option value="iobv" ${state.aivos360State?.banca === 'iobv' ? 'selected' : ''}>IOBV</option>
+          <option value="aocp" ${state.aivos360State?.banca === 'aocp' ? 'selected' : ''}>AOCP</option>
+          <option value="fapems" ${state.aivos360State?.banca === 'fapems' ? 'selected' : ''}>FAPEMS</option>
+          <option value="fumarc" ${state.aivos360State?.banca === 'fumarc' ? 'selected' : ''}>FUMARC</option>
+          <option value="uepa" ${state.aivos360State?.banca === 'uepa' ? 'selected' : ''}>UEPA (PA)</option>
+          <option value="cop-ufpr" ${state.aivos360State?.banca === 'cop-ufpr' ? 'selected' : ''}>COP/UFPR</option>
+          <option value="caip-imes" ${state.aivos360State?.banca === 'caip-imes' ? 'selected' : ''}>CAIP-IMES</option>
+          <option value="legalle" ${state.aivos360State?.banca === 'legalle' ? 'selected' : ''}>LEGALLE Concursos</option>
+          <option value="objetiva" ${state.aivos360State?.banca === 'objetiva' ? 'selected' : ''}>OBJETIVA</option>
+        </optgroup>
+        <option value="outro">Outra banca (não listada)</option>
       </select>
     </div>
 
@@ -4245,23 +4302,36 @@ function renderStep2Aivos360(container) {
 
     <div class="config-group">
       <label class="config-label">Horas disponíveis por dia</label>
-      <input type="number" id="aivos360-horas-dia" min="1" max="12" placeholder="Ex: 4" value="${state.aivos360State?.horasDia || ''}">
-    </div>
-
-    <div class="config-group">
-      <label class="config-label">Nível atual</label>
-      <select id="aivos360-nivel">
+      <select id="aivos360-horas-dia">
         <option value="">Selecione...</option>
-        <option value="iniciante">Iniciante (primeira vez)</option>
-        <option value="basico">Básico (já estudou pouco)</option>
-        <option value="intermediario">Intermediário (estuda há algum tempo)</option>
-        <option value="avancado">Avançado (já fez outras provas)</option>
+        <option value="1" ${state.aivos360State?.horasDia == 1 ? 'selected' : ''}>1 hora</option>
+        <option value="2" ${state.aivos360State?.horasDia == 2 ? 'selected' : ''}>2 horas</option>
+        <option value="3" ${state.aivos360State?.horasDia == 3 ? 'selected' : ''}>3 horas</option>
+        <option value="4" ${state.aivos360State?.horasDia == 4 ? 'selected' : ''}>4 horas</option>
+        <option value="5" ${state.aivos360State?.horasDia == 5 ? 'selected' : ''}>5 horas</option>
+        <option value="6" ${state.aivos360State?.horasDia == 6 ? 'selected' : ''}>6 horas</option>
+        <option value="8" ${state.aivos360State?.horasDia == 8 ? 'selected' : ''}>8 horas</option>
+        <option value="10" ${state.aivos360State?.horasDia == 10 ? 'selected' : ''}>10 horas</option>
+        <option value="12" ${state.aivos360State?.horasDia == 12 ? 'selected' : ''}>12 horas (integral)</option>
       </select>
     </div>
 
     <div class="config-group">
-      <label class="config-label">Experiência anterior</label>
-      <textarea id="aivos360-experiencia" rows="3" placeholder="Descreva brevemente sua experiência com concursos anteriores...">${state.aivos360State?.experiencia || ''}</textarea>
+      <label class="config-label">Nível atual de preparação</label>
+      <select id="aivos360-nivel">
+        <option value="">Selecione...</option>
+        <option value="zerado" ${state.aivos360State?.nivel === 'zerado' ? 'selected' : ''}>Zerado – nunca estudei para concurso</option>
+        <option value="iniciante" ${state.aivos360State?.nivel === 'iniciante' ? 'selected' : ''}>Iniciante – sei o básico das matérias</option>
+        <option value="basico" ${state.aivos360State?.nivel === 'basico' ? 'selected' : ''}>Básico – já estudei algum tempo</option>
+        <option value="intermediario" ${state.aivos360State?.nivel === 'intermediario' ? 'selected' : ''}>Intermediário – faço questões regularmente</option>
+        <option value="avancado" ${state.aivos360State?.nivel === 'avancado' ? 'selected' : ''}>Avançado – já fiz provas e sei meus pontos fracos</option>
+        <option value="veterano" ${state.aivos360State?.nivel === 'veterano' ? 'selected' : ''}>Veterano – concurseiro dedicado há mais de 2 anos</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Experiência anterior (opcional)</label>
+      <textarea id="aivos360-experiencia" rows="3" placeholder="Ex: Fiz o TJ em 2022, fui aprovado na 1ª fase. Tenho dificuldade em Direito Constitucional...">${state.aivos360State?.experiencia || ''}</textarea>
     </div>
   `;
 
@@ -4290,7 +4360,7 @@ function renderStep2Aivos360(container) {
     updateNavButtons();
   });
 
-  document.getElementById('aivos360-horas-dia').addEventListener('input', (e) => {
+  document.getElementById('aivos360-horas-dia').addEventListener('change', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.horasDia = e.target.value;
     updateNavButtons();
@@ -4316,28 +4386,62 @@ function renderStep3Aivos360() {
     <p class="step-subtitle">Defina a intensidade e frequência das suas atividades de estudo.</p>
     
     <div class="config-group">
-      <label class="config-label">Quantidade de redações por semana</label>
-      <input type="number" id="aivos360-redacoes-semana" min="0" max="7" value="${state.aivos360State?.redacoesPorSemana || 1}">
+      <label class="config-label">Redação no seu concurso?</label>
+      <select id="aivos360-redacoes-semana">
+        <option value="sem-redacao" ${(state.aivos360State?.redacoesPorSemana === 'sem-redacao') ? 'selected' : ''}>Sem redação (concurso não exige)</option>
+        <option value="1" ${state.aivos360State?.redacoesPorSemana == 1 ? 'selected' : ''}>1 redação por semana</option>
+        <option value="2" ${state.aivos360State?.redacoesPorSemana == 2 ? 'selected' : ''}>2 redações por semana</option>
+        <option value="3" ${state.aivos360State?.redacoesPorSemana == 3 ? 'selected' : ''}>3 redações por semana</option>
+        <option value="5" ${state.aivos360State?.redacoesPorSemana == 5 ? 'selected' : ''}>5 redações por semana (intensivo)</option>
+        <option value="7" ${state.aivos360State?.redacoesPorSemana == 7 ? 'selected' : ''}>Diariamente (1 por dia)</option>
+      </select>
     </div>
 
     <div class="config-group">
       <label class="config-label">Frequência de simulados</label>
       <select id="aivos360-simulados">
-        <option value="semanal" ${state.aivos360State?.frequenciaSimulados === 'semanal' ? 'selected' : ''}>Semanal</option>
+        <option value="">Selecione...</option>
+        <option value="diario" ${state.aivos360State?.frequenciaSimulados === 'diario' ? 'selected' : ''}>Diário (mini-simulados)</option>
+        <option value="2x-semana" ${state.aivos360State?.frequenciaSimulados === '2x-semana' ? 'selected' : ''}>2x por semana</option>
+        <option value="semanal" ${state.aivos360State?.frequenciaSimulados === 'semanal' ? 'selected' : ''}>Semanal (1 simulado completo)</option>
         <option value="quinzenal" ${state.aivos360State?.frequenciaSimulados === 'quinzenal' ? 'selected' : ''}>Quinzenal</option>
         <option value="mensal" ${state.aivos360State?.frequenciaSimulados === 'mensal' ? 'selected' : ''}>Mensal</option>
+        <option value="sem-simulado" ${state.aivos360State?.frequenciaSimulados === 'sem-simulado' ? 'selected' : ''}>Sem simulados por enquanto</option>
       </select>
     </div>
 
     <div class="config-group">
-      <label class="config-label">Metas semanais</label>
-      <textarea id="aivos360-metas" rows="3" placeholder="Ex: Resolver 50 questões, estudar 20h, fazer 1 simulado...">${state.aivos360State?.metasSemanais || ''}</textarea>
+      <label class="config-label">Dias disponíveis para estudar</label>
+      <select id="aivos360-dias-semana">
+        <option value="7" ${state.aivos360State?.diasSemana == 7 ? 'selected' : ''}>7 dias (todos os dias)</option>
+        <option value="6" ${state.aivos360State?.diasSemana == 6 ? 'selected' : ''}>6 dias por semana</option>
+        <option value="5" ${state.aivos360State?.diasSemana == 5 ? 'selected' : ''}>5 dias (seg a sex)</option>
+        <option value="4" ${state.aivos360State?.diasSemana == 4 ? 'selected' : ''}>4 dias por semana</option>
+        <option value="3" ${state.aivos360State?.diasSemana == 3 ? 'selected' : ''}>3 dias por semana</option>
+        <option value="2" ${state.aivos360State?.diasSemana == 2 ? 'selected' : ''}>Finais de semana apenas</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Prioridade de estudo</label>
+      <select id="aivos360-prioridade">
+        <option value="edital" ${state.aivos360State?.prioridade === 'edital' ? 'selected' : ''}>Seguir o edital fielmente</option>
+        <option value="fraquezas" ${state.aivos360State?.prioridade === 'fraquezas' ? 'selected' : ''}>Atacar minhas maiores fraquezas</option>
+        <option value="questoes" ${state.aivos360State?.prioridade === 'questoes' ? 'selected' : ''}>Foco em resolver o máximo de questões</option>
+        <option value="revisao" ${state.aivos360State?.prioridade === 'revisao' ? 'selected' : ''}>Revisão contínua do que já estudei</option>
+        <option value="balanceado" ${state.aivos360State?.prioridade === 'balanceado' ? 'selected' : ''}>Balanceado (teoria + prática + revisão)</option>
+      </select>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Metas semanais (opcional)</label>
+      <textarea id="aivos360-metas" rows="3" placeholder="Ex: Resolver 80 questões, estudar 20h, fechar Direito Constitucional...">${state.aivos360State?.metasSemanais || ''}</textarea>
     </div>
   `;
 
   // Add event listeners
-  document.getElementById('aivos360-redacoes-semana').addEventListener('input', (e) => {
-    state.aivos360State.redacoesPorSemana = parseInt(e.target.value) || 1;
+  document.getElementById('aivos360-redacoes-semana').addEventListener('change', (e) => {
+    state.aivos360State.redacoesPorSemana = e.target.value;
     updateNavButtons();
   });
 
@@ -4346,10 +4450,26 @@ function renderStep3Aivos360() {
     updateNavButtons();
   });
 
+  document.getElementById('aivos360-dias-semana').addEventListener('change', (e) => {
+    state.aivos360State.diasSemana = e.target.value;
+    updateNavButtons();
+  });
+
+  document.getElementById('aivos360-prioridade').addEventListener('change', (e) => {
+    state.aivos360State.prioridade = e.target.value;
+    updateNavButtons();
+  });
+
   document.getElementById('aivos360-metas').addEventListener('input', (e) => {
     state.aivos360State.metasSemanais = e.target.value;
     updateNavButtons();
   });
+
+  // Inicializar defaults para campos de seleção já preenchidos
+  if (!state.aivos360State.redacoesPorSemana) state.aivos360State.redacoesPorSemana = 'sem-redacao';
+  if (!state.aivos360State.diasSemana) state.aivos360State.diasSemana = 7;
+  if (!state.aivos360State.prioridade) state.aivos360State.prioridade = 'balanceado';
+  updateNavButtons();
 
   lucide.createIcons();
 }
