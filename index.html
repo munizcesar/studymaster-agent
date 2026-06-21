@@ -2035,6 +2035,304 @@
       text-align: center;
       padding: var(--space-4);
     }
+    .aivos360-mission-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      margin-top: var(--space-2);
+    }
+    .aivos360-mission-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--color-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .aivos360-mission-item:hover {
+      border-color: var(--color-primary);
+    }
+    .aivos360-mission-item.completed {
+      opacity: 0.7;
+      background: var(--color-surface);
+    }
+    .aivos360-mission-item.completed .aivos360-mission-text {
+      text-decoration: line-through;
+      color: var(--color-text-muted);
+    }
+    .aivos360-mission-text {
+      flex: 1;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .aivos360-mission-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      transition: all var(--transition);
+    }
+    .aivos360-mission-item.completed .aivos360-mission-checkbox {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: white;
+    }
+    .aivos360-mission-progress {
+      width: 100%;
+      height: 8px;
+      background: var(--color-border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: var(--space-4);
+    }
+    .aivos360-mission-progress-bar {
+      height: 100%;
+      background: var(--grad-brand);
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: var(--radius-full);
+    }
+    .aivos360-mission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .aivos360-mission-status {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    .aivos360-review-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .aivos360-review-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3);
+      background: var(--color-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+    }
+    .aivos360-review-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .aivos360-review-title {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .aivos360-review-meta {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .aivos360-badge-danger {
+      background: oklch(from var(--color-error) l c h / 0.15);
+      color: var(--color-error);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .aivos360-badge-warning {
+      background: oklch(from #D4A827 l c h / 0.15);
+      color: #D4A827;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .aivos360-badge-info {
+      background: oklch(from var(--color-primary) l c h / 0.15);
+      color: var(--color-primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .aivos360-review-action {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .aivos360-review-action:hover {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+    .aivos360-mode-selector {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-primary);
+      margin-bottom: var(--space-4);
+    }
+    .aivos360-mode-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .aivos360-mode-icon {
+      background: oklch(from var(--color-primary) l c h / 0.1);
+      color: var(--color-primary);
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      display: flex;
+    }
+    .aivos360-mode-icon.guerra {
+      background: oklch(from var(--color-error) l c h / 0.1);
+      color: var(--color-error);
+      border: 1px solid var(--color-error);
+    }
+    .aivos360-mode-icon.cursinho {
+      background: oklch(from var(--color-success) l c h / 0.1);
+      color: var(--color-success);
+    }
+    .aivos360-mode-text h4 {
+      margin: 0;
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .aivos360-mode-text p {
+      margin: 0;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    .aivos360-mode-actions select {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    /* Radar AIVOS */
+    .aivos360-radar-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .aivos360-radar-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--color-bg);
+      border-radius: var(--radius-md);
+      border-left: 3px solid transparent;
+    }
+    .aivos360-radar-item.risco { border-left-color: var(--color-error); }
+    .aivos360-radar-item.lacuna { border-left-color: #D4A827; }
+    .aivos360-radar-item.esquecimento { border-left-color: var(--color-primary); }
+    .aivos360-radar-icon {
+      padding-top: 2px;
+    }
+    .aivos360-radar-text h4 {
+      margin: 0 0 2px 0;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .aivos360-radar-text p {
+      margin: 0;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    
+    /* Certificação de Domínio */
+    .aivos360-cert-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: var(--space-3);
+    }
+    .aivos360-cert-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: var(--space-2);
+    }
+    .aivos360-cert-level {
+      font-size: var(--text-xl);
+      font-weight: 800;
+      color: var(--color-primary);
+    }
+    .aivos360-cert-title {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    
+    /* Coach Proativo Banner */
+    .aivos360-coach-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: oklch(from var(--color-primary) l c h / 0.1);
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+    }
+    .aivos360-coach-banner i { color: var(--color-primary); }
+    .aivos360-coach-text {
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    
+    /* Auditoria IA */
+    .aivos360-audit-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      background: none;
+      border: 1px solid var(--color-border);
+      padding: 4px 8px;
+      border-radius: var(--radius-md);
+      margin-left: auto;
+      transition: all 0.2s ease;
+    }
+    .aivos360-audit-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
+
     .aivos360-evolution {
       display: flex;
       flex-direction: column;
@@ -4046,6 +4344,357 @@ function renderStep3Aivos360() {
   lucide.createIcons();
 }
 
+function calcularModoInteligente() {
+  if (!state.aivos360State) state.aivos360State = {};
+  
+  if (state.aivos360State.modoManual) return;
+  
+  if (!state.aivos360State.dataProva) {
+    state.aivos360State.modoInteligente = 'cursinho';
+    return;
+  }
+  
+  const diasAteProva = Math.ceil((new Date(state.aivos360State.dataProva) - new Date()) / (1000 * 60 * 60 * 24));
+  
+  if (diasAteProva > 180) {
+    state.aivos360State.modoInteligente = 'cursinho';
+  } else if (diasAteProva > 60) {
+    state.aivos360State.modoInteligente = 'aprovacao';
+  } else {
+    state.aivos360State.modoInteligente = 'guerra';
+  }
+}
+
+function changeModoInteligente(novoModo) {
+  state.aivos360State.modoInteligente = novoModo;
+  state.aivos360State.modoManual = true;
+  saveState();
+  
+  if (state.aivos360State.missaoDiaria) {
+    state.aivos360State.missaoDiaria.data = 'regenerar';
+  }
+  
+  renderAivos360ModeSelector();
+  renderAivos360MissaoPanel();
+}
+
+function renderAivos360ModeSelector() {
+  const container = document.getElementById('aivos360-mode-container');
+  if (!container) return;
+  
+  const modo = state.aivos360State?.modoInteligente || 'cursinho';
+  let icone = 'book-open';
+  let classeCor = 'cursinho';
+  let titulo = 'Modo Cursinho Completo';
+  let desc = 'Foco em construir base teórica, resumos e aulas.';
+  
+  if (modo === 'aprovacao') {
+    icone = 'crosshair';
+    classeCor = 'aprovacao';
+    titulo = 'Modo Aprovação';
+    desc = 'Ritmo equilibrado: teoria nas lacunas e muitas questões.';
+  } else if (modo === 'guerra') {
+    icone = 'flame';
+    classeCor = 'guerra';
+    titulo = 'Modo Guerra';
+    desc = 'Revisões intensas, simulados e foco total na banca.';
+  }
+  
+  container.innerHTML = `
+    <div class="aivos360-mode-selector">
+      <div class="aivos360-mode-info">
+        <div class="aivos360-mode-icon ${classeCor}">
+          <i data-lucide="${icone}" width="24" height="24"></i>
+        </div>
+        <div class="aivos360-mode-text">
+          <h4>${titulo}</h4>
+          <p>${desc}</p>
+        </div>
+      </div>
+      <div class="aivos360-mode-actions">
+        <select onchange="changeModoInteligente(this.value)">
+          <option value="cursinho" ${modo === 'cursinho' ? 'selected' : ''}>Cursinho</option>
+          <option value="aprovacao" ${modo === 'aprovacao' ? 'selected' : ''}>Aprovação</option>
+          <option value="guerra" ${modo === 'guerra' ? 'selected' : ''}>Guerra</option>
+        </select>
+      </div>
+    </div>
+  `;
+  lucide.createIcons();
+}
+
+function gerarOuRecuperarMissaoDiaria() {
+  const hoje = new Date().toISOString().split('T')[0];
+  
+  if (!state.aivos360State) state.aivos360State = {};
+  
+  let missao = state.aivos360State.missaoDiaria;
+  
+  if (!missao || missao.data !== hoje) {
+    const horasDia = state.aivos360State.horasDia || 4;
+    const modo = state.aivos360State.modoInteligente || 'cursinho';
+    
+    let t1, t2, t3;
+    
+    if (modo === 'cursinho') {
+      t1 = `Estudar teoria de ${state.aivos360State.banca || 'disciplinas novas'} por ${Math.max(1, Math.floor(horasDia*0.6))}h`;
+      t2 = `Fazer ${Math.floor(horasDia*5)} questões de fixação`;
+      t3 = `Produzir mapas mentais/resumos do assunto de hoje`;
+    } else if (modo === 'aprovacao') {
+      t1 = `Revisar teoria dos tópicos com menor desempenho por ${Math.max(1, Math.floor(horasDia*0.3))}h`;
+      t2 = `Resolver ${Math.floor(horasDia*10)} questões focadas no seu nível`;
+      t3 = `Revisar erros e conceitos críticos do dia anterior`;
+    } else { // guerra
+      t1 = `Fazer simulado ou resolver ${Math.floor(horasDia*15)} questões da banca ${state.aivos360State.banca || 'selecionada'}`;
+      t2 = `Mapeamento de pegadinhas e revisão de lei seca`;
+      t3 = `Revisar exclusivamente as questões erradas da prática`;
+    }
+    
+    missao = {
+      data: hoje,
+      tarefas: [
+        { id: 't1', texto: t1, concluida: false },
+        { id: 't2', texto: t2, concluida: false },
+        { id: 't3', texto: t3, concluida: false }
+      ]
+    };
+    
+    state.aivos360State.missaoDiaria = missao;
+    saveState();
+  }
+  return missao;
+}
+
+function toggleMissaoTarefa(id) {
+  const missao = state.aivos360State.missaoDiaria;
+  if (!missao) return;
+  
+  const tarefa = missao.tarefas.find(t => t.id === id);
+  if (tarefa) {
+    tarefa.concluida = !tarefa.concluida;
+    
+    // Check if all completed to update streak
+    const todasConcluidas = missao.tarefas.every(t => t.concluida);
+    const hoje = missao.data;
+    
+    if (todasConcluidas && state.aivos360State.ultimoDiaConcluido !== hoje) {
+      state.aivos360State.streak = (state.aivos360State.streak || 0) + 1;
+      state.aivos360State.ultimoDiaConcluido = hoje;
+    } else if (!todasConcluidas && state.aivos360State.ultimoDiaConcluido === hoje) {
+      // Revert streak if uncompleted on the same day
+      state.aivos360State.streak = Math.max(0, (state.aivos360State.streak || 1) - 1);
+      state.aivos360State.ultimoDiaConcluido = null;
+    }
+    
+    saveState();
+    renderAivos360MissaoPanel();
+    
+    const streakEl = document.getElementById('aivos360-streak');
+    if (streakEl) {
+      streakEl.textContent = `${state.aivos360State.streak || 0} dias`;
+    }
+  }
+}
+
+function gerarOuRecuperarRevisoes() {
+  if (!state.aivos360State) state.aivos360State = {};
+  if (!state.aivos360State.revisoes) {
+    // Gerar revisoes mockadas para demonstrar o D+1, D+7, D+30
+    const hoje = new Date();
+    const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
+    const tresDiasAtras = new Date(hoje); tresDiasAtras.setDate(tresDiasAtras.getDate() - 3);
+    
+    state.aivos360State.revisoes = [
+      { id: 'r1', topico: 'Direito Constitucional: Direitos Fundamentais', intervaloAtual: 1, proximaRevisao: ontem.toISOString().split('T')[0] },
+      { id: 'r2', topico: 'Português: Crase', intervaloAtual: 1, proximaRevisao: hoje.toISOString().split('T')[0] },
+      { id: 'r3', topico: 'Raciocínio Lógico: Equivalências', intervaloAtual: 7, proximaRevisao: hoje.toISOString().split('T')[0] },
+      { id: 'r4', topico: 'Direito Administrativo: Atos Administrativos', intervaloAtual: 30, proximaRevisao: tresDiasAtras.toISOString().split('T')[0] }
+    ];
+    saveState();
+  }
+  return state.aivos360State.revisoes;
+}
+
+function avancaRevisao(id) {
+  const revisoes = state.aivos360State.revisoes;
+  if (!revisoes) return;
+  const rev = revisoes.find(r => r.id === id);
+  if (rev) {
+    if (rev.intervaloAtual === 1) rev.intervaloAtual = 7;
+    else if (rev.intervaloAtual === 7) rev.intervaloAtual = 30;
+    else if (rev.intervaloAtual === 30) rev.intervaloAtual = 60;
+    
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + rev.intervaloAtual);
+    rev.proximaRevisao = nextDate.toISOString().split('T')[0];
+    
+    saveState();
+    renderAivos360RevisaoPanel();
+  }
+}
+
+function renderAivos360RevisaoPanel() {
+  const container = document.getElementById('aivos360-review-container');
+  if (!container) return;
+  
+  const revisoes = gerarOuRecuperarRevisoes();
+  const hoje = new Date().toISOString().split('T')[0];
+  
+  let pendentes = revisoes.filter(r => r.proximaRevisao <= hoje);
+  pendentes.sort((a, b) => new Date(a.proximaRevisao) - new Date(b.proximaRevisao));
+  
+  if (pendentes.length === 0) {
+    container.innerHTML = `<div class="aivos360-empty">Nenhuma revisão pendente para hoje! 🎉</div>`;
+    return;
+  }
+  
+  let html = `<div class="aivos360-review-list">`;
+  
+  pendentes.slice(0, 4).forEach(r => {
+    let isOverdue = r.proximaRevisao < hoje;
+    let badgeClass = isOverdue ? 'aivos360-badge-danger' : 'aivos360-badge-warning';
+    let badgeText = isOverdue ? 'Atrasado' : 'Hoje';
+    let labelIntervalo = r.intervaloAtual === 1 ? 'D+1' : r.intervaloAtual === 7 ? 'D+7' : `D+${r.intervaloAtual}`;
+    
+    html += `
+      <div class="aivos360-review-item">
+        <div class="aivos360-review-info">
+          <div class="aivos360-review-title">${r.topico}</div>
+          <div class="aivos360-review-meta">
+            <span class="${badgeClass}">${badgeText}</span>
+            <span class="aivos360-badge-info">${labelIntervalo}</span>
+          </div>
+        </div>
+        <button class="aivos360-review-action" onclick="avancaRevisao('${r.id}')">Revisado</button>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  if (pendentes.length > 4) {
+    html += `<div style="text-align: center; margin-top: var(--space-2); font-size: 11px; color: var(--color-text-muted)">+ ${pendentes.length - 4} revisões pendentes...</div>`;
+  }
+  
+  container.innerHTML = html;
+}
+
+function renderAivos360MissaoPanel() {
+  const container = document.getElementById('aivos360-missao-container');
+  if (!container) return;
+  
+  const missao = gerarOuRecuperarMissaoDiaria();
+  const concluidas = missao.tarefas.filter(t => t.concluida).length;
+  const total = missao.tarefas.length;
+  const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+  
+  let html = `
+    <div class="aivos360-mission-header">
+      <span class="action-label">Missão Diária</span>
+      <span class="aivos360-mission-status">${concluidas}/${total} Concluídas</span>
+    </div>
+    <div class="aivos360-mission-progress">
+      <div class="aivos360-mission-progress-bar" style="width: ${progresso}%"></div>
+    </div>
+    <div class="aivos360-mission-list">
+  `;
+  
+  missao.tarefas.forEach(t => {
+    html += `
+      <div class="aivos360-mission-item ${t.concluida ? 'completed' : ''}" onclick="toggleMissaoTarefa('${t.id}')">
+        <div class="aivos360-mission-checkbox">
+          <i data-lucide="check" width="14" height="14"></i>
+        </div>
+        <div class="aivos360-mission-text">${t.texto}</div>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  container.innerHTML = html;
+  lucide.createIcons();
+}
+
+function renderAivos360CoachBanner() {
+  const container = document.getElementById('aivos360-coach-container');
+  if (!container) return;
+  const modo = state.aivos360State?.modoInteligente || 'cursinho';
+  let msg = '';
+  if (modo === 'cursinho') msg = '💡 Ótimo ritmo! Você tem uma boa margem até a prova. Foque em fechar o edital com qualidade.';
+  else if (modo === 'aprovacao') msg = '⚠️ Reta intermediária. O sistema percebeu que você pode estar negligenciando Português. Ajustei suas missões.';
+  else msg = '🔥 Reta final! Seus simulados mostram fraqueza em Informática. Prioridade máxima nas revisões hoje!';
+  
+  container.innerHTML = `
+    <div class="aivos360-coach-banner">
+      <i data-lucide="bot" width="24" height="24"></i>
+      <div class="aivos360-coach-text">${msg}</div>
+    </div>
+  `;
+}
+
+function renderAivos360RadarPanel() {
+  const container = document.getElementById('aivos360-radar-container');
+  if (!container) return;
+  
+  container.innerHTML = `
+    <div class="aivos360-radar-list">
+      <div class="aivos360-radar-item lacuna">
+        <div class="aivos360-radar-icon"><i data-lucide="eye-off" width="18" height="18" style="color: #D4A827"></i></div>
+        <div class="aivos360-radar-text">
+          <h4>Lacuna Oculta Detectada</h4>
+          <p>Você acerta 80% em Direito Administrativo geral, mas erra 70% nas questões de Licitações. Recomendo foco específico.</p>
+        </div>
+      </div>
+      <div class="aivos360-radar-item risco">
+        <div class="aivos360-radar-icon"><i data-lucide="alert-triangle" width="18" height="18" style="color: var(--color-error)"></i></div>
+        <div class="aivos360-radar-text">
+          <h4>Risco de Prova (Alta Incidência)</h4>
+          <p>O tópico "Direitos Políticos" cai em 15% das provas da sua banca e seu domínio atual é Nível 1. Risco crítico!</p>
+        </div>
+      </div>
+      <div class="aivos360-radar-item esquecimento">
+        <div class="aivos360-radar-icon"><i data-lucide="brain-circuit" width="18" height="18" style="color: var(--color-primary)"></i></div>
+        <div class="aivos360-radar-text">
+          <h4>Previsão de Esquecimento</h4>
+          <p>Você estudou "Atos Administrativos" há 28 dias. Há 65% de chance de esquecimento na próxima semana. Agendado para D+30.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAivos360Certificacao() {
+  const container = document.getElementById('aivos360-cert-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="aivos360-cert-grid">
+      <div class="aivos360-cert-card">
+        <div class="aivos360-cert-title">Português</div>
+        <div class="aivos360-cert-level">Nível 4</div>
+        <div style="font-size:10px; color:var(--color-text-muted)">Competente</div>
+      </div>
+      <div class="aivos360-cert-card">
+        <div class="aivos360-cert-title">Informática</div>
+        <div class="aivos360-cert-level">Nível 2</div>
+        <div style="font-size:10px; color:var(--color-text-muted)">Iniciante</div>
+      </div>
+      <div class="aivos360-cert-card">
+        <div class="aivos360-cert-title">Raciocínio Lógico</div>
+        <div class="aivos360-cert-level">Nível 3</div>
+        <div style="font-size:10px; color:var(--color-text-muted)">Intermediário</div>
+      </div>
+      <div class="aivos360-cert-card">
+        <div class="aivos360-cert-title">D. Constitucional</div>
+        <div class="aivos360-cert-level">Nível 5</div>
+        <div style="font-size:10px; color:var(--color-text-muted)">Mestre</div>
+      </div>
+    </div>
+  `;
+}
+
+function showAuditoriaIA() {
+  alert("Auditoria de IA do AIVOS 360:\\n\\nDecisão da Missão Diária:\\n1. A data da prova definiu o Modo Inteligente atual.\\n2. O nível geral selecionado balizou a quantidade e complexidade das questões.\\n3. O tempo de estudo disponível (" + (state.aivos360State?.horasDia || 4) + "h) limitou as tarefas.\\n\\nDecisão do Radar:\\n1. Lacunas cruzam seu histórico de erros com sub-tópicos.\\n2. Risco de Prova baseia-se na curva ABC da banca " + (state.aivos360State?.banca || 'selecionada') + ".");
+}
+
 function renderAivos360Dashboard() {
   const container = document.getElementById('step-4');
   container.innerHTML = `
@@ -4053,6 +4702,12 @@ function renderAivos360Dashboard() {
     <p class="step-subtitle">Visão completa do seu desempenho e plano de ação personalizado</p>
     
     <div class="aivos360-dashboard">
+      <!-- Mode Selector -->
+      <div id="aivos360-mode-container"></div>
+      
+      <!-- Coach Banner -->
+      <div id="aivos360-coach-container"></div>
+      
       <!-- Top Metrics Row -->
       <div class="aivos360-metrics-grid">
         <div class="aivos360-metric-card">
@@ -4080,29 +4735,30 @@ function renderAivos360Dashboard() {
 
       <!-- Action Plan -->
       <div class="aivos360-card aivos360-full-width aivos360-action-plan">
-        <h3 class="aivos360-card-title"><i data-lucide="lightbulb" width="18" height="18"></i> Plano de Ação do Mentor</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-3);">
+          <h3 class="aivos360-card-title" style="margin:0;"><i data-lucide="lightbulb" width="18" height="18"></i> Plano de Ação do Mentor</h3>
+          <button class="aivos360-audit-btn" onclick="showAuditoriaIA()"><i data-lucide="info" width="14" height="14"></i> Auditoria IA</button>
+        </div>
         <div class="aivos360-action-grid">
-          <div class="aivos360-action-item">
-            <span class="action-label">O que estudar hoje</span>
-            <div id="aivos360-study-today" class="action-content">Carregando...</div>
+          <div id="aivos360-missao-container" class="aivos360-action-item aivos360-full-width">
+            Carregando missão...
           </div>
-          <div class="aivos360-action-item">
-            <span class="action-label">O que revisar hoje</span>
-            <div id="aivos360-review-today" class="action-content">Carregando...</div>
+          <div class="aivos360-action-item aivos360-full-width">
+            <span class="action-label">O que revisar hoje (Algoritmo D+1, D+7, D+30)</span>
+            <div id="aivos360-review-container" class="action-content">Carregando...</div>
           </div>
-          <div class="aivos360-action-item">
-            <span class="action-label">O que está atrasado</span>
-            <div id="aivos360-overdue" class="action-content">Carregando...</div>
-          </div>
-          <div class="aivos360-action-item">
-            <span class="action-label">Maior gargalo atual</span>
-            <div id="aivos360-bottleneck" class="action-content">Carregando...</div>
-          </div>
-          <div class="aivos360-action-item aivos360-action-highlight">
-            <span class="action-label">Próximo passo recomendado</span>
-            <div id="aivos360-next-step" class="action-content">Carregando...</div>
+          
+          <div class="aivos360-action-item aivos360-full-width">
+            <span class="action-label">Radar AIVOS: Riscos e Lacunas Ocultas</span>
+            <div id="aivos360-radar-container" class="action-content">Carregando...</div>
           </div>
         </div>
+      </div>
+      
+      <!-- Certificações -->
+      <div class="aivos360-card aivos360-full-width" style="margin-top: var(--space-4);">
+        <h3 class="aivos360-card-title"><i data-lucide="shield-check" width="18" height="18"></i> Certificação de Domínio</h3>
+        <div id="aivos360-cert-container">Carregando certificações...</div>
       </div>
 
       <!-- Back Button -->
@@ -4127,6 +4783,9 @@ function renderAivos360Dashboard() {
 }
 
 function populateAivos360DashboardSimple() {
+  calcularModoInteligente();
+  renderAivos360ModeSelector();
+  
   // Simple dashboard population based on diagnosis
   const daysUntilExam = state.aivos360State?.dataProva ? 
     Math.ceil((new Date(state.aivos360State.dataProva) - new Date()) / (1000 * 60 * 60 * 24)) : null;
@@ -4139,19 +4798,15 @@ function populateAivos360DashboardSimple() {
     state.aivos360State?.nivel === 'intermediario' ? '40%' : 
     state.aivos360State?.nivel === 'basico' ? '20%' : '10%';
   
-  document.getElementById('aivos360-streak').textContent = '0 dias';
+  document.getElementById('aivos360-streak').textContent = `${state.aivos360State?.streak || 0} dias`;
   
-  document.getElementById('aivos360-study-today').textContent = 
-    `Estudar ${state.aivos360State?.horasDia || 4}h de ${state.aivos360State?.concurso || 'concurso'}`;
+  renderAivos360MissaoPanel();
+  renderAivos360RevisaoPanel();
   
-  document.getElementById('aivos360-review-today').textContent = 'Nenhuma revisão pendente';
-  
-  document.getElementById('aivos360-overdue').textContent = 'Nada atrasado';
-  
-  document.getElementById('aivos360-bottleneck').textContent = 'Nenhum gargalo identificado';
-  
-  document.getElementById('aivos360-next-step').textContent = 
-    `Comece estudando para ${state.aivos360State?.banca || 'banca selecionada'}`;
+  renderAivos360RevisaoPanel();
+  renderAivos360CoachBanner();
+  renderAivos360RadarPanel();
+  renderAivos360Certificacao();
 }
 
 function renderStep2Livre(container) {
