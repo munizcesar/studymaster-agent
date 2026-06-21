@@ -4269,36 +4269,43 @@ function renderStep2Aivos360(container) {
   document.getElementById('aivos360-concurso').addEventListener('change', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.concurso = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-cargo').addEventListener('input', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.cargo = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-banca').addEventListener('change', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.banca = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-data-prova').addEventListener('change', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.dataProva = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-horas-dia').addEventListener('input', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.horasDia = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-nivel').addEventListener('change', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.nivel = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-experiencia').addEventListener('input', (e) => {
     state.aivos360State = state.aivos360State || {};
     state.aivos360State.experiencia = e.target.value;
+    updateNavButtons();
   });
 }
 
@@ -4331,14 +4338,17 @@ function renderStep3Aivos360() {
   // Add event listeners
   document.getElementById('aivos360-redacoes-semana').addEventListener('input', (e) => {
     state.aivos360State.redacoesPorSemana = parseInt(e.target.value) || 1;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-simulados').addEventListener('change', (e) => {
     state.aivos360State.frequenciaSimulados = e.target.value;
+    updateNavButtons();
   });
 
   document.getElementById('aivos360-metas').addEventListener('input', (e) => {
     state.aivos360State.metasSemanais = e.target.value;
+    updateNavButtons();
   });
 
   lucide.createIcons();
