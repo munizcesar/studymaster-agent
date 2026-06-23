@@ -23,11 +23,12 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 const DB_NAME = 'AIVOS_DigitalTwin';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_PROFILE = 'profile';
 const STORE_QUESTIONS = 'questions';
 const STORE_ESSAYS = 'essays';
 const STORE_REVIEWS = 'reviews';
+const STORE_SIMULADOS = 'simulados';
 
 const DEFAULT_PROFILE = {
   studentId: null,
@@ -55,6 +56,10 @@ const DEFAULT_PROFILE = {
     reviews: {
       total: 0,
       schedule: []
+    },
+    simulados: {
+      total: 0,
+      history: []
     }
   },
   retention: {
@@ -138,6 +143,10 @@ class DigitalTwin {
           const reviewStore = db.createObjectStore(STORE_REVIEWS, { keyPath: 'id' });
           reviewStore.createIndex('topic', 'topic', { unique: false });
           reviewStore.createIndex('date', 'date', { unique: false });
+        }
+        if (!db.objectStoreNames.contains(STORE_SIMULADOS)) {
+          const simuladoStore = db.createObjectStore(STORE_SIMULADOS, { keyPath: 'id' });
+          simuladoStore.createIndex('timestamp', 'timestamp', { unique: false });
         }
       };
     });
@@ -412,6 +421,57 @@ class DigitalTwin {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
+  // REGISTRO DE SIMULADOS
+  // ════════════════════════════════════════════════════════════════════════════
+
+  async recordSimulado(simuladoData) {
+    const {
+      discipline,
+      questions,
+      correct,
+      wrong,
+      score,
+      timeSpent,
+      difficulty
+    } = simuladoData;
+
+    const record = {
+      id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      discipline: discipline || 'Geral',
+      questions: questions || 0,
+      correct: correct || 0,
+      wrong: wrong || 0,
+      score: score || (questions > 0 ? Math.round((correct / questions) * 100) : 0),
+      timeSpent: timeSpent || 0,
+      difficulty: difficulty || 'medium',
+      date: Date.now(),
+      timestamp: Date.now()
+    };
+
+    // Atualizar perfil
+    this.profile.performance.simulados.total++;
+    this.profile.performance.simulados.history.push(record);
+
+    // Salvar no IndexedDB
+    if (this.db) {
+      try {
+        const transaction = this.db.transaction([STORE_SIMULADOS], 'readwrite');
+        const store = transaction.objectStore(STORE_SIMULADOS);
+        store.add(record);
+        await new Promise((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+        });
+      } catch (error) {
+        console.error('[DigitalTwin] Erro ao salvar simulado no IndexedDB:', error);
+      }
+    }
+
+    await this.saveProfile();
+    return record;
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
   // ATUALIZAÇÃO DE RETENÇÃO
   // ════════════════════════════════════════════════════════════════════════════
 
@@ -482,6 +542,10 @@ class DigitalTwin {
     return this.profile.performance.reviews.schedule;
   }
 
+  getSimuladoStats() {
+    return this.profile.performance.simulados;
+  }
+
   getRetention() {
     return this.profile.retention;
   }
@@ -500,6 +564,7 @@ class DigitalTwin {
       questions: await this.getAllQuestions(),
       essays: await this.getAllEssays(),
       reviews: await this.getAllReviews(),
+      simulados: await this.getAllSimulados(),
       exportedAt: Date.now()
     };
 
@@ -526,6 +591,9 @@ class DigitalTwin {
       }
       if (data.reviews && this.db) {
         await this.restoreReviews(data.reviews);
+      }
+      if (data.simulados && this.db) {
+        await this.restoreSimulados(data.simulados);
       }
 
       console.log('[DigitalTwin] Dados importados com sucesso');
@@ -575,6 +643,19 @@ class DigitalTwin {
     });
   }
 
+  async getAllSimulados() {
+    if (!this.db) return [];
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORE_SIMULADOS], 'readonly');
+      const store = transaction.objectStore(STORE_SIMULADOS);
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async restoreQuestions(questions) {
     const transaction = this.db.transaction([STORE_QUESTIONS], 'readwrite');
     const store = transaction.objectStore(STORE_QUESTIONS);
@@ -609,6 +690,20 @@ class DigitalTwin {
 
     for (const review of reviews) {
       store.put(review);
+    }
+
+    await new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
+
+  async restoreSimulados(simulados) {
+    const transaction = this.db.transaction([STORE_SIMULADOS], 'readwrite');
+    const store = transaction.objectStore(STORE_SIMULADOS);
+
+    for (const simulado of simulados) {
+      store.put(simulado);
     }
 
     await new Promise((resolve, reject) => {
@@ -656,6 +751,10 @@ class DigitalTwin {
       this.profile.performance.reviews = {
         total: 0,
         schedule: []
+      };
+      this.profile.performance.simulados = {
+        total: 0,
+        history: []
       };
 
       await this.saveProfile();

@@ -2316,6 +2316,257 @@
       font-weight: 500;
     }
     
+
+    /* 🧠 MENTOR CEREBRO - Mensagens Proativas */
+    .mentor-messages {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      margin: var(--space-3) 0;
+    }
+    .mentor-message {
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: mentorSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      box-shadow: 0 1px 3px oklch(0 0 0 / 0.06);
+    }
+    @keyframes mentorSlideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .mentor-message:hover {
+      border-color: var(--color-primary-mid);
+      box-shadow: 0 8px 24px oklch(0 0 0 / 0.1);
+      transform: translateY(-1px);
+    }
+    .mentor-message.message-warning { border-left: 4px solid var(--color-error); }
+    .mentor-message.message-info { border-left: 4px solid var(--color-primary); }
+    .mentor-message.message-success { border-left: 4px solid var(--color-success); }
+    .mentor-message.message-insight { border-left: 4px solid #D4A827; }
+    .mentor-message-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface-offset);
+      border-bottom: 1px solid var(--color-divider);
+    }
+    .mentor-message-icon { font-size: 1.4em; flex-shrink: 0; line-height: 1; }
+    .mentor-message-title {
+      flex: 1;
+      font-weight: 700;
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      letter-spacing: -0.01em;
+    }
+    .mentor-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .mentor-pill.alta { background: oklch(from var(--color-success) l c h / 0.15); color: var(--color-success); }
+    .mentor-pill.media { background: oklch(from #D4A827 l c h / 0.15); color: #D4A827; }
+    .mentor-pill.baixa { background: oklch(from var(--color-error) l c h / 0.15); color: var(--color-error); }
+    .message-dismiss {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-faint); font-size: 15px;
+      transition: all 0.15s ease; flex-shrink: 0;
+    }
+    .message-dismiss:hover { background: var(--color-divider); color: var(--color-text); }
+    .mentor-message-body {
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .mentor-obs {
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      line-height: 1.6;
+      display: flex;
+      gap: var(--space-2);
+    }
+    .mentor-obs-icon {
+      font-size: 1.1em;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .mentor-obs-text strong {
+      color: var(--color-primary);
+    }
+    .mentor-detail {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      padding: var(--space-3);
+      background: oklch(from var(--color-bg) l c h / 0.5);
+      border-radius: 10px;
+      border-left: 3px solid var(--color-primary-mid);
+      margin-left: calc(1.1em + var(--space-2));
+    }
+    .mentor-detail strong {
+      color: var(--color-text);
+    }
+    .mentor-action-pill {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      padding: var(--space-3);
+      background: oklch(from var(--color-success) l c h / 0.06);
+      border-radius: 10px;
+      border: 1px solid oklch(from var(--color-success) l c h / 0.15);
+      margin-left: calc(1.1em + var(--space-2));
+    }
+    .mentor-action-pill strong { color: var(--color-success); }
+    .mentor-audit-line {
+      margin-top: var(--space-1);
+      font-size: 10px;
+      text-align: right;
+      padding: 0 var(--space-1);
+    }
+    .mentor-audit-trigger {
+      color: var(--color-text-faint);
+      cursor: help;
+      text-decoration: none;
+      border-bottom: 1px dotted var(--color-text-faint);
+      transition: color 0.15s;
+    }
+    .mentor-audit-trigger:hover { color: var(--color-primary-mid); }
+    .mentor-action-btn {
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
+      color: white;
+      font-weight: 700;
+      font-size: var(--text-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      letter-spacing: 0.01em;
+    }
+    .mentor-action-btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .mentor-action-btn:active {
+      transform: translateY(0) scale(0.99);
+    }
+
+    /* 🧠 Indicador de Cerebro (brain widget) */
+    .mentor-brain-widget {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.08), oklch(from var(--color-primary-mid) l c h / 0.12));
+      border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+      border-radius: 14px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: var(--space-3);
+    }
+    .mentor-brain-widget::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 50%, oklch(from var(--color-primary) l c h / 0.12), transparent 70%);
+      animation: brainPulse 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes brainPulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.08); }
+    }
+    .mentor-brain-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: var(--grad-brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6em;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.3);
+    }
+    .mentor-brain-body {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+    }
+    .mentor-brain-headline {
+      font-weight: 700;
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .mentor-brain-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-success);
+      display: inline-block;
+      box-shadow: 0 0 6px oklch(from var(--color-success) l c h / 0.5);
+      animation: brainBlink 1.8s ease-in-out infinite;
+    }
+    @keyframes brainBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
+    }
+    .mentor-brain-sub {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+    .mentor-brain-badges {
+      display: flex;
+      gap: var(--space-2);
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+    .mentor-brain-badge {
+      text-align: center;
+      padding: var(--space-1) var(--space-2);
+      background: oklch(from var(--color-bg) l c h / 0.6);
+      border-radius: 10px;
+      min-width: 44px;
+    }
+    .mentor-brain-badge-value {
+      font-size: var(--text-base);
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1.2;
+    }
+    .mentor-brain-badge-label {
+      font-size: 9px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      line-height: 1;
+    }
+
+    @media (max-width: 600px) {
+      .mentor-brain-widget { flex-wrap: wrap; gap: var(--space-2); }
+      .mentor-brain-badges { width: 100%; justify-content: flex-end; padding-top: var(--space-1); border-top: 1px solid oklch(from var(--color-primary) l c h / 0.12); }
+      .mentor-message-header { padding: var(--space-2) var(--space-3); }
+      .mentor-message-body { padding: var(--space-3); }
+    }
+
     /* Auditoria IA */
     .aivos360-audit-btn {
       display: flex;
@@ -4747,19 +4998,109 @@ function renderAivos360MissaoPanel() {
 function renderAivos360CoachBanner() {
   const container = document.getElementById('aivos360-coach-container');
   if (!container) return;
+  const mentor = window.getProactiveMentor ? window.getProactiveMentor() : null;
+  const brainState = mentor ? mentor.getBrainState() : null;
+  const activeMessages = mentor ? mentor.getActiveMessages() : [];
+  const stats = mentor ? mentor.getMessageStats() : null;
   const modo = state.aivos360State?.modoInteligente || 'cursinho';
-  let msg = '';
-  if (modo === 'cursinho') msg = '💡 Ótimo ritmo! Você tem uma boa margem até a prova. Foque em fechar o edital com qualidade.';
-  else if (modo === 'aprovacao') msg = '⚠️ Reta intermediária. O sistema percebeu que você pode estar negligenciando Português. Ajustei suas missões.';
-  else msg = '🔥 Reta final! Seus simulados mostram fraqueza em Informática. Prioridade máxima nas revisões hoje!';
+  const modeIcons = { cursinho: '📚', aprovacao: '⚡', guerra: '🔥' };
+  const modeLabels = { cursinho: 'Cursinho Completo', aprovacao: 'Aprovacao', guerra: 'Guerra' };
+  const focusLabels = {
+    risco: '🧠 Analisando riscos de esquecimento',
+    revisao: '🧠 Verificando revisoes pendentes',
+    lacuna: '🧠 Detectando lacunas ocultas',
+    aprovacao: '🧠 Calculando probabilidade de aprovacao',
+    consistencia: '🧠 Monitorando consistencia de estudo',
+    dominio: '🧠 Avaliando niveis de dominio',
+    bem_estar: '🧠 Verificando saude cognitiva',
+    observando: '🧠 Observando seu progresso',
+    inicializando: '🧠 Inicializando...'
+  };
+  const focusLabel = brainState ? (focusLabels[brainState.currentFocus] || '🧠 Analisando...') : '🧠 Inicializando...';
+  const brainActive = brainState ? brainState.isObserving : false;
+  const msgCount = activeMessages.length;
+  const totalMsgs = stats ? stats.total : 0;
   
   container.innerHTML = `
-    <div class="aivos360-coach-banner">
-      <i data-lucide="bot" width="24" height="24"></i>
-      <div class="aivos360-coach-text">${msg}</div>
+    <div class="mentor-brain-widget">
+      <div class="mentor-brain-avatar">🧠</div>
+      <div class="mentor-brain-body">
+        <div class="mentor-brain-headline">
+          <span class="mentor-brain-dot"></span>
+          AIVOS Mentor &mdash; ${brainActive ? 'Ativo' : 'Inativo'}
+        </div>
+        <div class="mentor-brain-sub">${focusLabel}</div>
+      </div>
+      <div class="mentor-brain-badges">
+        <div class="mentor-brain-badge">
+          <div class="mentor-brain-badge-value">${msgCount}</div>
+          <div class="mentor-brain-badge-label">Alertas</div>
+        </div>
+        <div class="mentor-brain-badge">
+          <div class="mentor-brain-badge-value">${totalMsgs}</div>
+          <div class="mentor-brain-badge-label">Total</div>
+        </div>
+      </div>
     </div>
+    <div class="aivos360-coach-banner">
+      <span style="font-size:1.3em">${modeIcons[modo] || '📚'}</span>
+      <div class="aivos360-coach-text">
+        <strong style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);margin-bottom:2px;">
+          Modo ${modeLabels[modo] || modo}
+        </strong>
+        ${modo === 'cursinho' ? 'Otimo ritmo! Voce tem uma boa margem ate a prova. Foque em fechar o edital com qualidade.' :
+         modo === 'aprovacao' ? 'Reta intermediaria. O sistema percebeu que voce pode estar negligenciando Portugues. Ajustei suas missoes.' :
+         'Reta final! Seus simulados mostram fraqueza em Informatica. Prioridade maxima nas revisoes hoje!'}
+      </div>
+    </div>
+    <div id="mentor-messages-container"></div>
   `;
+  if (typeof renderMentorMessages === 'function') renderMentorMessages();
 }
+
+function renderMentorMessages() {
+  const container = document.getElementById('mentor-messages-container');
+  if (!container) return;
+  const mentor = window.getProactiveMentor ? window.getProactiveMentor() : null;
+  if (!mentor || typeof mentor.renderMessages !== 'function') { container.innerHTML = ''; return; }
+  const msgs = mentor.getActiveMessages();
+  if (msgs.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = mentor.renderMessages();
+  container.querySelectorAll('.mentor-action-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const action = this.dataset.action;
+      console.log('[Mentor] Acao:', action);
+      window.dispatchEvent(new CustomEvent('mentorAction', {
+        detail: { action: action, data: this.dataset.actionData ? JSON.parse(this.dataset.actionData) : {} }
+      }));
+    });
+  });
+}
+
+window.addEventListener('proactiveMessage', function() {
+  var c = document.getElementById('aivos360-coach-container');
+  if (c && c.isConnected && typeof renderAivos360CoachBanner === 'function') renderAivos360CoachBanner();
+});
+
+window.addEventListener('brainStateChange', function(e) {
+  var c = document.getElementById('aivos360-coach-container');
+  if (!c || !c.isConnected) return;
+  var el = c.querySelector('.mentor-brain-sub');
+  if (!el) return;
+  var labels = {
+    risco: '🧠 Analisando riscos de esquecimento',
+    revisao: '🧠 Verificando revisoes pendentes',
+    lacuna: '🧠 Detectando lacunas ocultas',
+    aprovacao: '🧠 Calculando probabilidade de aprovacao',
+    consistencia: '🧠 Monitorando consistencia de estudo',
+    dominio: '🧠 Avaliando niveis de dominio',
+    bem_estar: '🧠 Verificando saude cognitiva',
+    observando: '🧠 Observando seu progresso',
+    inicializando: '🧠 Inicializando...'
+  };
+  el.textContent = labels[e.detail && e.detail.currentFocus] || '🧠 Analisando...';
+});
+
 
 function renderAivos360RadarPanel() {
   const container = document.getElementById('aivos360-radar-container');

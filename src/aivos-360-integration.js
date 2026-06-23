@@ -91,13 +91,16 @@ class AIVOS360Integration {
         this.modules.approvalPredictor
       );
 
-      // 9. ProactiveMentor
+      // 9. ProactiveMentor (agora com todos os módulos)
       console.log('[AIVOS 360] Inicializando ProactiveMentor...');
       this.modules.proactiveMentor = window.initProactiveMentor(
         this.modules.digitalTwin,
         this.modules.forgettingPredictor,
         this.modules.riskDetector,
-        this.modules.masteryCertifier
+        this.modules.masteryCertifier,
+        this.modules.gapDetector,
+        this.modules.approvalPredictor,
+        this.modules.aiAuditor
       );
 
       this.isInitialized = true;
