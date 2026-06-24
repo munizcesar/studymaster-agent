@@ -1634,7 +1634,7 @@ var worker_default = {
         }
       }
 
-      if (mode === "prof-redbot") {
+      if (mode === "redbot") {
         try {
           const result = await handleProfRedbotChat(body, env);
           return new Response(JSON.stringify(result), {
@@ -1642,7 +1642,7 @@ var worker_default = {
           });
         } catch (chatErr) {
           return new Response(JSON.stringify({
-            reply: "Desculpe, ocorreu um erro interno no Prof. RedBot. Tente novamente.",
+            reply: "Desculpe, ocorreu um erro interno no Coach RedBot. Tente novamente.",
             error: chatErr.message
           }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }

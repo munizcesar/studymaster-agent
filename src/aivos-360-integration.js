@@ -107,6 +107,10 @@ class AIVOS360Integration {
       console.log('[AIVOS 360] Inicializando Prof. AIVOS Mentor...');
       this.modules.profAivosMentor = window.initProfAivosMentor(this.modules);
 
+      // 11. Coach RedBot (redação - depende de todos)
+      console.log('[AIVOS 360] Inicializando Coach RedBot...');
+      this.modules.coachRedbot = window.initCoachRedbot(this.modules);
+
       this.isInitialized = true;
       console.log('[AIVOS 360] Integração concluída com sucesso!');
 

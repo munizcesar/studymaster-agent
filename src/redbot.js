@@ -1,5 +1,5 @@
 /**
- * 🤖 PROF. REDBOT — Robô Professor de Redação para Concursos Públicos
+ * 🤖 COACH REDBOT — Robô Coach de Redação para Concursos Públicos
  * 
  * Especialista em correção de redação por competências (C1-C5),
  * notas 900+/1000, repertórios socioculturais e temas de redação.
@@ -14,7 +14,7 @@
 // CONFIGURAÇÃO
 // ════════════════════════════════════════════════════════════════════════════
 
-const PROF_REDBOT_CONFIG = {
+const REDBOT_CONFIG = {
   workerUrl: 'https://studymaster-worker.cesarmuniz0816.workers.dev',
   maxHistoryLength: 50,
   typingDelay: 18,
@@ -22,10 +22,10 @@ const PROF_REDBOT_CONFIG = {
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// SYSTEM PROMPT DO PROF. REDBOT
+// SYSTEM PROMPT DO COACH REDBOT
 // ════════════════════════════════════════════════════════════════════════════
 
-const PROF_REDBOT_SYSTEM_PROMPT = `Você é o **Prof. RedBot**, um robô professor super simpático, paciente e especialista em redação para concursos públicos. Você usa um chapéu de professor e tem personalidade amigável, como um bom professor que explica tudo de forma clara.
+const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Coach RedBot**, um robô coach super simpático, paciente e especialista em redação para concursos públicos. Você usa um chapéu de professor e tem personalidade amigável, como um bom professor que explica tudo de forma clara.
 
 Sua missão é ajudar o aluno a aprender de verdade as técnicas de redação e tirar notas altas (900+ ou 1000).
 
@@ -44,13 +44,9 @@ Sua missão é ajudar o aluno a aprender de verdade as técnicas de redação e 
 - Mostrar exemplos de trechos nota 1000
 - Montar plano de evolução na redação
 
-Sempre termine sua resposta com 2 ou 3 sugestões claras de próximo passo, como botões:
-- "Reescrever a introdução"
-- "Ver exemplo de repertório"
-- "Corrigir o próximo parágrafo"
-- "Escrever nova redação"
+Sempre termine sua resposta com 2 ou 3 sugestões claras de próximo passo.
 
-Você é o Prof. RedBot, o robô professor que mora no site e está sempre pronto para ajudar!
+Você é o Coach RedBot, o robô coach que mora no site e está sempre pronto para ajudar!
 
 DADOS DO ALUNO:
 {studentData}`;
@@ -145,21 +141,21 @@ const EXEMPLOS_NOTA_1000 = [
 ];
 
 // ════════════════════════════════════════════════════════════════════════════
-// CLASSE PROF. REDBOT
+// CLASSE COACH REDBOT
 // ════════════════════════════════════════════════════════════════════════════
 
-class ProfRedbot {
+class CoachRedbot {
   constructor(aivos360Modules = {}) {
     this.modules = aivos360Modules;
     this.conversationHistory = [];
     this.isProcessing = false;
-    this.chatContainer = null;
+    this.chatWrapper = null;
     this.messagesContainer = null;
     this.inputElement = null;
     this.sendButton = null;
     this.essayTextarea = null;
+    this.essaySendBtn = null;
     this.isInitialized = false;
-    this.currentTheme = null;
     this.lastScores = null;
   }
 
@@ -170,8 +166,9 @@ class ProfRedbot {
   init() {
     if (this.isInitialized) return;
     this.isInitialized = true;
-    console.log('[Prof. RedBot] 🤖 Robô Professor de Redação inicializado!');
+    console.log('[Coach RedBot] 🤖 Robô Coach de Redação inicializado!');
 
+    this.loadSession();
     this.scheduleRender();
 
     window.addEventListener('aivos360DashboardReady', () => {
@@ -186,7 +183,7 @@ class ProfRedbot {
       this.addDashboardButton();
     }, 100);
     setTimeout(() => {
-      if (!this.chatContainer) {
+      if (!this.chatWrapper) {
         this.renderUI();
         this.addDashboardButton();
       }
@@ -198,11 +195,50 @@ class ProfRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // RENDERIZAÇÃO DA INTERFACE
+  // PERSISTÊNCIA DE SESSÃO
+  // ════════════════════════════════════════════════════════════════════════════
+
+  saveSession() {
+    try {
+      const session = {
+        history: this.conversationHistory.slice(-20),
+        lastScores: this.lastScores,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('coachRedbotSession', JSON.stringify(session));
+    } catch (e) {
+      console.warn('[Coach RedBot] Erro ao salvar sessão:', e);
+    }
+  }
+
+  loadSession() {
+    try {
+      const saved = localStorage.getItem('coachRedbotSession');
+      if (saved) {
+        const session = JSON.parse(saved);
+        if (session.timestamp && Date.now() - session.timestamp < 86400000) {
+          this.conversationHistory = session.history || [];
+          this.lastScores = session.lastScores || null;
+          console.log('[Coach RedBot] Sessão restaurada com', this.conversationHistory.length, 'mensagens');
+        }
+      }
+    } catch (e) {
+      console.warn('[Coach RedBot] Erro ao carregar sessão:', e);
+    }
+  }
+
+  clearSession() {
+    this.conversationHistory = [];
+    this.lastScores = null;
+    localStorage.removeItem('coachRedbotSession');
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // RENDERIZAÇÃO DA UI (NOVO LAYOUT)
   // ════════════════════════════════════════════════════════════════════════════
 
   renderUI() {
-    let container = document.getElementById('prof-redbot-chat-area');
+    let container = document.getElementById('coach-redbot-area');
     if (!container) {
       container = this.createContainer();
     }
@@ -212,140 +248,132 @@ class ProfRedbot {
 
   createContainer() {
     const dashboard = document.querySelector('.aivos360-dashboard');
-    if (!dashboard) {
-      console.warn('[Prof. RedBot] Dashboard não encontrado');
-      return null;
-    }
+    if (!dashboard) return null;
     const wrapper = document.createElement('div');
-    wrapper.id = 'prof-redbot-chat-area';
-    wrapper.className = 'prof-redbot-wrapper';
+    wrapper.id = 'coach-redbot-area';
+    wrapper.className = 'redbot-wrapper';
     dashboard.appendChild(wrapper);
     return wrapper;
   }
 
   buildUI(container) {
     container.innerHTML = `
-      <!-- AVATAR SIDEBAR -->
-      <div class="prof-redbot-sidebar">
-        <div class="prof-redbot-avatar-area">
-          <div class="prof-redbot-avatar">
-            <div class="prof-redbot-avatar-glow"></div>
-            <div class="prof-redbot-avatar-inner">
-              <span class="prof-redbot-avatar-emoji">🤖</span>
-            </div>
-            <div class="prof-redbot-hat">🎓</div>
-          </div>
-          <h2 class="prof-redbot-name">Prof. RedBot</h2>
-          <div class="prof-redbot-status">
-            <span class="prof-redbot-dot"></span>
-            Online — Professor de Redação
-          </div>
-          <p class="prof-redbot-bio">Robô professor especializado em redação para concursos. Notas 1000 é minha especialidade! 🤖📝</p>
-        </div>
-        <div class="prof-redbot-tools">
-          <h3 class="prof-redbot-tools-title">🛠️ Ferramentas</h3>
-          <button class="prof-redbot-tool-btn" onclick="window.profRedbotInstance?.handleToolAction('novo-tema')">
-            <span class="prof-redbot-tool-icon">🎯</span>
-            <span class="prof-redbot-tool-label">Novo Tema</span>
-          </button>
-          <button class="prof-redbot-tool-btn" onclick="window.profRedbotInstance?.handleToolAction('competencias')">
-            <span class="prof-redbot-tool-icon">📋</span>
-            <span class="prof-redbot-tool-label">Competências C1-C5</span>
-          </button>
-          <button class="prof-redbot-tool-btn" onclick="window.profRedbotInstance?.handleToolAction('exemplos')">
-            <span class="prof-redbot-tool-icon">🏆</span>
-            <span class="prof-redbot-tool-label">Exemplos Nota 1000</span>
-          </button>
-          <button class="prof-redbot-tool-btn" onclick="window.profRedbotInstance?.handleToolAction('progresso')">
-            <span class="prof-redbot-tool-icon">📊</span>
-            <span class="prof-redbot-tool-label">Meu Progresso</span>
-          </button>
-        </div>
-        <div class="prof-redbot-stats">
-          <div class="prof-redbot-stat">
-            <span class="prof-redbot-stat-value">${this.conversationHistory.length}</span>
-            <span class="prof-redbot-stat-label">Correções</span>
-          </div>
-          <div class="prof-redbot-stat">
-            <span class="prof-redbot-stat-value">${this.lastScores ? Math.round(this.lastScores.media) : '—'}</span>
-            <span class="prof-redbot-stat-label">Última Nota</span>
-          </div>
-        </div>
-      </div>
+      <div class="redbot-layout">
 
-      <!-- MAIN CHAT AREA -->
-      <div class="prof-redbot-main">
-        <div class="prof-redbot-chat">
-          <div class="prof-redbot-messages" id="prof-redbot-messages">
-            <div class="prof-redbot-welcome">
-              <div class="prof-redbot-welcome-icon">🤖</div>
-              <div class="prof-redbot-welcome-text">
-                <strong>Olá! Eu sou o Prof. RedBot! 🎓</strong>
-                <p>Seu robô professor especialista em redação para concursos públicos! Posso te ajudar com:</p>
+        <!-- SIDEBAR - Coach RedBot Avatar -->
+        <div class="redbot-sidebar">
+          <div class="redbot-sidebar-inner">
+            <div class="redbot-avatar">
+              <img src="redbot-avatar.png" alt="Coach RedBot" class="redbot-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div class="redbot-avatar-fallback" style="display:none">
+                <span class="redbot-avatar-emoji">🤖</span>
               </div>
-              <div class="prof-redbot-suggestions">
-                <button class="prof-redbot-suggestion" onclick="window.profRedbotInstance?.addQuickMsg('Quero corrigir minha redação completa')">
-                  📝 Corrigir Redação
-                </button>
-                <button class="prof-redbot-suggestion" onclick="window.profRedbotInstance?.handleToolAction('novo-tema')">
-                  🎯 Novo Tema
-                </button>
-                <button class="prof-redbot-suggestion" onclick="window.profRedbotInstance?.addQuickMsg('Quero aprender sobre a Competência C1')">
-                  📋 Saber Nota C1-C5
-                </button>
-                <button class="prof-redbot-suggestion" onclick="window.profRedbotInstance?.addQuickMsg('Quero ver exemplos de redações nota 1000')">
-                  🏆 Ver Exemplos
-                </button>
-              </div>
+              <div class="redbot-hat">🎓</div>
             </div>
-          </div>
 
-          <!-- ESSAY TEXTAREA -->
-          <div class="prof-redbot-editor">
-            <textarea
-              id="prof-redbot-essay-input"
-              class="prof-redbot-essay-textarea"
-              rows="6"
-              placeholder="📝 Cole ou escreva sua redação completa aqui para correção...&#10;&#10;Você também pode enviar só a introdução, um parágrafo de desenvolvimento ou a conclusão para correção parcial."
-              oninput="window.profRedbotInstance?.onEssayInput()"
-            ></textarea>
-            <div class="prof-redbot-editor-actions">
-              <button class="prof-redbot-editor-btn prof-redbot-editor-clear" onclick="window.profRedbotInstance?.clearEssayTextarea()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                Limpar
-              </button>
-              <span class="prof-redbot-editor-hint">Envie pela mensagem ou clique no botão ao lado</span>
-              <button class="prof-redbot-editor-send" id="prof-redbot-essay-send" onclick="window.profRedbotInstance?.sendEssayFromEditor()" disabled>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Corrigir Redação
-              </button>
+            <h2 class="redbot-name">
+              Coach RedBot <span class="redbot-name-hat">🎓</span>
+            </h2>
+
+            <div class="redbot-status">
+              <span class="redbot-status-dot"></span>
+              Online - Pronto para te ajudar
             </div>
-          </div>
 
-          <!-- CHAT INPUT -->
-          <div class="prof-redbot-input-area">
-            <textarea
-              class="prof-redbot-input"
-              id="prof-redbot-input"
-              placeholder="Digite sua pergunta sobre redação..."
-              rows="1"
-              oninput="window.profRedbotInstance?.autoResize(this); window.profRedbotInstance?.onChatInput()"
-              onkeydown="window.profRedbotInstance?.handleKeydown(event)"
-            ></textarea>
-            <button class="prof-redbot-send-btn" id="prof-redbot-send" onclick="window.profRedbotInstance?.sendFromChat()" disabled>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <p class="redbot-bio">
+              Olá! Sou o Coach RedBot, seu robô coach de redação.<br>
+              Vamos tirar nota 1000 juntos? 🚀
+            </p>
+
+            <button class="redbot-new-theme-btn" onclick="window.coachRedbot?.handleTool('novo-tema')">
+              🎯 Novo Tema de Redação
             </button>
+
+            <div class="redbot-divider"></div>
+
+            <div class="redbot-tools">
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.handleTool('competencias')">
+                <span class="redbot-tool-icon">📋</span>
+                <span class="redbot-tool-label">Ver Competências C1 a C5</span>
+              </button>
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver exemplos de redações nota 1000')">
+                <span class="redbot-tool-icon">🏆</span>
+                <span class="redbot-tool-label">Exemplos de Redações Nota 1000</span>
+              </button>
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero repertórios atualizados para redação')">
+                <span class="redbot-tool-icon">📚</span>
+                <span class="redbot-tool-label">Repertórios Atualizados</span>
+              </button>
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver meu plano de evolução em redação')">
+                <span class="redbot-tool-icon">📊</span>
+                <span class="redbot-tool-label">Meu Plano de Evolução</span>
+              </button>
+            </div>
+
+            <div class="redbot-tip">
+              <p class="redbot-tip-label">💡 Dica do dia:</p>
+              <p class="redbot-tip-text">"Uma boa proposta de intervenção deve ser viável, detalhada e conectada com os argumentos."</p>
+            </div>
           </div>
         </div>
+
+        <!-- MAIN - Chat Area -->
+        <div class="redbot-main">
+          <div class="redbot-chat-card">
+            <div class="redbot-messages" id="redbot-messages">
+              <div class="redbot-welcome">
+                <div class="redbot-welcome-avatar">🤖</div>
+                <div class="redbot-welcome-content">
+                  <p class="redbot-welcome-name">Coach RedBot</p>
+                  <p class="redbot-welcome-text">Olá! Cole sua redação ou me diga o tema que você quer treinar hoje. Estou aqui para te ajudar passo a passo! 🎯</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="redbot-editor-area">
+              <textarea
+                id="redbot-essay-input"
+                class="redbot-essay-textarea"
+                rows="6"
+                placeholder="Escreva ou cole sua redação aqui..."
+                oninput="window.coachRedbot?.onEssayChange()"
+              ></textarea>
+
+              <div class="redbot-editor-actions">
+                <button class="redbot-editor-btn redbot-editor-btn-primary" onclick="window.coachRedbot?.sendEssay()">
+                  📝 Enviar para Correção
+                </button>
+                <button class="redbot-editor-btn redbot-editor-btn-secondary" onclick="window.coachRedbot?.addQuickMsg('Quero analisar minha redação por partes')">
+                  🔍 Analisar por Partes
+                </button>
+              </div>
+            </div>
+
+            <div class="redbot-input-area">
+              <textarea
+                class="redbot-input"
+                id="redbot-input"
+                placeholder="Digite sua mensagem para o Coach RedBot..."
+                rows="1"
+                oninput="window.coachRedbot?.autoResize(this); window.coachRedbot?.onInputChange()"
+                onkeydown="window.coachRedbot?.handleKeydown(event)"
+              ></textarea>
+              <button class="redbot-send-btn" id="redbot-send" onclick="window.coachRedbot?.sendFromInput()" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     `;
 
-    this.chatContainer = container;
-    this.messagesContainer = container.querySelector('#prof-redbot-messages');
-    this.inputElement = container.querySelector('#prof-redbot-input');
-    this.sendButton = container.querySelector('#prof-redbot-send');
-    this.essayTextarea = container.querySelector('#prof-redbot-essay-input');
-    this.essaySendBtn = container.querySelector('#prof-redbot-essay-send');
+    this.chatWrapper = container;
+    this.messagesContainer = container.querySelector('#redbot-messages');
+    this.inputElement = container.querySelector('#redbot-input');
+    this.sendButton = container.querySelector('#redbot-send');
+    this.essayTextarea = container.querySelector('#redbot-essay-input');
+    this.essaySendBtn = container.querySelector('#redbot-essay-send');
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -353,28 +381,28 @@ class ProfRedbot {
   // ════════════════════════════════════════════════════════════════════════════
 
   addDashboardButton() {
-    if (document.getElementById('prof-redbot-dashboard-btn')) return;
+    if (document.getElementById('coach-redbot-db-btn')) return;
     const dashboard = document.querySelector('.aivos360-dashboard');
     if (!dashboard) return;
 
     const btn = document.createElement('div');
-    btn.id = 'prof-redbot-dashboard-btn';
-    btn.className = 'prof-redbot-db-btn';
+    btn.id = 'coach-redbot-db-btn';
+    btn.className = 'redbot-db-btn';
     btn.innerHTML = `
-      <div class="prof-redbot-db-icon">🤖</div>
-      <div class="prof-redbot-db-content">
-        <strong class="prof-redbot-db-title">Prof. RedBot — Correção de Redação</strong>
-        <span class="prof-redbot-db-subtitle">Robô professor especialista em redação nota 1000</span>
+      <div class="redbot-db-icon">🤖</div>
+      <div class="redbot-db-content">
+        <strong class="redbot-db-title">Coach RedBot — Correção de Redação</strong>
+        <span class="redbot-db-subtitle">Robô coach especialista em redação nota 1000</span>
       </div>
-      <div class="prof-redbot-db-arrow">→</div>
+      <div class="redbot-db-arrow">→</div>
     `;
     btn.addEventListener('click', () => this.openChat());
     dashboard.insertBefore(btn, dashboard.firstChild);
   }
 
   openChat() {
-    if (this.chatContainer) {
-      this.chatContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (this.chatWrapper) {
+      this.chatWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => this.inputElement?.focus(), 500);
     }
   }
@@ -383,34 +411,23 @@ class ProfRedbot {
   // INPUT HANDLERS
   // ════════════════════════════════════════════════════════════════════════════
 
-  onEssayInput() {
-    if (this.essaySendBtn) {
-      this.essaySendBtn.disabled = !this.essayTextarea?.value?.trim();
-    }
+  onEssayChange() {
+    // Habilita botões baseado no conteúdo
   }
 
-  onChatInput() {
+  onInputChange() {
     if (this.sendButton) {
       this.sendButton.disabled = !this.inputElement?.value?.trim();
     }
   }
 
-  clearEssayTextarea() {
-    if (this.essayTextarea) {
-      this.essayTextarea.value = '';
-      this.essaySendBtn.disabled = true;
-    }
-  }
-
-  sendEssayFromEditor() {
+  sendEssay() {
     const text = this.essayTextarea?.value?.trim();
     if (!text || this.isProcessing) return;
-    this.essayTextarea.value = '';
-    this.essaySendBtn.disabled = true;
     this.processMessage(text);
   }
 
-  sendFromChat() {
+  sendFromInput() {
     const text = this.inputElement?.value?.trim();
     if (!text || this.isProcessing) return;
     this.inputElement.value = '';
@@ -422,7 +439,7 @@ class ProfRedbot {
   handleKeydown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      this.sendFromChat();
+      this.sendFromInput();
     }
   }
 
@@ -436,27 +453,17 @@ class ProfRedbot {
     if (this.inputElement) {
       this.inputElement.value = text;
       this.sendButton.disabled = false;
-      this.sendFromChat();
+      this.sendFromInput();
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // TOOL ACTIONS
-  // ════════════════════════════════════════════════════════════════════════════
-
-  handleToolAction(action) {
+  handleTool(action) {
     switch (action) {
       case 'novo-tema':
         this.addQuickMsg('Quero um tema de redação para treinar');
         break;
       case 'competencias':
         this.showCompetenciesModal();
-        break;
-      case 'exemplos':
-        this.addQuickMsg('Quero ver exemplos de redações nota 1000');
-        break;
-      case 'progresso':
-        this.addQuickMsg('Quero ver meu progresso em redação');
         break;
     }
   }
@@ -467,21 +474,21 @@ class ProfRedbot {
 
   showCompetenciesModal() {
     const overlay = document.createElement('div');
-    overlay.className = 'prof-redbot-modal-overlay';
+    overlay.className = 'redbot-modal-overlay';
     overlay.innerHTML = `
-      <div class="prof-redbot-modal">
-        <div class="prof-redbot-modal-header">
-          <h3 class="prof-redbot-modal-title">📋 Competências C1 a C5</h3>
-          <button class="prof-redbot-modal-close" onclick="this.closest('.prof-redbot-modal-overlay').remove()">✕</button>
+      <div class="redbot-modal">
+        <div class="redbot-modal-h">
+          <h3 class="redbot-modal-title">📋 Competências C1 a C5</h3>
+          <button class="redbot-modal-x" onclick="this.closest('.redbot-modal-overlay').remove()">✕</button>
         </div>
-        <div class="prof-redbot-modal-body">
-          <p class="prof-redbot-modal-intro">No ENEM e na maioria dos concursos, a redação é corrigida por 5 competências. Cada uma vale até 200 pontos, totalizando 1000.</p>
+        <div class="redbot-modal-body">
+          <p class="redbot-modal-intro">No ENEM e na maioria dos concursos, a redação é corrigida por 5 competências. Cada uma vale até 200 pontos, totalizando 1000.</p>
           ${Object.values(COMPETENCIES).map(c => `
-            <div class="prof-redbot-competence-card">
+            <div class="redbot-comp-card">
               <h4>${c.icon} ${c.label}</h4>
               <p>${c.description}</p>
-              <p class="prof-redbot-competence-check"><strong>🔍 O que avaliamos:</strong> ${c.whatWeCheck}</p>
-              <div class="prof-redbot-competence-tips">
+              <p class="redbot-comp-check"><strong>🔍 O que avaliamos:</strong> ${c.whatWeCheck}</p>
+              <div class="redbot-comp-tips">
                 <strong>💡 Dicas:</strong>
                 <ul>${c.tips.map(t => `<li>${t}</li>`).join('')}</ul>
               </div>
@@ -507,9 +514,6 @@ class ProfRedbot {
     this.addMessage(userMessage, 'user');
     this.conversationHistory.push({ role: 'user', content: userMessage });
 
-    // Detectar se é uma redação completa (texto longo)
-    const isFullEssay = userMessage.length > 300;
-
     this.showTypingIndicator();
 
     try {
@@ -519,19 +523,18 @@ class ProfRedbot {
       await this.addTypingMessage(reply, 'coach');
       this.conversationHistory.push({ role: 'assistant', content: reply });
 
-      // Tentar extrair scores da resposta
       this.extractScoresFromReply(reply);
-
       this.saveSession();
 
     } catch (error) {
       this.hideTypingIndicator();
       this.addMessage('Desculpe, ocorreu um erro. Pode tentar novamente?', 'coach');
-      console.error('[Prof. RedBot] Erro:', error);
+      console.error('[Coach RedBot] Erro:', error);
     }
 
     this.isProcessing = false;
     this.setInputState(true);
+    this.inputElement?.focus();
     this.scrollToBottom();
   }
 
@@ -541,11 +544,11 @@ class ProfRedbot {
 
   async sendToAI(userMessage) {
     try {
-      const response = await fetch(PROF_REDBOT_CONFIG.workerUrl, {
+      const response = await fetch(REDBOT_CONFIG.workerUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mode: 'prof-redbot',
+          mode: 'redbot',
           message: userMessage,
           history: this.conversationHistory.slice(-8),
           studentData: this.getStudentData(),
@@ -558,7 +561,7 @@ class ProfRedbot {
       const data = await response.json();
       return data.reply || 'Desculpe, não consegui processar sua solicitação. Pode tentar novamente?';
     } catch (error) {
-      console.error('[Prof. RedBot] Erro na comunicação com IA:', error);
+      console.error('[Coach RedBot] Erro na comunicação com IA:', error);
       return this.getFallback(userMessage);
     }
   }
@@ -566,92 +569,75 @@ class ProfRedbot {
   getFallback(userMessage) {
     const msg = userMessage.toLowerCase();
 
-    // Redação completa
     if (userMessage.length > 300) {
-      return this.generateLocalCorrection(userMessage);
+      return this.localCorrection(userMessage);
     }
 
-    // Temas
     if (msg.includes('tema') || msg.includes('redação nova') || msg.includes('novo tema')) {
       return this.generateRandomTheme();
     }
 
-    // Competências
-    if (msg.includes('c1') || msg.includes('competência') || msg.includes('competencia')) {
+    if (msg.includes('c1') || msg.includes('c2') || msg.includes('c3') || msg.includes('c4') || msg.includes('c5') || msg.includes('competência')) {
       return this.getCompetenciesResponse(msg);
     }
 
-    // Exemplos nota 1000
     if (msg.includes('exemplo') || msg.includes('nota 1000') || msg.includes('nota mil')) {
-      return this.getExamplesResponse(msg);
+      return this.getExamplesResponse();
     }
 
-    // Progresso
-    if (msg.includes('progresso') || msg.includes('desempenho') || msg.includes('evolução')) {
+    if (msg.includes('progresso') || msg.includes('desempenho') || msg.includes('evolução') || msg.includes('plano')) {
       return this.getProgressResponse();
     }
 
-    // Repertório
-    if (msg.includes('repertório') || msg.includes('repertorio') || msg.includes('citação') || msg.includes('citacao') || msg.includes('referência')) {
+    if (msg.includes('repertório') || msg.includes('repertorio') || msg.includes('citação') || msg.includes('referência')) {
       return this.getRepertoryResponse();
     }
 
-    // Introdução, desenvolvimento, conclusão
-    if (msg.includes('introdução') || msg.includes('introducao') || msg.includes('desenvolvimento') || msg.includes('conclusão') || msg.includes('conclusao')) {
-      return `📝 **Vamos trabalhar essa parte da redação!**\n\nMande o texto que você já escreveu para essa parte que eu analiso com base nas competências:\n\n✅ **O que vou avaliar:**\n- Estrutura adequada\n- Coesão e coerência\n- Argumentação\n- Adequação ao tema\n- Vocabulário\n\n**👉 Envie o trecho que você escreveu!**`;
+    if (msg.includes('introdução') || msg.includes('desenvolvimento') || msg.includes('conclusão')) {
+      return `📝 **Vamos trabalhar essa parte da redação!**\n\nMande o texto que você já escreveu para essa parte que eu analiso com base nas competências:\n\n✅ **O que vou avaliar:**\n- Estrutura adequada\n- Coesão e coerência\n- Argumentação\n- Adequação ao tema\n\n**👉 Envie o trecho que você escreveu!**`;
     }
 
-    // Saudação
-    if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite') || msg.includes('hey')) {
-      return `🤖🎓 **Olá! Eu sou o Prof. RedBot!**\n\nSeu robô professor especialista em **redação para concursos!** Posso ajudar com:\n\n📝 **Corrigir sua redação** — Envie o texto completo ou em partes\n🎯 **Criar temas** — Temas personalizados pro seu concurso\n📋 **Explicar C1-C5** — Entenda cada competência\n🏆 **Exemplos Nota 1000** — Veja trechos de redações nota máxima\n📚 **Repertórios** — Sugestões de autores, dados e referências\n📊 **Análise de progresso** — Acompanhe sua evolução\n\n**👉 Como posso te ajudar hoje?** 🚀`;
+    if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite')) {
+      return `🤖🎓 **Olá! Eu sou o Coach RedBot!**\n\nSeu robô coach especialista em **redação para concursos!** Posso ajudar com:\n\n📝 **Corrigir sua redação** — Envie o texto completo\n🎯 **Criar temas** — Temas personalizados\n📋 **Explicar C1-C5** — Entenda cada competência\n🏆 **Exemplos Nota 1000** — Trechos nota máxima\n📚 **Repertórios** — Autores, dados e filmes\n📊 **Análise de progresso** — Acompanhe sua evolução\n\n**👉 Como posso te ajudar hoje?** 🚀`;
     }
 
-    return `🤖🎓 **Prof. RedBot aqui!**\n\nEntendi! Para te ajudar melhor, você pode:\n\n📝 **Enviar sua redação** completa ou em partes para eu corrigir\n🎯 Pedir um **tema de redação** personalizado\n📋 Perguntar sobre as **competências C1 a C5**\n🏆 Ver **exemplos de trechos nota 1000**\n📚 Pedir **sugestões de repertório**\n📊 Ver seu **progresso** em redação\n\n**👉 O que você prefere?**`;
+    return `🤖🎓 **Coach RedBot aqui!**\n\nEntendi! Para te ajudar melhor:\n\n📝 **Envie sua redação** completa ou em partes para correção\n🎯 Peça um **tema de redação**\n📋 Pergunte sobre as **competências C1 a C5**\n🏆 Veja **exemplos nota 1000**\n📚 Peça **repertórios**\n\n**👉 O que você prefere?**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
   // FALLBACK: CORREÇÃO LOCAL
   // ════════════════════════════════════════════════════════════════════════════
 
-  generateLocalCorrection(text) {
+  localCorrection(text) {
     const wordCount = text.split(/\s+/).length;
     const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim());
-    const hasIntroduction = text.toLowerCase().includes('introdução') || text.toLowerCase().includes('introducao') || paragraphs.length >= 3;
-    const hasConclusion = text.toLowerCase().includes('conclusão') || text.toLowerCase().includes('conclusao');
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+    const hasIntro = text.toLowerCase().includes('introdução') || text.toLowerCase().includes('introducao') || paragraphs.length >= 3;
+    const hasConc = text.toLowerCase().includes('conclusão') || text.toLowerCase().includes('conclusao');
 
-    let reply = `🤖📝 **Análise do Prof. RedBot**\n\n`;
-    reply += `📊 **Estatísticas do texto:**\n`;
-    reply += `- ${wordCount} palavras\n`;
-    reply += `- ${paragraphs.length} parágrafos\n`;
-    reply += `- ${sentences.length} períodos\n\n`;
+    let r = `🤖📝 **Análise do Coach RedBot**\n\n`;
+    r += `📊 **Estatísticas:**\n- ${wordCount} palavras\n- ${paragraphs.length} parágrafos\n\n`;
+    r += `**✅ Pontos positivos:**\n`;
+    if (wordCount >= 200) r += `- ✅ Boa extensão (${wordCount} palavras)\n`;
+    if (paragraphs.length >= 3) r += `- ✅ ${paragraphs.length} parágrafos\n`;
+    if (hasIntro) r += `- ✅ Estrutura com introdução\n`;
+    if (hasConc) r += `- ✅ Inclui conclusão\n`;
 
-    reply += `**✅ Pontos positivos que notei:**\n`;
-    if (wordCount >= 200) reply += `- ✅ Boa extensão de texto (${wordCount} palavras)\n`;
-    if (paragraphs.length >= 3) reply += `- ✅ Estrutura de ${paragraphs.length} parágrafos bem definida\n`;
-    if (hasIntroduction) reply += `- ✅ Você estruturou uma introdução\n`;
-    if (hasConclusion) reply += `- ✅ Você incluiu uma conclusão\n`;
+    r += `\n**📋 Por competência:**\n`;
+    r += `- **C1:** Avalie ortografia, concordância e formalidade\n`;
+    r += `- **C2:** O tema central está claro?\n`;
+    r += `- **C3:** Introdução, desenvolvimento e conclusão\n`;
+    r += `- **C4:** Uso de conectivos\n`;
+    r += `- **C5:** Proposta de intervenção?\n\n`;
 
-    reply += `\n**📋 Análise por Competência (estimativa local):**\n`;
-    reply += `- **C1 (Domínio Formal):** Avalie ortografia, concordância e formalidade\n`;
-    reply += `- **C2 (Tema):** Verifique se o tema central está claro\n`;
-    reply += `- **C3 (Organização):** Estrutura com introdução, desenvolvimento e conclusão\n`;
-    reply += `- **C4 (Coesão):** Observe o uso de conectivos entre parágrafos\n`;
-    reply += `- **C5 (Intervenção):** Há proposta detalhada de intervenção?\n\n`;
+    r += `**💡 Sugestões:**\n`;
+    if (!hasIntro) r += `- Comece com introdução clara com sua tese\n`;
+    if (!hasConc) r += `- Finalize com conclusão e proposta de intervenção\n`;
+    if (wordCount < 200) r += `- Texto curto — desenvolva melhor os argumentos\n`;
+    r += `- Revise pontuação e concordância\n`;
+    r += `- Use conectivos variados (ademais, contudo, portanto)\n\n`;
 
-    reply += `**💡 Sugestões de melhoria:**\n`;
-    if (!hasIntroduction) reply += `- Comece com uma introdução clara apresentando sua tese\n`;
-    if (!hasConclusion) reply += `- Finalize com uma conclusão e proposta de intervenção\n`;
-    if (wordCount < 200) reply += `- O texto está curto — desenvolva melhor seus argumentos\n`;
-    reply += `- Revise a pontuação e a concordância\n`;
-    reply += `- Use conectivos variados (ademais, contudo, portanto)\n\n`;
-
-    reply += `**👉 Próximos passos:**\n`;
-    reply += `1️⃣ **Corrigir completo** — Envie de novo que posso dar notas C1-C5\n`;
-    reply += `2️⃣ **Parte específica** — Quer focar em introdução, desenvolvimento ou conclusão?\n`;
-    reply += `3️⃣ **Ver competências** — Quer entender melhor cada competência?\n`;
-
-    return reply;
+    r += `**👉 Próximos passos:**\n1️⃣ Corrigir completo — notas C1-C5\n2️⃣ Parte específica — introdução, desenvolvimento ou conclusão\n3️⃣ Ver competências — entender C1, C2, C3, C4 ou C5`;
+    return r;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -673,9 +659,8 @@ class ProfRedbot {
       { tema: 'A valorização da cultura brasileira como identidade nacional', area: 'Cultura' },
       { tema: 'Os impactos do trabalho remoto na saúde mental dos trabalhadores', area: 'Trabalho' }
     ];
-
-    const selected = temas[Math.floor(Math.random() * temas.length)];
-    return `🎯 **Tema de Redação — ${selected.area}**\n\n**"${selected.tema}"**\n\n📝 **Instruções:**\nEscreva uma redação dissertativa-argumentativa de 20 a 30 linhas sobre o tema acima. Lembre-se de:\n\n✅ **Estrutura obrigatória:**\n1. **Introdução** — Apresente o tema e sua tese\n2. **Desenvolvimento (2 parágrafos)** — Argumentos com repertório\n3. **Conclusão** — Proposta de intervenção detalhada\n\n✅ **Requisitos:**\n- Domínio da norma culta (C1)\n- Compreensão do tema (C2)\n- Organização das ideias (C3)\n- Coesão textual (C4)\n- Proposta de intervenção (C5)\n\n**👉 Quando terminar, cole sua redação aqui que eu corrijo!** 📝`;
+    const s = temas[Math.floor(Math.random() * temas.length)];
+    return `🎯 **Tema de Redação — ${s.area}**\n\n**"${s.tema}"**\n\n📝 **Instruções:**\nRedação dissertativa-argumentativa de 20 a 30 linhas.\n\n✅ **Estrutura:**\n1. **Introdução** — Tese clara\n2. **Desenvolvimento (2 parágrafos)** — Argumentos com repertório\n3. **Conclusão** — Proposta de intervenção\n\n✅ **Requisitos:**\n- C1: Domínio da norma culta\n- C2: Compreensão do tema\n- C3: Organização das ideias\n- C4: Coesão textual\n- C5: Proposta de intervenção\n\n**👉 Quando terminar, cole aqui que eu corrijo!** 📝`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -684,50 +669,30 @@ class ProfRedbot {
 
   getCompetenciesResponse(msg) {
     const text = msg.toLowerCase();
-    let specific = null;
-
     for (const [key, comp] of Object.entries(COMPETENCIES)) {
-      if (text.includes(key) || text.includes(`competência ${key.replace('c', '')}`) || text.includes(`competencia ${key.replace('c', '')}`)) {
-        specific = comp;
-        break;
+      if (text.includes(key) || text.includes(`competência ${key.replace('c', '')}`)) {
+        return `${comp.icon} **${comp.label}**\n\n${comp.description}\n\n🔍 **O que avaliamos:** ${comp.whatWeCheck}\n\n💡 **Dicas:**\n${comp.tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\n**👉 Quer ver outra competência?**`;
       }
     }
-
-    if (specific) {
-      return `${specific.icon} **${specific.label}**\n\n${specific.description}\n\n🔍 **O que avaliamos:** ${specific.whatWeCheck}\n\n💡 **Dicas para melhorar:**\n${specific.tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\n**👉 Quer ver a próxima competência ou corrigir sua redação?**`;
-    }
-
-    let reply = `📋 **Competências C1 a C5 — Guia Completo**\n\n`;
-    reply += `No ENEM e concursos, a redação vale 1000 pontos, divididos em **5 competências** de 200 pontos cada:\n\n`;
+    let r = `📋 **Competências C1 a C5**\n\nRedação vale 1000 pontos, 5 competências de 200 cada:\n\n`;
     for (const comp of Object.values(COMPETENCIES)) {
-      reply += `${comp.icon} **${comp.label.split(' — ')[0]}** — ${comp.description.split('.')[0]}.\n`;
+      r += `${comp.icon} **${comp.label.split(' — ')[0]}** — ${comp.description.split('.')[0]}.\n`;
     }
-    reply += `\n💡 **Dica do RedBot:** A maioria dos alunos perde pontos em C1 (domínio formal) e C5 (proposta de intervenção). Foco nessas duas pode subir sua nota rapidamente!\n\n**👉 Para ver detalhes de uma competência específica, digite o número (C1, C2, C3, C4 ou C5)!**`;
-    return reply;
+    r += `\n💡 **Dica:** C1 e C5 são onde a maioria perde mais pontos. Foco nelas!\n\n**👉 Digite o número (C1, C2, C3, C4 ou C5) para detalhes!**`;
+    return r;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
   // FALLBACK: EXEMPLOS
   // ════════════════════════════════════════════════════════════════════════════
 
-  getExamplesResponse(msg) {
-    let reply = `🏆 **Exemplos de Trechos Nota 1000**\n\n`;
-    reply += `Aqui estão exemplos reais (adaptados) de redações nota máxima. Observe os recursos usados:\n\n`;
-
+  getExamplesResponse() {
+    let r = `🏆 **Exemplos de Trechos Nota 1000**\n\n`;
     for (const ex of EXEMPLOS_NOTA_1000) {
-      reply += `**Tema:** ${ex.tema}\n`;
-      reply += `_"${ex.trecho}"_\n`;
-      reply += `⭐ **Destaque:** ${ex.destaque}\n\n`;
+      r += `**Tema:** ${ex.tema}\n_"${ex.trecho}"_\n⭐ **Destaque:** ${ex.destaque}\n\n`;
     }
-
-    reply += `💡 **Padrão nota 1000:**\n`;
-    reply += `1. **Repertório legitimado** (autores, dados, filmes)\n`;
-    reply += `2. **Conectivos sofisticados** (ademais, outrossim, por conseguinte)\n`;
-    reply += `3. **Tese clara** já na introdução\n`;
-    reply += `4. **Proposta detalhada** com agente, ação, meio e finalidade\n\n`;
-
-    reply += `**👉 Quer treinar um tema? Peça "novo tema"!** 🎯`;
-    return reply;
+    r += `💡 **Padrão nota 1000:**\n1. **Repertório legitimado** (autores, dados, filmes)\n2. **Conectivos sofisticados** (ademais, outrossim, por conseguinte)\n3. **Tese clara** na introdução\n4. **Proposta detalhada** com agente, ação, meio e finalidade\n\n**👉 Quer treinar? Peça "novo tema"!** 🎯`;
+    return r;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -735,27 +700,14 @@ class ProfRedbot {
   // ════════════════════════════════════════════════════════════════════════════
 
   getRepertoryResponse() {
-    return `📚 **Repertórios Socioculturais — Caixa de Ferramentas**\n\n` +
-      `**📖 Autores e Pensadores:**\n` +
-      `- Pierre Bourdieu — Capital cultural, reprodução social\n` +
-      `- Michel Foucault — Poder disciplinar, biopolítica\n` +
-      `- Zygmunt Bauman — Modernidade líquida, sociedade de consumo\n` +
-      `- Hannah Arendt — Banalidade do mal, espaço público\n` +
-      `- Paulo Freire — Educação libertadora, conscientização\n` +
-      `- Milton Santos — Globalização, cidadania\n\n` +
-      `**📊 Dados e Instituições:**\n` +
-      `- IBGE — Dados demográficos, educacionais, econômicos\n` +
-      `- IPEA — Pesquisas sobre políticas públicas\n` +
-      `- ONU — ODS, direitos humanos, desenvolvimento\n` +
-      `- UNESCO — Educação, cultura, ciência\n` +
-      `- OMS — Saúde pública, epidemias\n\n` +
-      `**🎬 Filmes e Documentários:**\n` +
-      `- "Que horas ela volta?" — Desigualdade social e trabalho doméstico\n` +
-      `- "Ilha das Flores" — Desigualdade e dignidade humana\n` +
-      `- "O 13º" (Ava DuVernay) — Racismo estrutural e sistema prisional\n` +
-      `- "Democracia em Vertigem" — Crise política e democracia\n\n` +
-      `💡 **Dica:** Use UM repertório bem desenvolvido, não vários superficiais. Qualidade > quantidade!\n\n` +
-      `**👉 Quer que eu sugira um repertório para um tema específico? Mande o tema!**`;
+    return `📚 **Repertórios Socioculturais**\n\n` +
+      `**📖 Autores:**\n` +
+      `- Pierre Bourdieu — Capital cultural\n- Michel Foucault — Poder disciplinar\n- Zygmunt Bauman — Modernidade líquida\n- Hannah Arendt — Banalidade do mal\n- Paulo Freire — Educação libertadora\n- Milton Santos — Globalização\n\n` +
+      `**📊 Instituições:**\n` +
+      `- IBGE — Dados demográficos e educacionais\n- IPEA — Políticas públicas\n- ONU — ODS e direitos humanos\n- OMS — Saúde pública\n\n` +
+      `**🎬 Filmes:**\n` +
+      `- "Que horas ela volta?" — Desigualdade social\n- "Ilha das Flores" — Dignidade humana\n- "Democracia em Vertigem" — Crise política\n\n` +
+      `💡 Use UM repertório bem desenvolvido, não vários superficiais.\n\n**👉 Quer um repertório para um tema específico?**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -765,15 +717,10 @@ class ProfRedbot {
   getProgressResponse() {
     const profile = this.getProfileData();
     return `📊 **Meu Progresso em Redação**\n\n` +
-      `📝 **Total de redações corrigidas:** ${profile.totalEssays}\n` +
+      `📝 **Redações corrigidas:** ${profile.totalEssays}\n` +
       `⭐ **Última nota:** ${this.lastScores ? this.lastScores.media + '/1000' : 'Nenhuma ainda'}\n` +
-      `${this.lastScores ? `\n📋 **Detalhes por competência:**\n${Object.entries(this.lastScores.comp).map(([k, v]) => `- ${k.toUpperCase()}: ${v}/200`).join('\n')}` : ''}\n\n` +
-      `💡 **Dica:** O segredo para uma redação nota 1000 é:\n` +
-      `1️⃣ Praticar 1 redação por semana\n` +
-      `2️⃣ Revisar os erros da correção anterior\n` +
-      `3️⃣ Acumular repertório sociocultural\n` +
-      `4️⃣ Treinar a conclusão com proposta de intervenção\n\n` +
-      `**👉 Quer escrever sua primeira redação agora? Peça "novo tema"!** 🎯`;
+      (this.lastScores ? `\n📋 **Competências:**\n${Object.entries(this.lastScores.comp).map(([k, v]) => `- ${k.toUpperCase()}: ${v}/200`).join('\n')}` : '') +
+      `\n\n💡 **Segredo nota 1000:**\n1️⃣ 1 redação por semana\n2️⃣ Revisar erros anteriores\n3️⃣ Acumular repertório\n4️⃣ Treinar conclusão\n\n**👉 Quer começar? Peça "novo tema"!** 🎯`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -781,43 +728,37 @@ class ProfRedbot {
   // ════════════════════════════════════════════════════════════════════════════
 
   getStudentData() {
-    const twin = this.modules.digitalTwin;
-    if (!twin) return 'Nenhum dado disponível ainda.';
-    const profile = twin.getProfile();
-    if (!profile) return 'Perfil do aluno ainda não iniciado.';
-
-    const perf = profile.performance;
-    const essays = perf?.essays || { total: 0, history: [] };
-
-    return `DADOS DO ALUNO:
-- Total de questões: ${perf?.questions?.total || 0}
-- Acertos: ${perf?.questions?.correct || 0}
-- Redações: ${essays.total || 0}
-- Última nota: ${this.lastScores ? this.lastScores.media : 'N/A'}`;
+    try {
+      const twin = this.modules.digitalTwin;
+      if (!twin) return 'Nenhum dado disponível ainda.';
+      const profile = twin.getProfile();
+      if (!profile) return 'Perfil não iniciado.';
+      const perf = profile.performance || {};
+      const essays = perf.essays || { total: 0 };
+      return `DADOS DO ALUNO:\n- Total de questões: ${perf.questions?.total || 0}\n- Acertos: ${perf.questions?.correct || 0}\n- Redações: ${essays.total || 0}\n- Última nota: ${this.lastScores ? this.lastScores.media : 'N/A'}`;
+    } catch { return 'Dados indisponíveis.'; }
   }
 
   getProfileData() {
-    const twin = this.modules.digitalTwin;
-    if (!twin) return { totalEssays: 0 };
-    const profile = twin.getProfile();
-    if (!profile) return { totalEssays: 0 };
-    return {
-      totalEssays: profile.performance?.essays?.total || 0
-    };
+    try {
+      const twin = this.modules.digitalTwin;
+      if (!twin) return { totalEssays: 0 };
+      const profile = twin.getProfile();
+      if (!profile) return { totalEssays: 0 };
+      return { totalEssays: profile.performance?.essays?.total || 0 };
+    } catch { return { totalEssays: 0 }; }
   }
 
   extractScoresFromReply(reply) {
-    // Regex para detectar notas no formato C1: 180, C2: 160, etc.
-    const scoreRegex = /c([1-5])\s*[:=]\s*(\d{1,3})/gi;
+    const regex = /c([1-5])\s*[:=]\s*(\d{1,3})/gi;
     let match;
     const scores = {};
-    while ((match = scoreRegex.exec(reply)) !== null) {
+    while ((match = regex.exec(reply)) !== null) {
       scores[`c${match[1]}`] = parseInt(match[2]);
     }
-
     if (Object.keys(scores).length >= 3) {
-      const media = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / Object.values(scores).length * 5);
-      this.lastScores = { comp: scores, media };
+      const total = Object.values(scores).reduce((a, b) => a + b, 0);
+      this.lastScores = { comp: scores, media: total };
       this.saveSession();
     }
   }
@@ -828,33 +769,30 @@ class ProfRedbot {
 
   addMessage(text, role = 'coach') {
     if (!this.messagesContainer) return;
-
-    const welcome = this.messagesContainer.querySelector('.prof-redbot-welcome');
+    const welcome = this.messagesContainer.querySelector('.redbot-welcome');
     if (welcome && role === 'user') welcome.remove();
 
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `prof-redbot-msg prof-redbot-msg-${role}`;
-    msgDiv.innerHTML = this.formatMessage(text);
-    this.messagesContainer.appendChild(msgDiv);
+    const div = document.createElement('div');
+    div.className = `redbot-msg redbot-msg-${role}`;
+    div.innerHTML = this.formatMessage(text);
+    this.messagesContainer.appendChild(div);
     this.scrollToBottom();
   }
 
   async addTypingMessage(text, role = 'coach') {
     if (!this.messagesContainer) return;
-
-    const welcome = this.messagesContainer.querySelector('.prof-redbot-welcome');
+    const welcome = this.messagesContainer.querySelector('.redbot-welcome');
     if (welcome) welcome.remove();
 
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `prof-redbot-msg prof-redbot-msg-${role}`;
-    this.messagesContainer.appendChild(msgDiv);
+    const div = document.createElement('div');
+    div.className = `redbot-msg redbot-msg-${role}`;
+    this.messagesContainer.appendChild(div);
 
     if (text.length > 800) {
-      msgDiv.innerHTML = this.formatMessage(text);
+      div.innerHTML = this.formatMessage(text);
     } else {
-      await this.typeText(msgDiv, text);
+      await this.typeText(div, text);
     }
-
     this.scrollToBottom();
   }
 
@@ -865,91 +803,66 @@ class ProfRedbot {
 
     for (let i = 0; i < chars.length; i++) {
       displayed += chars[i];
-      element.innerHTML = displayed + '<span class="prof-redbot-cursor">|</span>';
-
-      if (chars[i].match(/[.,!?;\n]/)) {
-        await this.sleep(35);
-      } else if (chars[i] === ' ') {
-        await this.sleep(10);
-      } else {
-        await this.sleep(PROF_REDBOT_CONFIG.typingDelay);
-      }
+      element.innerHTML = displayed + '<span class="redbot-cursor">|</span>';
+      if (chars[i].match(/[.,!?;\n]/)) await this.sleep(35);
+      else if (chars[i] === ' ') await this.sleep(10);
+      else await this.sleep(REDBOT_CONFIG.typingDelay);
     }
     element.innerHTML = formatted;
   }
 
   formatMessage(text) {
     if (!text) return '';
-
-    // Processar markdown-like syntax
     let html = text
-      .replace(/^### (.+)$/gm, '<h3 class="prof-redbot-h3">$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2 class="prof-redbot-h2">$1</h2>')
+      .replace(/^### (.+)$/gm, '<h3 class="redbot-h3">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="redbot-h2">$1</h2>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/`(.+?)`/g, '<code>$1</code>')
-      .replace(/\n\n/g, '\nPARABREAK\n');
+      .replace(/\n\n/g, '\nPB\n');
 
     const lines = html.split('\n');
     const result = [];
-    let inOl = false;
-    let inUl = false;
+    let inOl = false, inUl = false;
 
     for (const line of lines) {
-      const olMatch = line.match(/^(\d+)\.\s+(.+)$/);
-      const ulMatch = line.match(/^[-—–]\s+(.+)$/);
-      const isBreak = line === 'PARABREAK';
-
-      if (olMatch) {
-        if (!inOl) {
-          if (inUl) { result.push('</ul>'); inUl = false; }
-          result.push('<ol class="prof-redbot-ol">');
-          inOl = true;
-        }
-        result.push(`<li>${olMatch[2]}</li>`);
-      } else if (ulMatch) {
-        if (!inUl) {
-          if (inOl) { result.push('</ol>'); inOl = false; }
-          result.push('<ul class="prof-redbot-ul">');
-          inUl = true;
-        }
-        result.push(`<li>${ulMatch[1]}</li>`);
+      const ol = line.match(/^(\d+)\.\s+(.+)$/);
+      const ul = line.match(/^[-—–]\s+(.+)$/);
+      if (ol) {
+        if (!inOl) { if (inUl) { result.push('</ul>'); inUl = false; } result.push('<ol class="redbot-ol">'); inOl = true; }
+        result.push(`<li>${ol[2]}</li>`);
+      } else if (ul) {
+        if (!inUl) { if (inOl) { result.push('</ol>'); inOl = false; } result.push('<ul class="redbot-ul">'); inUl = true; }
+        result.push(`<li>${ul[1]}</li>`);
       } else {
         if (inOl) { result.push('</ol>'); inOl = false; }
         if (inUl) { result.push('</ul>'); inUl = false; }
-        if (isBreak) {
-          result.push('</p><p class="prof-redbot-p">');
-        } else if (line.trim()) {
-          result.push(line);
-        }
+        if (line === 'PB') result.push('</p><p class="redbot-p">');
+        else if (line.trim()) result.push(line);
       }
     }
-
     if (inOl) result.push('</ol>');
     if (inUl) result.push('</ul>');
 
     html = result.join('\n');
-
     if (!html.startsWith('<h') && !html.startsWith('<ol') && !html.startsWith('<ul')) {
-      html = '<p class="prof-redbot-p">' + html + '</p>';
+      html = '<p class="redbot-p">' + html + '</p>';
     }
-
     return html;
   }
 
   showTypingIndicator() {
     if (!this.messagesContainer) return;
-    const indicator = document.createElement('div');
-    indicator.className = 'prof-redbot-msg prof-redbot-msg-coach prof-redbot-typing';
-    indicator.id = 'prof-redbot-typing';
-    indicator.innerHTML = '<span class="prof-redbot-typing-dots"><span></span><span></span><span></span></span>';
-    this.messagesContainer.appendChild(indicator);
+    const el = document.createElement('div');
+    el.className = 'redbot-msg redbot-msg-coach redbot-typing';
+    el.id = 'redbot-typing';
+    el.innerHTML = '<span class="redbot-typing-dots"><span></span><span></span><span></span></span>';
+    this.messagesContainer.appendChild(el);
     this.scrollToBottom();
   }
 
   hideTypingIndicator() {
-    const el = document.getElementById('prof-redbot-typing');
-    if (el) el.remove();
+    document.getElementById('redbot-typing')?.remove();
   }
 
   setInputState(enabled) {
@@ -965,38 +878,23 @@ class ProfRedbot {
     }
   }
 
-  sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  saveSession() {
-    try {
-      const session = {
-        history: this.conversationHistory.slice(-20),
-        lastScores: this.lastScores,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('profRedbotSession', JSON.stringify(session));
-    } catch (e) {
-      console.warn('[Prof. RedBot] Erro ao salvar sessão:', e);
-    }
-  }
+  sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   // ════════════════════════════════════════════════════════════════════════════
   // RELATÓRIO
   // ════════════════════════════════════════════════════════════════════════════
 
   generateReport() {
-    let report = '=== 🤖 RELATÓRIO PROF. REDBOT ===\n\n';
-    report += `Total de mensagens: ${this.conversationHistory.length}\n`;
-    report += `Última nota: ${this.lastScores ? this.lastScores.media + '/1000' : 'N/A'}\n\n`;
-    report += '=== ÚLTIMAS CORREÇÕES ===\n';
+    let r = '=== 🤖 RELATÓRIO COACH REDBOT ===\n\n';
+    r += `Mensagens: ${this.conversationHistory.length}\n`;
+    r += `Última nota: ${this.lastScores ? this.lastScores.media + '/1000' : 'N/A'}\n\n`;
+    r += '=== ÚLTIMAS ===\n';
     const recent = this.conversationHistory.slice(-6);
     for (let i = 0; i < recent.length; i += 2) {
-      if (recent[i]) report += `\n👤 Aluno: ${recent[i].content.slice(0, 80)}...\n`;
-      if (recent[i + 1]) report += `🤖 RedBot: ${recent[i + 1].content.slice(0, 80)}...\n`;
+      if (recent[i]) r += `\n👤: ${recent[i].content.slice(0, 80)}...\n`;
+      if (recent[i + 1]) r += `🤖: ${recent[i + 1].content.slice(0, 80)}...\n`;
     }
-    return report;
+    return r;
   }
 }
 
@@ -1004,28 +902,27 @@ class ProfRedbot {
 // INSTÂNCIA GLOBAL
 // ════════════════════════════════════════════════════════════════════════════
 
-let profRedbotInstance = null;
+let coachRedbot = null;
 
-function initProfRedbot(aivos360Modules = {}) {
-  if (!profRedbotInstance) {
-    profRedbotInstance = new ProfRedbot(aivos360Modules);
-    profRedbotInstance.init();
+function initCoachRedbot(aivos360Modules = {}) {
+  if (!coachRedbot) {
+    coachRedbot = new CoachRedbot(aivos360Modules);
+    coachRedbot.init();
   } else if (Object.keys(aivos360Modules).length > 0) {
-    profRedbotInstance.setModules(aivos360Modules);
+    coachRedbot.setModules(aivos360Modules);
   }
-  return profRedbotInstance;
+  window.coachRedbot = coachRedbot;
+  return coachRedbot;
 }
 
-function getProfRedbot() {
-  return profRedbotInstance;
-}
+function getCoachRedbot() { return coachRedbot; }
 
 if (typeof window !== 'undefined') {
-  window.ProfRedbot = ProfRedbot;
-  window.initProfRedbot = initProfRedbot;
-  window.getProfRedbot = getProfRedbot;
+  window.CoachRedbot = CoachRedbot;
+  window.initCoachRedbot = initCoachRedbot;
+  window.getCoachRedbot = getCoachRedbot;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ProfRedbot, initProfRedbot, getProfRedbot };
+  module.exports = { CoachRedbot, initCoachRedbot, getCoachRedbot };
 }
