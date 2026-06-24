@@ -23,11 +23,11 @@
 const TRIGGER_INTERVAL = 60000; // Verificar a cada 60 segundos
 const MAX_MESSAGES = 5;
 const MESSAGE_COOLDOWN = 3600000; // 1 hora entre mensagens do mesmo tipo
-const GUESS_TIME_THRESHOLD = 5000; // 5 segundos = possível chute (alinhado com GapDetector)
+var GUESS_TIME_THRESHOLD = 5000; // 5 segundos = possível chute (alinhado com GapDetector)
 
 // Spaced Repetition Schedule (alinhado com o Masterplan)
 // D+1, D+3, D+7, D+15, D+30, D+60, D+90
-const REVIEW_SCHEDULE = [1, 3, 7, 15, 30, 60, 90];
+var REVIEW_SCHEDULE = [1, 3, 7, 15, 30, 60, 90];
 
 // Mensagens do mentor com personalidade consistente
 const MENTOR_PERSONALITY = {

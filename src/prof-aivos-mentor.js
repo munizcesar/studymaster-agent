@@ -97,6 +97,9 @@ class ProfAivosMentor {
     this.isInitialized = true;
     console.log('[Prof. AIVOS] 🎓 Mentor Virtual v2 inicializado!');
     
+    // 🔧 Referência global para onclick handlers
+    window.profAivosMentor = this;
+    
     this.loadSession();
     this.scheduleRender();
     
@@ -107,20 +110,35 @@ class ProfAivosMentor {
   }
 
   scheduleRender() {
-    setTimeout(() => {
-      const dashboard = document.querySelector('.aivos360-dashboard');
-      if (dashboard) {
-        this.renderChatUI();
-        this.addDashboardButton();
-      }
-    }, 100);
-    setTimeout(() => {
-      const dashboard = document.querySelector('.aivos360-dashboard');
-      if (dashboard && !this.chatContainer) {
-        this.renderChatUI();
-        this.addDashboardButton();
-      }
-    }, 1500);
+    // Tentativas com timeout progressivo
+    const tryRender = (delay) => {
+      setTimeout(() => {
+        const dashboard = document.querySelector('.aivos360-dashboard');
+        if (dashboard && !this.chatContainer) {
+          this.renderChatUI();
+          this.addDashboardButton();
+        }
+      }, delay);
+    };
+    tryRender(100);
+    tryRender(1000);
+    tryRender(3000);
+    tryRender(6000);
+
+    // MutationObserver como fallback robusto
+    if (!this._observer && typeof MutationObserver !== 'undefined') {
+      this._observer = new MutationObserver(() => {
+        const dashboard = document.querySelector('.aivos360-dashboard');
+        if (dashboard && !this.chatContainer) {
+          this.renderChatUI();
+          this.addDashboardButton();
+          // Desconectar observer após renderizar
+          this._observer.disconnect();
+          this._observer = null;
+        }
+      });
+      this._observer.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   setModules(modules) {

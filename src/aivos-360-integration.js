@@ -228,7 +228,8 @@ class AIVOS360Integration {
 
   // ════════════════════════════════════════════════════════════════════════════
   // RELATÓRIO DE STATUS
-  // ════════════════════════════════════════════════════════════════════════════    getStatusReport() {
+  // ════════════════════════════════════════════════════════════════════════════
+  getStatusReport() {
     const moduleStatus = {};
     
     for (const [name, module] of Object.entries(this.modules)) {

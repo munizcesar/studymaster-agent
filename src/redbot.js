@@ -178,16 +178,32 @@ class CoachRedbot {
   }
 
   scheduleRender() {
-    setTimeout(() => {
-      this.renderUI();
-      this.addDashboardButton();
-    }, 100);
-    setTimeout(() => {
-      if (!this.chatWrapper) {
-        this.renderUI();
-        this.addDashboardButton();
-      }
-    }, 1500);
+    // Tentativas com timeout progressivo
+    const tryRender = (delay) => {
+      setTimeout(() => {
+        const dashboard = document.querySelector('.aivos360-dashboard');
+        if (dashboard && !this.chatWrapper) {
+          this.renderUI();
+          this.addDashboardButton();
+        }
+      }, delay);
+    };
+    tryRender(100);
+    tryRender(1000);
+    tryRender(3000);
+    tryRender(6000);
+
+    // MutationObserver como fallback robusto
+    if (!this._observer && typeof MutationObserver !== 'undefined') {
+      this._observer = new MutationObserver(() => {
+        const dashboard = document.querySelector('.aivos360-dashboard');
+        if (dashboard && !this.chatWrapper) {
+          this.renderUI();
+          this.addDashboardButton();
+        }
+      });
+      this._observer.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   setModules(modules) {

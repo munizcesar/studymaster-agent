@@ -5491,6 +5491,14 @@ function calcularModoInteligente() {
   }
 }
 
+function saveState() {
+  try {
+    localStorage.setItem('aivos360State', JSON.stringify(state.aivos360State));
+  } catch (e) {
+    console.warn('[AIVOS] Erro ao salvar estado:', e);
+  }
+}
+
 function changeModoInteligente(novoModo) {
   state.aivos360State.modoInteligente = novoModo;
   state.aivos360State.modoManual = true;
@@ -5995,6 +6003,25 @@ function renderAivos360Dashboard() {
   // Populate dashboard with data
   populateAivos360DashboardSimple();
 
+  // 🎯 Renderizar Prof. AIVOS e Coach RedBot diretamente (mais robusto que eventos)
+  setTimeout(() => {
+    try {
+      const pMentor = window.getProfAivosMentor ? window.getProfAivosMentor() : null;
+      if (pMentor && !pMentor.chatContainer) {
+        pMentor.renderChatUI();
+        pMentor.addDashboardButton();
+        window.profAivosMentor = pMentor;
+      }
+    } catch (e) { console.warn('[AIVOS] Erro ao renderizar Prof. AIVOS:', e); }
+    try {
+      const cRedbot = window.getCoachRedbot ? window.getCoachRedbot() : null;
+      if (cRedbot && !cRedbot.chatWrapper) {
+        cRedbot.renderUI();
+        cRedbot.addDashboardButton();
+      }
+    } catch (e) { console.warn('[AIVOS] Erro ao renderizar Coach RedBot:', e); }
+  }, 100);
+
   lucide.createIcons();
 }
 
@@ -6023,6 +6050,9 @@ function populateAivos360DashboardSimple() {
   renderAivos360CoachBanner();
   renderAivos360RadarPanel();
   renderAivos360Certificacao();
+  
+  // 🎯 Disparar evento para Prof. AIVOS e Coach RedBot se renderizarem
+  window.dispatchEvent(new CustomEvent('aivos360DashboardReady'));
 }
 
 function renderStep2Livre(container) {
