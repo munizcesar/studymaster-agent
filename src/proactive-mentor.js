@@ -23,11 +23,10 @@
 const TRIGGER_INTERVAL = 60000; // Verificar a cada 60 segundos
 const MAX_MESSAGES = 5;
 const MESSAGE_COOLDOWN = 3600000; // 1 hora entre mensagens do mesmo tipo
-var GUESS_TIME_THRESHOLD = 5000; // 5 segundos = possível chute (alinhado com GapDetector)
-
-// Spaced Repetition Schedule (alinhado com o Masterplan)
-// D+1, D+3, D+7, D+15, D+30, D+60, D+90
-var REVIEW_SCHEDULE = [1, 3, 7, 15, 30, 60, 90];
+// Fallback seguro: usa variáveis globais de gap-detector.js e forgetting-predictor.js
+// com valor padrão caso a ordem de carregamento mude no futuro
+const _GUESS_TIME_THRESHOLD = typeof GUESS_TIME_THRESHOLD !== 'undefined' ? GUESS_TIME_THRESHOLD : 5000;
+const _REVIEW_SCHEDULE = typeof REVIEW_SCHEDULE !== 'undefined' ? REVIEW_SCHEDULE : [1, 3, 7, 15, 30, 60, 90];
 
 // Mensagens do mentor com personalidade consistente
 const MENTOR_PERSONALITY = {
@@ -145,8 +144,8 @@ const PROACTIVE_TRIGGERS = [
       const { forgettingPredictor } = deps;
       const overdue = forgettingPredictor.getOverdueReviews();
       const review = overdue[0];
-      const scheduleIndex = Math.min(review.daysOverdue || 0, REVIEW_SCHEDULE.length - 1);
-      const nextInterval = REVIEW_SCHEDULE[Math.min(scheduleIndex + 1, REVIEW_SCHEDULE.length - 1)] || 90;
+      const scheduleIndex = Math.min(review.daysOverdue || 0, _REVIEW_SCHEDULE.length - 1);
+      const nextInterval = _REVIEW_SCHEDULE[Math.min(scheduleIndex + 1, _REVIEW_SCHEDULE.length - 1)] || 90;
       return {
         type: 'info',
         priority: 'medium',
@@ -247,7 +246,7 @@ const PROACTIVE_TRIGGERS = [
         action: 'review',
         recommendation: gap.recommendation || 'Tente responder com mais calma, refletindo antes de escolher',
         confidence: 78,
-        confidenceReason: `Detecção por tempo de resposta (threshold: ${GUESS_TIME_THRESHOLD / 1000}s)`
+        confidenceReason: `Detecção por tempo de resposta (threshold: ${_GUESS_TIME_THRESHOLD / 1000}s)`
       };
     }
   },

@@ -2712,6 +2712,57 @@
       .aivos360-action-grid {
         grid-template-columns: 1fr;
       }
+      .aivos360-card { padding: var(--space-4); }
+      .aivos360-metric-card { padding: var(--space-4); gap: var(--space-3); }
+      .metric-icon { width: 40px; height: 40px; }
+      .metric-value { font-size: var(--text-lg); }
+      .aivos360-mode-selector { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+      .aivos360-mode-actions { width: 100%; }
+      .aivos360-mode-actions select { width: 100%; }
+      .aivos360-coach-banner { flex-direction: column; text-align: center; gap: var(--space-2); }
+      .aivos360-cert-grid { grid-template-columns: repeat(2, 1fr); }
+      .aivos360-review-item { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+      .aivos360-review-action { width: 100%; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .aivos360-dashboard { gap: var(--space-4); }
+      .aivos360-card { padding: var(--space-3); gap: var(--space-3); }
+      .aivos360-card-title { font-size: var(--text-sm); }
+      .aivos360-metric-card { padding: var(--space-3); gap: var(--space-2); border-radius: var(--radius-md); }
+      .metric-icon { width: 36px; height: 36px; }
+      .metric-label { font-size: var(--text-xs); }
+      .metric-value { font-size: var(--text-base); }
+      .aivos360-metrics-grid { gap: var(--space-3); }
+      .aivos360-row { gap: var(--space-3); }
+      .aivos360-list-item { padding: var(--space-2); font-size: var(--text-xs); }
+      .aivos360-mission-item { padding: var(--space-2); gap: var(--space-2); }
+      .aivos360-mission-text { font-size: var(--text-xs); }
+      .aivos360-mission-checkbox { width: 18px; height: 18px; }
+      .aivos360-review-item { padding: var(--space-2); }
+      .aivos360-review-title { font-size: var(--text-xs); }
+      .aivos360-radar-item { padding: var(--space-2); gap: var(--space-2); }
+      .aivos360-radar-text h4 { font-size: var(--text-xs); }
+      .aivos360-mode-selector { padding: var(--space-3); }
+      .aivos360-mode-info { gap: var(--space-2); }
+      .aivos360-mode-text h4 { font-size: var(--text-sm); }
+      .aivos360-cert-card { padding: var(--space-2); }
+      .aivos360-cert-level { font-size: var(--text-lg); }
+      .aivos360-coach-banner { padding: var(--space-2); }
+      .aivos360-coach-text { font-size: var(--text-xs); }
+    }
+    @media (max-width: 375px) {
+      .aivos360-dashboard { gap: var(--space-3); }
+      .aivos360-card { padding: var(--space-2); border-radius: var(--radius-md); }
+      .aivos360-card-title { font-size: var(--text-xs); }
+      .aivos360-metric-card { padding: var(--space-2); border-radius: var(--radius-sm); }
+      .metric-icon { width: 32px; height: 32px; }
+      .metric-value { font-size: var(--text-sm); }
+      .aivos360-list-item-name { font-size: var(--text-xs); }
+      .aivos360-empty { font-size: var(--text-xs); padding: var(--space-2); }
+      .aivos360-mode-selector { padding: var(--space-2); }
+      .aivos360-mode-text h4 { font-size: var(--text-xs); }
+      .aivos360-mode-text p { font-size: 10px; }
+      .aivos360-mode-icon { padding: var(--space-1); }
     }
     
     /* 🎓 PROF. AIVOS - Chat Styles */
@@ -2998,6 +3049,33 @@
       .prof-aivos-msg { max-width: 92%; font-size: var(--text-base); }
       .prof-aivos-suggestions { flex-direction: column; align-items: stretch; }
       .prof-aivos-suggestion { justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .prof-aivos-card { padding: var(--space-3); }
+      .prof-aivos-header { padding: var(--space-3); }
+      .prof-aivos-avatar { width: 32px; height: 32px; font-size: 1.2em; }
+      .prof-aivos-name { font-size: var(--text-sm); }
+      .prof-aivos-messages { max-height: 280px; min-height: 180px; padding: var(--space-3); gap: var(--space-2); }
+      .prof-aivos-msg { max-width: 95%; font-size: var(--text-sm); padding: var(--space-2) var(--space-3); }
+      .prof-aivos-input-area { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
+      .prof-aivos-input { font-size: var(--text-sm); min-height: 40px; }
+      .prof-aivos-send-btn { width: 40px; height: 40px; }
+      .prof-aivos-suggestion { font-size: var(--text-xs); padding: var(--space-2); }
+      .prof-aivos-suggestions { gap: var(--space-2); }
+      .prof-aivos-dashboard-btn { padding: var(--space-3); gap: var(--space-2); font-size: var(--text-sm); }
+      .prof-aivos-welcome { padding: var(--space-3); gap: var(--space-2); }
+      .prof-aivos-welcome-text { font-size: var(--text-xs); }
+    }
+    @media (max-width: 375px) {
+      .prof-aivos-card { padding: var(--space-2); border-radius: var(--radius-lg); }
+      .prof-aivos-header { padding: var(--space-2); }
+      .prof-aivos-avatar { width: 28px; height: 28px; font-size: 1em; }
+      .prof-aivos-messages { max-height: 220px; min-height: 140px; padding: var(--space-2); }
+      .prof-aivos-msg { font-size: var(--text-xs); padding: var(--space-1) var(--space-2); }
+      .prof-aivos-input-area { padding: var(--space-1) var(--space-2); }
+      .prof-aivos-input { min-height: 36px; font-size: var(--text-xs); }
+      .prof-aivos-send-btn { width: 36px; height: 36px; }
+      .prof-aivos-suggestions { gap: var(--space-1); }
     }
     
     /* 🎓 PROF. AIVOS - Dashboard Button */
@@ -3341,7 +3419,7 @@
     }
 
     .redbot-wrapper { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); }
-    .redbot-layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); min-height: 500px; }
+    .redbot-layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); min-height: min(500px, 80vh); }
     .redbot-sidebar { background: #111827; border: 1px solid rgba(6,182,212,0.2); border-radius: var(--radius-xl); padding: var(--space-5); display: flex; flex-direction: column; }
     .redbot-sidebar-inner { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
     .redbot-avatar { width: 220px; height: 220px; border-radius: 9999px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); transition: transform 0.4s ease; animation: subtle-float 6s ease-in-out infinite; position: relative; flex-shrink: 0; }
@@ -3368,9 +3446,9 @@
     .redbot-tip-text { color: #9ca3af; font-size: var(--text-xs); margin: 0; line-height: 1.5; }
 
     /* Main Chat */
-    .redbot-main { display: flex; flex-direction: column; min-height: 500px; }
+    .redbot-main { display: flex; flex-direction: column; min-height: min(500px, 80vh); }
     .redbot-chat-card { flex: 1; background: #111827; border: 1px solid rgba(6,182,212,0.1); border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; }
-    .redbot-messages { flex: 1; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); min-height: 250px; max-height: 400px; }
+    .redbot-messages { flex: 1; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); min-height: 250px; max-height: 60vh; }
     .redbot-welcome { display: flex; gap: var(--space-3); align-items: flex-start; }
     .redbot-welcome-avatar { width: 40px; height: 40px; background: #06b6d4; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.5em; flex-shrink: 0; }
     .redbot-welcome-content { flex: 1; }
@@ -3454,9 +3532,118 @@
       .redbot-layout { grid-template-columns: 1fr; }
       .redbot-sidebar { display: none; }
       .redbot-avatar { width: 120px; height: 120px; }
+      .redbot-main { min-height: 60vh; }
+      .redbot-messages { min-height: 180px; max-height: 50vh; }
+      .redbot-editor-actions { flex-direction: column; }
+      .redbot-editor-btn { width: 100%; }
+      .redbot-name { font-size: 1.2em; }
+      .redbot-bio { font-size: var(--text-xs); }
+      .redbot-avatar-emoji { font-size: 1.8em; }
+    }
+    @media (max-width: 480px) {
+      .redbot-avatar { width: 80px; height: 80px; }
+      .redbot-avatar-emoji { font-size: 1.4em; }
+      .redbot-wrapper { padding: var(--space-2); gap: var(--space-3); }
+      .redbot-chat-card { border-radius: var(--radius-lg); }
+      .redbot-messages { padding: var(--space-3); gap: var(--space-2); max-height: 40vh; min-height: 150px; }
+      .redbot-msg { max-width: 92%; font-size: var(--text-xs); padding: var(--space-2) var(--space-3); }
+      .redbot-input-area { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
+      .redbot-input { font-size: var(--text-sm); min-height: 40px; }
+      .redbot-send-btn { width: 40px; height: 40px; }
+      .redbot-editor-area { padding: var(--space-2) var(--space-3); }
+      .redbot-essay-textarea { min-height: 80px; font-size: var(--text-sm); }
+      .redbot-editor-actions { gap: var(--space-2); }
+      .redbot-editor-btn { padding: var(--space-2); font-size: var(--text-xs); }
+      .redbot-welcome { gap: var(--space-2); }
+      .redbot-welcome-avatar { width: 32px; height: 32px; font-size: 1.2em; }
+      .redbot-welcome-text { font-size: var(--text-xs); }
+      .redbot-name { font-size: 1em; }
+      .redbot-hat { font-size: 1.4em; top: -3px; right: 3px; }
+      .redbot-status { font-size: var(--text-xs); }
+      .redbot-tool-btn { padding: var(--space-2); font-size: var(--text-xs); }
+      .redbot-modal { width: 95%; max-height: 90vh; }
+      .redbot-modal-body { padding: var(--space-3); }
+      .redbot-db-btn { flex-direction: column; text-align: center; gap: var(--space-2); }
+      .redbot-db-icon { font-size: 1.5em; }
+    }
+    @media (max-width: 375px) {
+      .redbot-avatar { width: 64px; height: 64px; }
+      .redbot-wrapper { padding: var(--space-1); gap: var(--space-2); }
+      .redbot-messages { padding: var(--space-2); min-height: 120px; max-height: 35vh; }
+      .redbot-msg { padding: var(--space-2); max-width: 95%; }
+      .redbot-input-area { padding: var(--space-1) var(--space-2); }
+      .redbot-input { min-height: 36px; font-size: var(--text-xs); }
+      .redbot-send-btn { width: 36px; height: 36px; }
+      .redbot-essay-textarea { min-height: 64px; }
+      .redbot-editor-area { padding: var(--space-1) var(--space-2); }
+      .redbot-hat { font-size: 1.2em; top: -2px; right: 2px; }
+      .redbot-name { font-size: 0.9em; }
     }
 
-  </style>
+      /* Sidebar Toggle Button (mobile only) */
+    .redbot-sidebar-toggle {
+      display: none;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: #1f2937;
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: var(--radius-lg);
+      color: #06b6d4;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: var(--space-2);
+      width: fit-content;
+    }
+    .redbot-sidebar-toggle:hover {
+      background: #374151;
+      border-color: #06b6d4;
+    }
+    .redbot-sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .redbot-sidebar-overlay.visible {
+      pointer-events: auto;
+      opacity: 1;
+    }
+    body.redbot-sidebar-open {
+      overflow: hidden;
+    }
+    @media (max-width: 768px) {
+      .redbot-sidebar-toggle { display: flex; }
+      .redbot-sidebar {
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 280px;
+        height: 100vh;
+        z-index: 1000;
+        border-radius: 0;
+        border-right: 1px solid rgba(6,182,212,0.2);
+        transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow-y: auto;
+        display: flex !important;
+      }
+      .redbot-sidebar.open {
+        left: 0;
+      }
+    }
+    @media (max-width: 480px) {
+      .redbot-sidebar { width: 260px; left: -280px; }
+    }
+    @media (max-width: 375px) {
+      .redbot-sidebar { width: 100%; left: -100%; }
+    }
+
+</style>
 </head>
 <body>
 
@@ -4796,7 +4983,13 @@ function goToStep(target) {
     scrollToWizard(50);
     if (target === 4) {
       if (state.mode === 'redacao') {
-        startRedacaoSession();
+        // Hide generating/error screens and old chat wrapper
+        document.getElementById('generating-screen').classList.add('hidden');
+        document.getElementById('error-screen').classList.remove('visible');
+        document.getElementById('questions-container').classList.remove('visible');
+        const oldChat = document.getElementById('redacao-chat-wrapper');
+        if (oldChat) oldChat.classList.add('hidden');
+        renderRedacaoCoachDashboard();
       } else if (state.mode === 'aivos360') {
         renderAivos360Dashboard();
       } else {
@@ -6025,6 +6218,61 @@ function renderAivos360Dashboard() {
   lucide.createIcons();
 }
 
+/**
+ * Renderiza dashboard para o modo Redacao Coach com container .aivos360-dashboard
+ * para que Coach RedBot e Prof. AIVOS Mentor possam se renderizar
+ */
+function renderRedacaoCoachDashboard() {
+  const container = document.getElementById('step-4');
+  // Remove qualquer dashboard existente
+  const existing = container.querySelector('.aivos360-dashboard');
+  if (existing) existing.remove();
+  
+  const dashboard = document.createElement('div');
+  dashboard.className = 'aivos360-dashboard';
+  dashboard.style.padding = 'var(--space-4) 0';
+  
+  // Inicializar AIVOS 360 modules se necessario
+  const initModules = async () => {
+    if (window.initAIVOS360 && !window.getAIVOS360()?.isReady()) {
+      try {
+        await window.initAIVOS360();
+        console.log('[Redacao Coach] AIVOS 360 modules initialized');
+      } catch (e) {
+        console.warn('[Redacao Coach] Erro ao inicializar AIVOS 360:', e);
+      }
+    }
+  };
+  
+  initModules().then(() => {
+    container.appendChild(dashboard);
+    
+    // Disparar evento para Prof. AIVOS e Coach RedBot se renderizarem
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('aivos360DashboardReady'));
+      
+      // Renderizar diretamente tambem como fallback
+      try {
+        const pMentor = window.getProfAivosMentor ? window.getProfAivosMentor() : null;
+        if (pMentor && !pMentor.chatContainer) {
+          pMentor.renderChatUI();
+          pMentor.addDashboardButton();
+          window.profAivosMentor = pMentor;
+        }
+      } catch (e) { console.warn('[AIVOS] Erro ao renderizar Prof. AIVOS:', e); }
+      try {
+        const cRedbot = window.getCoachRedbot ? window.getCoachRedbot() : null;
+        if (cRedbot && !cRedbot.chatWrapper) {
+          cRedbot.renderUI();
+          cRedbot.addDashboardButton();
+        }
+      } catch (e) { console.warn('[AIVOS] Erro ao renderizar Coach RedBot:', e); }
+      
+      lucide.createIcons();
+    }, 300);
+  });
+}
+
 function populateAivos360DashboardSimple() {
   calcularModoInteligente();
   renderAivos360ModeSelector();
@@ -6364,7 +6612,13 @@ async function extractTextFromFile(file, onProgress = () => {}) {
 
 async function callWorkerAndRender() {
   if (state.mode === 'redacao') {
-    startRedacaoSession();
+    // Hide screens and use Coach RedBot dashboard
+    document.getElementById('generating-screen').classList.add('hidden');
+    document.getElementById('error-screen').classList.remove('visible');
+    document.getElementById('questions-container').classList.remove('visible');
+    const oldChat = document.getElementById('redacao-chat-wrapper');
+    if (oldChat) oldChat.classList.add('hidden');
+    renderRedacaoCoachDashboard();
     return;
   }
   const genScreen = document.getElementById('generating-screen');

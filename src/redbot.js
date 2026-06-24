@@ -335,6 +335,12 @@ class CoachRedbot {
 
         <!-- MAIN - Chat Area -->
         <div class="redbot-main">
+          <button class="redbot-sidebar-toggle" onclick="window.coachRedbot?.toggleSidebar()" aria-label="Abrir menu da sidebar" title="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <span>Menu</span>
+          </button>
+          <!-- Sidebar Overlay (mobile) -->
+          <div class="redbot-sidebar-overlay" onclick="window.coachRedbot?.closeSidebar()"></div>
           <div class="redbot-chat-card">
             <div class="redbot-messages" id="redbot-messages">
               <div class="redbot-welcome">
@@ -390,6 +396,43 @@ class CoachRedbot {
     this.sendButton = container.querySelector('#redbot-send');
     this.essayTextarea = container.querySelector('#redbot-essay-input');
     this.essaySendBtn = container.querySelector('#redbot-essay-send');
+
+    // Mobile sidebar toggle references
+    this.sidebarEl = container.querySelector('.redbot-sidebar');
+    this.toggleBtn = container.querySelector('.redbot-sidebar-toggle');
+    this.sidebarOverlay = container.querySelector('.redbot-sidebar-overlay');
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SIDEBAR TOGGLE (MOBILE)
+  // ════════════════════════════════════════════════════════════════════════════
+
+  toggleSidebar() {
+    if (!this.sidebarEl) return;
+    const isOpen = this.sidebarEl.classList.toggle('open');
+    if (this.sidebarOverlay) {
+      this.sidebarOverlay.classList.toggle('visible', isOpen);
+    }
+    document.body.classList.toggle('redbot-sidebar-open', isOpen);
+    if (this.toggleBtn) {
+      this.toggleBtn.setAttribute('aria-expanded', isOpen);
+      this.toggleBtn.innerHTML = isOpen
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>Fechar</span>'
+        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span>Menu</span>';
+    }
+  }
+
+  closeSidebar() {
+    if (!this.sidebarEl) return;
+    this.sidebarEl.classList.remove('open');
+    if (this.sidebarOverlay) {
+      this.sidebarOverlay.classList.remove('visible');
+    }
+    document.body.classList.remove('redbot-sidebar-open');
+    if (this.toggleBtn) {
+      this.toggleBtn.setAttribute('aria-expanded', 'false');
+      this.toggleBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span>Menu</span>';
+    }
   }
 
   // ════════════════════════════════════════════════════════════════════════════
