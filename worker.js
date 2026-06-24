@@ -1349,6 +1349,136 @@ Voc\u00ea DEVE retornar APENAS um JSON v\u00e1lido, sem texto fora do JSON, segu
 }
 __name(handleEssayCoachSession, "handleEssayCoachSession");
 
+const PROF_AIVOS_SYSTEM_PROMPT = `Você é o **Prof. AIVOS**, um professor virtual 360° extremamente competente, carismático, motivador e preciso. Seu objetivo é ser o mentor pessoal do aluno para concursos públicos, atuando como um verdadeiro professor particular que guia todo o curso preparatório de forma autônoma.
+
+### REGRAS OBRIGATÓRIAS:
+1. Fale em primeira pessoa como "Prof. AIVOS". Seja direto, encorajador, mas exigente. Use linguagem natural brasileira, tom de professor experiente.
+2. Sempre responda de forma estruturada e visual (use markdown, emojis, negrito, listas).
+3. Inclua sugestões de próximas ações no final de cada resposta.
+
+### FUNCIONALIDADES QUE VOCÈ DEVE OFERECER:
+- Montar Plano de Estudos personalizado (semanal/mensal) baseado no edital.
+- Gerar ou indicar questões filtradas por disciplina, dificuldade e peso do edital.
+- Orientar redação com temas prováveis do concurso.
+- Criar simulados completos respeitando a proporção do edital.
+- Análise de desempenho (se o aluno informar resultados).
+- Recomendar materiais e ordem de estudo.
+- Fazer revisões inteligentes focadas em pontos fracos.
+
+### SITUAÇÕES PROBLEMÁTICAS:
+- Edital muito longo: Resuma primeiro e peça confirmação.
+- Concurso não encontrado: Peça o nome oficial ou link do edital.
+- Aluno não tem edital: Pergunte o nome do concurso ou qual fase está estudando.
+- Aluno desmotivado: Sempre inclua motivação + micro-vitória na resposta.
+- Erros técnicos: Nunca prometa funcionalidades que o site ainda não tem.
+
+### Formato de Resposta:
+1. Saudação ou reconhecimento da solicitação.
+2. Análise clara do que foi pedido.
+3. Entrega do conteúdo principal.
+4. Sugestões de próximas ações.
+5. Pergunta para continuar o diálogo.
+
+**Tom**: Profissional, motivador, preciso e humano.
+
+{studentData}`;
+
+async function handleProfAivosChat(body, env) {
+  const { message, history = [], studentData = '', currentEdital = null, currentConcurso = null } = body;
+
+  if (!message || !message.trim()) {
+    return { reply: 'Olá! Como posso te ajudar com seus estudos hoje? 🎓' };
+  }
+
+  if (!env.GROQ_API_KEY) {
+    // Fallback: respostas locais simples
+    const msg = message.toLowerCase();
+    if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia')) {
+      return { reply: `🎓 **Olá! Eu sou o Prof. AIVOS!**
+
+Que bom ter você aqui! 👋 Sou seu mentor virtual 360° para concursos públicos.
+
+**Por onde você quer começar?**
+📄 Analisar edital | 📚 Plano de estudos | 📝 Questões
+✍️ Redação | 📊 Simulados | 📈 Análise de desempenho` };
+    }
+    return { reply: `🎓 **Prof. AIVOS aqui!**
+
+Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que precisa.
+
+**Opções disponíveis:**
+📄 Analisar Edital
+📚 Plano de Estudos Personalizado
+📝 Questões por Disciplina
+✍️ Treino de Redação
+📊 Simulado Completo
+📈 Análise de Desempenho` };
+  }
+
+  // Montar mensagens para o modelo
+  const systemContent = PROF_AIVOS_SYSTEM_PROMPT.replace('{studentData}', studentData || 'Sem dados do aluno disponíveis.');
+  
+  let contextInfo = '';
+  if (currentEdital) {
+    contextInfo += `\nEDITAL CONFIGURADO: ${currentEdital.slice(0, 300)}...\n`;
+  }
+  if (currentConcurso) {
+    contextInfo += `\nCONCURSO ATUAL: ${currentConcurso}\n`;
+  }
+  
+  // Construir histórico de mensagens
+  const messages = [
+    { role: 'system', content: systemContent + (contextInfo ? `\n\nCONTEXTO ATUAL:${contextInfo}` : '') },
+    { role: 'assistant', content: 'Olá! Eu sou o Prof. AIVOS, seu mentor virtual 360°. Como posso te ajudar hoje?' }
+  ];
+  
+  // Adicionar histórico recente
+  if (Array.isArray(history)) {
+    for (const h of history.slice(-8)) {
+      if (h.role && h.content) {
+        messages.push({ role: h.role, content: h.content });
+      }
+    }
+  }
+  
+  // Adicionar mensagem atual do usuário
+  messages.push({ role: 'user', content: message });
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        temperature: 0.4,
+        max_tokens: 1500
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[Prof. AIVOS] Groq error ${response.status}: ${errText}`);
+      return { reply: 'Desculpe, estou com dificuldades técnicas no momento. Pode tentar novamente em alguns instantes?' };
+    }
+
+    const data = await response.json();
+    const reply = data?.choices?.[0]?.message?.content;
+    
+    if (!reply) {
+      return { reply: 'Não consegui processar sua solicitação. Pode reformular?' };
+    }
+
+    return { reply };
+  } catch (error) {
+    console.error(`[Prof. AIVOS] Erro na chamada Groq: ${error.message}`);
+    return { reply: 'Desculpe, ocorreu um erro na comunicação. Tente novamente!' };
+  }
+}
+
 var worker_default = {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -1380,6 +1510,20 @@ var worker_default = {
       } = body || {};
 
       const isPortugues = !idioma || idioma === "pt-BR";
+
+      if (mode === "prof-aivos") {
+        try {
+          const result = await handleProfAivosChat(body, env);
+          return new Response(JSON.stringify(result), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        } catch (chatErr) {
+          return new Response(JSON.stringify({
+            reply: "Desculpe, ocorreu um erro interno no Prof. AIVOS. Tente novamente.",
+            error: chatErr.message
+          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
 
       if (mode === "redacao") {
         try {

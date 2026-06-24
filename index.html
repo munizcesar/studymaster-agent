@@ -32,6 +32,7 @@
   <script src="src/proactive-mentor.js"></script>
   <script src="src/approval-predictor.js"></script>
   <script src="src/aivos-360-integration.js"></script>
+  <script src="src/prof-aivos-mentor.js"></script>
   <style>
     :root {
       --color-bg:             #F7F9FC;
@@ -2711,6 +2712,614 @@
         grid-template-columns: 1fr;
       }
     }
+    
+    /* 🎓 PROF. AIVOS - Chat Styles */
+    .prof-aivos-chat-area {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .prof-aivos-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
+      color: white;
+    }
+    .prof-aivos-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      flex-shrink: 0;
+    }
+    .prof-aivos-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .prof-aivos-name {
+      display: block;
+      font-size: var(--text-base);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .prof-aivos-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: var(--text-xs);
+      opacity: 0.85;
+    }
+    .prof-aivos-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ADE80;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .prof-aivos-clear-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-1) var(--space-3);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+    .prof-aivos-clear-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .prof-aivos-messages {
+      flex: 1;
+      padding: var(--space-4) var(--space-5);
+      overflow-y: auto;
+      max-height: 420px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      background: var(--color-bg);
+    }
+    .prof-aivos-msg {
+      max-width: 88%;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-sm);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      animation: msgIn 0.3s ease;
+    }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .prof-aivos-msg-coach {
+      align-self: flex-start;
+      background: var(--color-surface);
+      border: 1px solid var(--color-divider);
+      color: var(--color-text);
+      border-bottom-left-radius: 4px;
+    }
+    .prof-aivos-msg-user {
+      align-self: flex-end;
+      background: var(--color-primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .prof-aivos-p {
+      margin: 0 0 var(--space-2) 0;
+    }
+    .prof-aivos-p:last-child {
+      margin-bottom: 0;
+    }
+    .prof-aivos-h2 {
+      font-size: var(--text-lg);
+      font-weight: 800;
+      margin: var(--space-3) 0 var(--space-2);
+      color: var(--color-primary);
+    }
+    .prof-aivos-h3 {
+      font-size: var(--text-base);
+      font-weight: 700;
+      margin: var(--space-2) 0 var(--space-1);
+      color: var(--color-text);
+    }
+    .prof-aivos-li {
+      list-style: none;
+      padding: var(--space-1) 0;
+      counter-increment: item;
+    }
+    .prof-aivos-li::before {
+      content: counter(item) ". ";
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .prof-aivos-li-dash {
+      list-style: none;
+      padding: var(--space-1) 0;
+    }
+    .prof-aivos-li-dash::before {
+      content: "• ";
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+    .prof-aivos-input-area {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-5);
+      border-top: 1px solid var(--color-divider);
+      background: var(--color-surface);
+    }
+    .prof-aivos-input {
+      flex: 1;
+      padding: var(--space-3);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: inherit;
+      font-size: var(--text-sm);
+      resize: none;
+      min-height: 44px;
+      max-height: 150px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .prof-aivos-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
+    }
+    .prof-aivos-send-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: var(--grad-brand);
+      color: white;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition);
+      flex-shrink: 0;
+      border: none;
+    }
+    .prof-aivos-send-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .prof-aivos-send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .prof-aivos-typing {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+    }
+    .prof-aivos-typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .prof-aivos-dot-anim {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-text-muted);
+      animation: dotBounce 1.4s ease-in-out infinite;
+    }
+    .prof-aivos-dot-anim:nth-child(2) { animation-delay: 0.2s; }
+    .prof-aivos-dot-anim:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotBounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .prof-aivos-cursor {
+      animation: blink 0.8s infinite;
+      color: var(--color-primary);
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .prof-aivos-welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: var(--space-8) var(--space-4);
+      gap: var(--space-3);
+    }
+    .prof-aivos-welcome-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-2);
+    }
+    .prof-aivos-welcome-text strong {
+      display: block;
+      font-size: var(--text-lg);
+      margin-bottom: var(--space-2);
+      color: var(--color-text);
+    }
+    .prof-aivos-welcome-text p {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      max-width: 400px;
+    }
+    .prof-aivos-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      justify-content: center;
+      margin-top: var(--space-3);
+    }
+    .prof-aivos-suggestion {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .prof-aivos-suggestion:hover {
+      border-color: var(--color-primary);
+      background: oklch(from var(--color-primary) l c h / 0.05);
+      transform: translateY(-1px);
+    }
+    @media (max-width: 768px) {
+      .prof-aivos-messages { max-height: 360px; min-height: 240px; }
+      .prof-aivos-msg { max-width: 92%; font-size: var(--text-base); }
+      .prof-aivos-suggestions { flex-direction: column; align-items: stretch; }
+      .prof-aivos-suggestion { justify-content: center; }
+    }
+    
+    /* 🎓 PROF. AIVOS - Dashboard Button */
+    .prof-aivos-dashboard-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-5);
+      background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.08) 0%, oklch(from var(--color-primary) l c h / 0.03) 100%);
+      border: 1.5px solid var(--color-primary);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .prof-aivos-dashboard-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.2);
+      border-color: var(--color-primary-mid);
+    }
+    .prof-aivos-dashboard-btn:active {
+      transform: translateY(0);
+    }
+    .prof-aivos-dashboard-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, oklch(from var(--color-primary) l c h / 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .prof-aivos-db-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      background: oklch(from var(--color-primary) l c h / 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8em;
+      flex-shrink: 0;
+    }
+    .prof-aivos-db-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .prof-aivos-db-title {
+      display: block;
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 2px;
+    }
+    .prof-aivos-db-subtitle {
+      display: block;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      line-height: 1.4;
+    }
+    .prof-aivos-db-arrow {
+      color: var(--color-primary);
+      flex-shrink: 0;
+      transition: transform var(--transition);
+    }
+    .prof-aivos-dashboard-btn:hover .prof-aivos-db-arrow {
+      transform: translateX(4px);
+    }
+  
+    /* PROF. AIVOS v2 - Edital Card (Gradiente Azul->Ciano) */
+    .prof-aivos-edital-card {
+      position: relative;
+      margin: var(--space-3) var(--space-5);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D47FF 0%, #00B8FF 100%);
+      box-shadow: 0 8px 32px oklch(from #0D47FF l c h / 0.25);
+      transition: all var(--transition);
+    }
+    .prof-aivos-edital-card-bg {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .prof-aivos-edital-card-content {
+      position: relative;
+      z-index: 1;
+      padding: var(--space-5);
+    }
+    .prof-aivos-edital-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .prof-aivos-edital-card-icon {
+      font-size: 1.5em;
+    }
+    .prof-aivos-edital-card-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: white;
+      margin: 0;
+    }
+    .prof-aivos-edital-card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .prof-aivos-edital-card-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .prof-aivos-edital-card-label {
+      color: rgba(255,255,255,0.85);
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+    .prof-aivos-edital-card-textarea {
+      width: 100%;
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-family: inherit;
+      font-size: var(--text-sm);
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color var(--transition);
+    }
+    .prof-aivos-edital-card-textarea::placeholder { color: rgba(255,255,255,0.6); }
+    .prof-aivos-edital-card-textarea:focus {
+      outline: none;
+      border-color: white;
+      background: rgba(255,255,255,0.15);
+    }
+    .prof-aivos-edital-card-input {
+      width: 100%;
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-family: inherit;
+      font-size: var(--text-sm);
+      transition: border-color var(--transition);
+    }
+    .prof-aivos-edital-card-input::placeholder { color: rgba(255,255,255,0.6); }
+    .prof-aivos-edital-card-input:focus {
+      outline: none;
+      border-color: white;
+      background: rgba(255,255,255,0.15);
+    }
+    .prof-aivos-edital-card-btn {
+      margin-top: var(--space-3);
+      width: 100%;
+      padding: var(--space-3);
+      border: none;
+      border-radius: var(--radius-lg);
+      background: white;
+      color: #0D47FF;
+      font-weight: 700;
+      font-size: var(--text-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .prof-aivos-edital-card-btn:hover:not(:disabled) {
+      background: #FFD700;
+      color: #1a1a2e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .prof-aivos-edital-card-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .prof-aivos-edital-card-history {
+      margin-top: var(--space-3);
+      border-top: 1px solid rgba(255,255,255,0.15);
+      padding-top: var(--space-3);
+      text-align: center;
+    }
+    .prof-aivos-edital-card-history-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.8);
+      font-size: var(--text-sm);
+      cursor: pointer;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      transition: all var(--transition);
+    }
+    .prof-aivos-edital-card-history-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+
+    /* Banner do Edital Ativo */
+    .prof-aivos-edital-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-5);
+      background: linear-gradient(135deg, oklch(from var(--color-success) l c h / 0.1) 0%, oklch(from var(--color-success) l c h / 0.04) 100%);
+      border-bottom: 1px solid oklch(from var(--color-success) l c h / 0.2);
+    }
+    .prof-aivos-edital-banner-icon { font-size: 1.3em; flex-shrink: 0; }
+    .prof-aivos-edital-banner-info { flex: 1; min-width: 0; }
+    .prof-aivos-edital-banner-name {
+      display: block; font-size: var(--text-sm); font-weight: 600;
+      color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .prof-aivos-edital-banner-meta { display: block; font-size: var(--text-xs); color: var(--color-text-secondary); }
+    .prof-aivos-edital-banner-btn {
+      display: flex; align-items: center; gap: var(--space-1);
+      padding: var(--space-1) var(--space-3);
+      border: 1px solid oklch(from var(--color-success) l c h / 0.3); border-radius: var(--radius-md);
+      background: transparent; color: var(--color-success); font-size: var(--text-xs); font-weight: 600;
+      cursor: pointer; transition: all var(--transition); white-space: nowrap; flex-shrink: 0;
+    }
+    .prof-aivos-edital-banner-btn:hover { background: oklch(from var(--color-success) l c h / 0.1); border-color: var(--color-success); }
+
+    /* Acoes Rapidas (pos-analise) */
+    .prof-aivos-quick-actions { margin: var(--space-3) var(--space-5); }
+    .prof-aivos-qa-header { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+    .prof-aivos-qa-icon { font-size: 1.2em; }
+    .prof-aivos-qa-title { font-weight: 700; font-size: var(--text-sm); color: var(--color-text); text-transform: uppercase; letter-spacing: 0.05em; }
+    .prof-aivos-qa-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); }
+    .prof-aivos-qa-btn {
+      display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1);
+      padding: var(--space-4); border: 1.5px solid var(--color-border); border-radius: var(--radius-lg);
+      background: var(--color-surface); cursor: pointer; transition: all var(--transition);
+      text-align: left; position: relative; overflow: hidden;
+    }
+    .prof-aivos-qa-btn::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0; transition: height var(--transition);
+    }
+    .prof-aivos-qa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .prof-aivos-qa-btn:hover::before { height: 4px; }
+    .prof-aivos-qa-btn:active { transform: translateY(0); }
+    .prof-aivos-qa-btn-primary::before { background: var(--color-primary); }
+    .prof-aivos-qa-btn-primary:hover { border-color: var(--color-primary); }
+    .prof-aivos-qa-success::before { background: var(--color-success); }
+    .prof-aivos-qa-success:hover { border-color: var(--color-success); }
+    .prof-aivos-qa-warning::before { background: #F59E0B; }
+    .prof-aivos-qa-warning:hover { border-color: #F59E0B; }
+    .prof-aivos-qa-info::before { background: #3B82F6; }
+    .prof-aivos-qa-info:hover { border-color: #3B82F6; }
+    .prof-aivos-qa-danger::before { background: var(--color-error); }
+    .prof-aivos-qa-danger:hover { border-color: var(--color-error); }
+    .prof-aivos-qa-plan::before { background: #8B5CF6; }
+    .prof-aivos-qa-plan:hover { border-color: #8B5CF6; }
+    .prof-aivos-qa-btn-icon { font-size: 1.4em; line-height: 1; }
+    .prof-aivos-qa-btn-label { font-weight: 600; font-size: var(--text-sm); color: var(--color-text); }
+    .prof-aivos-qa-btn-sub { font-size: var(--text-xs); color: var(--color-text-secondary); }
+
+    /* Barra de Acoes Rapidas */
+    .prof-aivos-quick-actions-bar {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-5); border-top: 1px solid var(--color-border);
+      background: var(--color-surface); flex-wrap: wrap;
+    }
+    .prof-aivos-qa-bar-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      background: var(--color-bg); cursor: pointer; font-size: 1.1em; transition: all var(--transition);
+    }
+    .prof-aivos-qa-bar-btn:hover {
+      background: var(--color-surface); border-color: var(--color-primary);
+      transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* Historico de Editais - Modal */
+    .prof-aivos-history-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+      z-index: 10000; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .prof-aivos-history-overlay.active { opacity: 1; }
+    .prof-aivos-history-modal {
+      width: 90%; max-width: 520px; max-height: 80vh; background: var(--color-surface);
+      border-radius: var(--radius-xl); box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      display: flex; flex-direction: column; transform: translateY(20px) scale(0.95);
+      transition: transform 0.3s ease;
+    }
+    .active .prof-aivos-history-modal { transform: translateY(0) scale(1); }
+    .prof-aivos-history-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-5); border-bottom: 1px solid var(--color-border); }
+    .prof-aivos-history-title { font-size: var(--text-lg); font-weight: 700; margin: 0; }
+    .prof-aivos-history-close { width: 32px; height: 32px; border: none; border-radius: var(--radius-md); background: var(--color-bg); cursor: pointer; font-size: var(--text-lg); display: flex; align-items: center; justify-content: center; transition: all var(--transition); }
+    .prof-aivos-history-close:hover { background: var(--color-border); }
+    .prof-aivos-history-body { flex: 1; overflow-y: auto; padding: var(--space-3); }
+    .prof-aivos-history-empty { text-align: center; padding: var(--space-8); color: var(--color-text-secondary); }
+    .prof-aivos-history-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); cursor: pointer; transition: background var(--transition); border-bottom: 1px solid var(--color-divider); }
+    .prof-aivos-history-item:last-child { border-bottom: none; }
+    .prof-aivos-history-item:hover { background: oklch(from var(--color-primary) l c h / 0.06); }
+    .prof-aivos-history-item-icon { font-size: 1.3em; flex-shrink: 0; }
+    .prof-aivos-history-item-info { flex: 1; min-width: 0; }
+    .prof-aivos-history-item-info strong { display: block; font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prof-aivos-history-item-info span { font-size: var(--text-xs); color: var(--color-text-secondary); }
+    .prof-aivos-history-item-btn { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-primary); border-radius: var(--radius-md); background: transparent; color: var(--color-primary); font-size: var(--text-xs); font-weight: 600; cursor: pointer; transition: all var(--transition); flex-shrink: 0; }
+    .prof-aivos-history-item-btn:hover { background: var(--color-primary); color: white; }
+    .prof-aivos-history-footer { padding: var(--space-4); border-top: 1px solid var(--color-border); text-align: center; }
+    .prof-aivos-history-footer-btn { padding: var(--space-3) var(--space-5); border: 2px dashed var(--color-border); border-radius: var(--radius-lg); background: transparent; color: var(--color-text-secondary); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--transition); width: 100%; }
+    .prof-aivos-history-footer-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: oklch(from var(--color-primary) l c h / 0.04); }
+
+    /* Listas */
+    .prof-aivos-ol { margin: var(--space-2) 0; padding-left: var(--space-5); }
+    .prof-aivos-ul { margin: var(--space-2) 0; padding-left: var(--space-5); list-style: none; }
+    .prof-aivos-ul .prof-aivos-li-dash::before { content: '\2022'; color: var(--color-primary); font-weight: bold; position: absolute; left: -1.2em; }
+    .prof-aivos-li-dash { position: relative; padding-left: 0; }
+
+    /* Avatar */
+    .prof-aivos-avatar-icon { font-size: 1.4em; line-height: 1; transition: transform 0.3s ease; }
+    .prof-aivos-avatar:hover .prof-aivos-avatar-icon { transform: scale(1.15); }
+    .prof-aivos-actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
   </style>
 </head>
 <body>

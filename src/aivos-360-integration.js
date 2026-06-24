@@ -103,6 +103,10 @@ class AIVOS360Integration {
         this.modules.aiAuditor
       );
 
+      // 10. Prof. AIVOS Mentor (conversacional - depende de todos)
+      console.log('[AIVOS 360] Inicializando Prof. AIVOS Mentor...');
+      this.modules.profAivosMentor = window.initProfAivosMentor(this.modules);
+
       this.isInitialized = true;
       console.log('[AIVOS 360] Integração concluída com sucesso!');
 
@@ -195,6 +199,8 @@ class AIVOS360Integration {
       }
 
       console.log('[AIVOS 360] Resposta processada através de todos os módulos');
+
+      console.log('[AIVOS 360] Resposta processada através de todos os módulos');
     } catch (error) {
       console.error('[AIVOS 360] Erro ao processar resposta:', error);
     }
@@ -218,9 +224,7 @@ class AIVOS360Integration {
 
   // ════════════════════════════════════════════════════════════════════════════
   // RELATÓRIO DE STATUS
-  // ════════════════════════════════════════════════════════════════════════════
-
-  getStatusReport() {
+  // ════════════════════════════════════════════════════════════════════════════    getStatusReport() {
     const moduleStatus = {};
     
     for (const [name, module] of Object.entries(this.modules)) {
@@ -235,6 +239,10 @@ class AIVOS360Integration {
       modules: moduleStatus,
       timestamp: Date.now()
     };
+  }
+
+  getProfAivosMentor() {
+    return this.modules.profAivosMentor || null;
   }
 
   generateFullReport() {
