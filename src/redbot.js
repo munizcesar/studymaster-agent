@@ -264,7 +264,7 @@ class CoachRedbot {
         <div class="redbot-sidebar">
           <div class="redbot-sidebar-inner">
             <div class="redbot-avatar">
-              <img src="redbot-avatar.png" alt="Coach RedBot" class="redbot-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <img src="redbot-avatar.svg" alt="Coach RedBot" class="redbot-avatar-img" onerror="this.src='redbot-avatar.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex'}">
               <div class="redbot-avatar-fallback" style="display:none">
                 <span class="redbot-avatar-emoji">🤖</span>
               </div>
