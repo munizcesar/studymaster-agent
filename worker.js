@@ -1476,6 +1476,115 @@ Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que pre
   } catch (error) {
     console.error(`[Prof. AIVOS] Erro na chamada Groq: ${error.message}`);
     return { reply: 'Desculpe, ocorreu um erro na comunicação. Tente novamente!' };
+  }  }
+
+const PROF_REDBOT_SYSTEM_PROMPT = `Você é o **Prof. RedBot**, um robô professor super simpático, paciente e especialista em redação para concursos públicos. Você usa um chapéu de professor e tem personalidade amigável, como um bom professor que explica tudo de forma clara.
+
+Sua missão é ajudar o aluno a aprender de verdade as técnicas de redação e tirar notas altas (900+ ou 1000).
+
+**Como você fala (obrigatório):**
+- Linguagem humana, simples, clara e motivadora. Como se estivesse conversando com um aluno.
+- Sempre comece apontando algo positivo antes de mostrar o que melhorar.
+- Explique o PORQUÊ das coisas (ex: "Isso é bom porque ajuda na nota da C3").
+- Use emojis, quebras de linha e frases curtas para ficar fácil de ler.
+
+**O que você pode fazer:**
+- Corrigir redação completa ou por partes (introdução, desenvolvimento, conclusão)
+- Dar nota por competência (C1 até C5) com explicação simples
+- Ensinar técnicas passo a passo
+- Sugerir repertórios socioculturais atualizados
+- Criar temas de redação personalizados conforme o edital
+- Mostrar exemplos de trechos nota 1000
+- Montar plano de evolução na redação
+
+Sempre termine sua resposta com 2 ou 3 sugestões claras de próximo passo, como botões.
+
+Você é o Prof. RedBot, o robô professor que mora no site e está sempre pronto para ajudar!
+
+{studentData}`;
+
+async function handleProfRedbotChat(body, env) {
+  const { message, history = [], studentData = '' } = body;
+
+  if (!message || !message.trim()) {
+    return { reply: '🤖 Olá! Eu sou o Prof. RedBot! Como posso ajudar com sua redação hoje? 🎓' };
+  }
+
+  if (!env.GROQ_API_KEY) {
+    const msg = message.toLowerCase();
+    if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia')) {
+      return { reply: `🤖🎓 **Olá! Eu sou o Prof. RedBot!**
+
+Seu robô professor especialista em redação para concursos! Posso ajudar com:
+
+📝 **Corrigir sua redação** — Envie o texto completo
+🎯 **Criar temas** — Tema personalizado
+📋 **Explicar C1-C5** — Entenda cada competência
+🏆 **Exemplos Nota 1000** — Trechos nota máxima
+📚 **Repertórios** — Autores e dados
+
+**👉 Como posso te ajudar hoje?** 🚀` };
+    }
+    if (msg.includes('tema') || msg.includes('redação nova')) {
+      return { reply: '🎯 **Tema para Redação!**\n\n**"Os desafios da saúde pública no Brasil pós-pandemia"**\n\n📝 Escreva uma redação dissertativa-argumentativa sobre o tema. Lembre-se de estruturar com introdução, desenvolvimento (2 parágrafos) e conclusão com proposta de intervenção.\n\n**👉 Quando terminar, cole aqui que eu corrijo!**' };
+    }
+    return { reply: `🤖🎓 **Prof. RedBot aqui!**
+
+Entendi! Para te ajudar melhor, você pode:
+
+📝 **Enviar sua redação** — Completa ou em partes
+🎯 Pedir um **tema de redação**
+📋 Perguntar sobre **C1 a C5**
+🏆 Ver **exemplos nota 1000**
+📚 Pedir **repertórios**
+
+**👉 O que você prefere?**` };
+  }
+
+  const systemContent = PROF_REDBOT_SYSTEM_PROMPT.replace('{studentData}', studentData || 'Sem dados do aluno disponíveis.');
+
+  const messages = [
+    { role: 'system', content: systemContent },
+    { role: 'assistant', content: '🤖 Olá! Eu sou o Prof. RedBot! Como posso ajudar com sua redação hoje?' }
+  ];
+
+  if (Array.isArray(history)) {
+    for (const h of history.slice(-10)) {
+      if (h.role && h.content) {
+        messages.push({ role: h.role, content: h.content });
+      }
+    }
+  }
+
+  messages.push({ role: 'user', content: message });
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        temperature: 0.35,
+        max_tokens: 2000
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[Prof. RedBot] Groq error ${response.status}: ${errText}`);
+      return { reply: 'Desculpe, estou com dificuldades técnicas. Pode tentar novamente?' };
+    }
+
+    const data = await response.json();
+    const reply = data?.choices?.[0]?.message?.content;
+    return { reply: reply || 'Não consegui processar sua solicitação. Pode reformular?' };
+  } catch (error) {
+    console.error(`[Prof. RedBot] Erro: ${error.message}`);
+    return { reply: 'Desculpe, ocorreu um erro na comunicação. Tente novamente!' };
   }
 }
 
@@ -1520,6 +1629,20 @@ var worker_default = {
         } catch (chatErr) {
           return new Response(JSON.stringify({
             reply: "Desculpe, ocorreu um erro interno no Prof. AIVOS. Tente novamente.",
+            error: chatErr.message
+          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
+      if (mode === "prof-redbot") {
+        try {
+          const result = await handleProfRedbotChat(body, env);
+          return new Response(JSON.stringify(result), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        } catch (chatErr) {
+          return new Response(JSON.stringify({
+            reply: "Desculpe, ocorreu um erro interno no Prof. RedBot. Tente novamente.",
             error: chatErr.message
           }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
