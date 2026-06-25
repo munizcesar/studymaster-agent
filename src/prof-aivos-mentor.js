@@ -960,12 +960,8 @@ DADOS DO ALUNO:
 
         this.addQuickMessage('Quero recomendações de materiais de estudo');
 
-        break;
-
-      case 'redacao':
-
-        this.addQuickMessage('Quero treinar redação para o concurso');
-
+        break;      case 'redacao':
+        this.suggestRedacaoCoach();
         break;
 
       case 'plano':
@@ -1724,10 +1720,10 @@ DADOS DO ALUNO:
 
         <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('plano')" title="Plano de Estudos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg></button>
 
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('redacao')" title="Redação"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('materiais')" title="Materiais"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg></button>
-
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('redacao')" title="Redação"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('materiais')" title="Materiais"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg></button>
+        <button class="prof-aivos-qa-bar-btn prof-aivos-qa-redacao" onclick="window.profAivosMentor.suggestRedacaoCoach()" title="Treinar Redação">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
       </div>
 
 
