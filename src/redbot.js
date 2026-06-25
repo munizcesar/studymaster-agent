@@ -25,29 +25,38 @@ const REDBOT_CONFIG = {
 // SYSTEM PROMPT DO COACH REDBOT
 // ════════════════════════════════════════════════════════════════════════════
 
-const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Coach RedBot**, um robô coach super simpático, paciente e especialista em redação para concursos públicos. Você usa um chapéu de professor e tem personalidade amigável, como um bom professor que explica tudo de forma clara.
+const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Coach RedBot**, um tutor inteligente de redação para ENEM e concursos. Seu objetivo é ENSINAR o aluno a escrever melhor — não apenas corrigir.
 
-Sua missão é ajudar o aluno a aprender de verdade as técnicas de redação e tirar notas altas (900+ ou 1000).
+# DEFINIÇÕES DE C1-C5 (cada uma vale 0 a 200, total 1000):
+- **C1** = Domínio da Escrita Formal (ortografia, concordância, regência, pontuação)
+- **C2** = Compreensão do Tema (tema central, repertório adequado)
+- **C3** = Organização das Ideias (estrutura, progressão lógica, coerência)
+- **C4** = Mecanismos Linguísticos / Coesão (conectivos, referências, progressão textual)
+- **C5** = Proposta de Intervenção (agente, ação, meio, finalidade, direitos humanos)
 
-**Como você fala (obrigatório):**
-- Linguagem humana, simples, clara e motivadora. Como se estivesse conversando com um aluno.
-- Sempre comece apontando algo positivo antes de mostrar o que melhorar.
-- Explique o PORQUÊ das coisas (ex: "Isso é bom porque ajuda na nota da C3").
-- Use emojis, quebras de linha e frases curtas para ficar fácil de ler.
+# REGRAS DE COMPORTAMENTO
+1. Aja como professor. Ensine o porquê. Adapte-se ao nível do aluno.
+2. Feedback em 3 perguntas: (1) Qual o objetivo? (2) Como você está? (3) O que fazer?
+3. Correção em camadas: Tema → Estrutura → Argumentação → Coesão → Repertório → Gramática → Ortografia.
+4. Método Socrático: faça o aluno refletir antes de dar a resposta.
+5. Aprendizagem ativa: peça reescrita antes de mostrar versão modelo.
+6. Tom humano, claro, motivador. Comece positivo. Termine com 2-3 sugestões.
 
-**O que você pode fazer:**
-- Corrigir redação completa ou por partes (introdução, desenvolvimento, conclusão)
-- Dar nota por competência (C1 até C5) com explicação simples
-- Ensinar técnicas passo a passo
-- Sugerir repertórios socioculturais atualizados
-- Criar temas de redação personalizados conforme o edital
-- Mostrar exemplos de trechos nota 1000
-- Montar plano de evolução na redação
+# INSTRUÇÃO CRÍTICA — FORMATO DE SAÍDA
+VOCÊ DEVE RESPONDER APENAS EM JSON. NUNCA inclua o campo "reply". Use APENAS os campos abaixo.
 
-Sempre termine sua resposta com 2 ou 3 sugestões claras de próximo passo.
+Exemplo COMPLETO de resposta (copie EXATAMENTE este formato, apenas altere os valores):
+{
+  "scores": { "c1": 120, "c2": 140, "c3": 130, "c4": 110, "c5": 100 },
+  "summary": "O aluno demonstra compreensão do tema mas precisa melhorar a proposta de intervenção. A estrutura está adequada, com introdução, desenvolvimento e conclusão.",
+  "strongPoints": ["Compreensão clara do tema proposto", "Estrutura bem organizada em parágrafos"],
+  "problems": ["Proposta de intervenção sem detalhamento (falta agente, ação e meio)", "Conectivos repetitivos ao longo do texto"],
+  "socraticQuestion": "Sua proposta de intervenção convenceria um gestor público? O que falta nela?",
+  "nextSteps": ["Refaça a conclusão com proposta detalhada", "Varie os conectivos: ademais, outrossim, por conseguinte"]
+}
 
-Você é o Coach RedBot, o robô coach que mora no site e está sempre pronto para ajudar!
-
+IMPORTANTE: scores DEVEM ser números inteiros de 0 a 200 (NUNCA 0-10, NUNCA use escala decimal).
+IMPORTANTE: NUNCA inclua campo "reply". Use SOMENTE os campos do exemplo acima.
 `;  // studentData enviado via API payload
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -590,13 +599,36 @@ class CoachRedbot {
     this.showTypingIndicator();
 
     try {
-      let reply = await this.sendToAI(userMessage, this._messageType || 'chat');
+      let result = await this.sendToAI(userMessage, this._messageType || 'chat');
 
       this.hideTypingIndicator();
-      await this.addTypingMessage(reply, 'coach');
-      this.conversationHistory.push({ role: 'assistant', content: reply });
 
-      this.extractScoresFromReply(reply);
+      // result pode ser string (fallback local) ou objeto (resposta da IA)
+      let replyText;
+      if (typeof result === 'string') {
+        replyText = result;
+      } else {
+        replyText = this.formatCoachReply(result);
+        // Salva scores se o modelo retornou dados estruturados
+        if (result.scores) {
+          const comp = {};
+          let total = 0;
+          for (const k of ['c1','c2','c3','c4','c5']) {
+            const v = parseInt(result.scores[k]);
+            if (!isNaN(v)) { comp[k] = v; total += v; }
+          }
+          if (Object.keys(comp).length >= 3) {
+            this.lastScores = { comp, media: Math.round(total) };
+          }
+        }
+        // Fallback: tenta extrair scores do texto do reply
+        if (!result.scores && result.reply) {
+          this.extractScoresFromReply(result.reply);
+        }
+      }
+
+      await this.addTypingMessage(replyText, 'coach');
+      this.conversationHistory.push({ role: 'assistant', content: replyText });
       this.saveSession();
 
     } catch (error) {
@@ -609,6 +641,121 @@ class CoachRedbot {
     this.setInputState(true);
     this.inputElement?.focus();
     this.scrollToBottom();
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // FORMATA RESPOSTA DO COACH USANDO DADOS ESTRUTURADOS
+  // ════════════════════════════════════════════════════════════════════════════
+
+  formatCoachReply(data) {
+    if (!data || typeof data !== 'object') return data || '';
+
+    const { scores, summary, strongPoints, problems, socraticQuestion, nextSteps, reply } = data;
+    let r = '';
+
+    // ── Se tem dados estruturados (scores, summary), usa formatação completa ──
+    if (scores || summary || strongPoints || problems) {
+      // Scores formatados com labels corretos do COMPETENCIES
+      if (scores) {
+        r += `📊 **Estimativa de nota por competência:**\n\n`;
+        let total = 0;
+        for (const [key, comp] of Object.entries(COMPETENCIES)) {
+          const val = scores[key];
+          if (val !== undefined && val !== null) {
+            const num = parseInt(val);
+            if (!isNaN(num)) {
+              r += `**${comp.icon} ${comp.label}:** ${num}/200\n`;
+              r += `_${comp.description.slice(0, 60)}..._\n\n`;
+              total += num;
+            }
+          }
+        }
+        r += `**🏆 Total estimado: ${total}/1000**\n\n`;
+        r += `---\n\n`;
+      }
+
+      // Resumo
+      if (summary) r += `📝 **Resumo do desempenho:**\n${summary}\n\n---\n\n`;
+
+      // Pontos fortes
+      if (strongPoints && strongPoints.length > 0) {
+        r += `✅ **Pontos fortes:**\n`;
+        strongPoints.forEach(p => { r += `• ${p}\n`; });
+        r += `\n`;
+      }
+
+      // Problemas
+      if (problems && problems.length > 0) {
+        r += `🔴 **Principais problemas:**\n`;
+        problems.forEach((p, i) => { r += `${i+1}. ${p}\n`; });
+        r += `\n`;
+      }
+
+      // Pergunta socrática
+      if (socraticQuestion) {
+        r += `🤔 **Reflita:** ${socraticQuestion}\n\n`;
+      }
+
+      // Próximos passos
+      if (nextSteps && nextSteps.length > 0) {
+        r += `👉 **Próximos passos:**\n`;
+        nextSteps.forEach(s => { r += `• ${s}\n`; });
+        r += `\n`;
+      }
+
+      // Pergunta obrigatória
+      r += `🤔 **Qual desses você quer corrigir primeiro?** (Me diga o número ou descreva)\n\n`;
+
+      return r.trim();
+    }
+
+    // ── Se só tem reply (modelo retornou apenas texto) ──
+    // Extrai scores do reply e adiciona correção de escala/labels no topo
+    if (reply) {
+      const extractedScores = this._extractScoresFromText(reply);
+      
+      if (extractedScores && Object.keys(extractedScores).length >= 3) {
+        // Normaliza 0-10 → 0-200
+        const allLe10 = Object.values(extractedScores).every(v => v <= 10);
+        r += `📊 **Notas corrigidas (escala 0-200):**\n\n`;
+        let totalNormalized = 0;
+        for (const [key, comp] of Object.entries(COMPETENCIES)) {
+          const rawVal = extractedScores[key];
+          if (rawVal !== undefined) {
+            const normalized = allLe10 ? rawVal * 20 : rawVal;
+            totalNormalized += normalized;
+            r += `**${comp.icon} ${comp.label}:** ${normalized}/200\n`;
+          }
+        }
+        r += `\n**🏆 Total: ${totalNormalized}/1000**\n\n`;
+        r += `_💡 As notas acima foram extraídas automaticamente do texto do Coach e convertidas para a escala oficial (0-200 por competência)._
+\n---\n\n`;
+        // Adiciona dicas com base nas notas mais baixas
+        const sorted = Object.entries(extractedScores)
+          .map(([k, v]) => ({ key: k, val: allLe10 ? v * 20 : v, comp: COMPETENCIES[k] }))
+          .sort((a, b) => a.val - b.val);
+        if (sorted.length >= 2) {
+          r += `💡 **Dica rápida:** Sua menor nota foi em **${sorted[0].comp.label}**. ${sorted[0].comp.tips[0]}\n\n---\n\n`;
+        }
+      }
+
+      // Mantém o texto original do modelo abaixo
+      r += reply;
+      return r;
+    }
+
+    return 'Obrigado! Como posso ajudar com sua redação?';
+  }
+
+  // Extrai scores do texto do reply (usa mesma lógica de extractScoresFromReply)
+  _extractScoresFromText(text) {
+    const regex = /c([1-5])(?:[^:]*?)\s*[:=]\s*(\d{1,3})/gi;
+    let match;
+    const scores = {};
+    while ((match = regex.exec(text)) !== null) {
+      scores[`c${match[1]}`] = parseInt(match[2]);
+    }
+    return Object.keys(scores).length >= 3 ? scores : null;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -634,7 +781,9 @@ class CoachRedbot {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-      return data.reply || 'Desculpe, não consegui processar sua solicitação. Pode tentar novamente?';
+      // Retorna o objeto completo se houver reply OU dados estruturados
+      if (data.reply || data.scores || data.summary) return data;
+      return 'Desculpe, não consegui processar sua solicitação. Pode tentar novamente?';
     } catch (error) {
       console.error('[Coach RedBot] Erro na comunicação com IA:', error);
       return this.getFallback(userMessage);
@@ -825,16 +974,25 @@ class CoachRedbot {
   }
 
   extractScoresFromReply(reply) {
-    const regex = /c([1-5])\s*[:=]\s*(\d{1,3})/gi;
+    // Aceita formatos: "C1: 7", "C1 (label): 7", "C1 = 120" etc.
+    const regex = /c([1-5])(?:[^:]*?)\s*[:=]\s*(\d{1,3})/gi;
     let match;
     const scores = {};
     while ((match = regex.exec(reply)) !== null) {
       scores[`c${match[1]}`] = parseInt(match[2]);
     }
     if (Object.keys(scores).length >= 3) {
-      const total = Object.values(scores).reduce((a, b) => a + b, 0);
-      this.lastScores = { comp: scores, media: total };
-      this.saveSession();
+      // Normaliza escala 0-10 → 0-200 (modelo sempre usa 0-10)
+      const allLe10 = Object.values(scores).every(v => v <= 10);
+      const comp = {};
+      let total = 0;
+      for (const [k, v] of Object.entries(scores)) {
+        const normalized = allLe10 ? v * 20 : v;
+        comp[k] = normalized;
+        total += normalized;
+      }
+      this.lastScores = { comp, media: Math.round(total) };
+      // saveSession() é chamado pelo caller em processMessage
     }
   }
 

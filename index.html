@@ -3668,9 +3668,9 @@
       50% { opacity: 0.4; }
     }
 
-    .redbot-wrapper { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); }
-    .redbot-layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); min-height: min(500px, 80vh); }
-    .redbot-sidebar { background: #111827; border: 1px solid rgba(6,182,212,0.2); border-radius: var(--radius-xl); padding: var(--space-5); display: flex; flex-direction: column; }
+    .redbot-wrapper { display: flex; flex-direction: column; gap: 0; padding: 0; height: auto; }
+    .redbot-layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); min-height: calc(100vh - 120px); max-height: calc(100vh - 120px); overflow: hidden; }
+    .redbot-sidebar { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-5); display: flex; flex-direction: column; overflow-y: auto; position: sticky; top: var(--space-4); align-self: start; max-height: calc(100vh - 140px); }
     .redbot-sidebar-inner { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
     .redbot-avatar { width: 220px; height: 220px; border-radius: 9999px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); transition: transform 0.4s ease; animation: subtle-float 6s ease-in-out infinite; position: relative; flex-shrink: 0; }
     .redbot-avatar:hover { transform: scale(1.05); }
@@ -3678,37 +3678,37 @@
     .redbot-avatar-fallback { width: 100%; height: 100%; background: linear-gradient(135deg, #06b6d4, #0ea5e9); display: flex; align-items: center; justify-content: center; border-radius: 9999px; }
     .redbot-avatar-emoji { font-size: 4em; }
     .redbot-hat { position: absolute; top: -5px; right: 5px; font-size: 2em; animation: hat-wobble 4s ease-in-out infinite; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-    .redbot-name { font-size: 1.5em; font-weight: 700; color: #06b6d4; display: flex; align-items: center; gap: var(--space-2); }
+    .redbot-name { font-size: 1.5em; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: var(--space-2); }
     .redbot-name-hat { font-size: 0.8em; }
-    .redbot-status { display: flex; align-items: center; gap: var(--space-2); color: #4ade80; font-size: var(--text-sm); }
-    .redbot-status-dot { width: 12px; height: 12px; background: #4ade80; border-radius: 50%; animation: redbot-pulse 2s infinite; }
-    .redbot-bio { color: #9ca3af; text-align: center; font-size: var(--text-sm); line-height: 1.6; }
-    .redbot-new-theme-btn { width: 100%; padding: var(--space-3); border: none; border-radius: var(--radius-lg); background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; font-weight: 600; cursor: pointer; transition: all var(--transition); font-size: var(--text-sm); }
+    .redbot-status { display: flex; align-items: center; gap: var(--space-2); color: var(--color-success); font-size: var(--text-sm); }
+    .redbot-status-dot { width: 12px; height: 12px; background: var(--color-success); border-radius: 50%; animation: redbot-pulse 2s infinite; }
+    .redbot-bio { color: var(--color-text-muted); text-align: center; font-size: var(--text-sm); line-height: 1.6; }
+    .redbot-new-theme-btn { width: 100%; padding: var(--space-3); border: none; border-radius: var(--radius-lg); background: var(--grad-ai); color: white; font-weight: 600; cursor: pointer; transition: all var(--transition); font-size: var(--text-sm); }
     .redbot-new-theme-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-    .redbot-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.08); }
+    .redbot-divider { width: 100%; height: 1px; background: var(--color-divider); }
     .redbot-tools { display: flex; flex-direction: column; gap: var(--space-2); width: 100%; }
-    .redbot-tool-btn { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border: none; border-radius: var(--radius-lg); background: #1f2937; color: #d1d5db; cursor: pointer; transition: all var(--transition); text-align: left; width: 100%; font-size: var(--text-sm); }
-    .redbot-tool-btn:hover { background: #374151; color: white; transform: translateX(2px); }
+    .redbot-tool-btn { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border: none; border-radius: var(--radius-lg); background: var(--color-surface-offset); color: var(--color-text-muted); cursor: pointer; transition: all var(--transition); text-align: left; width: 100%; font-size: var(--text-sm); }
+    .redbot-tool-btn:hover { background: var(--color-surface); color: var(--color-text); transform: translateX(2px); }
     .redbot-tool-icon { font-size: 1.1em; flex-shrink: 0; }
     .redbot-tool-label { line-height: 1.3; }
     .redbot-tip { width: 100%; padding: var(--space-3); background: rgba(6,182,212,0.06); border-radius: var(--radius-lg); }
-    .redbot-tip-label { color: #06b6d4; font-size: var(--text-xs); font-weight: 600; margin: 0 0 var(--space-1) 0; }
-    .redbot-tip-text { color: #9ca3af; font-size: var(--text-xs); margin: 0; line-height: 1.5; }
+    .redbot-tip-label { color: var(--color-primary); font-size: var(--text-xs); font-weight: 600; margin: 0 0 var(--space-1) 0; }
+    .redbot-tip-text { color: var(--color-text-muted); font-size: var(--text-xs); margin: 0; line-height: 1.5; }
 
     /* Main Chat */
-    .redbot-main { display: flex; flex-direction: column; min-height: min(500px, 80vh); }
-    .redbot-chat-card { flex: 1; background: #111827; border: 1px solid rgba(6,182,212,0.1); border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; }
-    .redbot-messages { flex: 1; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); min-height: 250px; max-height: 60vh; }
+    .redbot-main { display: flex; flex-direction: column; min-height: calc(100vh - 120px); max-height: calc(100vh - 120px); }
+    .redbot-chat-card { flex: 1; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; }
+    .redbot-messages { flex: 1 1 auto; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); min-height: 0; max-height: none; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
     .redbot-welcome { display: flex; gap: var(--space-3); align-items: flex-start; }
-    .redbot-welcome-avatar { width: 40px; height: 40px; background: #06b6d4; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.5em; flex-shrink: 0; }
+    .redbot-welcome-avatar { width: 40px; height: 40px; background: var(--color-primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.5em; flex-shrink: 0; }
     .redbot-welcome-content { flex: 1; }
-    .redbot-welcome-name { color: #06b6d4; font-weight: 600; font-size: var(--text-sm); margin: 0 0 var(--space-1) 0; }
-    .redbot-welcome-text { color: #d1d5db; font-size: var(--text-sm); line-height: 1.5; margin: 0; }
+    .redbot-welcome-name { color: var(--color-primary); font-weight: 600; font-size: var(--text-sm); margin: 0 0 var(--space-1) 0; }
+    .redbot-welcome-text { color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.5; margin: 0; }
 
     /* Messages */
     .redbot-msg { padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); max-width: 85%; font-size: var(--text-sm); line-height: 1.6; }
-    .redbot-msg-coach { align-self: flex-start; background: #1f2937; border: 1px solid rgba(6,182,212,0.15); color: #e5e7eb; border-bottom-left-radius: 4px; }
-    .redbot-msg-user { align-self: flex-end; background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; border-bottom-right-radius: 4px; }
+    .redbot-msg-coach { align-self: flex-start; background: var(--color-surface-offset); border: 1px solid var(--color-border); color: var(--color-text); border-bottom-left-radius: 4px; }
+    .redbot-msg-user { align-self: flex-end; background: var(--grad-ai); color: white; border-bottom-right-radius: 4px; }
     .redbot-msg strong { font-weight: 700; }
     .redbot-msg em { font-style: italic; }
     .redbot-msg code { background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 4px; font-size: 0.9em; }
@@ -3723,28 +3723,28 @@
     .redbot-cursor { animation: redbot-pulse 0.8s infinite; }
     .redbot-typing { align-self: flex-start; background: transparent !important; border: none !important; padding: var(--space-2) !important; }
     .redbot-typing-dots { display: flex; gap: 4px; }
-    .redbot-typing-dots span { width: 8px; height: 8px; background: #06b6d4; border-radius: 50%; animation: redbot-pulse 1.2s infinite; }
+    .redbot-typing-dots span { width: 8px; height: 8px; background: var(--color-primary); border-radius: 50%; animation: redbot-pulse 1.2s infinite; }
     .redbot-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
     .redbot-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
     /* Editor Area */
-    .redbot-editor-area { padding: var(--space-3) var(--space-4); border-top: 1px solid rgba(255,255,255,0.06); }
-    .redbot-essay-textarea { width: 100%; padding: var(--space-3); border-radius: var(--radius-lg); border: 1px solid #374151; background: #1f2937; color: white; font-family: inherit; font-size: var(--text-sm); resize: vertical; min-height: 100px; }
-    .redbot-essay-textarea::placeholder { color: #6b7280; }
-    .redbot-essay-textarea:focus { outline: none; border-color: #06b6d4; }
+    .redbot-editor-area { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); }
+    .redbot-essay-textarea { width: 100%; padding: var(--space-3); border-radius: var(--radius-lg); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); font-family: inherit; font-size: var(--text-sm); resize: vertical; min-height: 100px; }
+    .redbot-essay-textarea::placeholder { color: var(--color-text-faint); }
+    .redbot-essay-textarea:focus { outline: none; border-color: var(--color-primary); }
     .redbot-editor-actions { display: flex; gap: var(--space-3); margin-top: var(--space-3); }
     .redbot-editor-btn { flex: 1; padding: var(--space-3); border: none; border-radius: var(--radius-lg); font-weight: 600; cursor: pointer; font-size: var(--text-sm); transition: all var(--transition); }
-    .redbot-editor-btn-primary { background: linear-gradient(135deg, #06b6d4, #0ea5e9); color: white; }
+    .redbot-editor-btn-primary { background: var(--grad-ai); color: white; }
     .redbot-editor-btn-primary:hover { filter: brightness(1.1); }
-    .redbot-editor-btn-secondary { background: #374151; color: #d1d5db; }
-    .redbot-editor-btn-secondary:hover { background: #4b5563; color: white; }
+    .redbot-editor-btn-secondary { background: var(--color-surface-offset); color: var(--color-text-muted); }
+    .redbot-editor-btn-secondary:hover { background: var(--color-surface-2); color: var(--color-text); }
 
     /* Input Area */
-    .redbot-input-area { display: flex; align-items: flex-end; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); }
-    .redbot-input { flex: 1; padding: var(--space-3); border-radius: var(--radius-lg); border: 1px solid #374151; background: #1f2937; color: white; font-family: inherit; font-size: var(--text-sm); resize: none; min-height: 44px; max-height: 120px; }
-    .redbot-input::placeholder { color: #6b7280; }
-    .redbot-input:focus { outline: none; border-color: #06b6d4; }
-    .redbot-send-btn { width: 44px; height: 44px; border: none; border-radius: var(--radius-lg); background: linear-gradient(135deg, #06b6d4, #0ea5e9); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all var(--transition); }
+    .redbot-input-area { display: flex; align-items: flex-end; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); background: var(--color-surface); }
+    .redbot-input { flex: 1; padding: var(--space-3); border-radius: var(--radius-lg); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); font-family: inherit; font-size: var(--text-sm); resize: none; min-height: 44px; max-height: 120px; }
+    .redbot-input::placeholder { color: var(--color-text-faint); }
+    .redbot-input:focus { outline: none; border-color: var(--color-primary); }
+    .redbot-send-btn { width: 44px; height: 44px; border: none; border-radius: var(--radius-lg); background: var(--grad-ai); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all var(--transition); }
     .redbot-send-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
     .redbot-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -3783,10 +3783,12 @@
       .redbot-sidebar { display: none; }
       .redbot-avatar { width: 120px; height: 120px; }
       .redbot-main { min-height: 60vh; }
-      .redbot-messages { min-height: 180px; max-height: 50vh; }
+      .redbot-messages { min-height: 200px; max-height: 55vh; scroll-behavior: smooth; }
       .redbot-editor-actions { flex-direction: column; }
+      .redbot-editor-btn { padding: var(--space-3) !important; font-size: var(--text-sm) !important; }
       .redbot-editor-btn { width: 100%; }
       .redbot-name { font-size: 1.2em; }
+      .redbot-msg { max-width: 92%; font-size: var(--text-sm); }
       .redbot-bio { font-size: var(--text-xs); }
       .redbot-avatar-emoji { font-size: 1.8em; }
     }
@@ -3795,6 +3797,7 @@
       .redbot-avatar-emoji { font-size: 1.4em; }
       .redbot-wrapper { padding: var(--space-2); gap: var(--space-3); }
       .redbot-chat-card { border-radius: var(--radius-lg); }
+      .redbot-messages { padding: var(--space-3); gap: var(--space-2); scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
       .redbot-messages { padding: var(--space-3); gap: var(--space-2); max-height: 40vh; min-height: 150px; }
       .redbot-msg { max-width: 92%; font-size: var(--text-xs); padding: var(--space-2) var(--space-3); }
       .redbot-input-area { padding: var(--space-2) var(--space-3); gap: var(--space-2); }

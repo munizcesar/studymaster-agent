@@ -1504,7 +1504,7 @@ Você é o Prof. RedBot, o robô professor que mora no site e está sempre pront
 {studentData}`;
 
 async function handleProfRedbotChat(body, env) {
-  const { message, history = [], studentData = '' } = body;
+  const { message, history = [], studentData = '', systemPrompt = null, model: modelOverride = null, useJsonResponse = true } = body;
 
   if (!message || !message.trim()) {
     return { reply: '🤖 Olá! Eu sou o Prof. RedBot! Como posso ajudar com sua redação hoje? 🎓' };
@@ -1541,7 +1541,9 @@ Entendi! Para te ajudar melhor, você pode:
 **👉 O que você prefere?**` };
   }
 
-  const systemContent = PROF_REDBOT_SYSTEM_PROMPT.replace('{studentData}', studentData || 'Sem dados do aluno disponíveis.');
+  // Usa o systemPrompt vindo do frontend (Coach RedBot) se fornecido; caso contrário, usa o prompt padrão do Prof. RedBot
+  const promptToUse = systemPrompt || PROF_REDBOT_SYSTEM_PROMPT;
+  const systemContent = promptToUse.replace('{studentData}', studentData || 'Sem dados do aluno disponíveis.');
 
   const messages = [
     { role: 'system', content: systemContent },
@@ -1566,10 +1568,11 @@ Entendi! Para te ajudar melhor, você pode:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: modelOverride || 'llama-3.3-70b-versatile',
         messages,
         temperature: 0.35,
-        max_tokens: 2000
+        max_tokens: 2000,
+        ...(useJsonResponse ? { response_format: { type: 'json_object' } } : {})
       })
     });
 
@@ -1580,8 +1583,25 @@ Entendi! Para te ajudar melhor, você pode:
     }
 
     const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
-    return { reply: reply || 'Não consegui processar sua solicitação. Pode reformular?' };
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) return { reply: 'Não consegui processar sua solicitação. Pode reformular?' };
+    
+    // Tenta parsear JSON — o modelo agora retorna APENAS dados estruturados
+    try {
+      const parsed = JSON.parse(content);
+      return {
+        // Se o modelo incluiu 'reply' (fallback), usa; senão passa os campos estruturados
+        reply: parsed.reply || null,
+        scores: parsed.scores || null,
+        summary: parsed.summary || '',
+        strongPoints: parsed.strongPoints || [],
+        problems: parsed.problems || [],
+        socraticQuestion: parsed.socraticQuestion || '',
+        nextSteps: parsed.nextSteps || []
+      };
+    } catch {
+      return { reply: content };
+    }
   } catch (error) {
     console.error(`[Prof. RedBot] Erro: ${error.message}`);
     return { reply: 'Desculpe, ocorreu um erro na comunicação. Tente novamente!' };
