@@ -282,13 +282,13 @@ class CoachRedbot {
             <div class="redbot-avatar">
               <img src="redbot-avatar.svg" alt="Coach RedBot" class="redbot-avatar-img" onerror="this.src='redbot-avatar.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex'}">
               <div class="redbot-avatar-fallback" style="display:none">
-                <span class="redbot-avatar-emoji">🤖</span>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" x2="8" y1="16" y2="16"/><line x1="16" x2="16" y1="16" y2="16"/></svg>
               </div>
-              <div class="redbot-hat">🎓</div>
+              <div class="redbot-hat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
             </div>
 
             <h2 class="redbot-name">
-              Coach RedBot <span class="redbot-name-hat">🎓</span>
+              Coach RedBot <span class="redbot-name-hat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
             </h2>
 
             <div class="redbot-status">
@@ -302,32 +302,32 @@ class CoachRedbot {
             </p>
 
             <button class="redbot-new-theme-btn" onclick="window.coachRedbot?.handleTool('novo-tema')">
-              🎯 Novo Tema de Redação
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4M12 8v8"/></svg> Novo Tema de Redação
             </button>
 
             <div class="redbot-divider"></div>
 
             <div class="redbot-tools">
               <button class="redbot-tool-btn" onclick="window.coachRedbot?.handleTool('competencias')">
-                <span class="redbot-tool-icon">📋</span>
+                <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h6M12 10h.01"/></svg></span>
                 <span class="redbot-tool-label">Ver Competências C1 a C5</span>
               </button>
               <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver exemplos de redações nota 1000')">
-                <span class="redbot-tool-icon">🏆</span>
+                <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
                 <span class="redbot-tool-label">Exemplos de Redações Nota 1000</span>
               </button>
               <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero repertórios atualizados para redação')">
-                <span class="redbot-tool-icon">📚</span>
+                <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg></span>
                 <span class="redbot-tool-label">Repertórios Atualizados</span>
               </button>
               <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver meu plano de evolução em redação')">
-                <span class="redbot-tool-icon">📊</span>
+                <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/></svg></span>
                 <span class="redbot-tool-label">Meu Plano de Evolução</span>
               </button>
             </div>
 
             <div class="redbot-tip">
-              <p class="redbot-tip-label">💡 Dica do dia:</p>
+              <p class="redbot-tip-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> Dica do dia:</p>
               <p class="redbot-tip-text">"Uma boa proposta de intervenção deve ser viável, detalhada e conectada com os argumentos."</p>
             </div>
           </div>
@@ -344,7 +344,7 @@ class CoachRedbot {
           <div class="redbot-chat-card">
             <div class="redbot-messages" id="redbot-messages">
               <div class="redbot-welcome">
-                <div class="redbot-welcome-avatar">🤖</div>
+                <div class="redbot-welcome-avatar"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" x2="8" y1="16" y2="16"/><line x1="16" x2="16" y1="16" y2="16"/></svg></div>
                 <div class="redbot-welcome-content">
                   <p class="redbot-welcome-name">Coach RedBot</p>
                   <p class="redbot-welcome-text">Olá! Cole sua redação ou me diga o tema que você quer treinar hoje. Estou aqui para te ajudar passo a passo! 🎯</p>
@@ -363,10 +363,10 @@ class CoachRedbot {
 
               <div class="redbot-editor-actions">
                 <button class="redbot-editor-btn redbot-editor-btn-primary" onclick="window.coachRedbot?.sendEssay()">
-                  📝 Enviar para Correção
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> Enviar para Correção
                 </button>
                 <button class="redbot-editor-btn redbot-editor-btn-secondary" onclick="window.coachRedbot?.addQuickMsg('Quero analisar minha redação por partes')">
-                  🔍 Analisar por Partes
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Analisar por Partes
                 </button>
               </div>
             </div>
@@ -448,7 +448,7 @@ class CoachRedbot {
     btn.id = 'coach-redbot-db-btn';
     btn.className = 'redbot-db-btn';
     btn.innerHTML = `
-      <div class="redbot-db-icon">🤖</div>
+      <div class="redbot-db-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>
       <div class="redbot-db-content">
         <strong class="redbot-db-title">Coach RedBot — Correção de Redação</strong>
         <span class="redbot-db-subtitle">Robô coach especialista em redação nota 1000</span>

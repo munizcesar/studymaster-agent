@@ -1363,7 +1363,8 @@
     }
     @media (max-width: 480px) {
       .header-inner { align-items: flex-start; }
-      .header-actions { max-width: 58%; }
+      .header-actions { max-width: 58%;
+      .mode-tip { font-size: 10px; padding: var(--space-1) var(--space-2); } }
       .daily-perf { gap: 4px; padding: 3px; }
       .daily-perf .daily-hoje { display: none; }
       .daily-badge { padding: 4px 7px; font-size: 12px; }
@@ -1377,7 +1378,8 @@
     /* FASE 2: Mobile-first 375px optimizations */
     @media (max-width: 375px) {
       .container { padding-left: var(--space-3); padding-right: var(--space-3); }
-      .wizard-card { padding: var(--space-4); }
+      .wizard-card { padding: var(--space-4);
+      .mode-tip { font-size: 10px; padding: var(--space-1) var(--space-2); } }
       .option-btn { padding: var(--space-2) var(--space-3); }
       .option-key { min-width: 32px; width: 32px; height: 32px; }
       .step-title { font-size: var(--text-lg); }
@@ -2272,7 +2274,7 @@
       color: var(--color-text-muted);
     }
     
-    /* Certificação de Domínio */
+    /* Matérias Dominadas */
     .aivos360-cert-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -3794,24 +3796,24 @@
     <div class="container">
 
       <nav class="steps-bar" aria-label="Progresso do configurador">
-        <button class="step-indicator active" data-step="1" aria-label="Passo 1: Escolha o modo">
+        <button class="step-indicator active" data-step="1" aria-label="Passo 1: Qual seu objetivo?">
           <span class="step-number">1</span>
-          <span class="step-label">Escolha o modo</span>
+          <span class="step-label">Qual seu objetivo?</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="2" aria-label="Passo 2: Defina o conteúdo">
+        <button class="step-indicator" data-step="2" aria-label="Passo 2: O que estudar?">
           <span class="step-number">2</span>
-          <span class="step-label">Defina o conteúdo</span>
+          <span class="step-label">O que estudar?</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="3" aria-label="Passo 3: Configure a sessão">
+        <button class="step-indicator" data-step="3" aria-label="Passo 3: Como estudar?">
           <span class="step-number">3</span>
-          <span class="step-label">Configure a sessão</span>
+          <span class="step-label">Como estudar?</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="4" aria-label="Passo 4: Inicie o estudo">
+        <button class="step-indicator" data-step="4" aria-label="Passo 4: Pronto pra começar?">
           <span class="step-number">4</span>
-          <span class="step-label">Inicie o estudo</span>
+          <span class="step-label">Pronto pra começar?</span>
         </button>
       </nav>
 
@@ -3820,12 +3822,12 @@
         <!-- STEP 1 -->
         <div class="wizard-step active" id="step-1" data-step="1">
           <h2 class="step-title">Como você quer estudar hoje?</h2>
-          <p class="step-subtitle">Escolha o modo de estudo ideal para o seu objetivo</p>
+          <p class="step-subtitle">Qual seu objetivo? de estudo ideal para o seu objetivo</p>
             <div class="mode-grid">
-              <button class="mode-card" data-mode="concurso" aria-label="Concursos Públicos">
+              <button class="mode-card" data-mode="concurso" aria-label="Simulados de Concurso">
                 <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
                 <div class="mode-info">
-                  <strong>Concursos Públicos</strong>
+                  <strong>Simulados de Concurso</strong>
                   <span>Monte simulados personalizados por banca, órgão e cargo com questões no estilo exato da prova.</span>
                 </div>
                 <div class="mode-perf" id="mode-perf-concurso">
@@ -3844,11 +3846,12 @@
                   <li>Questões com gabarito comentado e explicação detalhada</li>
                   <li>Acompanhe seu progresso e foque no que precisa melhorar</li>
                 </ul>
+                <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: monte simulados de 20 questoes para treinar resistencia</div>
               </button>
-              <button class="mode-card" data-mode="livre" aria-label="Material Livre (Editais, PDFs, Resumos)">
+              <button class="mode-card" data-mode="livre" aria-label="Estudar com seu Material">
                 <div class="mode-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
                 <div class="mode-info">
-                  <strong>Material Livre (Editais, PDFs, Resumos)</strong>
+                  <strong>Estudar com seu Material</strong>
                   <span>Transforme seus materiais de estudo em questões personalizadas.</span>
                 </div>
                 <ul class="mode-benefits">
@@ -3856,6 +3859,7 @@
                   <li>Gere questões focadas no seu material</li>
                   <li>Complemente seu cursinho ou apostila</li>
                 </ul>
+                <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: cole o texto completo do edital ou resumo para questoes mais precisas</div>
               </button>
               <button class="mode-card" data-mode="redacao" aria-label="Redação Coach">
                 <div class="mode-icon"><i data-lucide="brain" width="28" height="28"></i></div>
@@ -3868,11 +3872,12 @@
                   <li>Correção completa de C1 a C5 no estilo da banca</li>
                   <li>Receba reescrita otimizada para atingir nota máxima</li>
                 </ul>
+                <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: pratique 1 redação por semana para evoluir sua nota</div>
               </button>
-              <button class="mode-card" data-mode="aivos360" aria-label="Mentor AIVOS 360">
+              <button class="mode-card" data-mode="aivos360" aria-label="Plano de Estudos Inteligente">
                 <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
                 <div class="mode-info">
-                  <strong>Mentor AIVOS 360</strong>
+                  <strong>Plano de Estudos Inteligente</strong>
                   <span>Seu mentor pessoal de aprovação com análise inteligente de desempenho.</span>
                 </div>
                 <ul class="mode-benefits">
@@ -3880,6 +3885,7 @@
                   <li>Identifique riscos e oportunidades por disciplina</li>
                   <li>Receba plano de estudo personalizado com recomendações diárias</li>
                 </ul>
+                <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: preencha o diagnóstico completo para o plano mais preciso</div>
               </button>
             </div>
         </div>
@@ -4201,11 +4207,11 @@
         <div class="steps-list">
           <div class="how-step">
             <span class="how-number">01</span>
-            <div><strong>Escolha o modo</strong><p>Concursos, Material Livre, Redação ou Mentor.</p></div>
+            <div><strong>Qual seu objetivo?</strong><p>Concursos, Material Livre, Redação ou Mentor.</p></div>
           </div>
           <div class="how-step">
             <span class="how-number">02</span>
-            <div><strong>Configure a sessão</strong><p>Dificuldade, quantidade e tipo em segundos.</p></div>
+            <div><strong>Como estudar?</strong><p>Dificuldade, quantidade e tipo em segundos.</p></div>
           </div>
           <div class="how-step">
             <span class="how-number">03</span>
@@ -5392,7 +5398,7 @@ function renderStep2Redacao(container) {
 function renderStep2Aivos360(container) {
   container.innerHTML = `
     <h2 class="step-title">Diagnóstico Inicial</h2>
-    <p class="step-subtitle">O Mentor AIVOS 360 precisa conhecer sua preparação para criar um plano personalizado.</p>
+    <p class="step-subtitle">O Plano de Estudos Inteligente precisa conhecer sua preparação para criar um plano personalizado.</p>
     
     <div class="config-group">
       <label class="config-label">Tipo de Concurso</label>
@@ -6130,21 +6136,21 @@ function renderAivos360Dashboard() {
         <div class="aivos360-metric-card">
           <div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div>
           <div class="metric-content">
-            <span class="metric-label">Probabilidade de Aprovação</span>
+            <span class="metric-label">Chance de Passar</span>
             <strong class="metric-value" id="aivos360-approval-prob">--%</strong>
           </div>
         </div>
         <div class="aivos360-metric-card">
           <div class="metric-icon"><i data-lucide="award" width="24" height="24"></i></div>
           <div class="metric-content">
-            <span class="metric-label">Nível Geral de Domínio</span>
+            <span class="metric-label">Domínio das Matérias</span>
             <strong class="metric-value" id="aivos360-mastery-level">--%</strong>
           </div>
         </div>
         <div class="aivos360-metric-card">
           <div class="metric-icon"><i data-lucide="flame" width="24" height="24"></i></div>
           <div class="metric-content">
-            <span class="metric-label">Streak de Estudo</span>
+            <span class="metric-label">Dias Seguidos</span>
             <strong class="metric-value" id="aivos360-streak">-- dias</strong>
           </div>
         </div>
@@ -6153,7 +6159,7 @@ function renderAivos360Dashboard() {
       <!-- Action Plan -->
       <div class="aivos360-card aivos360-full-width aivos360-action-plan">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-3);">
-          <h3 class="aivos360-card-title" style="margin:0;"><i data-lucide="lightbulb" width="18" height="18"></i> Plano de Ação do Mentor</h3>
+          <h3 class="aivos360-card-title" style="margin:0;"><i data-lucide="lightbulb" width="18" height="18"></i> Meta do Dia</h3>
           <button class="aivos360-audit-btn" onclick="showAuditoriaIA()"><i data-lucide="info" width="14" height="14"></i> Auditoria IA</button>
         </div>
         <div class="aivos360-action-grid">
@@ -6161,12 +6167,12 @@ function renderAivos360Dashboard() {
             Carregando missão...
           </div>
           <div class="aivos360-action-item aivos360-full-width">
-            <span class="action-label">O que revisar hoje (Algoritmo D+1, D+7, D+30)</span>
+            <span class="action-label">Revisões Programadas para Hoje</span>
             <div id="aivos360-review-container" class="action-content">Carregando...</div>
           </div>
           
           <div class="aivos360-action-item aivos360-full-width">
-            <span class="action-label">Radar AIVOS: Riscos e Lacunas Ocultas</span>
+            <span class="action-label">Riscos e Lacunas Detectadas</span>
             <div id="aivos360-radar-container" class="action-content">Carregando...</div>
           </div>
         </div>
@@ -6174,7 +6180,7 @@ function renderAivos360Dashboard() {
       
       <!-- Certificações -->
       <div class="aivos360-card aivos360-full-width" style="margin-top: var(--space-4);">
-        <h3 class="aivos360-card-title"><i data-lucide="shield-check" width="18" height="18"></i> Certificação de Domínio</h3>
+        <h3 class="aivos360-card-title"><i data-lucide="shield-check" width="18" height="18"></i> Matérias Dominadas</h3>
         <div id="aivos360-cert-container">Carregando certificações...</div>
       </div>
 
@@ -6247,19 +6253,8 @@ function renderRedacaoCoachDashboard() {
   initModules().then(() => {
     container.appendChild(dashboard);
     
-    // Disparar evento para Prof. AIVOS e Coach RedBot se renderizarem
+    // Renderizar apenas o Coach RedBot (Prof. AIVOS Mentor pertence ao modo AIVOS 360)
     setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('aivos360DashboardReady'));
-      
-      // Renderizar diretamente tambem como fallback
-      try {
-        const pMentor = window.getProfAivosMentor ? window.getProfAivosMentor() : null;
-        if (pMentor && !pMentor.chatContainer) {
-          pMentor.renderChatUI();
-          pMentor.addDashboardButton();
-          window.profAivosMentor = pMentor;
-        }
-      } catch (e) { console.warn('[AIVOS] Erro ao renderizar Prof. AIVOS:', e); }
       try {
         const cRedbot = window.getCoachRedbot ? window.getCoachRedbot() : null;
         if (cRedbot && !cRedbot.chatWrapper) {

@@ -415,37 +415,37 @@ DADOS DO ALUNO:
 
     actionsDiv.innerHTML = `
       <div class="prof-aivos-qa-header">
-        <span class="prof-aivos-qa-icon">🚀</span>
+        <span class="prof-aivos-qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
         <span class="prof-aivos-qa-title">Ações Rápidas</span>
       </div>
       <div class="prof-aivos-qa-grid">
         <button class="prof-aivos-qa-btn prof-aivos-qa-primary" onclick="window.profAivosMentor.handleQuickAction('questoes')">
-          <span class="prof-aivos-qa-btn-icon">📝</span>
+          <span class="prof-aivos-qa-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span>
           <span class="prof-aivos-qa-btn-label">Iniciar Questões do Edital</span>
           <span class="prof-aivos-qa-btn-sub">Filtrar por disciplinas</span>
         </button>
         <button class="prof-aivos-qa-btn prof-aivos-qa-success" onclick="window.profAivosMentor.handleQuickAction('simulado')">
-          <span class="prof-aivos-qa-btn-icon">📊</span>
+          <span class="prof-aivos-qa-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/></svg></span>
           <span class="prof-aivos-qa-btn-label">Montar Simulado Completo</span>
           <span class="prof-aivos-qa-btn-sub">Proporção exata do edital</span>
         </button>
         <button class="prof-aivos-qa-btn prof-aivos-qa-warning" onclick="window.profAivosMentor.handleQuickAction('fraquezas')">
-          <span class="prof-aivos-qa-btn-icon">🎯</span>
+          <span class="prof-aivos-qa-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4M12 8v8"/></svg></span>
           <span class="prof-aivos-qa-btn-label">Focar em Pontos Fracos</span>
           <span class="prof-aivos-qa-btn-sub">Baseado no seu desempenho</span>
         </button>
         <button class="prof-aivos-qa-btn prof-aivos-qa-info" onclick="window.profAivosMentor.handleQuickAction('materiais')">
-          <span class="prof-aivos-qa-btn-icon">📚</span>
+          <span class="prof-aivos-qa-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg></span>
           <span class="prof-aivos-qa-btn-label">Materiais Recomendados</span>
           <span class="prof-aivos-qa-btn-sub">Por disciplina do edital</span>
         </button>
         <button class="prof-aivos-qa-btn prof-aivos-qa-danger" onclick="window.profAivosMentor.handleQuickAction('redacao')">
-          <span class="prof-aivos-qa-btn-icon">✍️</span>
+          <span class="prof-aivos-qa-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span>
           <span class="prof-aivos-qa-btn-label">Preparação para Redação</span>
           <span class="prof-aivos-qa-btn-sub">Temas prováveis do concurso</span>
         </button>
         <button class="prof-aivos-qa-btn prof-aivos-qa-plan" onclick="window.profAivosMentor.handleQuickAction('plano')">
-          <span class="prof-aivos-qa-btn-icon">📅</span>
+          <span class="prof-aivos-qa-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg></span>
           <span class="prof-aivos-qa-btn-label">Ver Plano de Estudos</span>
           <span class="prof-aivos-qa-btn-sub">Cronograma semanal</span>
         </button>
@@ -702,14 +702,14 @@ DADOS DO ALUNO:
     if (!avatar) return;
     
     switch (state) {
-      case 'idle': avatar.textContent = '🎓'; break;
-      case 'processing': avatar.textContent = '🧠'; break;
+      case 'idle': avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>'; break;
+      case 'processing': avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>'; break;
       case 'success': 
-        avatar.textContent = '🎯'; 
+        avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>'; 
         setTimeout(() => { if (this.avatarState === 'success') this.setAvatarState('idle'); }, 2000);
         break;
-      case 'focus': avatar.textContent = '🔥'; break;
-      default: avatar.textContent = '🎓';
+      case 'focus': avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>'; break;
+      default: avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
     }
   }
 
@@ -745,7 +745,7 @@ DADOS DO ALUNO:
       <!-- HEADER -->
       <div class="prof-aivos-header">
         <div class="prof-aivos-avatar">
-          <span class="prof-aivos-avatar-icon">🎓</span>
+          <span class="prof-aivos-avatar-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
         </div>
         <div class="prof-aivos-info">
           <strong class="prof-aivos-name">Prof. AIVOS</strong>
@@ -764,7 +764,7 @@ DADOS DO ALUNO:
 
       <!-- BANNER DO EDITAL ATIVO -->
       <div class="prof-aivos-edital-banner" id="prof-aivos-edital-banner" style="display:${this.currentEditalAnalysis ? 'flex' : 'none'}">
-        <div class="prof-aivos-edital-banner-icon">📋</div>
+        <div class="prof-aivos-edital-banner-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h6M12 10h.01"/></svg></div>
         <div class="prof-aivos-edital-banner-info">
           <strong class="prof-aivos-edital-banner-name">${this.currentConcurso || 'Edital Configurado'}</strong>
           <span class="prof-aivos-edital-banner-meta">
@@ -784,7 +784,7 @@ DADOS DO ALUNO:
         <div class="prof-aivos-edital-card-bg"></div>
         <div class="prof-aivos-edital-card-content">
           <div class="prof-aivos-edital-card-header">
-            <span class="prof-aivos-edital-card-icon">🚀</span>
+            <span class="prof-aivos-edital-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
             <h3 class="prof-aivos-edital-card-title">Vamos personalizar seu plano?</h3>
           </div>
           <div class="prof-aivos-edital-card-grid">
@@ -799,7 +799,7 @@ DADOS DO ALUNO:
               ></textarea>
             </div>
             <div class="prof-aivos-edital-card-field">
-              <label class="prof-aivos-edital-card-label">🔍 Ou digite o nome do concurso</label>
+              <label class="prof-aivos-edital-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Ou digite o nome do concurso</label>
               <input 
                 type="text"
                 id="prof-aivos-concurso-input"
@@ -815,7 +815,7 @@ DADOS DO ALUNO:
           ${this.editalHistory.length > 0 ? `
           <div class="prof-aivos-edital-card-history">
             <button class="prof-aivos-edital-card-history-btn" onclick="window.profAivosMentor.showEditalHistory()">
-              📋 Ver editais analisados (${this.editalHistory.length})
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h6M12 10h.01"/></svg> Ver editais analisados (${this.editalHistory.length})
             </button>
           </div>` : ''}
         </div>
@@ -825,7 +825,7 @@ DADOS DO ALUNO:
       <div class="prof-aivos-messages" id="prof-aivos-messages">
         ${this.currentEditalAnalysis ? '' : `
         <div class="prof-aivos-welcome">
-          <div class="prof-aivos-welcome-icon">🎓</div>
+          <div class="prof-aivos-welcome-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
           <div class="prof-aivos-welcome-text">
             <strong>Olá! Eu sou o Prof. AIVOS!</strong>
             <p>Seu mentor virtual 360° para concursos públicos. Cole um edital ou me diga o concurso!</p>
@@ -835,13 +835,13 @@ DADOS DO ALUNO:
               📄 Colar Edital
             </button>
             <button class="prof-aivos-suggestion" onclick="document.getElementById('prof-aivos-concurso-input')?.focus()">
-              🔍 Digitar Concurso
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Digitar Concurso
             </button>
             <button class="prof-aivos-suggestion" onclick="window.profAivosMentor.addQuickMessage('Quero montar um plano de estudos')">
-              📚 Plano de Estudos
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg> Plano de Estudos
             </button>
             <button class="prof-aivos-suggestion" onclick="window.profAivosMentor.addQuickMessage('Quero resolver questões agora')">
-              📝 Resolver Questões
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> Resolver Questões
             </button>
           </div>
         </div>`}
@@ -849,12 +849,12 @@ DADOS DO ALUNO:
 
       <!-- AÇÕES RÁPIDAS (aparece após análise do edital) -->
       <div class="prof-aivos-quick-actions-bar" id="prof-aivos-quick-actions-bar" style="display:none">
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('questoes')" title="Questões do Edital">📝</button>
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('simulado')" title="Simulado">📊</button>
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('fraquezas')" title="Pontos Fracos">🎯</button>
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('plano')" title="Plano de Estudos">📅</button>
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('redacao')" title="Redação">✍️</button>
-        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('materiais')" title="Materiais">📚</button>
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('questoes')" title="Questões do Edital"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('simulado')" title="Simulado"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/></svg></button>
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('fraquezas')" title="Pontos Fracos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4M12 8v8"/></svg></button>
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('plano')" title="Plano de Estudos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg></button>
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('redacao')" title="Redação"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button class="prof-aivos-qa-bar-btn" onclick="window.profAivosMentor.handleQuickAction('materiais')" title="Materiais"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg></button>
       </div>
 
       <!-- INPUT ÁREA -->
@@ -967,7 +967,7 @@ DADOS DO ALUNO:
     overlay.innerHTML = `
       <div class="prof-aivos-history-modal">
         <div class="prof-aivos-history-header">
-          <h3 class="prof-aivos-history-title">📋 Histórico de Editais</h3>
+          <h3 class="prof-aivos-history-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h6M12 10h.01"/></svg> Histórico de Editais</h3>
           <button class="prof-aivos-history-close" onclick="this.closest('.prof-aivos-history-overlay').remove()">✕</button>
         </div>
         <div class="prof-aivos-history-body">
@@ -1222,7 +1222,7 @@ DADOS DO ALUNO:
     mentorCard.id = 'prof-aivos-dashboard-btn';
     mentorCard.className = 'prof-aivos-dashboard-btn';
     mentorCard.innerHTML = `
-      <div class="prof-aivos-db-icon">🎓</div>
+      <div class="prof-aivos-db-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
       <div class="prof-aivos-db-content">
         <strong class="prof-aivos-db-title">Fale com o Prof. AIVOS</strong>
         <span class="prof-aivos-db-subtitle">Seu mentor virtual 360° — analise editais, planos de estudo, questões</span>

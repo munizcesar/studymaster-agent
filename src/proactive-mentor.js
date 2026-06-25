@@ -31,7 +31,7 @@ const _REVIEW_SCHEDULE = typeof REVIEW_SCHEDULE !== 'undefined' ? REVIEW_SCHEDUL
 // Mensagens do mentor com personalidade consistente
 const MENTOR_PERSONALITY = {
   name: 'AIVOS',
-  greeting: '🧠',
+  greeting: '<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 6v6l4 2\"/></svg>',
   style: 'direto e educativo',
   confidenceLabels: {
     high: 'Alta',
@@ -885,6 +885,39 @@ const PROACTIVE_TRIGGERS = [
 // CLASSE PROACTIVE MENTOR (CÉREBRO)
 // ════════════════════════════════════════════════════════════════════════════
 
+
+// ════════════════════════════════════════════════════════════════════════════
+// MAPA: EMOJI -> LUCIDE SVG (para renderização profissional)
+// ════════════════════════════════════════════════════════════════════════════
+
+const EMOJI_SVG_MAP = {
+  '⚠️': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
+  '📉': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/><path d="M20 10l-2-2-2 2"/></svg>',
+  '📊': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/></svg>',
+  '🔄': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>',
+  '🔍': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+  '🧐': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/><path d="M9 17h.01"/></svg>',
+  '🎲': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="12" height="12" x="6" y="6" rx="2"/><path d="M15 3h6v6"/><path d="M9 21H3v-6"/></svg>',
+  '🎯': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4M12 8v8"/></svg>',
+  '📈': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/><path d="M20 10l-2-2-2 2"/></svg>',
+  '📅': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>',
+  '🔥': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  '🏆': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+  '🧠': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  '⭐': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  '🧪': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="13" y2="13"/></svg>',
+  '💪': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4-4 4-4h12a2 2 0 0 1 2 2z"/><path d="M13 9V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v6"/></svg>',
+  '✍️': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+  '📝': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+};
+
+const EMOJI_FALLBACK_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+
+function emojiToSvg(emoji) {
+  return EMOJI_SVG_MAP[emoji] || EMOJI_FALLBACK_SVG;
+}
+
+
 class ProactiveMentor {
   constructor(digitalTwin, forgettingPredictor, riskDetector, masteryCertifier, gapDetector, approvalPredictor, aiAuditor) {
     this.digitalTwin = digitalTwin;
@@ -913,7 +946,7 @@ class ProactiveMentor {
     this.startPeriodicCheck();
     this.brainState.isObserving = true;
     this.brainState.currentFocus = 'observando';
-    console.log('[ProactiveMentor] 🧠 Cérebro AIVOS inicializado. Observando...');
+    console.log('[ProactiveMentor] Cérebro AIVOS inicializado. Observando...');
     this.notifyBrainState();
   }
 
@@ -1122,7 +1155,7 @@ class ProactiveMentor {
         ${messages.map(m => `
           <div class="mentor-message message-${m.type} priority-${m.priority}" data-category="${m.category || 'outro'}">
             <div class="mentor-message-header">
-              <span class="mentor-message-icon">${m.icon || '🧠'}</span>
+              <span class="mentor-message-icon">${emojiToSvg(m.icon)}</span>
               <span class="mentor-message-title">${m.title}</span>
               <span class="mentor-confidence confidence-${m.confidence >= 80 ? 'alta' : m.confidence >= 60 ? 'media' : 'baixa'}">${m.confidence || 75}%</span>
               <button class="message-dismiss" onclick="window.proactiveMentor.dismissMessage('${m.id}')">✕</button>
@@ -1163,13 +1196,13 @@ class ProactiveMentor {
       consistencia: 'Monitorando consistência...',
       dominio: 'Avaliando domínio...',
       bem_estar: 'Verificando bem-estar...',
-      observando: '🧠 Observando seu progresso...',
+      observando: 'Observando seu progresso...',
       inicializando: 'Inicializando...'
     };
 
     return {
       isActive: this.brainState.isObserving,
-      focusLabel: focusLabels[this.brainState.currentFocus] || '🧠 Analisando...',
+      focusLabel: focusLabels[this.brainState.currentFocus] || 'Analisando...',
       messageCount: this.getActiveMessages().length,
       totalMessages: this.messageHistory.length
     };
@@ -1184,7 +1217,7 @@ class ProactiveMentor {
     const brain = this.renderBrainState();
 
     let report = '=== 🧠 RELATÓRIO DO MENTOR AIVOS ===\n\n';
-    report += `Status: ${brain.isActive ? '🧠 Observando' : '💤 Inativo'}\n`;
+    report += `Status: ${brain.isActive ? 'Observando' : 'Inativo'}\n`;
     report += `Foco atual: ${brain.focusLabel}\n`;
     report += `Total de mensagens: ${stats.total}\n`;
     report += `Mensagens ativas: ${stats.active}\n\n`;
@@ -1201,7 +1234,7 @@ class ProactiveMentor {
 
     report += '\n=== ÚLTIMAS MENSAGENS ===\n';
     this.messageHistory.slice(-10).forEach((m, index) => {
-      report += `\n[${index + 1}] ${m.icon} ${m.title} (${m.priority})\n`;
+      report += `\n[${index + 1}] ${m.title} (${m.priority})\n`;
       report += `  ${m.observation}\n`;
       report += `  Confiança: ${m.confidence}%\n`;
     });
