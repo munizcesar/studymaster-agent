@@ -890,7 +890,8 @@ function validateQuestionPipeline(question, ragContext, subjectConfig) {
     errors: [],
     traceabilityScore: traceabilityCheck.confidence,
     ragScore: ragValidation.score,
-    warning: hallucinationCheck.warning || null
+    warning: hallucinationCheck.warning || null,
+    chunks: ragValidation.chunks || 0
   };
 }
 __name(validateQuestionPipeline, "validateQuestionPipeline");
@@ -1051,7 +1052,9 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
         qualityBadge: pipelineValidation.qualityBadge,
         traceabilityScore: pipelineValidation.traceabilityScore,
         ragScore: pipelineValidation.ragScore,
-        warning: pipelineValidation.warning
+        warning: pipelineValidation.warning,
+        _sources: pipelineValidation.chunks || 1,
+        _antiHallucination: pipelineValidation.warning ? 'warning' : 'verified'
       });
       qualityMetrics.push(pipelineValidation.qualityBadge.level);
     }
@@ -1210,7 +1213,9 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
         qualityBadge: pipelineValidation.qualityBadge,
         traceabilityScore: pipelineValidation.traceabilityScore,
         ragScore: pipelineValidation.ragScore,
-        warning: pipelineValidation.warning
+        warning: pipelineValidation.warning,
+        _sources: pipelineValidation.chunks || 1,
+        _antiHallucination: pipelineValidation.warning ? 'warning' : 'verified'
       });
       qualityMetrics.push(pipelineValidation.qualityBadge.level);
     }
@@ -1715,6 +1720,203 @@ var worker_default = {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
+      // ── FREE STUDY MODES ──
+      if (mode === "free-chat") {
+        try {
+          if (!freeText || !freeText.trim()) {
+            return new Response(JSON.stringify({ reply: "⚠️ Nenhum material de estudo carregado. Cole ou envie um material primeiro." }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+          }
+          const chatMessage = body.message;
+          if (!chatMessage || !chatMessage.trim()) {
+            return new Response(JSON.stringify({ reply: "Faça uma pergunta sobre o material que você carregou!" }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+          }
+          const chatHistory = body.chatHistory || [];
+          const systemPrompt = `Você é um assistente de estudo especializado em concursos públicos brasileiros.
+
+MATERIAL DE ESTUDO DO ALUNO:
+${freeText.slice(0, 8000)}
+
+REGRAS:
+- Responda APENAS com base no material fornecido acima.
+- Se a pergunta não puder ser respondida com o material, diga educadamente.
+- Use linguagem clara e didática, como um professor particular.
+- Destaque conceitos importantes, artigos de lei.
+- Responda em português do Brasil.
+- Seja conciso mas completo.`;
+
+          const messages = [
+            { role: "system", content: systemPrompt },
+            { role: "assistant", content: "Olá! Sou seu assistente de estudo. Pergunte sobre o material que você carregou! 📚" }
+          ];
+
+          if (Array.isArray(chatHistory)) {
+            for (const h of chatHistory.slice(-10)) {
+              if (h.role && h.content) messages.push({ role: h.role, content: h.content });
+            }
+          }
+          messages.push({ role: "user", content: chatMessage });
+
+          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "llama-3.3-70b-versatile",
+              messages,
+              temperature: 0.3,
+              max_tokens: 1200
+            })
+          });
+
+          if (!groqResponse.ok) {
+            return new Response(JSON.stringify({ reply: "❌ Erro ao processar sua pergunta. Tente novamente." }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+          }
+
+          const data = await groqResponse.json();
+          const reply = data?.choices?.[0]?.message?.content || "Desculpe, não consegui processar sua pergunta.";
+          return new Response(JSON.stringify({ reply }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        } catch (chatErr) {
+          return new Response(JSON.stringify({ reply: "Erro interno. Tente novamente." }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+      }
+
+      if (mode === "free-flashcards") {
+        try {
+          if (!freeText || !freeText.trim()) {
+            return new Response(JSON.stringify({ error: "Nenhum material carregado." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const systemText = `Com base no material de estudo abaixo, extraia os conceitos mais importantes e crie flashcards para revisão ativa.
+
+MATERIAL:
+${freeText.slice(0, 8000)}
+
+Cada flashcard deve ter:
+- "front": pergunta, termo ou conceito-chave
+- "back": resposta, definição ou explicação
+
+REGRAS:
+- Crie de 5 a 15 flashcards
+- Foque em definições, artigos de lei, princípios, regras
+- Não invente informações que não estejam no material
+
+Responda APENAS com um array JSON: [{"front": "...", "back": "..."}]`;
+
+          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "llama-3.3-70b-versatile",
+              temperature: 0.2,
+              max_tokens: 2000,
+              response_format: { type: "json_object" },
+              messages: [
+                { role: "system", content: "Você é um especialista em criar flashcards para concursos. Retorne APENAS um array JSON." },
+                { role: "user", content: systemText }
+              ]
+            })
+          });
+
+          if (!groqResponse.ok) {
+            return new Response(JSON.stringify({ error: "Erro ao gerar flashcards." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const data = await groqResponse.json();
+          const rawText = data?.choices?.[0]?.message?.content || "[]";
+          let flashcards;
+          try {
+            const parsed = JSON.parse(rawText);
+            flashcards = Array.isArray(parsed) ? parsed : (parsed.flashcards || parsed.data || []);
+          } catch {
+            const match = rawText.match(/\[[\s\S]*\]/);
+            flashcards = match ? JSON.parse(match[0]) : [];
+          }
+
+          return new Response(JSON.stringify({ flashcards, count: flashcards.length }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        } catch (fcErr) {
+          return new Response(JSON.stringify({ error: "Erro ao gerar flashcards." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
+      if (mode === "free-summarize") {
+        try {
+          if (!freeText || !freeText.trim()) {
+            return new Response(JSON.stringify({ error: "Nenhum material carregado." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const systemText = `Com base no material de estudo abaixo, crie um resumo estruturado e didático.
+
+MATERIAL:
+${freeText.slice(0, 8000)}
+
+O resumo deve ter:
+1. TITULO: Título claro
+2. PONTOS PRINCIPAIS: Lista dos conceitos mais importantes
+3. DETALHES: Explicação sucinta dos tópicos principais (2-3 parágrafos curtos)
+4. DICA DE ESTUDO: Dica prática de memorização
+
+REGRAS:
+- Seja objetivo
+- Destaque artigos de lei, números e exceções
+- Não invente informações
+
+Responda APENAS com JSON: {"titulo": "...", "pontosPrincipais": [], "detalhes": "...", "dicaEstudo": "..."}`;
+
+          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "llama-3.3-70b-versatile",
+              temperature: 0.2,
+              max_tokens: 2000,
+              response_format: { type: "json_object" },
+              messages: [
+                { role: "system", content: "Você é um especialista em resumir materiais de estudo para concursos. Retorne APENAS JSON." },
+                { role: "user", content: systemText }
+              ]
+            })
+          });
+
+          if (!groqResponse.ok) {
+            return new Response(JSON.stringify({ error: "Erro ao gerar resumo." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const data = await groqResponse.json();
+          const rawText = data?.choices?.[0]?.message?.content || "{}";
+          let summary;
+          try {
+            summary = JSON.parse(rawText);
+          } catch {
+            const match = rawText.match(/\{[\s\S]*\}/);
+            summary = match ? JSON.parse(match[0]) : { titulo: "Resumo", pontosPrincipais: [], detalhes: "", dicaEstudo: "" };
+          }
+
+          return new Response(JSON.stringify({ summary }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        } catch (sumErr) {
+          return new Response(JSON.stringify({ error: "Erro ao gerar resumo." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
       if (mode === "academic") {
         // [FIX] Removido fallback hardcoded "academic.direito" — area deve vir explícita no body
         if (!area) {
