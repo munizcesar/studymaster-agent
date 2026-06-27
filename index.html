@@ -281,8 +281,7 @@
       opacity: 0.3;
     }
     .hero.compact .hero-title,
-    .hero.compact .hero-subtitle,
-    .hero.compact .hero-benefits {
+    .hero.compact .hero-subtitle {
       display: none;
     }
     .hero::before {
@@ -293,9 +292,14 @@
       right: 0;
       bottom: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% 0%, oklch(from var(--color-primary) l c h / 0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 60% 40% at 80% 20%, oklch(from var(--color-primary-mid) l c h / 0.05) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 30% at 20% 60%, oklch(from var(--color-primary) l c h / 0.04) 0%, transparent 50%);
+        /* Large ambient glow from top center -- main text area */
+        radial-gradient(ellipse 100% 60% at 30% 10%, oklch(from var(--color-primary) l c h / 0.15) 0%, transparent 70%),
+        /* Secondary glow from bottom right -- cyan accent depth */
+        radial-gradient(ellipse 70% 50% at 85% 85%, oklch(from var(--color-primary-mid) l c h / 0.10) 0%, transparent 60%),
+        /* Subtle warm fill from left edge */
+        radial-gradient(ellipse 60% 70% at 5% 50%, oklch(from var(--color-primary) l c h / 0.06) 0%, transparent 60%),
+        /* Deep accent spot at bottom left for balance */
+        radial-gradient(ellipse 40% 30% at 20% 90%, oklch(from var(--color-primary-mid) l c h / 0.07) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -307,12 +311,14 @@
       right: 0;
       bottom: 0;
       background-image:
-        linear-gradient(oklch(from var(--color-text) l c h / 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, oklch(from var(--color-text) l c h / 0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
+        linear-gradient(oklch(from var(--color-text) l c h / 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, oklch(from var(--color-text) l c h / 0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.4;
+      opacity: 0.5;
+      mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 15%, black 40%, transparent 85%);
+      -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 100%);
     }
     .hero-bg-svg {
       position: absolute;
@@ -331,6 +337,51 @@
       max-width: 1400px;
       margin: 0 auto;
     }
+    .hero-bg-svg svg .orbital-ring-1,
+    .hero-bg-svg svg .orbital-ring-2,
+    .hero-bg-svg svg .orbital-ring-3 {
+      transform-box: fill-box;
+    }
+    .hero-bg-svg svg .orbital-ring-1 { animation: orbitalFloat1 10s ease-in-out infinite; transform-origin: center; }
+    .hero-bg-svg svg .orbital-ring-2 { animation: orbitalFloat2 12s ease-in-out infinite; transform-origin: center; }
+    .hero-bg-svg svg .orbital-ring-3 { animation: orbitalFloat3 8s ease-in-out infinite; transform-origin: center; }
+    .hero-bg-svg svg .particle { animation: particleFloat 5s ease-in-out infinite; }
+    .hero-bg-svg svg .arc-line-1 { animation: arcDrift 8s ease-in-out infinite; }
+    .hero-bg-svg svg .arc-line-2 { animation: arcDrift 10s ease-in-out infinite reverse; }
+    .hero-bg-svg svg .particle.p1 { --p-opacity: 0.15; animation-delay: 0s; }
+    .hero-bg-svg svg .particle.p2 { --p-opacity: 0.12; animation-delay: 0.8s; }
+    .hero-bg-svg svg .particle.p3 { --p-opacity: 0.10; animation-delay: 1.6s; }
+    .hero-bg-svg svg .particle.p4 { --p-opacity: 0.13; animation-delay: 0.4s; }
+    .hero-bg-svg svg .particle.p5 { --p-opacity: 0.11; animation-delay: 2.0s; }
+    .hero-bg-svg svg .particle.p6 { --p-opacity: 0.09; animation-delay: 1.2s; }
+    .hero-bg-svg svg .particle.p7 { --p-opacity: 0.10; animation-delay: 0.2s; }
+    .hero-bg-svg svg .particle.p8 { --p-opacity: 0.08; animation-delay: 1.8s; }
+    .hero-bg-svg svg .particle.p9 { --p-opacity: 0.12; animation-delay: 0.6s; }
+    .hero-bg-svg svg .particle.p10 { --p-opacity: 0.09; animation-delay: 2.4s; }
+    .hero-bg-svg svg .particle.p11 { --p-opacity: 0.07; animation-delay: 1.4s; }
+    .hero-bg-svg svg .particle.p12 { --p-opacity: 0.10; animation-delay: 0.1s; }
+    .hero-bg-svg svg .particle.p13 { --p-opacity: 0.08; animation-delay: 1.0s; }
+    .hero-bg-svg svg .particle.p14 { --p-opacity: 0.11; animation-delay: 2.2s; }
+    .hero-bg-svg svg .orbital-ring-1 { animation: orbitalFloat1 10s ease-in-out infinite; transform-origin: center; }
+    .hero-bg-svg svg .orbital-ring-2 { animation: orbitalFloat2 12s ease-in-out infinite; transform-origin: center; }
+    .hero-bg-svg svg .orbital-ring-3 { animation: orbitalFloat3 8s ease-in-out infinite; transform-origin: center; }
+    .hero-bg-svg svg .particle { animation: particleFloat 5s ease-in-out infinite; }
+    .hero-bg-svg svg .arc-line-1 { animation: arcDrift 8s ease-in-out infinite; }
+    .hero-bg-svg svg .arc-line-2 { animation: arcDrift 10s ease-in-out infinite reverse; }
+    .hero-bg-svg svg .particle.p1 { --p-opacity: 0.15; animation-delay: 0s; }
+    .hero-bg-svg svg .particle.p2 { --p-opacity: 0.12; animation-delay: 0.8s; }
+    .hero-bg-svg svg .particle.p3 { --p-opacity: 0.10; animation-delay: 1.6s; }
+    .hero-bg-svg svg .particle.p4 { --p-opacity: 0.13; animation-delay: 0.4s; }
+    .hero-bg-svg svg .particle.p5 { --p-opacity: 0.11; animation-delay: 2.0s; }
+    .hero-bg-svg svg .particle.p6 { --p-opacity: 0.09; animation-delay: 1.2s; }
+    .hero-bg-svg svg .particle.p7 { --p-opacity: 0.10; animation-delay: 0.2s; }
+    .hero-bg-svg svg .particle.p8 { --p-opacity: 0.08; animation-delay: 1.8s; }
+    .hero-bg-svg svg .particle.p9 { --p-opacity: 0.12; animation-delay: 0.6s; }
+    .hero-bg-svg svg .particle.p10 { --p-opacity: 0.09; animation-delay: 2.4s; }
+    .hero-bg-svg svg .particle.p11 { --p-opacity: 0.07; animation-delay: 1.4s; }
+    .hero-bg-svg svg .particle.p12 { --p-opacity: 0.10; animation-delay: 0.1s; }
+    .hero-bg-svg svg .particle.p13 { --p-opacity: 0.08; animation-delay: 1.0s; }
+    .hero-bg-svg svg .particle.p14 { --p-opacity: 0.11; animation-delay: 2.2s; }
     .hero .container {
       position: relative;
       z-index: 2;
@@ -357,24 +408,82 @@
       background-clip: text;
     }
     .hero-subtitle { font-size: var(--text-lg); color: var(--color-text); max-width: 600px; line-height: 1.6; }
-    .hero-benefits { display: flex; gap: var(--space-4); margin-top: var(--space-6); flex-wrap: wrap; }
-    .hero-benefit { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: 500; color: var(--color-text-muted); }
-    .hero-benefit i { color: var(--color-primary); width: 16px; height: 16px; }
-    .hero-benefit:not(:last-child)::after { content: '•'; margin-left: var(--space-2); color: var(--color-divider); }
+
 
     @media (max-width: 768px) {
       .hero { padding-bottom: calc(var(--space-8) + 1rem); }
       .hero-title { font-size: clamp(2rem, 8vw, 2.625rem); }
       .hero-subtitle { font-size: var(--text-base); }
-      .hero-benefits { gap: var(--space-2); }
-      .hero-benefit { font-size: var(--text-xs); }
+
       .wizard-section { padding-top: var(--space-8); }
     }
 
     /* Wizard */
-    .wizard-section { padding: var(--space-4) 0 var(--space-12); padding-block: clamp(3rem, 6vw, 5rem); background: var(--color-surface); }
-    .wizard-card { min-height: 320px; position: relative; background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); padding: var(--space-8); border: 1px solid oklch(from var(--color-text) l c h / 0.08); overflow: visible; max-width: 100%; }
-    .steps-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); max-width: 600px; margin-left: auto; margin-right: auto; position: relative; }
+    .wizard-section {
+      padding: var(--space-4) 0 var(--space-12);
+      padding-block: clamp(3rem, 6vw, 5rem);
+      background: var(--color-surface);
+      position: relative;
+    }
+    .wizard-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
+      opacity: 0.2;
+    }
+    .wizard-card {
+      min-height: 360px;
+      position: relative;
+      background:
+        linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 32px oklch(0 0 0 / 0.06), 0 1px 4px oklch(0 0 0 / 0.04);
+      padding: var(--space-8);
+      border: 1px solid oklch(from var(--color-primary) l c h / 0.12);
+      overflow: visible;
+      max-width: 100%;
+      transition: box-shadow 0.3s ease;
+    }
+    .wizard-card::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      right: -1px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-500) 0%, var(--accent-500) 50%, var(--primary-500) 100%);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      opacity: 0.7;
+    }
+    .wizard-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse 120% 60% at 30% 0%, oklch(from var(--color-primary) l c h / 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      border-radius: var(--radius-xl);
+    }
+    .steps-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-8);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      padding: var(--space-2) var(--space-4);
+      background: oklch(from var(--color-primary) l c h / 0.04);
+      border-radius: var(--radius-full);
+      border: 1px solid oklch(from var(--color-primary) l c h / 0.08);
+    }
     .step-indicator { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); opacity: 0.6; transition: all var(--transition); cursor: pointer; }
     .step-indicator:hover { opacity: 0.8; }
     .step-indicator.active, .step-indicator.complete { opacity: 1; }
@@ -386,35 +495,77 @@
     .step-indicator.complete .step-label { color: var(--color-success); }
     .step-connector { flex: 1; height: 3px; background: var(--color-divider); margin: 0 var(--space-2); transform: translateY(-100%); transition: background var(--transition); position: relative; top: -14px; }
     .step-indicator.complete + .step-connector { background: var(--color-success); }
-    .wizard-step { display: none; }
+    .wizard-step { display: none; position: relative; z-index: 1; }
     .wizard-step.active { display: block; }
-    .step-title { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: var(--space-1); line-height: 1.2; }
-    .step-subtitle { font-size: var(--text-sm); color: var(--color-text); margin-bottom: var(--space-6); line-height: 1.5; }
+    .step-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 800;
+      margin-bottom: var(--space-1);
+      line-height: 1.2;
+      position: relative;
+    }
+    .step-subtitle {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-6);
+      line-height: 1.6;
+      max-width: 540px;
+    }
+    .step-headline {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+    }
+    .step-headline-accent {
+      flex-shrink: 0;
+      width: 4px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
+      margin-top: 4px;
+    }
 
     /* Step 1 */
     .mode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
-    .mode-card {
+        .mode-card {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
-      padding: var(--space-5);
-      background: var(--color-surface);
-      border: 2px solid var(--color-border);
+      padding: var(--space-6);
+      background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
+      border: 1.5px solid oklch(from var(--color-primary) l c h / 0.10);
       border-radius: var(--radius-xl);
-      transition: all var(--transition);
       color: var(--color-text);
       position: relative;
       overflow: hidden;
-      min-height: 200px;
-    }
-    .mode-card {
+      min-height: 220px;
       transition: all 0.3s var(--bounce-ease), box-shadow 0.35s var(--bounce-ease);
     }
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(ellipse 100% 80% at 50% 0%, oklch(from var(--color-primary) l c h / 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 60% at 80% 100%, oklch(from var(--color-primary-mid) l c h / 0.04) 0%, transparent 60%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+    .mode-card:hover::before {
+      opacity: 1;
+    }
     .mode-card:hover {
-      border-color: var(--color-primary-mid);
-      transform: translateY(-3px) scale(1.01);
-      box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.15), 0 0 0 2px var(--accent-glow);
+      border-color: var(--color-primary);
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: 0 12px 36px oklch(from var(--color-primary) l c h / 0.18), 0 0 0 2px var(--accent-glow);
     }
     .mode-card:focus-visible {
       outline: none;
@@ -426,20 +577,23 @@
     }
     .mode-card.selected {
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.2);
-      background: oklch(from var(--color-primary) l c h / 0.05);
+      box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.2), 0 8px 24px oklch(from var(--color-primary) l c h / 0.12);
+      background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.08) 0%, oklch(from var(--color-primary-mid) l c h / 0.04) 100%);
     }
-    .mode-icon {
+        .mode-icon {
       width: 52px;
       height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: oklch(from var(--color-primary) l c h / 0.1);
+      background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.12) 0%, oklch(from var(--color-primary-mid) l c h / 0.08) 100%);
       color: var(--color-primary);
       border-radius: var(--radius-lg);
       margin-bottom: var(--space-4);
       transition: all var(--transition);
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.08);
     }
     .mode-card:hover .mode-icon {
       background: var(--color-primary);
@@ -1742,7 +1896,7 @@
     .session-history-item.wrong { color: var(--color-error); border-color: oklch(from var(--color-error) l c h / 0.25); }
 
     /* Nav */
-    .wizard-nav { display: flex; justify-content: space-between; margin-top: var(--space-6); }
+    .wizard-nav { display: flex; justify-content: space-between; margin-top: var(--space-6); position: relative; z-index: 1; }
     .wizard-nav button { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-weight: 600; font-size: var(--text-sm); transition: all var(--transition); }
     .btn-back { color: var(--color-text-muted); }
     .btn-back:hover { background: var(--color-surface-offset); color: var(--color-text); }
@@ -4316,11 +4470,29 @@
 .marketing-section { position: relative; overflow: hidden; }
 
 /* \u2500\u2500 Hero SVG Icon Animations \u2500\u2500 */
-.hero-bg-svg svg > g {
-  animation: iconPulse 6s ease-in-out infinite, iconFloat 8s ease-in-out infinite;
-}
-/* Stagger each icon group with different delays */
-.hero-bg-svg svg > g:nth-of-type(1) { animation-delay: 0s, 0s; }
+        .hero-bg-svg svg > g {
+      animation: orbitalFloat1 8s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .hero-bg-svg svg > g:nth-of-type(1) { animation-delay: 0s; }
+    .hero-bg-svg svg > g:nth-of-type(2) { animation-delay: 0.6s; }
+    .hero-bg-svg svg > g:nth-of-type(3) { animation-delay: 1.2s; }
+    .hero-bg-svg svg > g:nth-of-type(4) { animation-delay: 0.3s; }
+    .hero-bg-svg svg > g:nth-of-type(5) { animation-delay: 1.8s; }
+    .hero-bg-svg svg > g:nth-of-type(6) { animation-delay: 0.9s; }
+    .hero-bg-svg svg > g:nth-of-type(7) { animation-delay: 1.5s; }
+    .hero-bg-svg svg > g:nth-of-type(8) { animation-delay: 2.1s; }
+    .hero-bg-svg svg > g:nth-of-type(9) { animation-delay: 0.4s; }
+    .hero-bg-svg svg > g:nth-of-type(10) { animation-delay: 1.0s; }.hero-bg-svg svg > g:nth-of-type(1) { animation-delay: 0s; }
+    .hero-bg-svg svg > g:nth-of-type(2) { animation-delay: 0.6s; }
+    .hero-bg-svg svg > g:nth-of-type(3) { animation-delay: 1.2s; }
+    .hero-bg-svg svg > g:nth-of-type(4) { animation-delay: 0.3s; }
+    .hero-bg-svg svg > g:nth-of-type(5) { animation-delay: 1.8s; }
+    .hero-bg-svg svg > g:nth-of-type(6) { animation-delay: 0.9s; }
+    .hero-bg-svg svg > g:nth-of-type(7) { animation-delay: 1.5s; }
+    .hero-bg-svg svg > g:nth-of-type(8) { animation-delay: 2.1s; }
+    .hero-bg-svg svg > g:nth-of-type(9) { animation-delay: 0.4s; }
+    .hero-bg-svg svg > g:nth-of-type(10) { animation-delay: 1.0s; }.hero-bg-svg svg > g:nth-of-type(1) { animation-delay: 0s, 0s; }
 .hero-bg-svg svg > g:nth-of-type(2) { animation-delay: 0.6s, 0.4s; }
 .hero-bg-svg svg > g:nth-of-type(3) { animation-delay: 1.2s, 0.8s; }
 .hero-bg-svg svg > g:nth-of-type(4) { animation-delay: 1.8s, 1.2s; }
@@ -4484,8 +4656,10 @@
     .drawer-body {
       flex: 1;
       overflow-y: auto;
-      padding: var(--space-4) var(--space-5);
+      padding: var(--space-3) var(--space-4);
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: oklch(from var(--color-primary) l c h / 0.2) transparent;
     }
     .drawer-panel {
       display: none;
@@ -4499,7 +4673,21 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .drawer-panel-header {
-      margin-bottom: var(--space-3);
+      margin-bottom: var(--space-2);
+    }
+    
+    .drawer-body::-webkit-scrollbar {
+      width: 4px;
+    }
+    .drawer-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .drawer-body::-webkit-scrollbar-thumb {
+      background: oklch(from var(--color-primary) l c h / 0.15);
+      border-radius: 99px;
+    }
+    .drawer-body::-webkit-scrollbar-thumb:hover {
+      background: oklch(from var(--color-primary) l c h / 0.25);
     }
     .drawer-empty {
       font-size: var(--text-sm);
@@ -4511,12 +4699,12 @@
     .drawer-metrics-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-3);
+      gap: var(--space-2);
       margin-bottom: var(--space-4);
     }
     .drawer-metric {
       text-align: center;
-      padding: var(--space-3);
+      padding: var(--space-1) var(--space-2);
       background: var(--color-surface-offset);
       border-radius: var(--radius-md);
       border: 1px solid var(--color-border);
@@ -4544,8 +4732,8 @@
     .drawer-history-item {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3);
+      gap: var(--space-2);
+      padding: var(--space-2);
       background: var(--color-surface-offset);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
@@ -4593,8 +4781,8 @@
     .drawer-action-btn {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-surface-offset);
@@ -4752,8 +4940,10 @@
     .drawer-body {
       flex: 1;
       overflow-y: auto;
-      padding: var(--space-4) var(--space-5);
+      padding: var(--space-3) var(--space-4);
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: oklch(from var(--color-primary) l c h / 0.2) transparent;
     }
     .drawer-panel {
       display: none;
@@ -4767,7 +4957,21 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .drawer-panel-header {
-      margin-bottom: var(--space-3);
+      margin-bottom: var(--space-2);
+    }
+    
+    .drawer-body::-webkit-scrollbar {
+      width: 4px;
+    }
+    .drawer-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .drawer-body::-webkit-scrollbar-thumb {
+      background: oklch(from var(--color-primary) l c h / 0.15);
+      border-radius: 99px;
+    }
+    .drawer-body::-webkit-scrollbar-thumb:hover {
+      background: oklch(from var(--color-primary) l c h / 0.25);
     }
     .drawer-empty {
       font-size: var(--text-sm);
@@ -4779,12 +4983,12 @@
     .drawer-metrics-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-3);
+      gap: var(--space-2);
       margin-bottom: var(--space-4);
     }
     .drawer-metric {
       text-align: center;
-      padding: var(--space-3);
+      padding: var(--space-1) var(--space-2);
       background: var(--color-surface-offset);
       border-radius: var(--radius-md);
       border: 1px solid var(--color-border);
@@ -4812,8 +5016,8 @@
     .drawer-history-item {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3);
+      gap: var(--space-2);
+      padding: var(--space-2);
       background: var(--color-surface-offset);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
@@ -4861,8 +5065,8 @@
     .drawer-action-btn {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-surface-offset);
@@ -5055,131 +5259,48 @@
   <section class="hero">
     <div class="hero-bg-svg">
       <svg viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Stack of Books - top left -->
-        <g opacity="0.07">
-          <rect x="80" y="140" width="100" height="75" rx="4" stroke="url(#grad1)" stroke-width="1.5" fill="none"/>
-          <rect x="80" y="140" width="100" height="10" rx="2" stroke="url(#grad1)" stroke-width="1" fill="rgba(13,71,255,0.06)"/>
-          <line x1="95" y1="162" x2="165" y2="162" stroke="url(#grad1)" stroke-width="1"/>
-          <line x1="95" y1="175" x2="165" y2="175" stroke="url(#grad1)" stroke-width="1"/>
-          <line x1="95" y1="188" x2="150" y2="188" stroke="url(#grad1)" stroke-width="1"/>
-          <rect x="95" y="120" width="100" height="75" rx="4" stroke="url(#grad2)" stroke-width="1.5" fill="none"/>
-          <rect x="95" y="120" width="100" height="10" rx="2" stroke="url(#grad2)" stroke-width="1" fill="rgba(0,184,255,0.06)"/>
-          <line x1="110" y1="142" x2="180" y2="142" stroke="url(#grad2)" stroke-width="1"/>
-          <line x1="110" y1="155" x2="180" y2="155" stroke="url(#grad2)" stroke-width="1"/>
-          <line x1="110" y1="168" x2="165" y2="168" stroke="url(#grad2)" stroke-width="1"/>
-          <rect x="110" y="100" width="100" height="75" rx="4" stroke="url(#grad3)" stroke-width="1.5" fill="none"/>
-          <rect x="110" y="100" width="100" height="10" rx="2" stroke="url(#grad3)" stroke-width="1" fill="rgba(124,77,255,0.06)"/>
-          <line x1="125" y1="122" x2="195" y2="122" stroke="url(#grad3)" stroke-width="1"/>
-          <line x1="125" y1="135" x2="195" y2="135" stroke="url(#grad3)" stroke-width="1"/>
-          <line x1="125" y1="148" x2="180" y2="148" stroke="url(#grad3)" stroke-width="1"/>
-        </g>
-
-        <!-- Graduation Cap - top right -->
-        <g opacity="0.07">
-          <path d="M970 150 L1050 110 L1130 150 L1050 190 Z" stroke="url(#grad1)" stroke-width="1.5" fill="none"/>
-          <path d="M1050 190 L1050 240" stroke="url(#grad1)" stroke-width="1.5"/>
-          <path d="M1050 240 L1000 260" stroke="url(#grad1)" stroke-width="1.5"/>
-          <path d="M1050 240 L1100 260" stroke="url(#grad1)" stroke-width="1.5"/>
-          <path d="M1130 150 L1150 130" stroke="url(#grad2)" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="1150" cy="130" r="4" stroke="url(#grad2)" stroke-width="1" fill="rgba(0,184,255,0.06)"/>
-        </g>
-
-        <!-- Clipboard with Checklist - left center -->
-        <g opacity="0.07">
-          <rect x="60" y="330" width="55" height="70" rx="4" stroke="url(#grad2)" stroke-width="1.5" fill="none"/>
-          <rect x="65" y="325" width="45" height="12" rx="3" stroke="url(#grad2)" stroke-width="1" fill="rgba(0,184,255,0.06)"/>
-          <line x1="75" y1="352" x2="100" y2="352" stroke="url(#grad2)" stroke-width="1.2"/>
-          <polyline points="75,365 85,375 100,358" stroke="url(#grad2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <line x1="75" y1="380" x2="100" y2="380" stroke="url(#grad2)" stroke-width="1.2"/>
-        </g>
-
-        <!-- Trophy / Achievement - right center -->
-        <g opacity="0.07">
-          <path d="M1040 330 L1090 330 L1095 360 Q1095 390 1065 390 Q1035 390 1035 360 Z" stroke="url(#grad3)" stroke-width="1.5" fill="none"/>
-          <path d="M1035 340 Q1010 340 1015 360 Q1020 375 1035 375" stroke="url(#grad3)" stroke-width="1.2" fill="none"/>
-          <path d="M1095 340 Q1120 340 1115 360 Q1110 375 1095 375" stroke="url(#grad3)" stroke-width="1.2" fill="none"/>
-          <rect x="1050" y="390" width="30" height="8" rx="2" stroke="url(#grad3)" stroke-width="1.2" fill="none"/>
-          <rect x="1040" y="398" width="50" height="6" rx="2" stroke="url(#grad3)" stroke-width="1.2" fill="rgba(124,77,255,0.06)"/>
-          <polygon points="1065,350 1068,360 1078,360 1070,366 1073,376 1065,370 1057,376 1060,366 1052,360 1062,360" stroke="url(#grad1)" stroke-width="0.8" fill="rgba(13,71,255,0.04)"/>
-        </g>
-
-        <!-- Brain/AI icon - center -->
-        <g opacity="0.06">
-          <ellipse cx="600" cy="260" rx="55" ry="40" stroke="url(#grad1)" stroke-width="1.5" fill="none"/>
-          <path d="M600 220 L600 300" stroke="url(#grad1)" stroke-width="1" stroke-dasharray="3,3"/>
-          <path d="M555 250 Q570 240 585 250" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <path d="M550 270 Q570 260 590 270" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <path d="M560 235 Q575 225 590 235" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <path d="M615 250 Q630 240 645 250" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <path d="M610 270 Q630 260 650 270" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <path d="M610 235 Q625 225 640 235" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <circle cx="560" cy="260" r="4" fill="rgba(13,71,255,0.08)"/>
-          <circle cx="640" cy="260" r="4" fill="rgba(13,71,255,0.08)"/>
-          <circle cx="600" cy="220" r="3" fill="rgba(0,184,255,0.08)"/>
-          <circle cx="600" cy="300" r="3" fill="rgba(0,184,255,0.08)"/>
-        </g>
-
-        <!-- Pencil - bottom left -->
-        <g opacity="0.07">
-          <rect x="130" y="430" width="12" height="90" rx="1" stroke="url(#grad1)" stroke-width="1.2" fill="none"/>
-          <polygon points="136,520 130,430 142,430" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <polygon points="136,520 132,500 140,500" stroke="url(#grad2)" stroke-width="0.8" fill="rgba(0,184,255,0.06)"/>
-          <line x1="136" y1="520" x2="136" y2="528" stroke="url(#grad1)" stroke-width="1.5" stroke-linecap="round"/>
-          <rect x="130" y="430" width="12" height="10" rx="1" stroke="url(#grad3)" stroke-width="1" fill="rgba(124,77,255,0.06)"/>
-        </g>
-
-        <!-- Document with star seal - bottom right -->
-        <g opacity="0.07">
-          <rect x="1020" y="440" width="70" height="85" rx="4" stroke="url(#grad2)" stroke-width="1.5" fill="none"/>
-          <path d="M1070 440 L1070 460 L1090 460" stroke="url(#grad2)" stroke-width="1" fill="none"/>
-          <line x1="1035" y1="462" x2="1070" y2="462" stroke="url(#grad2)" stroke-width="1.2"/>
-          <line x1="1035" y1="476" x2="1080" y2="476" stroke="url(#grad2)" stroke-width="1.2"/>
-          <line x1="1035" y1="490" x2="1060" y2="490" stroke="url(#grad2)" stroke-width="1.2"/>
-          <line x1="1035" y1="504" x2="1075" y2="504" stroke="url(#grad2)" stroke-width="1.2"/>
-          <polygon points="1060,510 1062,516 1068,516 1063,520 1065,526 1060,522 1055,526 1057,520 1052,516 1058,516" stroke="url(#grad1)" stroke-width="0.8" fill="rgba(13,71,255,0.04)"/>
-        </g>
-
-        <!-- Sparkle particles scattered -->
-        <g opacity="0.06">
-          <polygon points="320,180 322,188 330,188 324,193 326,201 320,196 314,201 316,193 310,188 318,188" stroke="url(#grad1)" stroke-width="0.8" fill="none"/>
-          <polygon points="880,280 881,285 886,285 882,288 883,293 880,290 877,293 878,288 874,285 879,285" stroke="url(#grad3)" stroke-width="0.8" fill="none"/>
-          <polygon points="400,400 401,404 405,404 402,407 403,411 400,408 397,411 398,407 395,404 399,404" stroke="url(#grad2)" stroke-width="0.8" fill="none"/>
-          <polygon points="750,450 751,454 755,454 752,457 753,461 750,458 747,461 748,457 745,454 749,454" stroke="url(#grad1)" stroke-width="0.8" fill="none"/>
-          <polygon points="500,480 501,483 504,483 502,485 503,488 500,486 497,488 498,485 496,483 499,483" stroke="url(#grad3)" stroke-width="0.8" fill="none"/>
-        </g>
-
-        <!-- Light bulb - bottom center -->
-        <g opacity="0.06">
-          <path d="M580 480 Q580 450 600 440 Q620 450 620 480 Q620 495 610 500 L610 510 L590 510 L590 500 Q580 495 580 480 Z" stroke="url(#grad1)" stroke-width="1.5" fill="none"/>
-          <rect x="595" y="510" width="10" height="8" rx="1" stroke="url(#grad1)" stroke-width="1" fill="none"/>
-          <rect x="592" y="518" width="16" height="4" rx="1" stroke="url(#grad1)" stroke-width="1" fill="none"/>
-          <line x1="600" y1="428" x2="600" y2="418" stroke="url(#grad2)" stroke-width="1" stroke-linecap="round"/>
-          <line x1="575" y1="445" x2="567" y2="438" stroke="url(#grad2)" stroke-width="1" stroke-linecap="round"/>
-          <line x1="625" y1="445" x2="633" y2="438" stroke="url(#grad2)" stroke-width="1" stroke-linecap="round"/>
-          <path d="M590 475 Q600 465 610 475" stroke="url(#grad3)" stroke-width="0.8" fill="none"/>
-        </g>
-
-        <!-- Decorative connecting curves -->
-        <g opacity="0.03">
-          <path d="M250 200 Q350 170 450 210" stroke="url(#grad1)" stroke-width="1" fill="none" stroke-dasharray="4,6"/>
-          <path d="M750 200 Q850 170 950 210" stroke="url(#grad3)" stroke-width="1" fill="none" stroke-dasharray="4,6"/>
-          <path d="M200 480 Q350 520 500 480" stroke="url(#grad2)" stroke-width="1" fill="none" stroke-dasharray="4,6"/>
-          <path d="M700 480 Q850 520 950 480" stroke="url(#grad1)" stroke-width="1" fill="none" stroke-dasharray="4,6"/>
-        </g>
-
+        <!-- Orbital ring 1 - Large, slow float -->
+        <circle cx="250" cy="250" r="140" stroke="url(#primaryGlow)" stroke-width="0.8" opacity="0.12" class="orbital-ring-1"/>
+        <circle cx="250" cy="250" r="120" stroke="url(#primaryGlow)" stroke-width="0.5" opacity="0.08" class="orbital-ring-1"/>
+        
+        <!-- Orbital ring 2 - Medium, offset -->
+        <circle cx="900" cy="180" r="100" stroke="url(#accentGlow)" stroke-width="0.6" opacity="0.10" class="orbital-ring-2"/>
+        <circle cx="900" cy="180" r="85" stroke="url(#accentGlow)" stroke-width="0.4" opacity="0.06" class="orbital-ring-2"/>
+        
+        <!-- Orbital ring 3 - Small, bottom right -->
+        <circle cx="1050" cy="450" r="60" stroke="url(#primaryGlow)" stroke-width="0.5" opacity="0.08" class="orbital-ring-3"/>
+        
+        <!-- Subtle arc accent - left -->
+        <path d="M50 400 C 150 200, 350 150, 500 280" stroke="url(#primaryGlow)" stroke-width="0.6" opacity="0.07" fill="none" class="arc-line-1"/>
+        
+        <!-- Subtle arc accent - right -->
+        <path d="M700 320 C 850 180, 1000 250, 1150 180" stroke="url(#accentGlow)" stroke-width="0.5" opacity="0.06" fill="none" class="arc-line-2"/>
+        
+        <!-- Particle dots - scattered across the hero -->
+        <circle cx="120" cy="120" r="2" fill="var(--color-primary)" opacity="0.15" class="particle p1"/>
+        <circle cx="380" cy="80" r="1.5" fill="var(--color-primary-mid)" opacity="0.12" class="particle p2"/>
+        <circle cx="550" cy="200" r="1" fill="var(--color-primary)" opacity="0.10" class="particle p3"/>
+        <circle cx="750" cy="100" r="2.5" fill="var(--color-primary)" opacity="0.13" class="particle p4"/>
+        <circle cx="950" cy="300" r="1.5" fill="var(--color-primary-mid)" opacity="0.11" class="particle p5"/>
+        <circle cx="1100" cy="120" r="1" fill="var(--color-primary)" opacity="0.09" class="particle p6"/>
+        <circle cx="200" cy="400" r="2" fill="var(--color-primary-mid)" opacity="0.10" class="particle p7"/>
+        <circle cx="450" cy="450" r="1.5" fill="var(--color-primary)" opacity="0.08" class="particle p8"/>
+        <circle cx="650" cy="380" r="1" fill="var(--color-primary-mid)" opacity="0.12" class="particle p9"/>
+        <circle cx="850" cy="500" r="2" fill="var(--color-primary)" opacity="0.09" class="particle p10"/>
+        <circle cx="100" cy="300" r="1" fill="var(--color-primary-mid)" opacity="0.07" class="particle p11"/>
+        <circle cx="300" cy="500" r="1.5" fill="var(--color-primary)" opacity="0.10" class="particle p12"/>
+        <circle cx="500" cy="520" r="1" fill="var(--color-primary-mid)" opacity="0.08" class="particle p13"/>
+        <circle cx="700" cy="200" r="2" fill="var(--color-primary)" opacity="0.11" class="particle p14"/>
+        
+        <!-- Gradient definitions -->
         <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#0D47FF;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#00B8FF;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#7C4DFF;stop-opacity:1" />
+          <linearGradient id="primaryGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--color-primary)"/>
+            <stop offset="100%" stop-color="transparent"/>
           </linearGradient>
-          <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#0D47FF;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#00B8FF;stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#00B8FF;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#7C4DFF;stop-opacity:1" />
+          <linearGradient id="accentGlow" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="var(--color-primary-mid)"/>
+            <stop offset="100%" stop-color="transparent"/>
           </linearGradient>
         </defs>
       </svg>
@@ -5187,12 +5308,7 @@
     <div class="container">
       <h1 class="hero-title">Sua plataforma completa<br><span>de aprovação em concursos</span></h1>
       <p class="hero-subtitle">Questões inteligentes, redação com correção completa e mentor pessoal de desempenho em um só lugar.</p>
-      <div class="hero-benefits">
-        <span class="hero-benefit"><i data-lucide="clipboard-list" width="16" height="16"></i> Questões</span>
-        <span class="hero-benefit"><i data-lucide="brain" width="16" height="16"></i> Redação</span>
-        <span class="hero-benefit"><i data-lucide="file-text" width="16" height="16"></i> Materiais</span>
-        <span class="hero-benefit"><i data-lucide="graduation-cap" width="16" height="16"></i> Planejamento</span>
-      </div>
+      
     </div>
   </section>
 
