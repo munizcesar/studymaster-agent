@@ -366,9 +366,8 @@ var ACADEMIC_CONFIG = {
 };
 var GROQ_MODELS = [
   "llama-3.3-70b-versatile",
-  "llama3-70b-8192",
-  "llama3-8b-8192",
   "llama-3.1-8b-instant",
+  "llama3-8b-8192",
   "gemma2-9b-it"
 ];
 function validateConcursosFilter(filter) {
@@ -391,19 +390,68 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
       console.warn(`[RAG] KNOWLEDGE_INDEX não configurado. Retornando contexto vazio.`);
       return { context: "", sufficient: false, sources: [], contextLength: 0 };
     }
+    // ── KV CACHE LOOKUP ──
+    // Gera chave de cache baseada na coleção + query para evitar reprocessar o mesmo RAG
+    let cacheKey = null;
+    if (env.RAG_CACHE) {
+      try {
+        const queryHash = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(query.slice(0, 200))).then(h => {
+          return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+        });
+        cacheKey = `rag:${collection}:${queryHash}`;
+        const cached = await env.RAG_CACHE.get(cacheKey, "json");
+        if (cached && typeof cached === "object" && cached.context !== undefined) {
+          console.log(`[RAG] Cache HIT: ${cacheKey} — ${cached.sources?.length || 0} fontes`);
+          return cached;
+        }
+      } catch (cacheErr) {
+        console.warn(`[RAG] Erro ao ler cache KV: ${cacheErr.message}`);
+      }
+    }
+    console.log(`[RAG] Cache MISS: ${cacheKey || 'sem cache'} — consultando Vectorize`);
     let embedding;
     try {
       if (!env.AI) {
         console.warn(`[RAG] CF AI não disponível. Retornando contexto vazio.`);
         return { context: "", sufficient: false, sources: [], contextLength: 0 };
       }
-      const embeddingRes = await env.AI.run("@cf/baai/bge-m3", { text: [query.slice(0, 512)] });
-      const vector = embeddingRes?.data?.[0];
-      if (!vector || !Array.isArray(vector)) {
-        console.warn(`[RAG] Embedding inválido. Retornando contexto vazio.`);
-        return { context: "", sufficient: false, sources: [], contextLength: 0 };
+      // ── EMBEDDING CACHE ──
+      // Cacheia o vetor de embedding (1024 floats) para evitar chamadas repetidas ao AI.run
+      let embKey = null;
+      if (env.RAG_CACHE && cacheKey) {
+        embKey = `emb:${query.slice(0, 200)}`;
+        try {
+          const queryHash = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(embKey)).then(h => {
+            return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+          });
+          embKey = `emb:${queryHash}`;
+          const cachedEmb = await env.RAG_CACHE.get(embKey, "json");
+          if (cachedEmb && Array.isArray(cachedEmb) && cachedEmb.length === 1024) {
+            console.log(`[RAG] Embedding cache HIT: ${embKey}`);
+            embedding = cachedEmb;
+          }
+        } catch (embCacheErr) {
+          console.warn(`[RAG] Erro ao ler cache de embedding: ${embCacheErr.message}`);
+        }
       }
-      embedding = vector;
+      if (!embedding) {
+        const embeddingRes = await env.AI.run("@cf/baai/bge-m3", { text: [query.slice(0, 512)] });
+        const vector = embeddingRes?.data?.[0];
+        if (!vector || !Array.isArray(vector)) {
+          console.warn(`[RAG] Embedding inválido. Retornando contexto vazio.`);
+          return { context: "", sufficient: false, sources: [], contextLength: 0 };
+        }
+        embedding = vector;
+        // Armazena embedding no cache
+        if (embKey && env.RAG_CACHE) {
+          try {
+            await env.RAG_CACHE.put(embKey, JSON.stringify(embedding), { expirationTtl: 7200 });
+            console.log(`[RAG] Embedding cache STORE: ${embKey}`);
+          } catch (storeErr) {
+            console.warn(`[RAG] Erro ao salvar cache de embedding: ${storeErr.message}`);
+          }
+        }
+      }
     } catch (e) {
       console.warn(`[RAG] Erro ao gerar embedding: ${e.message}`);
       return { context: "", sufficient: false, sources: [], contextLength: 0 };
@@ -413,7 +461,7 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
       results = await env.KNOWLEDGE_INDEX.query(embedding, {
         namespace: collection,
         topK: 5,
-        returnMetadata: "all"
+        returnMetadata: true
       });
     } catch (e) {
       console.warn(`[RAG] Erro ao buscar Vectorize: ${e.message}`);
@@ -422,7 +470,7 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     if (!results?.matches?.length) {
       return { context: "", sufficient: false, sources: [], contextLength: 0 };
     }
-    const documents = results.matches.filter((m) => m.score >= 0.65).slice(0, 3).map((m) => ({
+    const documents = results.matches.filter((m) => m.score >= 0.50).slice(0, 4).map((m) => ({
       text: m.metadata?.text || m.text || "",
       source: m.metadata?.source || "Acervo de Concursos",
       score: m.score
@@ -432,12 +480,23 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
     }
     const context = documents.map((d) => d.text).join("\n\n");
     const sufficient = context.length >= minLength;
-    return {
+    const result = {
       context,
       sufficient,
       sources: documents.map((d) => ({ text: d.text.slice(0, 100), source: d.source, score: d.score })),
       contextLength: context.length
     };
+    // ── KV CACHE STORE ──
+    // Armazena resultado no KV com TTL de 1 hora para evitar consultas repetidas ao Vectorize
+    if (cacheKey && env.RAG_CACHE) {
+      try {
+        await env.RAG_CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 7200 });
+        console.log(`[RAG] Cache STORE: ${cacheKey} — TTL 7200s`);
+      } catch (storeErr) {
+        console.warn(`[RAG] Erro ao salvar cache KV: ${storeErr.message}`);
+      }
+    }
+    return result;
   } catch (e) {
     console.error(`[RAG] Erro geral em fetchVectorizeContext: ${e.message}`);
     return { context: "", sufficient: false, sources: [], contextLength: 0 };
@@ -578,7 +637,7 @@ async function fetchVademecumRAG(query, subarea, env) {
     const embeddingRes = await env.AI.run("@cf/baai/bge-m3", { text: [query.slice(0, 512)] });
     const vector = embeddingRes?.data?.[0];
     if (!vector || !Array.isArray(vector)) return null;
-    const queryOptions = { topK: 8, returnMetadata: "all" };
+    const queryOptions = { topK: 8, returnMetadata: true };
     if (subarea) queryOptions.filter = { area: { $eq: subarea } };
     const results = await env.KNOWLEDGE_INDEX.query(vector, queryOptions);
     if (!results?.matches?.length) return null;
@@ -764,36 +823,35 @@ function summarizeQueryContext(topic, extra, prompt) {
   return parts.slice(0, 500);
 }
 __name(summarizeQueryContext, "summarizeQueryContext");
-function validateRAGScore(ragResult, subjectConfig) {
-  const minScore = 0.75;
-  if (!ragResult?.sources?.length) {
-    return {
-      valid: false,
-      score: 0,
-      level: "none",
-      reason: "Nenhuma fonte recuperada do Vectorize"
-    };
-  }
-  const sourceScores = ragResult.sources.map((s) => s.score || 0).filter((score) => typeof score === "number");
-  if (sourceScores.length === 0) {
-    return {
-      valid: false,
-      score: 0,
-      level: "none",
-      reason: "Nenhum score válido nas fontes recuperadas"
-    };
-  }
-  const avgScore = sourceScores.reduce((acc, score) => acc + score, 0) / sourceScores.length;
-  if (avgScore < minScore) {
-    return {
-      valid: false,
-      score: avgScore,
-      level: avgScore >= 0.65 ? "low" : "none",
-      reason: `Score médio ${avgScore.toFixed(3)} abaixo do mínimo ${minScore}`
-    };
-  }
-  let qualityLevel = "high";
-  if (avgScore < 0.85) qualityLevel = "medium";
+function validateRAGScore(ragResult, subjectConfig) {    const minScore = 0.55;
+    if (!ragResult?.sources?.length) {
+      return {
+        valid: false,
+        score: 0,
+        level: "none",
+        reason: "Nenhuma fonte recuperada do Vectorize"
+      };
+    }
+    const sourceScores = ragResult.sources.map((s) => s.score || 0).filter((score) => typeof score === "number");
+    if (sourceScores.length === 0) {
+      return {
+        valid: false,
+        score: 0,
+        level: "none",
+        reason: "Nenhum score válido nas fontes recuperadas"
+      };
+    }
+    const avgScore = sourceScores.reduce((acc, score) => acc + score, 0) / sourceScores.length;
+    if (avgScore < minScore) {
+      return {
+        valid: false,
+        score: avgScore,
+        level: avgScore >= 0.40 ? "low" : "none",
+        reason: `Score médio ${avgScore.toFixed(3)} abaixo do mínimo ${minScore}`
+      };
+    }
+    let qualityLevel = "high";
+    if (avgScore < 0.75) qualityLevel = "medium";
   return {
     valid: true,
     score: avgScore,
@@ -950,7 +1008,7 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   }
   const subjectConfig = filterValidation.config;
   // Garante que o label da matéria sempre está na query para o Vectorize
-  const queryContext = summarizeQueryContext(subjectConfig.label, prompt, extraContext);
+  const queryContext = summarizeQueryContext(`${subjectConfig.label} ${subjectConfig.description}`, prompt, extraContext);
   console.log(`[RAG] Matéria: ${filter} → Coleção: ${subjectConfig.vectorizeCollection} | Query: ${queryContext}`);
   const ragResult = await fetchVectorizeContext(
     env,
@@ -1111,7 +1169,7 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
       details: `Área não mapeada: ${area}`
     };
   }
-  const queryContext = summarizeQueryContext(areaConfig.label, topic || subject, prompt || extraContext);
+  const queryContext = summarizeQueryContext(`${areaConfig.label} ${areaConfig.description}`, topic || subject, prompt || extraContext);
   console.log(`[RAG] Área: ${areaKey} → Coleção: ${areaConfig.vectorizeCollection} | Query: ${queryContext}`);
   const ragResult = await fetchVectorizeContext(
     env,

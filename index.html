@@ -4416,11 +4416,11 @@
           <h2 class="step-title">Como você quer estudar hoje?</h2>
           <p class="step-subtitle">Qual seu objetivo? de estudo ideal para o seu objetivo</p>
             <div class="mode-grid">
-              <button class="mode-card" data-mode="concurso" aria-label="Simulados de Concurso">
+              <button class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
                 <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
                 <div class="mode-info">
-                  <strong>Simulados de Concurso</strong>
-                  <span>Monte simulados personalizados por banca, órgão e cargo com questões no estilo exato da prova.</span>
+                  <strong>Caderno de Questões</strong>
+                  <span>Filtre questões por matéria, banca e cargo com múltipla escolha ou estilo CESPE (Certo/Errado).</span>
                 </div>
                 <div class="mode-perf" id="mode-perf-concurso">
                   <span class="mode-perf-label">Hoje</span>
@@ -4575,7 +4575,7 @@
               </div>
               <div class="chip-group" role="group">
                 <button class="chip active" data-qtype="mc">Múltipla escolha</button>
-                <button class="chip" data-qtype="vf">Verdadeiro/Falso</button>
+                <button class="chip" data-qtype="vf">Certo/Errado (CESPE)</button>
                 <button class="chip" data-qtype="mix">Misto</button>
               </div>
             </div>
@@ -7719,7 +7719,7 @@ function renderAllQuestionsDesktop(questions) {
         <div class="question-statement">${q.statement}</div>
         <div class="options-list" id="qn-opts-${idx}">
           ${(q.options || []).map((opt, oIdx) => {
-            const letter = letters[oIdx] || opt.key;
+            const letter = opt.key;
             let cls = '';
             if (hasAnswered) {
               if (opt.key === q.correctAnswer) cls = ' correct';
@@ -7823,7 +7823,7 @@ function renderSingleQuestion(questions, idx) {
       <div class="question-statement">${q.statement}</div>
       <div class="options-list" id="qn-opts">
         ${(q.options || []).map((opt, oIdx) => {
-          const letter = letters[oIdx] || opt.key;
+          const letter = opt.key;
           let cls = '';
           if (hasAnswered) {
             if (opt.key === q.correctAnswer) cls = ' correct';
@@ -8032,7 +8032,7 @@ function createQFQuestionElement(q, idx) {
     <div class="qf-question-text">${q.statement}</div>
     <div class="qf-options" id="qf-opts-${idx}">
       ${(q.options || []).map((opt, oIdx) => {
-        const letter = letters[oIdx] || opt.key;
+        const letter = opt.key;
         let extClass = '';
         if (hasAnswered) {
           if (opt.key === q.correctAnswer) extClass = ' correct';
@@ -8211,7 +8211,7 @@ function renderQFQuestion(idx) {
     <div class="qf-question-text">${q.statement}</div>
     <div class="qf-options" id="qf-opts-${idx}">
       ${(q.options || []).map((opt, oIdx) => {
-        const letter = letters[oIdx] || opt.key;
+        const letter = opt.key;
         let extClass = '';
         if (hasAnswered) {
           if (opt.key === q.correctAnswer) extClass = ' correct';

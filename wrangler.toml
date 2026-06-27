@@ -10,6 +10,11 @@ compatibility_date = "2024-01-01"
 # Não coloque a chave aqui! Use wrangler secret ou o painel do Cloudflare
 # Settings > Workers & Pages > studymaster-worker > Settings > Variables
 
+# Cloudflare KV — cache de resultados RAG para reduzir latência e evitar rate limits
+[[kv_namespaces]]
+binding = "RAG_CACHE"
+id = "d6bf7bb52f304aaab32e2387b505c4fe"
+
 # Cloudflare AI — para geração de embeddings (BGE-M3, 1024 dimensões)
 [ai]
 binding = "AI"
