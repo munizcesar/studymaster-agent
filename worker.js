@@ -505,11 +505,14 @@ async function fetchVectorizeContext(env, collection, query, minLength) {
 __name(fetchVectorizeContext, "fetchVectorizeContext");
 
 // ── FALLBACK INTELIGENTE — usa LLM knowledge quando RAG insuficiente ──────────
-async function generateWithoutRAG(area, mode, topic, subject, difficulty, quantity, idioma, filterConfig, env) {
+async function generateWithoutRAG(area, mode, topic, subject, difficulty, quantity, idioma, filterConfig, env, banca) {
   const diffLabel = getDifficultyLabel(difficulty);
   const diffInstruction = getDifficultyInstruction(difficulty);
   const safetyInstruction = getAreaSafetyInstruction(area, mode);
   const lang = !idioma || idioma === "pt-BR" ? "português do Brasil" : idioma;
+  const isCespe = banca && (banca.toLowerCase() === 'cespe' || banca.toLowerCase() === 'cebraspe');
+  const altKeys = isCespe ? ["C", "E"] : ["A", "B", "C", "D", "E"];
+  const altKeysStr = altKeys.join(", ");
 
   const systemPrompt = `Você é um professor especialista em ${area} gerando questões para ${
     mode === "concurso" ? "concurso público" : "uso acadêmico"
@@ -528,13 +531,21 @@ REGRAS ABSOLUTAS (sem RAG disponível):
 
 Responda em ${lang}.`;
 
-  const altKeys = ["A", "B", "C", "D", "E"];
   const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
-  const userPrompt = `Gere ${quantity} questão(ões) de múltipla escolha sobre:
+  const optionsExampleText = isCespe
+    ? `        {"key": "C", "text": "Certo"},
+        {"key": "E", "text": "Errado"}`
+    : `        {"key": "A", "text": "alternativa A"},
+        {"key": "B", "text": "alternativa B"},
+        {"key": "C", "text": "alternativa C"},
+        {"key": "D", "text": "alternativa D"},
+        {"key": "E", "text": "alternativa E"}`;
+  const userPrompt = `Gere ${quantity} questão(ões) ${isCespe ? "no estilo CESPE (Certo/Errado)" : "de múltipla escolha"} sobre:
 Área: ${area}
 ${topic ? `Tópico: ${topic}` : ""}
 ${subject ? `Assunto: ${subject}` : ""}
 Dificuldade: ${diffLabel} — ${diffInstruction}
+${isCespe ? "\nATENÇÃO: Use EXATAMENTE 2 alternativas: C (Certo) e E (Errado). NUNCA use A/B.\n" : ""}
 
 FORMATO JSON obrigatório:
 {
@@ -542,14 +553,10 @@ FORMATO JSON obrigatório:
     {
       "statement": "enunciado completo",
       "options": [
-        {"key": "A", "text": "alternativa A"},
-        {"key": "B", "text": "alternativa B"},
-        {"key": "C", "text": "alternativa C"},
-        {"key": "D", "text": "alternativa D"},
-        {"key": "E", "text": "alternativa E"}
+${optionsExampleText}
       ],
-      "correctAnswer": "A",
-      "explanation": "explicação detalhada da resposta correta e por que as demais estão erradas",
+      "correctAnswer": "C",
+      "explanation": "explicação detalhada da resposta correta e por que a(s) demais estão erradas",
       "optionExplanations": ${optionExplanationsExample},
       "fonte": "Base legal ou conceitual utilizada",
       "difficulty": "${difficulty}",
@@ -568,16 +575,16 @@ FORMATO JSON obrigatório:
   return extractQuestions(parsed);
 }
 __name(generateWithoutRAG, "generateWithoutRAG");
-function validateAgainstHallucination(question, subjectConfig) {
+function validateAgainstHallucination(question, subjectConfig, isCespe) {
   const errors = [];
   if (!question.statement || question.statement.trim().length < 20) {
     errors.push("statement: enunciado ausente ou muito curto");
   }
-  if (!Array.isArray(question.options) || question.options.length < 4) {
-    errors.push("options: deve ter 4-5 alternativas");
+  if (!Array.isArray(question.options) || question.options.length < (isCespe ? 2 : 4)) {
+    errors.push("options: deve ter " + (isCespe ? "2 alternativas (C/E)" : "4-5 alternativas"));
   }
-  if (!question.correctAnswer || !["A", "B", "C", "D", "E"].includes(question.correctAnswer)) {
-    errors.push("correctAnswer: deve ser A-E");
+  if (!question.correctAnswer || !(isCespe ? ["C", "E"] : ["A", "B", "C", "D", "E"]).includes(question.correctAnswer)) {
+    errors.push("correctAnswer: deve ser " + (isCespe ? "C ou E" : "A-E"));
   }
   if (!question.explanation || question.explanation.trim().length < 30) {
     errors.push("explica\xE7\xE3o ausente ou muito curta");
@@ -914,8 +921,8 @@ function generateQualityBadge(ragValidation, traceabilityValidation) {
   };
 }
 __name(generateQualityBadge, "generateQualityBadge");
-function validateQuestionPipeline(question, ragContext, subjectConfig) {
-  const hallucinationCheck = validateAgainstHallucination(question, subjectConfig);
+function validateQuestionPipeline(question, ragContext, subjectConfig, isCespe) {
+  const hallucinationCheck = validateAgainstHallucination(question, subjectConfig, isCespe);
   if (!hallucinationCheck.valid) {
     return {
       valid: false,
@@ -994,7 +1001,7 @@ function buildOptionExplanationsSchema(altKeys) {
 }
 __name(buildOptionExplanationsSchema, "buildOptionExplanationsSchema");
 
-async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prompt, extraContext }, env) {
+async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prompt, extraContext, banca, questionType }, env) {
   // [FIX] Log explícito dos parâmetros recebidos antes de qualquer processamento
   console.log(`[RAG] Recebido filter=${filter} difficulty=${difficulty} quantity=${quantity}`);
   const filterValidation = validateConcursosFilter(filter);
@@ -1023,7 +1030,7 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
     try {
       const fbArea = subjectConfig.label || filter || "Concursos";
       const fbQuestions = await generateWithoutRAG(
-        fbArea, "concurso", null, fbArea, difficulty, quantity, "pt-BR", CONCURSOS_CONFIG, env
+        fbArea, "concurso", null, fbArea, difficulty, quantity, "pt-BR", CONCURSOS_CONFIG, env, banca
       );
       if (fbQuestions && fbQuestions.length > 0) {
         const validFb = validateQuestions(fbQuestions);
@@ -1057,13 +1064,17 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   const antiHallucinationRules = `NUNCA mencione banca, ano de prova, edital, decisão recente ou qualquer informação temporal não presente no contexto.`;
   const sessionLabel = "Concursos";
   const diffLabel = getDifficultyLabel(difficulty);
-  const numAlts = 4;
-  const altKeys = ["A", "B", "C", "D"];
-  const altKeysStr = "A, B, C, D";
+  const isCespe = banca && (banca.toLowerCase() === 'cespe' || banca.toLowerCase() === 'cebraspe');
+  const numAlts = isCespe ? 2 : 4;
+  const altKeys = isCespe ? ["C", "E"] : ["A", "B", "C", "D"];
+  const altKeysStr = altKeys.join(", ");
   const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
   const systemText = `Você é um examinador acadêmico especializado em concursos públicos. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}\n\n🔴 INSTRUÇÃO CRÍTICA - LEIA COM ATENÇÃO:\nTODAS as questões DEVEM ser EXCLUSIVAMENTE sobre: ${subjectConfig.label}\nNÃO gere questões de outra disciplina, matéria ou assunto.\nCada enunciado deve estar claramente alinhado APENAS com ${subjectConfig.label}.`;
-  const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
-  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.\nContexto específico solicitado: ${queryContext || "Nenhum específico."}\n\n${contextBlock}\n\nTema: ${subjectConfig.label}\nConceitos base: ${subjectConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação didática e verificável da resposta correta.",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeysStr}\n2. Questões corretas, sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) explicando por que cada alternativa está correta ou incorreta\n7. ${antiHallucinationRules}\n8. NENHUM texto fora do JSON`;
+  const exampleOptions = isCespe
+    ? `        { "key": "C", "text": "Certo" },\n        { "key": "E", "text": "Errado" }`
+    : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
+  const cespeInstruction = isCespe ? "\nPara questoes estilo CESPE/Cebraspe: use EXATAMENTE C (Certo) e E (Errado) como chaves - nunca A/B.\nNUNCA use numeracao ou texto extra nas alternativas - apenas C ou E (sem aspas).\n" : "";
+  const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${subjectConfig.label} no nível ${diffLabel}.\nContexto específico solicitado: ${queryContext || "Nenhum específico."}\n\n${contextBlock}\n\nTema: ${subjectConfig.label}\nConceitos base: ${subjectConfig.conceptualBases}${cespeInstruction}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "C",\n      "explanation": "Explicação didática e verificável da resposta correta.",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "Base legal ou conceitual"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeysStr}\n2. Questões corretas, sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) explicando por que cada alternativa está correta ou incorreta\n7. ${antiHallucinationRules}\n8. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
@@ -1103,7 +1114,7 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   const validQuestions = [];
   const qualityMetrics = [];
   for (const question of questions) {
-    const pipelineValidation = validateQuestionPipeline(question, ragResult, subjectConfig);
+    const pipelineValidation = validateQuestionPipeline(question, ragResult, subjectConfig, isCespe);
     if (pipelineValidation.valid) {
       validQuestions.push({
         ...pipelineValidation.question,
@@ -1184,7 +1195,7 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
     try {
       const fbArea = areaConfig.label || area || "Acadêmico";
       const fbQuestions = await generateWithoutRAG(
-        fbArea, "academic", topic || null, subject || fbArea, difficulty, quantity, "pt-BR", ACADEMIC_CONFIG, env
+        fbArea, "academic", topic || null, subject || fbArea, difficulty, quantity, "pt-BR", ACADEMIC_CONFIG, env, null
       );
       if (fbQuestions && fbQuestions.length > 0) {
         const validFb = validateQuestions(fbQuestions);
@@ -1264,7 +1275,7 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
   const validQuestions = [];
   const qualityMetrics = [];
   for (const question of questions) {
-    const pipelineValidation = validateQuestionPipeline(question, ragResult, areaConfig);
+    const pipelineValidation = validateQuestionPipeline(question, ragResult, areaConfig, false);
     if (pipelineValidation.valid) {
       validQuestions.push({
         ...pipelineValidation.question,
@@ -1770,7 +1781,9 @@ var worker_default = {
             difficulty,
             quantity: Math.min(Math.max(Number(quantity) || 1, 1), 10),
             prompt,
-            extraContext
+            extraContext,
+            banca: body.banca || banca,
+            questionType: body.questionType || questionType
           },
           env
         );
@@ -2016,10 +2029,17 @@ Responda APENAS com JSON: {"titulo": "...", "pontosPrincipais": [], "detalhes": 
       const additionalInfo = [prompt, extraContext, freeText, editalText, youtubeUrl].filter(Boolean).join("\n").trim();
       const bancaInstruction = mode === "concurso" ? " Priorize estilo claro, objetivo e atemporal. Nunca cite banca/ano sem fonte no contexto." : "";
       const sessionInstruction = quantitySafe > 1 ? " Gere questões equilibradas e variadas." : "";
-      const altKeysList = normalizedType === "vf" ? ["A", "B"] : ["A", "B", "C", "D"];
+      const bancaRaw = body.banca || '';
+      const isCespeBanca = bancaRaw.toLowerCase() === 'cespe' || bancaRaw.toLowerCase() === 'cebraspe';
+      const vfMode = normalizedType === "vf" || isCespeBanca;
+      const altKeysList = vfMode ? (isCespeBanca ? ["C", "E"] : ["A", "B"]) : ["A", "B", "C", "D"];
       const altKeysStr = altKeysList.join(", ");
       const numAlts = altKeysList.length;
-      const altInstruction = questionType === "vf" ? "Para questões V/F, use apenas 2 opções: A (Verdadeiro) e B (Falso)." : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeysStr}.`;
+      const altInstruction = vfMode
+        ? (isCespeBanca
+            ? "Para questoes estilo CESPE/Cebraspe: use EXATAMENTE 2 opcoes: C (Certo) e E (Errado)."
+            : "Para questoes V/F, use apenas 2 opcoes: A (Verdadeiro) e B (Falso).")
+        : `Gere exatamente ${numAlts} alternativas por questão usando as chaves ${altKeysStr}.`;
       const rawExternalBlock = additionalInfo ? `Informações adicionais do usuário (use apenas se compatíveis com o contexto):\n${additionalInfo}` : "";
       const diffLabel = getDifficultyLabel(difficulty);
       const diffInstruction = getDifficultyInstruction(difficulty);
