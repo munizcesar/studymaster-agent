@@ -1322,6 +1322,7 @@ async function handleGetRequest(request, env) {
   return new Response("Not found", { status: 404, headers: corsHeaders });
 }
 __name(handleGetRequest, "handleGetRequest");
+
 function normalizeQuestionType(questionType) {
   if (questionType === "vf" || questionType === "verdadeiro_falso") return "vf";
   return "mcq";
@@ -1707,7 +1708,6 @@ var worker_default = {
         extraContext,
         freeText,
         editalText,
-        youtubeUrl,
         questionType = "mcq",
         idioma = "pt-BR"
       } = body || {};
@@ -1988,7 +1988,38 @@ Responda APENAS com JSON: {"titulo": "...", "pontosPrincipais": [], "detalhes": 
         }
       }
 
-      if (mode === "academic") {
+      
+if (mode === "youtube-transcript") {
+        const { youtubeUrl } = body;
+        if (!youtubeUrl || !youtubeUrl.trim()) {
+          return new Response(JSON.stringify({ success: false, error: "URL do YouTube obrigatoria." }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+        // Extract video ID from URL
+        let videoId = null;
+        const patterns = [
+          /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+          /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+          /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
+        ];
+        for (const pat of patterns) {
+          const m = youtubeUrl.match(pat);
+          if (m) { videoId = m[1]; break; }
+        }
+        if (!videoId) {
+          return new Response(JSON.stringify({ success: false, error: "Link do YouTube invalido." }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+        const result = await handleYouTubeTranscript(videoId, env);
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+if (mode === "academic") {
         // [FIX] Removido fallback hardcoded "academic.direito" — area deve vir explícita no body
         if (!area) {
           return new Response(JSON.stringify({
@@ -2026,7 +2057,7 @@ Responda APENAS com JSON: {"titulo": "...", "pontosPrincipais": [], "detalhes": 
       const contextData = await fetchContext(area, mode, topic, subject, idioma, env);
       const contextInfo = contextData?.text || "";
       const sourceInfo = contextData?.source || "Conhecimento acadêmico consolidado";
-      const additionalInfo = [prompt, extraContext, freeText, editalText, youtubeUrl].filter(Boolean).join("\n").trim();
+      const additionalInfo = [prompt, extraContext, freeText, editalText].filter(Boolean).join("\n").trim();
       const bancaInstruction = mode === "concurso" ? " Priorize estilo claro, objetivo e atemporal. Nunca cite banca/ano sem fonte no contexto." : "";
       const sessionInstruction = quantitySafe > 1 ? " Gere questões equilibradas e variadas." : "";
       const bancaRaw = body.banca || '';
