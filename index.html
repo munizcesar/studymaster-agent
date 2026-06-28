@@ -5975,7 +5975,7 @@ function selectMode(mode) {
   setTimeout(() => goToStep(2), 150);
 }
 
-async function goToStep(target) {
+function goToStep(target) {
   if (target < 1 || target > 4) return;
   state.direction = target > state.currentStep ? 'forward' : 'backward';
   
@@ -5990,7 +5990,7 @@ async function goToStep(target) {
   currEl.style.animation = 'none'; nextEl.style.animation = 'none';
   currEl.classList.remove('active', 'step-enter-forward', 'step-enter-backward');
   currEl.classList.add(`step-exit-${state.direction}`);
-  setTimeout(async () => {
+  setTimeout(() => {
     currEl.classList.remove('active', `step-exit-${state.direction}`);
     nextEl.classList.add('active', `step-enter-${state.direction}`);
     state.currentStep = target;
