@@ -4560,6 +4560,124 @@
       opacity: 0.6;
     }
 
+
+
+/* ════════════════════════════════════════════════════════════ */
+/* ── MOBILE FIRST — Layout improvements (added)            ── */
+/* ════════════════════════════════════════════════════════════ */
+
+/* ── Tablets (<768px) ── */
+@media (max-width: 768px) {
+  /* Free workspace: single column */
+  .free-workspace { grid-template-columns: 1fr; }
+  .free-side::before { display: none; }
+
+  /* Mode grid: melhor adaptacao */
+  .mode-grid { gap: var(--space-3); }
+
+  /* Steps bar compacto */
+  .steps-bar { gap: var(--space-1); }
+
+  /* Cards com padding compacto */
+  .wizard-card { padding: var(--space-6); }
+
+  /* Quiz options: touch targets */
+  .qf-option { min-height: 48px; }
+  .qf-option-letter { min-width: 40px; width: 40px; height: 40px; }
+  .qf-resolver-btn { min-height: 48px; }
+  .qf-btn-primary { min-height: 48px; }
+
+  /* Session config */
+  .session-config-grid { grid-template-columns: 1fr; }
+
+  /* Header */
+  .header-inner { flex-wrap: wrap; }
+}
+
+
+/* ── Small phones (<480px) ── */
+@media (max-width: 480px) {
+  /* Wizard card compacto */
+  .wizard-card { padding: var(--space-5); border-radius: var(--radius-lg); }
+  .wizard-card::before { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+
+  /* Steps bar: hide labels, show only numbers */
+  .steps-bar { padding: var(--space-1) var(--space-2); margin-bottom: var(--space-5); }
+  .step-label { display: none; }
+  .step-connector { margin: 0 var(--space-1); }
+
+  /* Mode grid: single column */
+  .mode-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+  .mode-card { padding: var(--space-4); min-height: 160px; }
+  .mode-icon { width: 42px; height: 42px; }
+
+  /* Free workspace: single column */
+  .free-workspace { grid-template-columns: 1fr; }
+  .free-panel-header { padding: var(--space-4); flex-direction: column; gap: var(--space-3); }
+  .free-panel-title { font-size: var(--text-sm); }
+  .free-side::before { display: none; }
+  .free-editor { padding: var(--space-4); min-height: 220px; font-size: var(--text-sm); }
+  .free-meter { flex-direction: column; gap: var(--space-2); padding: var(--space-2) var(--space-4); }
+  .free-action-panel { padding: var(--space-4); }
+  .free-help-panel { padding: var(--space-4); }
+
+  /* Header compact */
+  .site-header { padding: var(--space-2) 0; }
+  .header-inner { gap: var(--space-2); }
+  .logo-icon { width: 32px; height: 32px; }
+  .logo span { font-size: var(--text-sm); }
+  .header-actions { gap: var(--space-1); }
+
+  /* Session config grid: single column */
+  .session-config-grid { grid-template-columns: 1fr; }
+  .session-mode-grid { grid-template-columns: 1fr; }
+  .session-trust { grid-template-columns: 1fr; }
+
+  /* Categorias grid */
+  .categorias-grid { grid-template-columns: 1fr; }
+
+  /* Filters grid */
+  .filters-grid { grid-template-columns: 1fr; }
+
+  /* Quiz bottom bar mais compacto */
+  .qf-bottom-bar { padding: var(--space-1) var(--space-2); }
+  .qf-bb-btn { padding: var(--space-2); font-size: var(--text-xs); }
+  .qf-bb-status { font-size: var(--text-xs); padding: var(--space-1) var(--space-3); }
+
+  /* Coach RedBot mobile */
+  .redbot-sidebar-toggle { width: 44px !important; height: 44px !important; }
+}
+
+/* ── Prevent horizontal overflow on all elements ── */
+img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
+pre, code { word-break: break-word; overflow-x: auto; }
+table { display: block; max-width: 100%; overflow-x: auto; }
+
+/* ── Touch target improvements ── */
+.mode-card, .categoria-btn, .filter-card,
+.s2-discipline-select, .chip,
+.free-youtube-btn, .qf-option, .qf-resolver-btn,
+.redbot-sidebar-toggle, .qf-exit-btn,
+.qf-btn-primary, .qf-btn-ghost,
+.chat-send-btn, .rs-finish-btn,
+.upload-area, .qf-exit-continue-btn, .qf-exit-leave-btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ── Better mobile scrolling ── */
+.free-editor, .chat-messages, .qf-body,
+.redbot-messages, .mentor-messages,
+.rs-history-list, .aivos360-review-list {
+  overscroll-behavior: contain;
+}
+
+/* ── Sidebar overlay fix ── */
+.redbot-sidebar-overlay {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
 </style>
 </head>
 <body>
