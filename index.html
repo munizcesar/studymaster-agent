@@ -3813,12 +3813,19 @@
 .profile-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--color-primary-mid); }
 .profile-card:hover::after { transform: scaleX(1); }
 
-/* ── Footer Enhancement ── */
-.site-footer { position: relative; overflow: hidden; }
-.site-footer::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-mid) 30%, #7C4DFF 60%, var(--color-accent) 100%); opacity: 0.5;
-}
+/* ── Footer ── */
+    .site-footer { padding: var(--space-10) 0; border-top: 1px solid var(--color-divider); font-size: var(--text-sm); color: var(--color-text-muted); position: relative; overflow: hidden; }
+    .site-footer::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-mid) 30%, #7C4DFF 60%, var(--color-accent) 100%); opacity: 0.5;
+    }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); }
+    .footer-brand { display: flex; flex-direction: column; gap: var(--space-1); }
+    .footer-logo { font-family: var(--font-display); font-size: var(--text-base); font-weight: 800; color: var(--color-text); }
+    .footer-tagline { color: var(--color-text-faint); font-size: var(--text-xs); }
+    .footer-meta { display: flex; align-items: center; gap: var(--space-3); color: var(--color-text-faint); font-size: var(--text-xs); }
+    .footer-meta strong { color: var(--color-text-muted); }
+    .footer-divider { color: var(--color-divider); }
 
 /* ── Mode Card Glow Enhancement ── */
 .mode-card.selected {
@@ -5974,6 +5981,478 @@ function selectMode(mode) {
   renderStep2();
   setTimeout(() => goToStep(2), 150);
 }
+
+function renderStep2() {
+  const container = document.getElementById('step-2');
+  container.innerHTML = '';
+  if (state.mode === 'academic') renderStep2Academic(container);
+  else if (state.mode === 'concurso') renderStep2Concurso(container);
+  else if (state.mode === 'redacao') renderStep2Redacao(container);
+  else renderStep2Livre(container);
+}
+
+function renderStep2Academic(container) {
+  container.innerHTML = `
+    <h2 class="step-title">Selecione a matéria</h2>
+    <div class="config-group">
+      <label class="config-label">Área</label>
+      <select id="area-sel">
+        <option value="">Selecione...</option>
+        ${Object.keys(academicData).map(a => `<option value="${a}" ${state.area===a?'selected':''}>${a}</option>`).join('')}
+      </select>
+    </div>
+    <div class="config-group">
+      <label class="config-label">Matéria</label>
+      <select id="subj-sel" ${!state.area?'disabled style="opacity:0.5"':''}>
+        <option value="">Selecione a área primeiro...</option>
+      </select>
+    </div>
+    <div class="config-group">
+      <label class="config-label">Tópico (Opcional)</label>
+      <select id="topic-sel" ${!state.subject?'disabled style="opacity:0.5"':''}>
+        <option value="">Matéria completa</option>
+      </select>
+    </div>`;
+  const selArea = document.getElementById('area-sel');
+  const selSubj = document.getElementById('subj-sel');
+  const selTopic = document.getElementById('topic-sel');
+  if (state.area) populateSubj(selSubj, state.area);
+  if (state.subject) populateTopic(selTopic, state.area, state.subject);
+  selArea.addEventListener('change', e => {
+    state.area = e.target.value; state.subject = null; state.topic = null;
+    selSubj.disabled = !state.area; selSubj.style.opacity = state.area ? '1' : '0.5';
+    selTopic.disabled = true; selTopic.style.opacity = '0.5';
+    populateSubj(selSubj, state.area); updateNavButtons();
+    if (state.area) scrollChoiceIntoView(selSubj.closest('.config-group'));
+  });
+  selSubj.addEventListener('change', e => {
+    state.subject = e.target.value; state.topic = null;
+    selTopic.disabled = !state.subject; selTopic.style.opacity = state.subject ? '1' : '0.5';
+    populateTopic(selTopic, state.area, state.subject); updateNavButtons();
+    scrollChoiceIntoView(state.subject ? selTopic.closest('.config-group') : document.getElementById('next-btn'));
+  });
+  selTopic.addEventListener('change', e => {
+    state.topic = e.target.value;
+    scrollChoiceIntoView(document.getElementById('next-btn'));
+  });
+}
+
+function populateSubj(el, area) {
+  if (!area) { el.innerHTML = '<option value="">Selecione a área primeiro...</option>'; return; }
+  el.innerHTML = '<option value="">Selecione a matéria...</option>' + Object.keys(academicData[area]).map(s => `<option value="${s}" ${state.subject===s?'selected':''}>${s}</option>`).join('');
+}
+function populateTopic(el, area, subj) {
+  if (!subj) { el.innerHTML = '<option value="">Matéria completa</option>'; return; }
+  el.innerHTML = '<option value="">Matéria completa</option>' + academicData[area][subj].map(t => `<option value="${t}" ${state.topic===t?'selected':''}>${t}</option>`).join('');
+}
+
+function buildConcursosFilterPayload() {
+  const f = state.concursosFiltersState;
+  if (!f.discipline) return null;
+  
+  // Garante que o valor não contenha prefixos residuais de estados antigos salvos
+  const cleanDiscipline = f.discipline.replace(/^concursos\./, '');
+  
+  return {
+    content: {
+      discipline: cleanDiscipline,
+      topic: f.topic || null,
+      keyword: f.keyword || '',
+    },
+    exam: {
+      examBoard: f.examBoard || null,
+      agency: f.agency || null,
+      position: f.position || null,
+      educationLevel: f.educationLevel || null,
+    },
+    examMetadata: {
+      yearFrom: f.yearFrom ? parseInt(f.yearFrom) : null,
+      yearTo: f.yearTo ? parseInt(f.yearTo) : null,
+    },
+    history: { statusFilter: 'all' },
+  };
+}
+
+function buildConcursosWorkerFilter() {
+  const discipline = state.concursosFiltersState?.discipline;
+  if (!discipline) return null;
+  return `concursos.${discipline.replace(/^concursos\./, '')}`;
+}
+
+function renderConcursosActiveTags() {
+  const el = document.getElementById('caf-active-tags');
+  if (!el) return;
+  const f = state.concursosFiltersState;
+  const labels = [
+    // f.discipline = sufixo (ex: 'direito_constitucional')
+    // concursosFilters usa chave completa (ex: 'concursos.direito_constitucional')
+    f.discipline && (concursosFilters[`concursos.${f.discipline}`]?.label),
+    f.topic && `Tópico: ${f.topic}`,
+    f.examBoard && `Banca: ${f.examBoard}`,
+    f.agency && `Órgão: ${f.agency}`,
+    f.position && `Cargo: ${f.position}`,
+    f.educationLevel && `Nível: ${f.educationLevel}`,
+    (f.yearFrom || f.yearTo) && `Ano: ${f.yearFrom||'...'} – ${f.yearTo||'...'}`,
+  ].filter(Boolean);
+  el.innerHTML = labels.map(l => `<span class="caf-active-badge">${l}</span>`).join('');
+}
+
+function renderStep2Concurso(container) {
+  const f = state.concursosFiltersState;
+
+  // value = sufixo da disciplina (ex: 'direito_constitucional')
+  // o worker monta filterKey = `concursos.${discipline}` — sem prefixo duplo!
+  const disciplineOptions = Object.entries(concursosFilters)
+    .map(([key, v]) => {
+      const suffix = key.replace('concursos.', ''); // 'direito_constitucional'
+      return `<option value="${suffix}" ${f.discipline===suffix?'selected':''}>${v.label}</option>`;
+    })
+    .join('');
+
+  const topicsForDiscipline = f.discipline ? (concursoTopicMap[f.discipline] || []) : [];
+  const topicOptions = topicsForDiscipline
+    .map(t => `<option value="${t}" ${f.topic===t?'selected':''}>${t}</option>`)
+    .join('');
+
+  const bancas = ['CEBRASPE/CESPE','FCC','VUNESP','FGV','CESGRANRIO','IDECAN','IBFC','AOCP','FEPESE','QUADRIX'];
+  const bancaOptions = bancas.map(b => `<option value="${b}" ${f.examBoard===b?'selected':''}>${b}</option>`).join('');
+
+  const agencias = ['Receita Federal','INSS','TCU','TCE','AGU','Banco do Brasil','Caixa Econômica','BNDES','Banco Central','Correios','Petrobras','ANATEL','ANVISA','CGU','PF','PRF','DEPEN','TJ','TRF','TST','MPU','Prefeitura','Instituto Federal','Outro'];
+  const agencyOptions = agencias.map(a => `<option value="${a}" ${f.agency===a?'selected':''}>${a}</option>`).join('');
+
+  const niveis = [
+    {v:'fundamental', l:'Ensino Fundamental'},
+    {v:'médio', l:'Ensino Médio'},
+    {v:'técnico', l:'Ensino Técnico'},
+    {v:'superior', l:'Ensino Superior'},
+  ];
+  const nivelOptions = niveis.map(n => `<option value="${n.v}" ${f.educationLevel===n.v?'selected':''}>${n.l}</option>`).join('');
+
+  container.innerHTML = `
+    <h2 class="step-title">Configure sua busca</h2>
+    <p class="step-subtitle">Filtre por disciplina, banca, órgão e cargo — como no QConcursos</p>
+
+    <div class="caf-section">
+      <div class="caf-section-title">
+        <i data-lucide="book-open" width="14" height="14"></i> Conteúdo
+      </div>
+      <div class="caf-grid">
+        <div class="caf-field" style="grid-column:1/-1">
+          <label class="caf-label">Disciplina *</label>
+          <select id="caf-discipline" class="caf-select">
+            <option value="">Selecione a disciplina...</option>
+            ${disciplineOptions}
+          </select>
+        </div>
+        <div class="caf-field">
+          <label class="caf-label">Tópico</label>
+          <select id="caf-topic" class="caf-select" ${!f.discipline ? 'disabled' : ''}>
+            <option value="">Disciplina completa</option>
+            ${topicOptions}
+          </select>
+        </div>
+        <div class="caf-field">
+          <label class="caf-label">Palavra-chave</label>
+          <input type="text" id="caf-keyword" class="caf-input" placeholder="Ex: improbidade, pontuação..." value="${f.keyword || ''}">
+        </div>
+      </div>
+    </div>
+
+    <div class="caf-section">
+      <div class="caf-section-title">
+        <i data-lucide="landmark" width="14" height="14"></i> Concurso (opcional)
+      </div>
+      <div class="caf-grid">
+        <div class="caf-field">
+          <label class="caf-label">Banca Examinadora</label>
+          <select id="caf-banca" class="caf-select">
+            <option value="">Qualquer banca</option>
+            ${bancaOptions}
+          </select>
+        </div>
+        <div class="caf-field">
+          <label class="caf-label">Órgão / Instituição</label>
+          <select id="caf-agency" class="caf-select">
+            <option value="">Qualquer órgão</option>
+            ${agencyOptions}
+          </select>
+        </div>
+        <div class="caf-field">
+          <label class="caf-label">Cargo</label>
+          <input type="text" id="caf-position" class="caf-input" placeholder="Ex: Analista Judiciário..." value="${f.position || ''}">
+        </div>
+        <div class="caf-field">
+          <label class="caf-label">Nível de Escolaridade</label>
+          <select id="caf-nivel" class="caf-select">
+            <option value="">Qualquer nível</option>
+            ${nivelOptions}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="caf-section">
+      <div class="caf-section-title">
+        <i data-lucide="calendar" width="14" height="14"></i> Período da Prova (opcional)
+      </div>
+      <div class="caf-grid">
+        <div class="caf-field">
+          <label class="caf-label">Ano — De</label>
+          <input type="number" id="caf-year-from" class="caf-input" placeholder="Ex: 2020" min="2000" max="2026" value="${f.yearFrom || ''}">
+        </div>
+        <div class="caf-field">
+          <label class="caf-label">Ano — Até</label>
+          <input type="number" id="caf-year-to" class="caf-input" placeholder="Ex: 2024" min="2000" max="2026" value="${f.yearTo || ''}">
+        </div>
+      </div>
+    </div>
+
+    <div class="caf-active-tags" id="caf-active-tags"></div>
+  `;
+
+  lucide.createIcons();
+  renderConcursosActiveTags();
+
+  const f2 = state.concursosFiltersState;
+  const save = () => {
+    state.filter = buildConcursosFilterPayload();
+    renderConcursosActiveTags();
+    updateNavButtons();
+  };
+
+  const selDisc = document.getElementById('caf-discipline');
+  const selTopic = document.getElementById('caf-topic');
+
+  selDisc.addEventListener('change', e => {
+    f2.discipline = e.target.value || null;
+    f2.topic = null;
+    const topics = f2.discipline ? (concursoTopicMap[f2.discipline] || []) : [];
+    selTopic.innerHTML = '<option value="">Disciplina completa</option>' +
+      topics.map(t => `<option value="${t}">${t}</option>`).join('');
+    selTopic.disabled = !f2.discipline;
+    save();
+    scrollChoiceIntoView(f2.discipline ? selTopic.closest('.caf-field') : document.getElementById('next-btn'));
+  });
+
+  selTopic.addEventListener('change', e => {
+    f2.topic = e.target.value || null;
+    save();
+    scrollChoiceIntoView(document.getElementById('next-btn'));
+  });
+  document.getElementById('caf-keyword').addEventListener('input', e => { f2.keyword = e.target.value; save(); });
+  document.getElementById('caf-banca').addEventListener('change', e => {
+    f2.examBoard = e.target.value || null;
+    save();
+    scrollChoiceIntoView(document.getElementById('next-btn'));
+  });
+  document.getElementById('caf-agency').addEventListener('change', e => {
+    f2.agency = e.target.value || null;
+    save();
+    scrollChoiceIntoView(document.getElementById('next-btn'));
+  });
+  document.getElementById('caf-position').addEventListener('input', e => { f2.position = e.target.value || null; save(); });
+  document.getElementById('caf-nivel').addEventListener('change', e => { f2.educationLevel = e.target.value || null; save(); });
+  document.getElementById('caf-year-from').addEventListener('change', e => { f2.yearFrom = e.target.value || null; save(); });
+  document.getElementById('caf-year-to').addEventListener('change', e => { f2.yearTo = e.target.value || null; save(); });
+}
+
+function renderStep2Redacao(container) {
+  container.innerHTML = `
+    <h2 class="step-title">Configurar Sessão de Redação</h2>
+    <p class="step-subtitle">Escolha a banca para ajustar o nível de exigência da sua correção e do coach interativo.</p>
+    <div class="config-group">
+      <label class="config-label">Banca Examinadora</label>
+      <select id="banca-redacao-sel">
+        <option value="ENEM" ${state.redacaoState.banca==='ENEM'?'selected':''}>ENEM</option>
+        <option value="FCC" ${state.redacaoState.banca==='FCC'?'selected':''}>FCC</option>
+        <option value="Vunesp" ${state.redacaoState.banca==='Vunesp'?'selected':''}>Vunesp</option>
+        <option value="Cebraspe" ${state.redacaoState.banca==='Cebraspe'?'selected':''}>Cebraspe</option>
+      </select>
+    </div>
+    <div class="free-action-panel" style="margin-top: 1rem;">
+      <h3 class="free-action-title"><i data-lucide="brain" width="20" height="20"></i> Coach Interativo Inteligente</h3>
+      <p style="font-size: var(--text-sm); color: var(--color-text); line-height: 1.6;">
+        Ao avançar, você entrará em um <strong>chat contínuo</strong>. Se você digitar apenas o tema, o Coach guiará você etapa por etapa. Se colar uma redação completa, o Coach fará a correção de imediato (C1 a C5).
+      </p>
+    </div>
+  `;
+  lucide.createIcons();
+  
+  const sel = document.getElementById('banca-redacao-sel');
+  sel.addEventListener('change', e => {
+    state.redacaoState.banca = e.target.value;
+    updateNavButtons();
+  });
+}
+
+function renderStep2Livre(container) {
+  container.innerHTML = `
+    <h2 class="step-title">Transforme qualquer material em treino</h2>
+    <p class="step-subtitle">Cole quanto quiser ou envie um arquivo. O sistema aceita materiais longos e usa esse conteúdo como base para montar as questões.</p>
+    <div class="free-workspace">
+      <div class="free-panel">
+        <div class="free-panel-header">
+          <div>
+            <span class="free-panel-kicker"><i data-lucide="file-text" width="13" height="13"></i> Base do estudo</span>
+            <strong class="free-panel-title">Texto que a IA vai usar como referência</strong>
+            <p class="free-panel-note">Um trecho curto já libera a próxima etapa, e materiais extensos também são aceitos.</p>
+          </div>
+          <span class="free-quality" id="free-quality"><i data-lucide="circle-alert" width="14" height="14"></i> Aguardando material</span>
+        </div>
+        <textarea id="free-txt" class="free-editor" placeholder="Cole aqui edital, resumo, anotações, apostila, questões comentadas ou transcrição de aula/vídeo.">${state.freeText}</textarea>
+        <div class="free-meter">
+          <span id="free-counter"><strong>${state.freeText.length}</strong> caracteres</span>
+          <span id="free-depth">Base inicial</span>
+        </div>
+      </div>
+      <aside class="free-side" aria-label="Ações e orientações do material livre">
+        <div class="free-action-panel">
+          <div class="free-action-title">
+            <i data-lucide="upload-cloud" width="18" height="18"></i>
+            Enviar material
+          </div>
+          <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
+          <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
+            <div class="free-upload-copy">
+              <i data-lucide="folder-up" width="24" height="24"></i>
+              <strong>Clique ou arraste o arquivo</strong>
+              <p style="color:var(--color-text-muted)">PDF, DOCX, TXT, MD, JPG, PNG ou WEBP</p>
+            </div>
+          </div>
+        </div>
+        <div class="free-help-panel">
+          <strong><i data-lucide="sparkles" width="16" height="16"></i> Para melhores questões</strong>
+          <ul>
+            <li>Use trechos com conceitos, exemplos, regras ou tópicos cobrados.</li>
+            <li>PDFs escaneados e imagens passam por OCR antes de virar texto.</li>
+            <li>Materiais maiores ajudam a gerar perguntas mais contextualizadas.</li>
+          </ul>
+        </div>
+
+      </aside>
+    </div>
+    <div class="upload-progress" id="upload-progress">
+      <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
+      <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
+    </div>
+    <p class="upload-error" id="upload-error" aria-live="polite"></p>`;
+
+  const freeTextArea = document.getElementById('free-txt');
+  const freeCounter = document.getElementById('free-counter');
+  const freeDepth = document.getElementById('free-depth');
+  const freeQuality = document.getElementById('free-quality');
+  const fileInput = document.getElementById('free-file-input');
+  const uploadArea = document.getElementById('free-upload-area');
+
+  const updateCounter = () => {
+    const length = state.freeText.length;
+    const words = state.freeText.trim() ? state.freeText.trim().split(/\s+/).length : 0;
+    freeCounter.innerHTML = `<strong>${length.toLocaleString('pt-BR')}</strong> caracteres · <strong>${words.toLocaleString('pt-BR')}</strong> palavras`;
+
+    freeQuality.classList.remove('ready', 'warning');
+    if (length >= 4000) {
+      freeQuality.classList.add('ready');
+      freeQuality.innerHTML = '<i data-lucide="check-circle-2" width="14" height="14"></i> Material extenso';
+      freeDepth.textContent = 'Ótimo para perguntas contextualizadas';
+    } else if (length >= 400) {
+      freeQuality.classList.add('ready');
+      freeQuality.innerHTML = '<i data-lucide="badge-check" width="14" height="14"></i> Boa base';
+      freeDepth.textContent = 'Bom volume para gerar questões focadas';
+    } else if (length > 0) {
+      freeQuality.classList.add('warning');
+      freeQuality.innerHTML = '<i data-lucide="arrow-right-circle" width="14" height="14"></i> Pronto para seguir';
+      freeDepth.textContent = 'Texto curto: ideal para perguntas objetivas';
+    } else {
+      freeQuality.innerHTML = '<i data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
+      freeDepth.textContent = 'Base inicial';
+    }
+    lucide.createIcons();
+  };
+
+  freeTextArea.addEventListener('input', e => {
+    state.freeText = e.target.value;
+    updateCounter();
+    updateNavButtons();
+  });
+
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.classList.add('dragging');
+  });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragging'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragging');
+    const droppedFile = e.dataTransfer?.files?.[0];
+    if (droppedFile) handleFreeFileUpload(droppedFile);
+  });
+  fileInput.addEventListener('change', e => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) handleFreeFileUpload(selectedFile);
+    fileInput.value = '';
+  });
+
+  async function handleFreeFileUpload(file) {
+    const progressRoot = document.getElementById('upload-progress');
+    const progressText = document.getElementById('upload-progress-text');
+    const progressFill = document.getElementById('upload-progress-fill');
+    const errorEl = document.getElementById('upload-error');
+    const formatChars = value => value.toLocaleString('pt-BR');
+
+    const setProgress = (visible, label, percent = 0, showSpinner = false) => {
+      progressRoot.classList.toggle('visible', visible);
+      progressText.innerHTML = `${showSpinner ? '<span class="upload-spinner"></span>' : ''}${label}`;
+      progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    };
+    const showToast = message => {
+      const currentToast = document.querySelector('.toast');
+      if (currentToast) currentToast.remove();
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
+    };
+
+    errorEl.textContent = '';
+    setProgress(true, 'Extraindo conteúdo do arquivo…', 10);
+
+    try {
+      const extracted = await extractTextFromFile(file, ({ percent, label, loading }) => {
+        setProgress(true, label || 'Extraindo conteúdo do arquivo…', percent ?? 0, !!loading);
+      });
+
+      if (!extracted || !extracted.trim()) throw new Error('Não foi possível extrair texto deste arquivo.');
+
+      let finalText = extracted.trim();
+      const wasTruncated = finalText.length > MAX_EXTRACTED_CHARS;
+      if (wasTruncated) {
+        finalText = finalText.slice(0, MAX_EXTRACTED_CHARS);
+        showToast(`Texto truncado para ${formatChars(MAX_EXTRACTED_CHARS)} caracteres.`);
+      }
+
+      state.freeText = finalText;
+      freeTextArea.value = finalText;
+      updateCounter();
+      updateNavButtons();
+      showToast(`Texto extraído com sucesso! (${formatChars(finalText.length)} caracteres)`);
+      setProgress(false, '', 0);
+    } catch (error) {
+      setProgress(false, '', 0);
+      errorEl.textContent = error.message || 'Erro ao processar arquivo. Tente novamente.';
+    }
+  }
+  updateCounter();
+  lucide.createIcons();
+}
+
 
 function goToStep(target) {
   if (target < 1 || target > 4) return;
