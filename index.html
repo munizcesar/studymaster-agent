@@ -5824,7 +5824,7 @@ function isMobileViewport() {
 }
 
 function scrollToWizard(delay = 0) {
-  setTimeout(() => {
+  setTimeout(async () => {
     const wizardCard = document.getElementById('wizard-card');
     if (!wizardCard) return;
     const rect = wizardCard.getBoundingClientRect();
@@ -5837,7 +5837,7 @@ function scrollToWizard(delay = 0) {
 
 function scrollChoiceIntoView(target, delay = 90) {
   if (!isMobileViewport()) return;
-  setTimeout(() => {
+  setTimeout(async () => {
     const el = typeof target === 'string' ? document.querySelector(target) : target;
     if (!el) return;
     const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
@@ -5979,7 +5979,7 @@ function selectMode(mode) {
   }
 
   renderStep2();
-  setTimeout(() => goToStep(2), 150);
+  setTimeout(async () => goToStep(2), 150);
 }
 
 function renderStep2() {
@@ -6418,7 +6418,7 @@ function renderStep2Livre(container) {
       toast.className = 'toast';
       toast.textContent = message;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2600);
+      setTimeout(async () => toast.remove(), 2600);
     };
 
     errorEl.textContent = '';
@@ -6454,7 +6454,7 @@ function renderStep2Livre(container) {
 }
 
 
-function goToStep(target) {
+async function goToStep(target) {
   if (target < 1 || target > 4) return;
   state.direction = target > state.currentStep ? 'forward' : 'backward';
   
@@ -6469,7 +6469,7 @@ function goToStep(target) {
   currEl.style.animation = 'none'; nextEl.style.animation = 'none';
   currEl.classList.remove('active', 'step-enter-forward', 'step-enter-backward');
   currEl.classList.add(`step-exit-${state.direction}`);
-  setTimeout(() => {
+  setTimeout(async () => {
     currEl.classList.remove('active', `step-exit-${state.direction}`);
     nextEl.classList.add('active', `step-enter-${state.direction}`);
     state.currentStep = target;
@@ -6546,6 +6546,8 @@ function goToStep(target) {
   } catch (err) {
     showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
   }
+}
+});
 }
 
 function normalizeErrorMessage(raw) {
@@ -7112,10 +7114,10 @@ function attachQFQuestionEventListeners(wrap, idx) {
         
         // Verificar se todas as questões foram respondidas
         if (qfState.answered === qfState.questions.length) {
-          setTimeout(() => renderQFResultInline(), 800);
+          setTimeout(async () => renderQFResultInline(), 800);
         }
         
-        setTimeout(() => {
+        setTimeout(async () => {
           const exp = document.getElementById(`qf-exp-${idx}`);
           if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
@@ -7283,7 +7285,7 @@ function renderQFQuestion(idx) {
       document.getElementById(`qf-exp-${idx}`).classList.add('visible');
       if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
       
-      setTimeout(() => {
+      setTimeout(async () => {
         const exp = document.getElementById(`qf-exp-${idx}`);
         if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }, 100);
@@ -7965,7 +7967,7 @@ window.addEventListener('resize', () => {
   }
   
   clearTimeout(questionsResizeTimer);
-  questionsResizeTimer = setTimeout(() => {
+  questionsResizeTimer = setTimeout(async () => {
     const isDesktop = window.innerWidth >= 1024;
     const currentMode = isDesktop ? 'desktop' : 'mobile';
     
