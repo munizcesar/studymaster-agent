@@ -4592,6 +4592,9 @@
 
   /* Header */
   .header-inner { flex-wrap: wrap; }
+
+  /* Sidebar toggle touch target */
+  .redbot-sidebar-toggle { width: 44px; height: 44px; }
 }
 
 
@@ -4611,11 +4614,9 @@
   .mode-card { padding: var(--space-4); min-height: 160px; }
   .mode-icon { width: 42px; height: 42px; }
 
-  /* Free workspace: single column */
-  .free-workspace { grid-template-columns: 1fr; }
+  /* Free workspace */
   .free-panel-header { padding: var(--space-4); flex-direction: column; gap: var(--space-3); }
   .free-panel-title { font-size: var(--text-sm); }
-  .free-side::before { display: none; }
   .free-editor { padding: var(--space-4); min-height: 220px; font-size: var(--text-sm); }
   .free-meter { flex-direction: column; gap: var(--space-2); padding: var(--space-2) var(--space-4); }
   .free-action-panel { padding: var(--space-4); }
@@ -4645,13 +4646,13 @@
   .qf-bb-status { font-size: var(--text-xs); padding: var(--space-1) var(--space-3); }
 
   /* Coach RedBot mobile */
-  .redbot-sidebar-toggle { width: 44px !important; height: 44px !important; }
+  .redbot-sidebar-toggle { width: 44px; height: 44px; }
 }
 
 /* ── Prevent horizontal overflow on all elements ── */
 img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 pre, code { word-break: break-word; overflow-x: auto; }
-table { display: block; max-width: 100%; overflow-x: auto; }
+.wizard-table, .compare-table, table:not([class]) { display: block; max-width: 100%; overflow-x: auto; }
 
 /* ── Touch target improvements ── */
 .mode-card, .categoria-btn, .filter-card,
