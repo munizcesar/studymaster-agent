@@ -423,11 +423,24 @@ async function generateQuestionWithRAG(params) {
   };
 }
 
-// Exportar módulo
-module.exports = {
-  validateFilterMapping,
-  retrieveVectorizeContext,
-  buildAntiHallucinationPrompt,
-  validateAgainstHallucination,
-  generateQuestionWithRAG
-};
+// Exportar módulo (compatível com browser e Node.js)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    validateFilterMapping,
+    retrieveVectorizeContext,
+    buildAntiHallucinationPrompt,
+    validateAgainstHallucination,
+    generateQuestionWithRAG
+  };
+}
+
+// Expor globalmente para uso no browser
+if (typeof window !== 'undefined') {
+  window.ragHandler = {
+    validateFilterMapping,
+    retrieveVectorizeContext,
+    buildAntiHallucinationPrompt,
+    validateAgainstHallucination,
+    generateQuestionWithRAG
+  };
+}
