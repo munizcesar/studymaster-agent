@@ -1782,7 +1782,7 @@ var worker_default = {
             quantity: Math.min(Math.max(Number(quantity) || 1, 1), 10),
             prompt,
             extraContext,
-            banca: body.banca || banca,
+            banca: body.banca,
             questionType: body.questionType || questionType
           },
           env
