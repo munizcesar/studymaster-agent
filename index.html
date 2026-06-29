@@ -1653,8 +1653,9 @@
     .hidden { display: none !important; }
 
 /* ── Screen state visibility (error, questions, etc.) ── */
-.error-screen { display: none; }
-.error-screen.visible { display: block; }
+.error-state { display: none; }
+.error-state.hidden { display: none; }
+.error-state:not(.hidden) { display: block; }
 
 .questions-container { display: none; }
 .questions-container.visible { display: block; }
@@ -6093,10 +6094,27 @@ pre, code { word-break: break-word; overflow-x: auto; }
         <!-- STEP 4 -->
         <div class="wizard-step" id="step-4" data-step="4">
           <div class="generating-screen" id="generating-screen">
-            <div class="spinner"></div>
-            <p class="generating-label">Gerando suas questões personalizadas…</p>
-            <p class="generating-sub">Isso leva apenas alguns segundos</p>
-            <div style="margin-top: var(--space-6); width: 100%; max-width: 600px;">
+            <div class="spinner" id="generating-spinner"></div>
+            <p class="generating-label" id="generating-label">Gerando suas questões personalizadas…</p>
+            <p class="generating-sub" id="generating-sub">Isso leva apenas alguns segundos</p>
+            
+            <!-- Error State (Integrated) -->
+            <div class="error-state hidden" id="error-state" style="margin-top: var(--space-4); padding: var(--space-4); background: oklch(from var(--color-error) l c h / 0.1); border: 1px solid var(--color-error); border-radius: var(--radius-md);">
+              <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+                <i data-lucide="alert-triangle" width="24" height="24" style="color: var(--color-error);"></i>
+                <div>
+                  <strong style="color: var(--color-error);">Erro ao gerar questões</strong>
+                  <p class="error-msg" id="error-msg" style="margin: 0; font-size: var(--text-sm); color: var(--color-text);">Não foi possível conectar ao servidor.</p>
+                </div>
+              </div>
+              <button type="button" class="btn-primary btn-ripple" id="retry-btn" style="width: 100%; max-width: 200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: var(--space-2);">
+                <i data-lucide="refresh-cw" width="16" height="16"></i>
+                Tentar novamente
+              </button>
+            </div>
+            
+            <!-- Skeleton (Hidden on error) -->
+            <div id="skeleton-preview" style="margin-top: var(--space-6); width: 100%; max-width: 600px;">
               <div class="question-card" style="padding: var(--space-5);">
                 <div class="skeleton skeleton-header"></div>
                 <div class="skeleton skeleton-text"></div>
@@ -6181,23 +6199,6 @@ pre, code { word-break: break-word; overflow-x: auto; }
               </div>
               <button class="rs-finish-btn" id="rs-finish-btn"><i data-lucide="check-circle" width="18" height="18"></i> Finalizar Redação</button>
             </div>
-          </div>
-          <div class="error-screen" id="error-screen" role="alertdialog" aria-modal="false" aria-labelledby="error-title" aria-describedby="error-msg">
-            <div class="error-icon"><i data-lucide="alert-triangle" width="48" height="48" style="color:var(--color-error)"></i></div>
-            <h3 id="error-title" style="margin-bottom:var(--space-2)">Erro ao gerar questões</h3>
-            <p class="error-msg" id="error-msg" role="alert" aria-live="assertive">Não foi possível conectar ao servidor. Tente novamente em instantes.</p>
-            <div class="error-suggestions">
-              <p>O que fazer</p>
-              <ul>
-                <li>Verifique sua conexão de internet.</li>
-                <li>Tente novamente em alguns segundos.</li>
-                <li>Se estiver em modo Livre, confira o material ou o trecho enviado.</li>
-              </ul>
-            </div>
-            <button type="button" class="btn-primary btn-ripple" id="retry-btn" style="max-width:300px;margin:0 auto;">
-              <i data-lucide="refresh-cw" width="16" height="16"></i>
-              Tentar novamente
-            </button>
           </div>
           <div class="questions-container" id="questions-container">
             <div class="summary-chips" id="summary-chips"></div>
@@ -7019,7 +7020,22 @@ function init() {
     if (sessionCompleted) window.dispatchEvent(new CustomEvent('quizCompleted'));
     goToStep(1);
   });
-  document.getElementById('retry-btn').addEventListener('click', () => callWorkerAndRender());
+  document.getElementById('retry-btn').addEventListener('click', () => {
+    // Reset generating screen state
+    const errorState = document.getElementById('error-state');
+    const spinner = document.getElementById('generating-spinner');
+    const skeleton = document.getElementById('skeleton-preview');
+    const label = document.getElementById('generating-label');
+    const sub = document.getElementById('generating-sub');
+    
+    if (errorState) errorState.classList.add('hidden');
+    if (spinner) spinner.style.display = 'block';
+    if (skeleton) skeleton.classList.remove('hidden');
+    if (label) label.textContent = 'Gerando suas questões personalizadas…';
+    if (sub) sub.textContent = 'Isso leva apenas alguns segundos';
+    
+    callWorkerAndRender();
+  });
   document.getElementById('session-new-btn').addEventListener('click', () => {
     const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
     const bancaAtual = state.redacaoState.banca; resetRedacaoSession(); state.redacaoState.banca = bancaAtual;
@@ -7703,11 +7719,29 @@ function normalizeErrorMessage(raw) {
 function showError(msg) {
   const normalized = normalizeErrorMessage(msg);
   console.error('AIVOS error:', msg);
-  document.getElementById('generating-screen').classList.add('hidden');
+  
+  // Show integrated error state
+  const errorState = document.getElementById('error-state');
+  const errorMsg = document.getElementById('error-msg');
+  const spinner = document.getElementById('generating-spinner');
+  const skeleton = document.getElementById('skeleton-preview');
+  const label = document.getElementById('generating-label');
+  const sub = document.getElementById('generating-sub');
+  
+  if (errorState) {
+    errorState.classList.remove('hidden');
+    if (errorMsg) errorMsg.textContent = normalized;
+  }
+  
+  // Hide loading elements
+  if (spinner) spinner.style.display = 'none';
+  if (skeleton) skeleton.classList.add('hidden');
+  if (label) label.textContent = 'Erro ao gerar questões';
+  if (sub) sub.textContent = 'Verifique os detalhes abaixo';
+  
   document.getElementById('questions-container').classList.remove('visible');
   document.getElementById('session-result').classList.add('hidden');
-  document.getElementById('error-msg').textContent = normalized;
-  document.getElementById('error-screen').classList.add('visible');
+  
   const retryBtn = document.getElementById('retry-btn');
   if (retryBtn) retryBtn.focus();
 }
