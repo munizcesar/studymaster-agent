@@ -1684,6 +1684,20 @@
       cursor: not-allowed;
     }
     .hidden { display: none !important; }
+
+/* ── Screen state visibility (error, questions, etc.) ── */
+.error-screen { display: none; }
+.error-screen.visible { display: block; }
+
+.questions-container { display: none; }
+.questions-container.visible { display: block; }
+
+.session-result { display: none; }
+.session-result.visible { display: block; }
+
+.generating-screen { display: block; }
+.generating-screen.hidden { display: none !important; }
+
     .qf-resolver-btn.hidden { display: none; }
     
     /* Desktop (≥1024px): botão responder de cada questão */
@@ -7223,6 +7237,8 @@ async function goToStep(target) {
     state.answered = 0; state.correct = 0;
     state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
     genScreen.classList.add('hidden');
+    // Garantir que a tela de erro seja ocultada ao obter sucesso
+    document.getElementById('error-screen').classList.remove('visible');
     renderQuestions(data.questions);
     // No mobile, entra automaticamente no Modo Foco
     if (window.innerWidth < 768) {
