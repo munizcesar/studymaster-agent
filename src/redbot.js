@@ -180,7 +180,7 @@ class CoachRedbot {
 
     window.addEventListener('aivos360DashboardReady', () => {
       // Só renderizar no modo Redação Coach, nunca no AIVOS 360
-      if (window.state && window.state.mode === 'redacao') {
+      if (typeof state !== 'undefined' && state.mode === 'redacao') {
         this.renderUI();
         this.addDashboardButton();
       }
@@ -190,7 +190,7 @@ class CoachRedbot {
   scheduleRender() {
     // Só executa se estiver no modo Redação Coach
     const shouldRender = () => {
-      return window.state && window.state.mode === 'redacao';
+      return typeof state !== 'undefined' && state.mode === 'redacao';
     };
 
     const tryRenderNow = () => {

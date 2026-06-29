@@ -204,36 +204,21 @@ class ProfAivosMentor {
 
     this.loadSession();
 
-    this.scheduleRender();
-
-    
-
-    window.addEventListener('aivos360DashboardReady', () => {
-
+    this.scheduleRender();    window.addEventListener('aivos360DashboardReady', () => {
       // Só renderizar se estiver no modo AIVOS 360 (não no Redação Coach)
-
-      if (window.state && window.state.mode === 'aivos360') {
-
+      if (typeof state !== 'undefined' && state.mode === 'aivos360') {
         this.renderChatUI();
-
         this.addDashboardButton();
-
       }
-
     });
 
   }
 
 
 
-  scheduleRender() {
-
-    // Função helper para verificar se deve renderizar (só no modo AIVOS 360)
-
+  scheduleRender() {    // Função helper para verificar se deve renderizar (só no modo AIVOS 360)
     const shouldRender = () => {
-
-      return window.state && window.state.mode === 'aivos360';
-
+      return typeof state !== 'undefined' && state.mode === 'aivos360';
     };
 
 
