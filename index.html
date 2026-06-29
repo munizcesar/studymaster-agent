@@ -5276,9 +5276,9 @@ pre, code { word-break: break-word; overflow-x: auto; }
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
 }
-.step-number {
-  width: 48px;
-  height: 48px;
+.step-card .step-number {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--grad-brand);
   color: white;
@@ -5287,8 +5287,9 @@ pre, code { word-break: break-word; overflow-x: auto; }
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   margin: 0 auto var(--space-4);
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3);
 }
 .step-card h4 {
   font-size: var(--text-base);
@@ -5416,6 +5417,53 @@ pre, code { word-break: break-word; overflow-x: auto; }
   color: var(--color-primary);
 }
 
+/* ── Wizard Nav Buttons (Continuar / Voltar) ── */
+.btn-next,
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-7);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s var(--bounce-ease);
+  line-height: 1.2;
+}
+.btn-next {
+  background: var(--grad-brand);
+  color: white;
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3);
+}
+.btn-next:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.4);
+}
+.btn-next:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.btn-back {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-border);
+}
+.btn-back:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+.btn-back.hidden,
+.btn-next.hidden {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .features-grid { grid-template-columns: 1fr; }
@@ -5424,6 +5472,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
   .testimonials-grid { grid-template-columns: 1fr; }
   .hero-cta-group { flex-direction: column; }
   .hero-cta-group .btn { width: 100%; justify-content: center; }
+  .btn-next, .btn-back { padding: var(--space-3) var(--space-5); font-size: 0.95rem; }
 }
 </style>
 </head>
@@ -5557,159 +5606,6 @@ pre, code { word-break: break-word; overflow-x: auto; }
           <span><i data-lucide="database" width="16" height="16"></i> +10 mil questões na base</span>
           <span class="dot-separator"></span>
           <span><i data-lucide="users" width="16" height="16"></i> +5.000 concurseiros ativos</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="features-section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-kicker"><i data-lucide="layers" width="14" height="14"></i> Modos de estudo</div>
-        <h2 class="section-title">Como você quer estudar hoje?</h2>
-        <p class="section-subtitle">Escolha o formato ideal para o seu momento e acelere sua preparação.</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card featured" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'concurso\']').click(); window.location.href='#wizard';">
-          <div class="feature-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
-          <h3>Caderno de Questões</h3>
-          <p>Treine com filtros por banca, cargo, órgão e disciplina. A cada questão, a IA aprende seu nível.</p>
-          <span class="status-badge info"><i data-lucide="zap" width="10" height="10"></i> Mais usado</span>
-          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
-        </div>
-        <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'pdf\']').click(); window.location.href='#wizard';">
-          <div class="feature-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
-          <h3>Estudar com Material Próprio</h3>
-          <p>Cole editais, PDFs ou textos e gere questões personalizadas com base no seu material.</p>
-          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
-        </div>
-        <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'redacao\']').click(); window.location.href='#wizard';">
-          <div class="feature-icon" style="background: oklch(from var(--color-accent) l c h / 0.12); color: var(--color-accent);"><i data-lucide="pen-tool" width="28" height="28"></i></div>
-          <h3>Redação Coach</h3>
-          <p>Correção imediata com os 5 critérios oficiais (C1-C5) e reescrita nota 1000.</p>
-          <span class="status-badge success"><i data-lucide="star" width="10" height="10"></i> Destaque</span>
-          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
-        </div>
-        <div class="feature-card" onclick="window.location.href='#wizard'">
-          <div class="feature-icon"><i data-lucide="compass" width="28" height="28"></i></div>
-          <h3>Plano AIVOS 360</h3>
-          <p>Mentor inteligente que analisa seu desempenho, identifica lacunas e monta o plano ideal.</p>
-          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="why-aivos-section">
-    <div class="container">
-      <div class="section-kicker"><i data-lucide="trending-up" width="14" height="14"></i> Por que escolher a AIVOS</div>
-      <h2 class="section-title">A preparação que todo concurseiro merece</h2>
-      <div class="comparison-grid">
-         <div class="comparison-card">
-           <div class="comp-icon bad"><i data-lucide="x-circle" width="48" height="48"></i></div>
-           <h4>Cursinhos Tradicionais</h4>
-           <ul>
-             <li>Material genérico para todos</li>
-             <li>Correção de redação demora dias</li>
-             <li>Sem inteligência de desempenho</li>
-           </ul>
-         </div>
-         <div class="comparison-card aivos-comp">
-           <div class="comp-icon good"><i data-lucide="check-circle" width="48" height="48"></i></div>
-           <h4>Plataforma AIVOS</h4>
-           <ul>
-             <li>Questões focadas na sua dificuldade</li>
-             <li>Correção de redação em 5 segundos</li>
-             <li>Mentor IA adaptando seu plano 24/7</li>
-           </ul>
-         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="how-it-works-section">
-    <div class="container">
-      <div class="section-kicker"><i data-lucide="map" width="14" height="14"></i> Passo a passo</div>
-      <h2 class="section-title">Comece em 3 passos</h2>
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <h4>Escolha seu concurso</h4>
-          <p>Ou cole seu próprio material/edital.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <h4>Configure a sessão</h4>
-          <p>Defina a dificuldade e a quantidade de questões.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <h4>Estude e evolua</h4>
-          <p>Receba correção imediata e explicações detalhadas da IA.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  
-  <section class="testimonials-section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-kicker"><i data-lucide="message-square-quote" width="14" height="14"></i> Depoimentos</div>
-        <h2 class="section-title">Quem usa, recomenda</h2>
-        <p class="section-subtitle">Veja o que estão dizendo sobre a plataforma AIVOS.</p>
-      </div>
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-          </div>
-          <p class="testimonial-text">As questões são muito bem elaboradas, no mesmo nível das provas do CESPE. A correção de redação em segundos salvou meu tempo.</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">AM</div>
-            <div class="testimonial-info">
-              <strong>Ana Moreira</strong>
-              <span>Aprovada em 3º lugar — TCU</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-          </div>
-          <p class="testimonial-text">O mentor IA é bicho! Ele identifica exatamente onde estou errando e sugere conteúdos pra revisar. Subi de 62% pra 89% em um mês.</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">RL</div>
-            <div class="testimonial-info">
-              <strong>Rafael Lima</strong>
-              <span>Concurseiro — Polícia Federal</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-            <i data-lucide="star" width="16" height="16"></i>
-          </div>
-          <p class="testimonial-text">Eu levava 3 dias pra corrigir uma redação sozinha. Agora em 5 segundos tenho análise detalhada C1-C5 com sugestões de melhoria.</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">CS</div>
-            <div class="testimonial-info">
-              <strong>Carla Souza</strong>
-              <span>Estudante — Direito</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
