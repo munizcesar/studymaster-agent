@@ -2521,6 +2521,18 @@ DADOS DO ALUNO:
 
 
 
+  restoreChatHistory() {
+    if (!this.messagesContainer || !this.conversationHistory.length) return;
+    this.messagesContainer.innerHTML = '';
+    this.conversationHistory.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = `prof-aivos-msg prof-aivos-msg-${msg.role === 'user' ? 'user' : 'coach'}`;
+      div.innerHTML = this.formatMessage(msg.content);
+      this.messagesContainer.appendChild(div);
+    });
+    this.scrollToBottom();
+  }
+
   generateReport() {
 
     let report = '=== 🎓 RELATÓRIO PROF. AIVOS v2 ===\n\n';

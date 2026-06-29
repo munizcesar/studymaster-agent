@@ -1683,6 +1683,7 @@
       box-shadow: none;
       cursor: not-allowed;
     }
+    .hidden { display: none !important; }
     .qf-resolver-btn.hidden { display: none; }
     
     /* Desktop (≥1024px): botão responder de cada questão */
@@ -5935,6 +5936,7 @@ function init() {
   updateDailyGoalUI();
 
   document.getElementById('next-btn').addEventListener('click', () => {
+    if (state.mode === 'aivos360') return;
     let target = state.currentStep + 1;
     if (state.mode === 'redacao' && target === 3) target = 4;
     goToStep(target);
@@ -6477,7 +6479,7 @@ function isStepValid(step) {
 function updateNavButtons() {
   const bBtn = document.getElementById('back-btn');
   const nBtn = document.getElementById('next-btn');
-  if (state.currentStep === 1 || state.currentStep === 4) {
+  if (state.currentStep === 1 || state.currentStep === 4 || state.mode === 'aivos360') {
     bBtn.classList.add('hidden'); nBtn.classList.add('hidden');
   } else {
     bBtn.classList.remove('hidden'); nBtn.classList.remove('hidden');
