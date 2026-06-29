@@ -4957,6 +4957,248 @@ pre, code { word-break: break-word; overflow-x: auto; }
   backdrop-filter: blur(4px);
 }
 
+/* --- NOVO DESIGN DA HOMEPAGE --- */
+.new-hero {
+  padding: 8rem 0 4rem;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+.hero-title-main {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: var(--space-2);
+}
+.hero-highlight {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-description {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+.hero-features {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+  margin-bottom: var(--space-6);
+}
+.hero-features li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+.hero-features i {
+  color: var(--color-success);
+}
+.hero-cta-group {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+.btn-large {
+  padding: var(--space-3) var(--space-6);
+  font-size: 1.125rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+}
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--color-border);
+  color: var(--color-text);
+  padding: var(--space-3) var(--space-6);
+  font-size: 1.125rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.hero-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  color: var(--color-text-faint);
+  font-size: 0.9rem;
+}
+.dot-separator {
+  color: var(--color-border);
+}
+.features-section, .why-aivos-section, .how-it-works-section {
+  padding: 6rem 0;
+  position: relative;
+  z-index: 10;
+}
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 3rem;
+  color: var(--color-text);
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-4);
+}
+.feature-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+.feature-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.feature-card p {
+  color: var(--color-text-muted);
+  flex-grow: 1;
+}
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  padding: 0;
+}
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
+  max-width: 900px;
+  margin: 0 auto;
+}
+.comparison-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.comparison-card.aivos-comp {
+  background: linear-gradient(180deg, var(--color-surface) 0%, rgba(13, 71, 255, 0.05) 100%);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 20px rgba(13, 71, 255, 0.1);
+}
+.comp-icon {
+  margin-bottom: var(--space-4);
+}
+.comp-icon.bad { color: var(--color-error); }
+.comp-icon.good { color: var(--color-success); }
+.comparison-card h4 {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-4);
+}
+.comparison-card ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.comparison-card ul li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+.comparison-card.aivos-comp ul li {
+  color: var(--color-text);
+  font-weight: 500;
+}
+.comparison-card ul li::before {
+  content: "•";
+  color: var(--color-border);
+}
+.comparison-card.aivos-comp ul li::before {
+  color: var(--color-primary);
+}
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-6);
+  text-align: center;
+}
+.step-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.step-number {
+  width: 48px;
+  height: 48px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+}
+.step-card h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.step-card p {
+  color: var(--color-text-muted);
+}
+@media (max-width: 768px) {
+  .hero-title-main { font-size: 2.5rem; }
+  .hero-features { align-items: flex-start; text-align: left; }
+  .features-section, .why-aivos-section, .how-it-works-section { padding: 4rem 0; }
+  .comparison-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -5066,10 +5308,108 @@ pre, code { word-break: break-word; overflow-x: auto; }
         </defs>
       </svg>
     </div>
+    <div class="container hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title-main">AIVOS<br><span class="hero-highlight">Inteligência que aprova</span></h1>
+        <p class="hero-description">A plataforma completa de preparação para concursos com IA:</p>
+        <ul class="hero-features">
+          <li><i data-lucide="check-circle" width="20" height="20"></i> Questões personalizadas em segundos</li>
+          <li><i data-lucide="check-circle" width="20" height="20"></i> Redação com correção completa C1-C5</li>
+          <li><i data-lucide="check-circle" width="20" height="20"></i> Mentor de desempenho e plano inteligente</li>
+        </ul>
+        <div class="hero-cta-group">
+          <a href="#wizard" class="btn btn-primary btn-large">Começar Grátis Agora <i data-lucide="arrow-right" width="20" height="20"></i></a>
+          <button class="btn btn-secondary btn-large" onclick="window.location.href='#wizard'">Ver demonstração</button>
+        </div>
+        <div class="hero-trust">
+          <span><i data-lucide="shield-check" width="16" height="16"></i> 100% gratuito</span>
+          <span class="dot-separator">•</span>
+          <span><i data-lucide="database" width="16" height="16"></i> +10 mil questões</span>
+          <span class="dot-separator">•</span>
+          <span><i data-lucide="users" width="16" height="16"></i> Usado por concurseiros de todo Brasil</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
     <div class="container">
-      <h1 class="hero-title">Sua plataforma completa<br><span>de aprovação em concursos</span></h1>
-      <p class="hero-subtitle">Questões inteligentes, redação com correção completa e mentor pessoal de desempenho em um só lugar.</p>
-      
+      <h2 class="section-title">Como você quer estudar hoje?</h2>
+      <div class="features-grid">
+        <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'concurso\']').click(); window.location.href='#wizard';">
+          <div class="feature-icon"><i data-lucide="book-open" width="32" height="32"></i></div>
+          <h3>Caderno de Questões</h3>
+          <p>Treine com o maior banco de questões do Brasil.</p>
+          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
+        </div>
+        <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'pdf\']').click(); window.location.href='#wizard';">
+          <div class="feature-icon"><i data-lucide="file-text" width="32" height="32"></i></div>
+          <h3>Estudar com seu Material</h3>
+          <p>Gere questões a partir do seu PDF ou Edital.</p>
+          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
+        </div>
+        <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'redacao\']').click(); window.location.href='#wizard';">
+          <div class="feature-icon" style="background: var(--color-accent); color: white;"><i data-lucide="pen-tool" width="32" height="32"></i></div>
+          <h3>Redação Coach</h3>
+          <p>Correção imediata com critérios oficiais C1-C5.</p>
+          <button class="btn-text" style="color: var(--color-accent)">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
+        </div>
+        <div class="feature-card" onclick="window.location.href='#wizard'">
+          <div class="feature-icon"><i data-lucide="target" width="32" height="32"></i></div>
+          <h3>Plano AIVOS 360</h3>
+          <p>Seu mentor particular para guiar sua aprovação.</p>
+          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-aivos-section">
+    <div class="container">
+      <h2 class="section-title">Por que AIVOS?</h2>
+      <div class="comparison-grid">
+         <div class="comparison-card">
+           <div class="comp-icon bad"><i data-lucide="x-circle" width="48" height="48"></i></div>
+           <h4>Cursinhos Tradicionais</h4>
+           <ul>
+             <li>Material genérico para todos</li>
+             <li>Correção de redação demora dias</li>
+             <li>Sem inteligência de desempenho</li>
+           </ul>
+         </div>
+         <div class="comparison-card aivos-comp">
+           <div class="comp-icon good"><i data-lucide="check-circle" width="48" height="48"></i></div>
+           <h4>Plataforma AIVOS</h4>
+           <ul>
+             <li>Questões focadas na sua dificuldade</li>
+             <li>Correção de redação em 5 segundos</li>
+             <li>Mentor IA adaptando seu plano 24/7</li>
+           </ul>
+         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works-section">
+    <div class="container">
+      <h2 class="section-title">Como funciona</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h4>Escolha seu concurso</h4>
+          <p>Ou cole seu próprio material/edital.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h4>Configure a sessão</h4>
+          <p>Defina a dificuldade e a quantidade de questões.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h4>Estude e evolua</h4>
+          <p>Receba correção imediata e explicações detalhadas da IA.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -6854,12 +7194,28 @@ async function goToStep(target) {
     sessionMode: state.sessionMode,
   };
 
+  const loadingMessages = ["Analisando material e parâmetros...", "Buscando referências na base...", "Criando questões inéditas de alto nível...", "Preparando sua sessão de estudos..."];
+  let msgIdx = 0;
+  const genLabel = genScreen.querySelector('.generating-label');
+  if (genLabel) genLabel.textContent = loadingMessages[msgIdx];
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMessages.length;
+    if (genLabel) genLabel.textContent = loadingMessages[msgIdx];
+  }, 4500);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
   try {
     const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
+    clearInterval(msgInterval);
+    
     const data = await res.json();
     if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
     if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
@@ -6873,7 +7229,13 @@ async function goToStep(target) {
       setTimeout(openFullscreen, 200);
     }
   } catch (err) {
-    showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
+    clearTimeout(timeoutId);
+    clearInterval(msgInterval);
+    if (err.name === 'AbortError') {
+      showError('Tempo esgotado (timeout). O servidor demorou muito para responder. Tente reduzir a quantidade e tente novamente.');
+    } else {
+      showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
+    }
   }
 }
 });
