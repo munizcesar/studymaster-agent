@@ -325,8 +325,12 @@
     .hero.compact .hero-bg-svg {
       opacity: 0.3;
     }
-    .hero.compact .hero-title,
-    .hero.compact .hero-subtitle {
+    .hero.compact .hero-badge,
+    .hero.compact .hero-title-main,
+    .hero.compact .hero-description,
+    .hero.compact .hero-features,
+    .hero.compact .hero-cta-group,
+    .hero.compact .hero-trust {
       display: none;
     }
     .hero::before {
@@ -407,26 +411,6 @@
     .hero-bg-svg svg .particle.p12 { --p-opacity: 0.10; animation-delay: 0.1s; }
     .hero-bg-svg svg .particle.p13 { --p-opacity: 0.08; animation-delay: 1.0s; }
     .hero-bg-svg svg .particle.p14 { --p-opacity: 0.11; animation-delay: 2.2s; }
-    .hero-bg-svg svg .orbital-ring-1 { animation: orbitalFloat1 10s ease-in-out infinite; transform-origin: center; }
-    .hero-bg-svg svg .orbital-ring-2 { animation: orbitalFloat2 12s ease-in-out infinite; transform-origin: center; }
-    .hero-bg-svg svg .orbital-ring-3 { animation: orbitalFloat3 8s ease-in-out infinite; transform-origin: center; }
-    .hero-bg-svg svg .particle { animation: particleFloat 5s ease-in-out infinite; }
-    .hero-bg-svg svg .arc-line-1 { animation: arcDrift 8s ease-in-out infinite; }
-    .hero-bg-svg svg .arc-line-2 { animation: arcDrift 10s ease-in-out infinite reverse; }
-    .hero-bg-svg svg .particle.p1 { --p-opacity: 0.15; animation-delay: 0s; }
-    .hero-bg-svg svg .particle.p2 { --p-opacity: 0.12; animation-delay: 0.8s; }
-    .hero-bg-svg svg .particle.p3 { --p-opacity: 0.10; animation-delay: 1.6s; }
-    .hero-bg-svg svg .particle.p4 { --p-opacity: 0.13; animation-delay: 0.4s; }
-    .hero-bg-svg svg .particle.p5 { --p-opacity: 0.11; animation-delay: 2.0s; }
-    .hero-bg-svg svg .particle.p6 { --p-opacity: 0.09; animation-delay: 1.2s; }
-    .hero-bg-svg svg .particle.p7 { --p-opacity: 0.10; animation-delay: 0.2s; }
-    .hero-bg-svg svg .particle.p8 { --p-opacity: 0.08; animation-delay: 1.8s; }
-    .hero-bg-svg svg .particle.p9 { --p-opacity: 0.12; animation-delay: 0.6s; }
-    .hero-bg-svg svg .particle.p10 { --p-opacity: 0.09; animation-delay: 2.4s; }
-    .hero-bg-svg svg .particle.p11 { --p-opacity: 0.07; animation-delay: 1.4s; }
-    .hero-bg-svg svg .particle.p12 { --p-opacity: 0.10; animation-delay: 0.1s; }
-    .hero-bg-svg svg .particle.p13 { --p-opacity: 0.08; animation-delay: 1.0s; }
-    .hero-bg-svg svg .particle.p14 { --p-opacity: 0.11; animation-delay: 2.2s; }
     .hero .container {
       position: relative;
       z-index: 2;
@@ -444,23 +428,6 @@
       font-weight: 600;
       margin-bottom: var(--space-4);
       letter-spacing: 0.01em;
-    }
-    .hero-title { font-family: var(--font-display); font-size: clamp(2.25rem, 4vw, 4.5rem); font-weight: 800; margin-bottom: var(--space-4); line-height: 1.1; }
-    .hero-title span {
-      background: var(--grad-brand);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero-subtitle { font-size: var(--text-lg); color: var(--color-text); max-width: 600px; line-height: 1.6; }
-
-
-    @media (max-width: 768px) {
-      .hero { padding-bottom: calc(var(--space-8) + 1rem); }
-      .hero-title { font-size: clamp(2rem, 8vw, 2.625rem); }
-      .hero-subtitle { font-size: var(--text-base); }
-
-      .wizard-section { padding-top: var(--space-8); }
     }
 
     /* Wizard */
@@ -4971,247 +4938,492 @@ pre, code { word-break: break-word; overflow-x: auto; }
   backdrop-filter: blur(4px);
 }
 
-/* --- NOVO DESIGN DA HOMEPAGE --- */
-.new-hero {
-  padding: 8rem 0 4rem;
-  text-align: center;
-  position: relative;
-  z-index: 10;
 }
+
+/* ── Hero redesigned ── */
 .hero-content {
-  max-width: 800px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
+  max-width: 680px;
 }
 .hero-title-main {
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4.75rem);
   font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: var(--space-2);
+  line-height: 1.05;
+  margin-bottom: var(--space-5);
+  letter-spacing: -0.02em;
 }
-.hero-highlight {
+.hero-title-main .hero-accent {
   background: var(--grad-brand);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  margin-top: var(--space-1);
 }
 .hero-description {
-  font-size: 1.25rem;
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
   color: var(--color-text-muted);
-  margin-bottom: var(--space-4);
+  line-height: 1.65;
+  margin-bottom: var(--space-6);
+  max-width: 560px;
 }
 .hero-features {
   list-style: none;
-  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  text-align: left;
-  margin-bottom: var(--space-6);
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
 }
 .hero-features li {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 1.1rem;
+  gap: var(--space-3);
+  font-size: var(--text-base);
   color: var(--color-text);
+  font-weight: 500;
 }
-.hero-features i {
+.hero-features li i {
+  flex-shrink: 0;
   color: var(--color-success);
 }
 .hero-cta-group {
   display: flex;
-  gap: var(--space-4);
   flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: var(--space-6);
-}
-.btn-large {
-  padding: var(--space-3) var(--space-6);
-  font-size: 1.125rem;
-  font-weight: 700;
-  border-radius: var(--radius-full);
-}
-.btn-secondary {
-  background: transparent;
-  border: 2px solid var(--color-border);
-  color: var(--color-text);
-  padding: var(--space-3) var(--space-6);
-  font-size: 1.125rem;
-  font-weight: 600;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.btn-secondary:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
 }
 .hero-trust {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
   flex-wrap: wrap;
-  color: var(--color-text-faint);
-  font-size: 0.9rem;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.hero-trust span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 .dot-separator {
-  color: var(--color-border);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-text-faint);
+  opacity: 0.4;
 }
-.features-section, .why-aivos-section, .how-it-works-section {
-  padding: 6rem 0;
-  position: relative;
-  z-index: 10;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-base);
+  border-radius: var(--radius-md);
+  transition: all 0.25s var(--bounce-ease), box-shadow 0.3s var(--bounce-ease);
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.btn-large {
+  padding: var(--space-4) var(--space-8);
+  font-size: clamp(1rem, 1.2vw, 1.125rem);
+}
+.btn-primary {
+  background: var(--grad-brand);
+  color: white;
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.4), 0 0 0 3px var(--accent-glow);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+}
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.05);
+  transform: translateY(-2px);
+}
+
+/* ── Features / Mode Cards ── */
+.features-section {
+  padding: var(--space-16) 0;
+  background: var(--color-surface);
+}
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-10);
+}
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-3);
 }
 .section-title {
-  text-align: center;
-  font-size: 2.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: 800;
-  margin-bottom: 3rem;
-  color: var(--color-text);
+  line-height: 1.15;
+  margin-bottom: var(--space-3);
+}
+.section-subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  max-width: 540px;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-5);
 }
 .feature-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: var(--space-6);
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: all 0.3s var(--bounce-ease);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse 120% 60% at 30% 0%, oklch(from var(--color-primary) l c h / 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.feature-card:hover::before {
+  opacity: 1;
 }
 .feature-card:hover {
-  transform: translateY(-5px);
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px oklch(from var(--color-primary) l c h / 0.12);
+}
+.feature-card:active {
+  transform: translateY(-2px) scale(0.99);
+}
+.feature-card.featured {
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.06) 0%, oklch(from var(--color-primary-mid) l c h / 0.03) 100%);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 .feature-icon {
-  width: 64px;
-  height: 64px;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: oklch(from var(--color-primary) l c h / 0.1);
   color: var(--color-primary);
-  margin-bottom: var(--space-2);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-4);
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.feature-card:hover .feature-icon {
+  background: var(--color-primary);
+  color: white;
+  transform: rotate(-5deg) scale(1.05);
 }
 .feature-card h3 {
-  font-size: 1.25rem;
+  font-size: var(--text-lg);
   font-weight: 700;
+  margin-bottom: var(--space-2);
+  line-height: 1.3;
 }
 .feature-card p {
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
   flex-grow: 1;
 }
-.btn-text {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-weight: 600;
-  display: flex;
+.feature-card .btn-text {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  transition: gap var(--transition);
+  background: none;
+  border: none;
   cursor: pointer;
   padding: 0;
 }
+.feature-card .btn-text:hover {
+  gap: var(--space-2);
+}
+
+/* ── Comparison section ── */
+.comparison-section {
+  padding: var(--space-16) 0;
+  background: var(--color-bg);
+}
 .comparison-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-6);
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
 }
 .comparison-card {
+  padding: var(--space-8);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  transition: all var(--transition);
+}
+.comparison-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 .comparison-card.aivos-comp {
-  background: linear-gradient(180deg, var(--color-surface) 0%, rgba(13, 71, 255, 0.05) 100%);
   border-color: var(--color-primary);
-  box-shadow: 0 0 20px rgba(13, 71, 255, 0.1);
+  background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.06) 0%, oklch(from var(--color-primary-mid) l c h / 0.03) 100%);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 .comp-icon {
   margin-bottom: var(--space-4);
 }
-.comp-icon.bad { color: var(--color-error); }
-.comp-icon.good { color: var(--color-success); }
+.comp-icon.bad i { color: var(--color-error); }
+.comp-icon.good i { color: var(--color-success); }
 .comparison-card h4 {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 800;
   margin-bottom: var(--space-4);
 }
 .comparison-card ul {
   list-style: none;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
-.comparison-card ul li {
+.comparison-card li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
+  line-height: 1.5;
 }
-.comparison-card.aivos-comp ul li {
-  color: var(--color-text);
-  font-weight: 500;
+.comparison-card li::before {
+  content: "✗";
+  color: var(--color-error);
+  font-weight: 900;
+  flex-shrink: 0;
 }
-.comparison-card ul li::before {
-  content: "•";
-  color: var(--color-border);
+.comparison-card.aivos-comp li::before {
+  content: "✓";
+  color: var(--color-success);
 }
-.comparison-card.aivos-comp ul li::before {
-  color: var(--color-primary);
+
+/* ── How it works ── */
+.steps-section {
+  padding: var(--space-16) 0;
+  background: var(--color-surface);
 }
 .steps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-6);
-  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
 }
 .step-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-8) var(--space-5);
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition);
+}
+.step-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 .step-number {
   width: 48px;
   height: 48px;
-  background: var(--color-primary);
-  color: white;
   border-radius: 50%;
+  background: var(--grad-brand);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-family: var(--font-display);
   font-weight: 800;
-  margin-bottom: var(--space-2);
+  font-size: var(--text-lg);
+  margin: 0 auto var(--space-4);
 }
 .step-card h4 {
-  font-size: 1.25rem;
+  font-size: var(--text-base);
   font-weight: 700;
+  margin-bottom: var(--space-2);
 }
 .step-card p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* ── Testimonials Section ── */
+.testimonials-section {
+  padding: var(--space-16) 0;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+.testimonials-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
+  opacity: 0.15;
+}
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  margin-top: var(--space-8);
+}
+.testimonial-card {
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.testimonial-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px oklch(from var(--color-primary) l c h / 0.1);
+}
+.testimonial-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--space-3);
+  color: #F59E0B;
+}
+.testimonial-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin-bottom: var(--space-4);
+  flex-grow: 1;
+  font-style: italic;
+}
+.testimonial-text::before {
+  content: '"';
+  color: var(--color-primary);
+  font-size: 1.5em;
+  font-weight: 800;
+  line-height: 0;
+  margin-right: 2px;
+  vertical-align: -4px;
+}
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+}
+.testimonial-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--text-sm);
+  color: white;
+  flex-shrink: 0;
+}
+.testimonial-info strong {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+.testimonial-info span {
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: var(--space-3);
+}
+.status-badge.success {
+  background: oklch(from var(--color-success) l c h / 0.12);
+  color: var(--color-success);
+}
+.status-badge.info {
+  background: oklch(from var(--color-primary) l c h / 0.12);
+  color: var(--color-primary);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .hero-title-main { font-size: 2.5rem; }
-  .hero-features { align-items: flex-start; text-align: left; }
-  .features-section, .why-aivos-section, .how-it-works-section { padding: 4rem 0; }
+  .features-grid { grid-template-columns: 1fr; }
   .comparison-grid { grid-template-columns: 1fr; }
+  .steps-grid { grid-template-columns: 1fr; max-width: 400px; }
+  .testimonials-grid { grid-template-columns: 1fr; }
+  .hero-cta-group { flex-direction: column; }
+  .hero-cta-group .btn { width: 100%; justify-content: center; }
 }
 </style>
 </head>
@@ -5324,23 +5536,27 @@ pre, code { word-break: break-word; overflow-x: auto; }
     </div>
     <div class="container hero-container">
       <div class="hero-content">
-        <h1 class="hero-title-main">AIVOS<br><span class="hero-highlight">Inteligência que aprova</span></h1>
-        <p class="hero-description">A plataforma completa de preparação para concursos com IA:</p>
+        <div class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Plataforma IA para Concursos</div>
+        <h1 class="hero-title-main">Prepare-se para<br><span class="hero-accent">concursos com IA de verdade</span></h1>
+        <p class="hero-description">
+          Questões personalizadas, redação com correção instantânea C1-C5 e um mentor inteligente 
+          que adapta seu plano de estudos 24 horas por dia.
+        </p>
         <ul class="hero-features">
-          <li><i data-lucide="check-circle" width="20" height="20"></i> Questões personalizadas em segundos</li>
-          <li><i data-lucide="check-circle" width="20" height="20"></i> Redação com correção completa C1-C5</li>
-          <li><i data-lucide="check-circle" width="20" height="20"></i> Mentor de desempenho e plano inteligente</li>
+          <li><i data-lucide="zap" width="20" height="20"></i> Questões criadas na hora, no seu nível</li>
+          <li><i data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos (C1-C5)</li>
+          <li><i data-lucide="brain" width="20" height="20"></i> Mentor IA que aprende com seu desempenho</li>
         </ul>
         <div class="hero-cta-group">
-          <a href="#wizard" class="btn btn-primary btn-large">Começar Grátis Agora <i data-lucide="arrow-right" width="20" height="20"></i></a>
-          <button class="btn btn-secondary btn-large" onclick="window.location.href='#wizard'">Ver demonstração</button>
+          <a href="#wizard" class="btn btn-primary btn-large">Começar Agora Grátis <i data-lucide="arrow-right" width="20" height="20"></i></a>
+          <a href="#wizard" class="btn btn-secondary btn-large" onclick="document.querySelector('.features-section').scrollIntoView({behavior:'smooth'})">Ver como funciona</a>
         </div>
         <div class="hero-trust">
           <span><i data-lucide="shield-check" width="16" height="16"></i> 100% gratuito</span>
-          <span class="dot-separator">•</span>
-          <span><i data-lucide="database" width="16" height="16"></i> +10 mil questões</span>
-          <span class="dot-separator">•</span>
-          <span><i data-lucide="users" width="16" height="16"></i> Usado por concurseiros de todo Brasil</span>
+          <span class="dot-separator"></span>
+          <span><i data-lucide="database" width="16" height="16"></i> +10 mil questões na base</span>
+          <span class="dot-separator"></span>
+          <span><i data-lucide="users" width="16" height="16"></i> +5.000 concurseiros ativos</span>
         </div>
       </div>
     </div>
@@ -5348,30 +5564,36 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
   <section class="features-section">
     <div class="container">
-      <h2 class="section-title">Como você quer estudar hoje?</h2>
+      <div class="section-header">
+        <div class="section-kicker"><i data-lucide="layers" width="14" height="14"></i> Modos de estudo</div>
+        <h2 class="section-title">Como você quer estudar hoje?</h2>
+        <p class="section-subtitle">Escolha o formato ideal para o seu momento e acelere sua preparação.</p>
+      </div>
       <div class="features-grid">
-        <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'concurso\']').click(); window.location.href='#wizard';">
-          <div class="feature-icon"><i data-lucide="book-open" width="32" height="32"></i></div>
+        <div class="feature-card featured" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'concurso\']').click(); window.location.href='#wizard';">
+          <div class="feature-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
           <h3>Caderno de Questões</h3>
-          <p>Treine com o maior banco de questões do Brasil.</p>
+          <p>Treine com filtros por banca, cargo, órgão e disciplina. A cada questão, a IA aprende seu nível.</p>
+          <span class="status-badge info"><i data-lucide="zap" width="10" height="10"></i> Mais usado</span>
           <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
         </div>
         <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'pdf\']').click(); window.location.href='#wizard';">
-          <div class="feature-icon"><i data-lucide="file-text" width="32" height="32"></i></div>
-          <h3>Estudar com seu Material</h3>
-          <p>Gere questões a partir do seu PDF ou Edital.</p>
+          <div class="feature-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
+          <h3>Estudar com Material Próprio</h3>
+          <p>Cole editais, PDFs ou textos e gere questões personalizadas com base no seu material.</p>
           <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
         </div>
         <div class="feature-card" onclick="document.querySelector('.step-indicator[data-step=\'1\']').click(); document.querySelector('.mode-btn[data-mode=\'redacao\']').click(); window.location.href='#wizard';">
-          <div class="feature-icon" style="background: var(--color-accent); color: white;"><i data-lucide="pen-tool" width="32" height="32"></i></div>
+          <div class="feature-icon" style="background: oklch(from var(--color-accent) l c h / 0.12); color: var(--color-accent);"><i data-lucide="pen-tool" width="28" height="28"></i></div>
           <h3>Redação Coach</h3>
-          <p>Correção imediata com critérios oficiais C1-C5.</p>
-          <button class="btn-text" style="color: var(--color-accent)">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
+          <p>Correção imediata com os 5 critérios oficiais (C1-C5) e reescrita nota 1000.</p>
+          <span class="status-badge success"><i data-lucide="star" width="10" height="10"></i> Destaque</span>
+          <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
         </div>
         <div class="feature-card" onclick="window.location.href='#wizard'">
-          <div class="feature-icon"><i data-lucide="target" width="32" height="32"></i></div>
+          <div class="feature-icon"><i data-lucide="compass" width="28" height="28"></i></div>
           <h3>Plano AIVOS 360</h3>
-          <p>Seu mentor particular para guiar sua aprovação.</p>
+          <p>Mentor inteligente que analisa seu desempenho, identifica lacunas e monta o plano ideal.</p>
           <button class="btn-text">Acessar <i data-lucide="chevron-right" width="16" height="16"></i></button>
         </div>
       </div>
@@ -5380,7 +5602,8 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
   <section class="why-aivos-section">
     <div class="container">
-      <h2 class="section-title">Por que AIVOS?</h2>
+      <div class="section-kicker"><i data-lucide="trending-up" width="14" height="14"></i> Por que escolher a AIVOS</div>
+      <h2 class="section-title">A preparação que todo concurseiro merece</h2>
       <div class="comparison-grid">
          <div class="comparison-card">
            <div class="comp-icon bad"><i data-lucide="x-circle" width="48" height="48"></i></div>
@@ -5406,7 +5629,8 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
   <section class="how-it-works-section">
     <div class="container">
-      <h2 class="section-title">Como funciona</h2>
+      <div class="section-kicker"><i data-lucide="map" width="14" height="14"></i> Passo a passo</div>
+      <h2 class="section-title">Comece em 3 passos</h2>
       <div class="steps-grid">
         <div class="step-card">
           <div class="step-number">1</div>
@@ -5422,6 +5646,70 @@ pre, code { word-break: break-word; overflow-x: auto; }
           <div class="step-number">3</div>
           <h4>Estude e evolua</h4>
           <p>Receba correção imediata e explicações detalhadas da IA.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section class="testimonials-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-kicker"><i data-lucide="message-square-quote" width="14" height="14"></i> Depoimentos</div>
+        <h2 class="section-title">Quem usa, recomenda</h2>
+        <p class="section-subtitle">Veja o que estão dizendo sobre a plataforma AIVOS.</p>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+          </div>
+          <p class="testimonial-text">As questões são muito bem elaboradas, no mesmo nível das provas do CESPE. A correção de redação em segundos salvou meu tempo.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">AM</div>
+            <div class="testimonial-info">
+              <strong>Ana Moreira</strong>
+              <span>Aprovada em 3º lugar — TCU</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+          </div>
+          <p class="testimonial-text">O mentor IA é bicho! Ele identifica exatamente onde estou errando e sugere conteúdos pra revisar. Subi de 62% pra 89% em um mês.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">RL</div>
+            <div class="testimonial-info">
+              <strong>Rafael Lima</strong>
+              <span>Concurseiro — Polícia Federal</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+            <i data-lucide="star" width="16" height="16"></i>
+          </div>
+          <p class="testimonial-text">Eu levava 3 dias pra corrigir uma redação sozinha. Agora em 5 segundos tenho análise detalhada C1-C5 com sugestões de melhoria.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">CS</div>
+            <div class="testimonial-info">
+              <strong>Carla Souza</strong>
+              <span>Estudante — Direito</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
