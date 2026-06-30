@@ -5856,18 +5856,13 @@ pre, code { word-break: break-word; overflow-x: auto; }
           <span class="step-label">Qual seu objetivo?</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="2" aria-label="Passo 2: O que estudar?">
+        <button class="step-indicator" data-step="2" aria-label="Passo 2: Configure seu estudo">
           <span class="step-number">2</span>
-          <span class="step-label">O que estudar?</span>
+          <span class="step-label">Configure seu estudo</span>
         </button>
         <div class="step-connector"></div>
-        <button class="step-indicator" data-step="3" aria-label="Passo 3: Como estudar?">
+        <button class="step-indicator" data-step="3" aria-label="Passo 3: Pronto pra começar?">
           <span class="step-number">3</span>
-          <span class="step-label">Como estudar?</span>
-        </button>
-        <div class="step-connector"></div>
-        <button class="step-indicator" data-step="4" aria-label="Passo 4: Pronto pra começar?">
-          <span class="step-number">4</span>
           <span class="step-label">Pronto pra começar?</span>
         </button>
       </nav>
@@ -5946,153 +5941,77 @@ pre, code { word-break: break-word; overflow-x: auto; }
         </div>
 
         <!-- STEP 2 -->
-        <div class="wizard-step" id="step-2" data-step="2"></div>
+        <div class="wizard-step" id="step-2" data-step="2">
+          <h2 class="step-title">Configure seu estudo</h2>
+          <p class="step-subtitle">Defina o conteúdo e as configurações da sua sessão.</p>
 
-        <!-- STEP 3 -->
-        <div class="wizard-step" id="step-3" data-step="3">
-          <h2 class="step-title">Configure sua sessão de estudo</h2>
-          <p class="step-subtitle">Escolha o ritmo e o nível da sua sessão. O conteúdo já foi definido no passo anterior.</p>
+          <!-- Content Configuration (Mode-specific) -->
+          <div id="step-2-content"></div>
 
-          <div class="session-trust" aria-label="Garantias da sessão">
-            <div class="session-trust-item">
-              <i data-lucide="shield-check" width="16" height="16"></i>
-              <span><strong>Qualidade garantida</strong>As questões passam por validação de consistência e fonte.</span>
-            </div>
-            <div class="session-trust-item">
-              <i data-lucide="database" width="16" height="16"></i>
-              <span><strong>Base verificada</strong>Concursos usam base de dados verificada quando disponível.</span>
-            </div>
-            <div class="session-trust-item">
-              <i data-lucide="graduation-cap" width="16" height="16"></i>
-              <span><strong>Sessão personalizada</strong>Você define quantidade, estilo e nível do seu estudo.</span>
-            </div>
-          </div>
+          <!-- Session Configuration (Simplified) -->
+          <div style="margin-top: var(--space-6);">
+            <div class="session-config-grid">
+              <div class="session-config-card primary config-group" id="config-quantity">
+                <div class="session-card-head">
+                  <i data-lucide="list-checks" width="18" height="18"></i>
+                  <div>
+                    <label class="config-label">Quantidade de questões</label>
+                  </div>
+                </div>
+                <div class="slider-value-row">
+                  <span>5</span>
+                  <span class="qty-pill" id="qty-display">10</span>
+                  <span>50</span>
+                </div>
+                <input type="range" id="qty-slider" min="5" max="50" step="5" value="10" aria-label="Quantidade de questões">
+              </div>
 
-          <div class="session-config-grid">
-            <div class="session-config-card primary config-group" id="config-session">
-              <div class="session-card-head">
-                <i data-lucide="route" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Tipo de estudo</label>
-                  <p class="session-card-note">Define como as explicações e correções são apresentadas.</p>
+              <div class="session-config-card config-group" id="config-difficulty">
+                <div class="session-card-head">
+                  <i data-lucide="sliders-horizontal" width="18" height="18"></i>
+                  <div>
+                    <label class="config-label">Dificuldade</label>
+                  </div>
+                </div>
+                <div class="chip-group" role="group">
+                  <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> Fácil</button>
+                  <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> Médio</button>
+                  <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Difícil</button>
                 </div>
               </div>
-              <div class="session-mode-grid" role="group">
-                <button class="chip session-mode-card active" data-session="normal">
-                  <i data-lucide="book-open" width="16" height="16"></i>
-                  Estudo Normal
-                  <span>Aprender e revisar com explicações detalhadas.</span>
-                </button>
-                <button class="chip session-mode-card" data-session="concurso">
-                  <i data-lucide="timer" width="16" height="16"></i>
-                  Simulado
-                  <span>Simule condições reais de prova.</span>
-                </button>
-                <button class="chip session-mode-card" data-session="revisao">
-                  <i data-lucide="refresh-cw" width="16" height="16"></i>
-                  Revisão Rápida
-                  <span>Fixe conhecimento com perguntas rápidas.</span>
-                </button>
-              </div>
-            </div>
 
-            <div class="session-config-card config-group" id="config-difficulty">
-              <div class="session-card-head">
-                <i data-lucide="sliders-horizontal" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Dificuldade</label>
-                  <p class="session-card-note">Comece em médio para equilibrar desafio e aprendizado.</p>
+              <div class="session-config-card config-group" id="config-type">
+                <div class="session-card-head">
+                  <i data-lucide="clipboard-list" width="18" height="18"></i>
+                  <div>
+                    <label class="config-label">Tipo de questão</label>
+                  </div>
+                </div>
+                <div class="chip-group" role="group">
+                  <button class="chip active" data-qtype="mc">Múltipla escolha</button>
+                  <button class="chip" data-qtype="vf">Certo/Errado</button>
+                  <button class="chip" data-qtype="mix">Misto</button>
                 </div>
               </div>
-              <div class="chip-group" role="group">
-                <button class="chip" data-difficulty="easy"><span class="dot" style="background:#437a22"></span> Fácil</button>
-                <button class="chip active" data-difficulty="medium"><span class="dot" style="background:#D4A827"></span> Médio</button>
-                <button class="chip" data-difficulty="hard"><span class="dot" style="background:#c0392b"></span> Difícil</button>
-                <button class="chip" data-difficulty="extreme"><span class="dot" style="background:#8b0000"></span> Extremo</button>
-              </div>
-            </div>
 
-            <div class="session-config-card config-group" id="config-quantity">
-              <div class="session-card-head">
-                <i data-lucide="list-checks" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Quantidade de questões</label>
-                  <p class="session-card-note">Sessões menores são ideais para revisão diária.</p>
+              <div class="session-config-card config-group" id="config-alternativas">
+                <div class="session-card-head">
+                  <i data-lucide="rows-3" width="18" height="18"></i>
+                  <div>
+                    <label class="config-label">Alternativas</label>
+                  </div>
                 </div>
-              </div>
-              <div class="slider-value-row">
-                <span>5</span>
-                <span class="qty-pill" id="qty-display">10</span>
-                <span>50</span>
-              </div>
-              <input type="range" id="qty-slider" min="5" max="50" step="5" value="10" aria-label="Quantidade de questões">
-            </div>
-
-            <div class="session-config-card config-group" id="config-type">
-              <div class="session-card-head">
-                <i data-lucide="clipboard-list" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Tipo de questão</label>
-                  <p class="session-card-note">Múltipla escolha é o formato padrão de provas.</p>
+                <div class="chip-group" role="group">
+                  <button class="chip" data-alternativas="4">4</button>
+                  <button class="chip active" data-alternativas="5">5</button>
                 </div>
-              </div>
-              <div class="chip-group" role="group">
-                <button class="chip active" data-qtype="mc">Múltipla escolha</button>
-                <button class="chip" data-qtype="vf">Certo/Errado (CESPE)</button>
-                <button class="chip" data-qtype="mix">Misto</button>
-              </div>
-            </div>
-
-            <div class="session-config-card config-group" id="config-alternativas">
-              <div class="session-card-head">
-                <i data-lucide="rows-3" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Formato de resposta</label>
-                  <p class="session-card-note">Use 5 alternativas para ENEM e vestibulares.</p>
-                </div>
-              </div>
-              <div class="chip-group" role="group">
-                <button class="chip" data-alternativas="4">4 alternativas</button>
-                <button class="chip active" data-alternativas="5">5 alternativas</button>
-              </div>
-            </div>
-
-            <div class="session-config-card config-group" id="config-idioma">
-              <div class="session-card-head">
-                <i data-lucide="languages" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Idioma das questões</label>
-                  <p class="session-card-note">Português é o padrão para estudos nacionais.</p>
-                </div>
-              </div>
-              <div class="chip-group" role="group">
-                <button class="chip active" data-idioma="pt-BR">Português (BR)</button>
-                <button class="chip" data-idioma="en">English (EN)</button>
-                <button class="chip" data-idioma="es">Español (ES)</button>
-              </div>
-            </div>
-
-            <div class="session-config-card config-group full">
-              <div class="session-card-head">
-                <i data-lucide="target" width="18" height="18"></i>
-                <div>
-                  <label class="config-label">Meta diária</label>
-                  <p class="session-card-note">Acompanhe sua meta diária de estudo.</p>
-                </div>
-              </div>
-              <div class="chip-group goal-chips" role="group" id="daily-goal-group">
-                <button class="chip" data-goal="5">5</button>
-                <button class="chip active" data-goal="10">10</button>
-                <button class="chip" data-goal="20">20</button>
-                <button class="chip" data-goal="30">30</button>
-                <button class="chip" data-goal="none">Sem meta</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- STEP 4 -->
-        <div class="wizard-step" id="step-4" data-step="4">
+        <!-- STEP 3 -->
+        <div class="wizard-step" id="step-3" data-step="3">
           <div class="generating-screen" id="generating-screen">
             <div class="spinner" id="generating-spinner"></div>
             <p class="generating-label" id="generating-label">Gerando suas questões personalizadas…</p>
@@ -6654,13 +6573,7 @@ const state = {
     concurso: null,
     cargo: null,
     banca: null,
-    dataProva: null,
-    horasDia: null,
-    nivel: null,
-    experiencia: null,
-    redacoesPorSemana: 1,
-    frequenciaSimulados: 'mensal',
-    metasSemanais: ''
+    experiencia: null
   },
   editalText: '', freeText: '',
   difficulty: 'medium', quantity: 10, questionType: 'mc', sessionMode: 'normal',
@@ -7006,14 +6919,10 @@ function init() {
   updateDailyGoalUI();
 
   document.getElementById('next-btn').addEventListener('click', () => {
-    let target = state.currentStep + 1;
-    if (state.mode === 'redacao' && target === 3) target = 4;
-    goToStep(target);
+    goToStep(state.currentStep + 1);
   });
   document.getElementById('back-btn').addEventListener('click', () => {
-    let target = state.currentStep - 1;
-    if (state.mode === 'redacao' && target === 3) target = 2;
-    goToStep(target);
+    goToStep(state.currentStep - 1);
   });
   document.getElementById('restart-btn').addEventListener('click', () => {
     const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
@@ -7556,10 +7465,7 @@ function isStepValid(step) {
     if (state.mode === 'concurso') return !!state.concursosFiltersState?.discipline;
     if (state.mode === 'livre') return state.freeText.trim().length > 0;
     if (state.mode === 'redacao') return true;
-    if (state.mode === 'aivos360') return !!state.aivos360State?.concurso && !!state.aivos360State?.cargo && !!state.aivos360State?.banca && !!state.aivos360State?.dataProva && !!state.aivos360State?.horasDia && !!state.aivos360State?.nivel;
-  }
-  if (step === 3) {
-    if (state.mode === 'aivos360') return !!state.aivos360State?.redacoesPorSemana && !!state.aivos360State?.frequenciaSimulados;
+    if (state.mode === 'aivos360') return true; // modo conversacional: dashboard + chat, sem step-3 de questões
   }
   return true;
 }
@@ -7567,7 +7473,9 @@ function isStepValid(step) {
 function updateNavButtons() {
   const bBtn = document.getElementById('back-btn');
   const nBtn = document.getElementById('next-btn');
-  if (state.currentStep === 1 || state.currentStep === 4) {
+  // aivos360 é conversacional e termina no step-2 (dashboard + chat), sem geração de questões
+  const isAivosTerminal = state.mode === 'aivos360' && state.currentStep === 2;
+  if (state.currentStep === 1 || state.currentStep === 3 || isAivosTerminal) {
     bBtn.classList.add('hidden'); nBtn.classList.add('hidden');
   } else {
     bBtn.classList.remove('hidden'); nBtn.classList.remove('hidden');
@@ -7576,13 +7484,8 @@ function updateNavButtons() {
 }
 
 async function goToStep(target) {
-  if (target < 1 || target > 4) return;
+  if (target < 1 || target > 3) return;
   state.direction = target > state.currentStep ? 'forward' : 'backward';
-  
-  // Bulletproof bypass for step 3 in redacao mode
-  if (state.mode === 'redacao' && target === 3) {
-    target = state.direction === 'forward' ? 4 : 2;
-  }
   
   const currEl = document.getElementById(`step-${state.currentStep}`);
   const nextEl = document.getElementById(`step-${target}`);
@@ -7594,31 +7497,34 @@ async function goToStep(target) {
     currEl.classList.remove('active', `step-exit-${state.direction}`);
     nextEl.classList.add('active', `step-enter-${state.direction}`);
     state.currentStep = target;
-    
-    // Render step 3 for aivos360 mode
-    if (target === 3 && state.mode === 'aivos360') {
-      renderStep3Aivos360();
-    }
-    
+
     updateStepBar(target);
     updateNavButtons();
     scrollToWizard(50);
-    if (target === 4) {
+    if (target === 3) {
       if (state.mode === 'redacao') {
-    // Hide screens and use Coach RedBot dashboard
-    document.getElementById('generating-screen').classList.add('hidden');
-    document.getElementById('error-screen').classList.remove('visible');
-    document.getElementById('questions-container').classList.remove('visible');
-    const oldChat = document.getElementById('redacao-chat-wrapper');
-    if (oldChat) oldChat.classList.add('hidden');
-    renderRedacaoCoachDashboard();
-    return;
-  }
+        // Hide screens and use Coach RedBot dashboard
+        document.getElementById('generating-screen').classList.add('hidden');
+        const errorState = document.getElementById('error-state');
+        if (errorState) errorState.classList.add('hidden');
+        document.getElementById('questions-container').classList.remove('visible');
+        const oldChat = document.getElementById('redacao-chat-wrapper');
+        if (oldChat) oldChat.classList.add('hidden');
+        renderRedacaoCoachDashboard();
+        return;
+      }
+      // Start question generation
+      callWorkerAndRender();
+    }
+  });
+}
+
+async function callWorkerAndRender() {
   const genScreen = document.getElementById('generating-screen');
-  const errScreen = document.getElementById('error-screen');
+  const errorState = document.getElementById('error-state');
   const qContainer = document.getElementById('questions-container');
   genScreen.classList.remove('hidden');
-  errScreen.classList.remove('visible');
+  if (errorState) errorState.classList.add('hidden');
   qContainer.classList.remove('visible');
 
   // Resolve banca efetiva: se foco manual definido, usa ele; senão usa banca inferida do concurso
@@ -7676,7 +7582,7 @@ async function goToStep(target) {
     state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
     genScreen.classList.add('hidden');
     // Garantir que a tela de erro seja ocultada ao obter sucesso
-    document.getElementById('error-screen').classList.remove('visible');
+    if (errorState) errorState.classList.add('hidden');
     renderQuestions(data.questions);
     // No mobile, entra automaticamente no Modo Foco
     if (window.innerWidth < 768) {
@@ -7691,8 +7597,6 @@ async function goToStep(target) {
       showError(err.message || 'Erro desconhecido. Tente novamente em instantes.');
     }
   }
-}
-});
 }
 
 function normalizeErrorMessage(raw) {
