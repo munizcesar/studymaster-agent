@@ -6753,6 +6753,45 @@ function getStreakCount() {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
+
+function resetState() {
+  // Reset all state fields that are filled during wizard flow
+  state.mode = null;
+  state.area = null;
+  state.subject = null;
+  state.topic = null;
+  state.concursoCategory = null;
+  state.concurso = null;
+  state.bancaInferida = null;
+  state.filter = null;
+  state.concursosFiltersState = {
+    discipline: null, topic: null, keyword: '',
+    examBoard: null, agency: null, position: null, educationLevel: null,
+    yearFrom: null, yearTo: null,
+  };
+  state.editalText = '';
+  state.freeText = '';
+  state.difficulty = 'medium';
+  state.quantity = 10;
+  state.questionType = 'mc';
+  state.sessionMode = 'normal';
+  state.alternativas = 5;
+  state.idioma = 'pt-BR';
+  state.bancaFoco = 'auto';
+  state.generatedQuestions = [];
+  state.answered = 0;
+  state.correct = 0;
+  state.answerResults = [];
+  state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
+  state.concursoSubStep = 'a';
+  state.aivos360State = {
+    concurso: null,
+    cargo: null,
+    banca: null,
+    experiencia: null
+  };
+}
+
 function handleQuizCompleted() {
   const today = getDateStamp();
   const lastDate = safeStorageGet(STORAGE_KEYS.streakDate);
