@@ -5872,7 +5872,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
         <!-- STEP 1 -->
         <div class="wizard-step active" id="step-1" data-step="1">
           <h2 class="step-title">Como você quer estudar hoje?</h2>
-          <p class="step-subtitle">Qual seu objetivo? de estudo ideal para o seu objetivo</p>
+          <p class="step-subtitle">Escolha o modo ideal para o seu objetivo de hoje</p>
             <div class="mode-grid">
               <button type="button" class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
                 <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
@@ -6891,12 +6891,6 @@ function init() {
     selectMode(mode);
   };
   if (modeGrid) {
-    modeGrid.addEventListener('pointerup', e => {
-      const card = e.target.closest('.mode-card');
-      if (!card) return;
-      e.preventDefault();
-      activateModeCard(card.dataset.mode);
-    });
     modeGrid.addEventListener('click', e => {
       const card = e.target.closest('.mode-card');
       if (!card) return;
