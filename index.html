@@ -5874,7 +5874,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
           <h2 class="step-title">Como você quer estudar hoje?</h2>
           <p class="step-subtitle">Qual seu objetivo? de estudo ideal para o seu objetivo</p>
             <div class="mode-grid">
-              <button class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
+              <button type="button" class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
                 <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Caderno de Questões</strong>
@@ -5898,7 +5898,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 </ul>
                 <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: monte simulados de 20 questoes para treinar resistencia</div>
               </button>
-              <button class="mode-card" data-mode="livre" aria-label="Estudar com seu Material">
+              <button type="button" class="mode-card" data-mode="livre" aria-label="Estudar com seu Material">
                 <div class="mode-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Estudar com seu Material</strong>
@@ -5911,7 +5911,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 </ul>
                 <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: cole o texto completo do edital ou resumo para questoes mais precisas</div>
               </button>
-              <button class="mode-card" data-mode="redacao" aria-label="Redação Coach">
+              <button type="button" class="mode-card" data-mode="redacao" aria-label="Redação Coach">
                 <div class="mode-icon"><i data-lucide="brain" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Redação Coach</strong>
@@ -5924,7 +5924,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 </ul>
                 <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: pratique 1 redação por semana para evoluir sua nota</div>
               </button>
-              <button class="mode-card" data-mode="aivos360" aria-label="Plano de Estudos Inteligente">
+              <button type="button" class="mode-card" data-mode="aivos360" aria-label="Plano de Estudos Inteligente">
                 <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Plano de Estudos Inteligente</strong>
@@ -6967,6 +6967,7 @@ function selectMode(mode) {
   }
 
   renderStep2();
+  scrollToWizard(0);
   setTimeout(async () => goToStep(2), 150);
 }
 
@@ -9348,8 +9349,10 @@ window.addEventListener('resize', () => {
         removeRipple(btn);
         var rect = btn.getBoundingClientRect();
         var size = Math.max(rect.width, rect.height);
-        var x = (e.clientX || e.touches[0].clientX) - rect.left - size / 2;
-        var y = (e.clientY || e.touches[0].clientY) - rect.top - size / 2;
+        var pointX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : rect.left + size / 2);
+        var pointY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : rect.top + size / 2);
+        var x = pointX - rect.left - size / 2;
+        var y = pointY - rect.top - size / 2;
         
         var ripple = document.createElement('span');
         ripple.className = 'ripple';
