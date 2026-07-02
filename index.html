@@ -6882,9 +6882,28 @@ function init() {
     lucide.createIcons();
   });
 
-  document.querySelectorAll('.mode-card').forEach(btn => {
-    btn.addEventListener('click', e => selectMode(e.currentTarget.dataset.mode));
-  });
+  const modeGrid = document.querySelector('.mode-grid');
+  let lastModeActivation = { mode: null, time: 0 };
+  const activateModeCard = (mode) => {
+    const now = Date.now();
+    if (lastModeActivation.mode === mode && now - lastModeActivation.time < 400) return;
+    lastModeActivation = { mode, time: now };
+    selectMode(mode);
+  };
+  if (modeGrid) {
+    modeGrid.addEventListener('pointerup', e => {
+      const card = e.target.closest('.mode-card');
+      if (!card) return;
+      e.preventDefault();
+      activateModeCard(card.dataset.mode);
+    });
+    modeGrid.addEventListener('click', e => {
+      const card = e.target.closest('.mode-card');
+      if (!card) return;
+      e.preventDefault();
+      activateModeCard(card.dataset.mode);
+    });
+  }
 
   const setupChips = (group, key) => {
     document.querySelectorAll(`.chip[data-${group}]`).forEach(btn => {
