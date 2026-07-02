@@ -1,8 +1,8 @@
 /**
- * 🤖 COACH REDBOT — Robô Coach de Redação para Concursos Públicos
+ * PROFESSOR DE REDACAO — Coach de Redacao
  * 
- * Especialista em correção de redação por competências (C1-C5),
- * notas 900+/1000, repertórios socioculturais e temas de redação.
+ * Tutor acadêmico especializado em correção de redação por competências (C1-C5),
+ * notas 900+/1000, repertórios socioculturais e temas de redação para ENEM e concursos.
  * 
  * Integra com:
  * - DigitalTwin (perfil do aluno)
@@ -22,10 +22,10 @@ const REDBOT_CONFIG = {
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// SYSTEM PROMPT DO COACH REDBOT
+// SYSTEM PROMPT DO PROFESSOR UNIVERSITÁRIO
 // ════════════════════════════════════════════════════════════════════════════
 
-const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Coach RedBot**, um tutor inteligente de redação para ENEM e concursos. Seu objetivo é ENSINAR o aluno a escrever melhor — não apenas corrigir.
+const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Professor de Redação**, um tutor acadêmico especializado em redação para ENEM e concursos públicos. Seu método é acadêmico, rigoroso e fundamentado na matriz de competências oficial.
 
 # DEFINIÇÕES DE C1-C5 (cada uma vale 0 a 200, total 1000):
 - **C1** = Domínio da Escrita Formal (ortografia, concordância, regência, pontuação)
@@ -35,12 +35,14 @@ const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Coach RedBot**, um tutor inteli
 - **C5** = Proposta de Intervenção (agente, ação, meio, finalidade, direitos humanos)
 
 # REGRAS DE COMPORTAMENTO
-1. Aja como professor. Ensine o porquê. Adapte-se ao nível do aluno.
-2. Feedback em 3 perguntas: (1) Qual o objetivo? (2) Como você está? (3) O que fazer?
-3. Correção em camadas: Tema → Estrutura → Argumentação → Coesão → Repertório → Gramática → Ortografia.
-4. Método Socrático: faça o aluno refletir antes de dar a resposta.
-5. Aprendizagem ativa: peça reescrita antes de mostrar versão modelo.
-6. Tom humano, claro, motivador. Comece positivo. Termine com 2-3 sugestões.
+1. Aja como professor universitário. Use linguagem formal, clara e precisa.
+2. Estruture o feedback em: (1) Diagnóstico, (2) Análise, (3) Prescrição.
+3. Correção em camadas: Tema, Estrutura, Argumentação, Coesão, Repertório, Gramática, Ortografia.
+4. Método Socrático: conduza o aluno ao raciocínio, não dê respostas prontas.
+5. Aprendizagem ativa: solicite reescrita antes de apresentar versão modelo.
+6. Tom acadêmico, respeitoso e construtivo. Inicie com observações positivas, conclua com direcionamentos claros.
+7. Use vocabulário formal mas acessível. Evite gírias, coloquialismos e linguagem infantilizada.
+8. NÃO use emojis, símbolos gráficos ou linguagem excessivamente informal.
 
 # INSTRUÇÃO CRÍTICA — FORMATO DE SAÍDA
 VOCÊ DEVE RESPONDER APENAS EM JSON. NUNCA inclua o campo "reply". Use APENAS os campos abaixo.
@@ -50,14 +52,14 @@ Exemplo COMPLETO de resposta (copie EXATAMENTE este formato, apenas altere os va
   "scores": { "c1": 120, "c2": 140, "c3": 130, "c4": 110, "c5": 100 },
   "summary": "O aluno demonstra compreensão do tema mas precisa melhorar a proposta de intervenção. A estrutura está adequada, com introdução, desenvolvimento e conclusão.",
   "strongPoints": ["Compreensão clara do tema proposto", "Estrutura bem organizada em parágrafos"],
-  "problems": ["Proposta de intervenção sem detalhamento (falta agente, ação e meio)", "Conectivos repetitivos ao longo do texto"],
+  "problems": ["Proposta de intervenção sem detalhamento: faltam agente, ação e meio", "Conectivos repetitivos ao longo do texto"],
   "socraticQuestion": "Sua proposta de intervenção convenceria um gestor público? O que falta nela?",
   "nextSteps": ["Refaça a conclusão com proposta detalhada", "Varie os conectivos: ademais, outrossim, por conseguinte"]
 }
 
 IMPORTANTE: scores DEVEM ser números inteiros de 0 a 200 (NUNCA 0-10, NUNCA use escala decimal).
 IMPORTANTE: NUNCA inclua campo "reply". Use SOMENTE os campos do exemplo acima.
-`;  // studentData enviado via API payload
+`;
 
 // ════════════════════════════════════════════════════════════════════════════
 // COMPETÊNCIAS ENEM / CONCURSOS (C1-C5)
@@ -66,7 +68,7 @@ IMPORTANTE: NUNCA inclua campo "reply". Use SOMENTE os campos do exemplo acima.
 const COMPETENCIES = {
   c1: {
     label: 'C1 — Domínio da Escrita Formal',
-    icon: '📝',
+    icon: '',
     description: 'Demonstrar domínio da modalidade escrita formal da Língua Portuguesa.',
     whatWeCheck: 'Ortografia, acentuação, concordância, regência, pontuação, vocabulário formal.',
     tips: [
@@ -78,7 +80,7 @@ const COMPETENCIES = {
   },
   c2: {
     label: 'C2 — Compreensão do Tema',
-    icon: '🎯',
+    icon: '',
     description: 'Compreender a proposta e aplicar conceitos das várias áreas de conhecimento.',
     whatWeCheck: 'Se o texto aborda o tema central, se há fuga ao tema, se usa repertório adequado.',
     tips: [
@@ -90,37 +92,37 @@ const COMPETENCIES = {
   },
   c3: {
     label: 'C3 — Organização das Ideias',
-    icon: '📐',
+    icon: '',
     description: 'Selecionar, relacionar, organizar e interpretar informações em defesa de um ponto de vista.',
     whatWeCheck: 'Estrutura do texto, progressão lógica, articulação entre parágrafos, coerência argumentativa.',
     tips: [
-      'Use a estrutura: introdução → desenvolvimento (2 parágrafos) → conclusão',
+      'Use a estrutura: introducao, desenvolvimento (2 parágrafos), conclusao',
       'Cada parágrafo deve ter uma ideia central',
-      'Use conectivos entre parágrafos (Além disso, Outrossim, Por conseguinte)',
-      'Sua tese deve ficar clara já na introdução'
+      'Use conectivos entre parágrafos (alem disso, outrossim, por conseguinte)',
+      'Sua tese deve ficar clara ja na introducao'
     ]
   },
   c4: {
     label: 'C4 — Mecanismos Linguísticos',
-    icon: '🔗',
+    icon: '',
     description: 'Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação.',
     whatWeCheck: 'Coesão textual, uso de conectivos, referências anafóricas, progressão textual.',
     tips: [
       'Varie os conectivos ao longo do texto',
       'Use pronomes para retomar ideias sem repetir palavras',
-      'Mantenha a progressão: ideia nova → explicação → exemplo',
-      'Evite parágrafos soltos sem conexão entre si'
+      'Mantenha a progressao: ideia nova, explicacao, exemplo',
+      'Evite parágrafos soltos sem conexao entre si'
     ]
   },
   c5: {
     label: 'C5 — Proposta de Intervenção',
-    icon: '💡',
+    icon: '',
     description: 'Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos.',
-    whatWeCheck: 'Se há proposta, se é detalhada (agente, ação, meio, finalidade), se respeita direitos humanos.',
+    whatWeCheck: 'Se ha proposta, se e detalhada (agente, acao, meio, finalidade), se respeita direitos humanos.',
     tips: [
-      'Sua proposta deve ter: O quê? Quem faz? Como? Para quê?',
+      'Sua proposta deve ter: O que? Quem faz? Como? Para que?',
       'Detalhe o agente (governo, sociedade, ONG, escola)',
-      'Explique o meio ou instrumento (campanhas, leis, políticas)',
+      'Explique o meio ou instrumento (campanhas, leis, politicas)',
       'Nunca viole direitos humanos na sua proposta'
     ]
   }
@@ -132,24 +134,24 @@ const COMPETENCIES = {
 
 const EXEMPLOS_NOTA_1000 = [
   {
-    tema: 'Desafios para a formação educacional no Brasil',
-    trecho: 'Nesse contexto, percebe-se que a falta de investimentos em educação básica gera um ciclo vicioso de desigualdade. Conforme o sociólogo Pierre Bourdieu, a escola reproduz as desigualdades sociais ao privilegiar o capital cultural das classes dominantes. Logo, urge a necessidade de políticas públicas que democratizem o acesso ao conhecimento de qualidade.',
-    destaque: 'Uso de repertório sociológico (Bourdieu) + tese clara + conectivo "Logo"'
+    tema: 'Desafios para a formacao educacional no Brasil',
+    trecho: 'Nesse contexto, percebe-se que a falta de investimentos em educacao basica gera um ciclo vicioso de desigualdade. Conforme o sociologo Pierre Bourdieu, a escola reproduz as desigualdades sociais ao privilegiar o capital cultural das classes dominantes. Logo, urge a necessidade de politicas publicas que democratizem o acesso ao conhecimento de qualidade.',
+    destaque: 'Uso de repertorio sociologico (Bourdieu), tese clara, conectivo "Logo"'
   },
   {
     tema: 'Combate ao racismo estrutural no Brasil',
-    trecho: 'Ademais, o racismo estrutural manifesta-se de forma sutil mas pervasiva na sociedade brasileira. Dados do IBGE (2019) revelam que jovens negros têm 2,5 vezes mais chances de serem vítimas de homicídio. Nesse sentido, medidas afirmativas como as cotas raciais representam um avanço civilizatório ao reparar séculos de exclusão.',
-    destaque: 'Dado estatístico concreto (IBGE) + relação com políticas públicas + posicionamento claro'
+    trecho: 'Ademais, o racismo estrutural manifesta-se de forma sutil mas pervasiva na sociedade brasileira. Dados do IBGE (2019) revelam que jovens negros tem 2,5 vezes mais chances de serem vitimas de homicidio. Nesse sentido, medidas afirmativas como as cotas raciais representam um avanco civilizatorio ao reparar seculos de exclusao.',
+    destaque: 'Dado estatistico concreto (IBGE), relacao com politicas publicas, posicionamento claro'
   },
   {
     tema: 'Desafios do sistema prisional brasileiro',
-    trecho: 'Diante desse cenário caótico, faz-se mister a atuação estatal não apenas como punidor, mas como agente ressocializador. O filósofo Michel Foucault, em "Vigiar e Punir", já alertava que o sistema prisional, ao invés de recuperar, fabrica delinquentes. Portanto, políticas de educação e trabalho dentro dos presídios são urgentes para romper esse ciclo.',
-    destaque: 'Referência filosófica (Foucault) + verbo "faz-se mister" (erudição) + proposta clara'
+    trecho: 'Diante desse cenario caotico, faz-se mister a atuacao estatal nao apenas como punidor, mas como agente ressocializador. O filosofo Michel Foucault, em "Vigiar e Punir", ja alertava que o sistema prisional, ao inves de recuperar, fabrica delinquentes. Portanto, politicas de educacao e trabalho dentro dos presidios sao urgentes para romper esse ciclo.',
+    destaque: 'Referencia filosofica (Foucault), uso de "faz-se mister" (erudicao), proposta clara'
   }
 ];
 
 // ════════════════════════════════════════════════════════════════════════════
-// CLASSE COACH REDBOT
+// CLASSE PROFESSOR UNIVERSITARIO
 // ════════════════════════════════════════════════════════════════════════════
 
 class CoachRedbot {
@@ -168,18 +170,17 @@ class CoachRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // INICIALIZAÇÃO
+  // INICIALIZACAO
   // ════════════════════════════════════════════════════════════════════════════
   init() {
     if (this.isInitialized) return;
     this.isInitialized = true;
-    console.log('[Coach RedBot] Robô Coach de Redação inicializado!');
+    console.log('[Professor de Redação] Coach de Redação iniciado');
 
     this.loadSession();
     this.scheduleRender();
 
     window.addEventListener('aivos360DashboardReady', () => {
-      // Só renderizar no modo Redação Coach, nunca no AIVOS 360
       if (typeof state !== 'undefined' && state.mode === 'redacao') {
         this.renderUI();
         this.addDashboardButton();
@@ -188,7 +189,6 @@ class CoachRedbot {
   }
 
   scheduleRender() {
-    // Só executa se estiver no modo Redação Coach
     const shouldRender = () => {
       return typeof state !== 'undefined' && state.mode === 'redacao';
     };
@@ -208,16 +208,12 @@ class CoachRedbot {
       return false;
     };
 
-    // Tentativa imediata
     setTimeout(tryRenderNow, 50);
-
-    // Polling com intervalo único (substitui 4 setTimeout)
     this._renderInterval = setInterval(tryRenderNow, 500);
 
-    // MutationObserver como fallback robusto
     if (!this._observer && typeof MutationObserver !== 'undefined') {
       this._observer = new MutationObserver(() => {
-        if (tryRenderNow()) {
+        if (tryRenderNow() && this._observer) {
           this._observer.disconnect();
           this._observer = null;
         }
@@ -231,7 +227,7 @@ class CoachRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // PERSISTÊNCIA DE SESSÃO
+  // PERSISTENCIA DE SESSAO
   // ════════════════════════════════════════════════════════════════════════════
 
   saveSession() {
@@ -243,7 +239,7 @@ class CoachRedbot {
       };
       localStorage.setItem('coachRedbotSession', JSON.stringify(session));
     } catch (e) {
-      console.warn('[Coach RedBot] Erro ao salvar sessão:', e);
+      console.warn('[Professor de Redação] Erro ao salvar sessao:', e);
     }
   }
 
@@ -255,11 +251,11 @@ class CoachRedbot {
         if (session.timestamp && Date.now() - session.timestamp < 86400000) {
           this.conversationHistory = session.history || [];
           this.lastScores = session.lastScores || null;
-          console.log('[Coach RedBot] Sessão restaurada com', this.conversationHistory.length, 'mensagens');
+          console.log('[Professor de Redação] Sessao restaurada com', this.conversationHistory.length, 'mensagens');
         }
       }
     } catch (e) {
-      console.warn('[Coach RedBot] Erro ao carregar sessão:', e);
+      console.warn('[Professor de Redação] Erro ao carregar sessao:', e);
     }
   }
 
@@ -270,7 +266,7 @@ class CoachRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // RENDERIZAÇÃO DA UI (NOVO LAYOUT)
+  // RENDERIZACAO DA UI
   // ════════════════════════════════════════════════════════════════════════════
 
   renderUI() {
@@ -296,33 +292,47 @@ class CoachRedbot {
     container.innerHTML = `
       <div class="redbot-layout">
 
-        <!-- SIDEBAR - Coach RedBot Avatar -->
+        <!-- SIDEBAR - Professor de Redação -->
         <div class="redbot-sidebar">
           <div class="redbot-sidebar-inner">
             <div class="redbot-avatar">
-              <img src="redbot-avatar.svg" alt="Coach RedBot" class="redbot-avatar-img" onerror="this.src='redbot-avatar.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex'}">
+              <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: white; padding: 10px;">
+                <!-- Graduation Cap -->
+                <path d="M10 40 L50 10 L90 40 L50 70 Z" fill="currentColor" opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M50 10 L50 50" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+                <rect x="40" y="60" width="20" height="10" rx="2" fill="currentColor" opacity="0.25" stroke="currentColor" stroke-width="1"/>
+                <rect x="35" y="68" width="30" height="6" rx="2" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="0.8"/>
+                <path d="M90 40 L96 35" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+                <circle cx="97" cy="34" r="3" fill="currentColor" opacity="0.5"/>
+                <!-- Book/Knowledge -->
+                <rect x="30" y="45" width="40" height="32" rx="3" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.2"/>
+                <line x1="42" y1="52" x2="58" y2="52" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+                <line x1="42" y1="58" x2="58" y2="58" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+                <line x1="42" y1="64" x2="52" y2="64" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+                <!-- Academic Decoration -->
+                <path d="M15 75 Q50 95 85 75" stroke="currentColor" stroke-width="1" fill="none" opacity="0.2" stroke-linecap="round"/>
+                <circle cx="50" cy="85" r="2" fill="currentColor" opacity="0.3"/>
+              </svg>
               <div class="redbot-avatar-fallback" style="display:none">
-                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><!-- Head --><circle cx="50" cy="42" r="24" fill="url(#rb-grad)" stroke="currentColor" stroke-width="2"/><!-- Robot ears --><rect x="18" y="35" width="8" height="14" rx="3" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="74" y="35" width="8" height="14" rx="3" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><!-- Left eye --><circle cx="40" cy="38" r="8" fill="white"/><circle cx="40" cy="38" r="4.5" fill="currentColor"/><circle cx="38" cy="36" r="2" fill="rgba(255,255,255,0.8)"/><!-- Right eye --><circle cx="60" cy="38" r="8" fill="white"/><circle cx="60" cy="38" r="4.5" fill="currentColor"/><circle cx="58" cy="36" r="2" fill="rgba(255,255,255,0.8)"/><!-- Smile --><path d="M42 50 Q50 56 58 50" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><!-- Body --><rect x="24" y="62" width="52" height="30" rx="8" fill="url(#rb-grad)" stroke="currentColor" stroke-width="2"/><!-- Body buttons --><rect x="32" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="42" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="52" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="62" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><!-- Chest indicator --><circle cx="50" cy="84" r="3" fill="rgba(255,255,255,0.3)" stroke="currentColor" stroke-width="1" opacity="0.6"/><!-- Graduation Cap (mortarboard) - drawn AFTER head so it sits on top --><path d="M26 14 L50 4 L74 14 L50 24 Z" fill="url(#rb-grad2)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="42" y="14" width="16" height="5" rx="2" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><!-- Tassel on LEFT side to avoid competing with right ear --><path d="M26 14 Q14 16 16 26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="27" r="2.5" fill="currentColor"/><defs><linearGradient id="rb-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="rb-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg>
+                <svg width="40" height="40" viewBox="0 0 100 100" fill="none"><path d="M10 40 L50 10 L90 40 L50 70 Z" fill="white" opacity="0.3"/><rect x="30" y="45" width="40" height="32" rx="3" fill="white" opacity="0.15"/></svg>
               </div>
-              <div class="redbot-hat"><svg width="18" height="18" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 45 L50 15 L90 45 L50 75 Z" fill="url(#hat-grad)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M50 15 L50 55" stroke="currentColor" stroke-width="1.5"/><path d="M30 35 Q50 30 70 35" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/><rect x="40" y="65" width="20" height="10" rx="2" fill="url(#hat-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="35" y="73" width="30" height="6" rx="2" fill="url(#hat-grad2)" stroke="currentColor" stroke-width="1"/><path d="M90 45 L96 40" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="97" cy="39" r="3" fill="currentColor"/><path d="M15 55 L10 80 Q10 85 15 88 L30 85" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/><path d="M12 60 L8 78" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><path d="M18 58 L16 82" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><defs><linearGradient id="hat-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="hat-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg></div>
             </div>
 
             <h2 class="redbot-name">
-              Coach RedBot <span class="redbot-name-hat"><svg width="14" height="14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 45 L50 15 L90 45 L50 75 Z" fill="url(#hat-grad)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M50 15 L50 55" stroke="currentColor" stroke-width="1.5"/><path d="M30 35 Q50 30 70 35" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/><rect x="40" y="65" width="20" height="10" rx="2" fill="url(#hat-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="35" y="73" width="30" height="6" rx="2" fill="url(#hat-grad2)" stroke="currentColor" stroke-width="1"/><path d="M90 45 L96 40" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="97" cy="39" r="3" fill="currentColor"/><path d="M15 55 L10 80 Q10 85 15 88 L30 85" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/><path d="M12 60 L8 78" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><path d="M18 58 L16 82" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><defs><linearGradient id="hat-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="hat-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg></span>
+              Professor de Redação
             </h2>
 
             <div class="redbot-status">
               <span class="redbot-status-dot"></span>
-              Online - Pronto para te ajudar
+              Online - Coach de Redação
             </div>
 
             <p class="redbot-bio">
-              Olá! Sou o Coach RedBot, seu robô coach de redação.<br>
-              Vamos tirar nota 1000 juntos? 🚀
+              Tutor academico especializado em correcao de redacao para ENEM e concursos. Metodo estruturado com analise detalhada por competencias C1-C5.
             </p>
 
             <button class="redbot-new-theme-btn" onclick="window.coachRedbot?.handleTool('novo-tema')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4M12 8v8"/></svg> Novo Tema de Redação
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4M12 8v8"/></svg> Novo Tema de Redacao
             </button>
 
             <div class="redbot-divider"></div>
@@ -330,25 +340,25 @@ class CoachRedbot {
             <div class="redbot-tools">
               <button class="redbot-tool-btn" onclick="window.coachRedbot?.handleTool('competencias')">
                 <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 18h6M12 10h.01"/></svg></span>
-                <span class="redbot-tool-label">Ver Competências C1 a C5</span>
+                <span class="redbot-tool-label">Ver Competencias C1 a C5</span>
               </button>
-              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver exemplos de redações nota 1000')">
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Gostaria de ver exemplos de redacoes nota 1000')">
                 <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
-                <span class="redbot-tool-label">Exemplos de Redações Nota 1000</span>
+                <span class="redbot-tool-label">Exemplos de Redacoes Nota 1000</span>
               </button>
-              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero repertórios atualizados para redação')">
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Preciso de repertorios atualizados para minha redacao')">
                 <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8M8 11h6"/></svg></span>
-                <span class="redbot-tool-label">Repertórios Atualizados</span>
+                <span class="redbot-tool-label">Repertorios Atualizados</span>
               </button>
-              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver meu plano de evolução em redação')">
+              <button class="redbot-tool-btn" onclick="window.coachRedbot?.addQuickMsg('Quero ver meu plano de evolucao em redacao')">
                 <span class="redbot-tool-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-3M12 16v-6M17 16V8"/></svg></span>
-                <span class="redbot-tool-label">Meu Plano de Evolução</span>
+                <span class="redbot-tool-label">Meu Plano de Evolucao</span>
               </button>
             </div>
 
             <div class="redbot-tip">
               <p class="redbot-tip-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> Dica do dia:</p>
-              <p class="redbot-tip-text">"Uma boa proposta de intervenção deve ser viável, detalhada e conectada com os argumentos."</p>
+              <p class="redbot-tip-text">"Uma proposta de intervencao deve ser viavel, detalhada e conectada com os argumentos apresentados."</p>
             </div>
           </div>
         </div>
@@ -364,10 +374,15 @@ class CoachRedbot {
           <div class="redbot-chat-card">
             <div class="redbot-messages" id="redbot-messages">
               <div class="redbot-welcome">
-                <div class="redbot-welcome-avatar"><svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><!-- Head --><circle cx="50" cy="42" r="24" fill="url(#rb-grad)" stroke="currentColor" stroke-width="2"/><!-- Robot ears --><rect x="18" y="35" width="8" height="14" rx="3" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="74" y="35" width="8" height="14" rx="3" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><!-- Left eye --><circle cx="40" cy="38" r="8" fill="white"/><circle cx="40" cy="38" r="4.5" fill="currentColor"/><circle cx="38" cy="36" r="2" fill="rgba(255,255,255,0.8)"/><!-- Right eye --><circle cx="60" cy="38" r="8" fill="white"/><circle cx="60" cy="38" r="4.5" fill="currentColor"/><circle cx="58" cy="36" r="2" fill="rgba(255,255,255,0.8)"/><!-- Smile --><path d="M42 50 Q50 56 58 50" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><!-- Body --><rect x="24" y="62" width="52" height="30" rx="8" fill="url(#rb-grad)" stroke="currentColor" stroke-width="2"/><!-- Body buttons --><rect x="32" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="42" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="52" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="62" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><!-- Chest indicator --><circle cx="50" cy="84" r="3" fill="rgba(255,255,255,0.3)" stroke="currentColor" stroke-width="1" opacity="0.6"/><!-- Graduation Cap (mortarboard) - drawn AFTER head so it sits on top --><path d="M26 14 L50 4 L74 14 L50 24 Z" fill="url(#rb-grad2)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="42" y="14" width="16" height="5" rx="2" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><!-- Tassel on LEFT side to avoid competing with right ear --><path d="M26 14 Q14 16 16 26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="27" r="2.5" fill="currentColor"/><defs><linearGradient id="rb-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="rb-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg></div>
+                <div class="redbot-welcome-avatar">
+                  <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 40 L50 10 L90 40 L50 70 Z" fill="currentColor" opacity="0.4"/>
+                    <rect x="30" y="45" width="40" height="32" rx="3" fill="currentColor" opacity="0.2"/>
+                  </svg>
+                </div>
                 <div class="redbot-welcome-content">
-                  <p class="redbot-welcome-name">Coach RedBot</p>
-                  <p class="redbot-welcome-text">Olá! Cole sua redação ou me diga o tema que você quer treinar hoje. Estou aqui para te ajudar passo a passo! 🎯</p>
+                  <p class="redbot-welcome-name">Professor de Redacao</p>
+                  <p class="redbot-welcome-text">Bem-vindo. Cole sua redacao ou informe o tema que deseja treinar. Farei a correcao detalhada por competencias, apontando pontos fortes e areas que precisam de atencao. Pressione ENTER para enviar.</p>
                 </div>
               </div>
             </div>
@@ -377,14 +392,15 @@ class CoachRedbot {
                 id="redbot-essay-input"
                 class="redbot-essay-textarea"
                 rows="6"
-                placeholder="Escreva ou cole sua redação aqui..."
+                placeholder="Escreva ou cole sua redacao aqui para correcao..."
                 oninput="window.coachRedbot?.onEssayChange()"
               ></textarea>
 
-              <div class="redbot-editor-actions">                    <button class="redbot-editor-btn redbot-editor-btn-primary" id="redbot-essay-send" onclick="window.coachRedbot?.sendEssay()">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> Enviar para Correção
+              <div class="redbot-editor-actions">
+                <button class="redbot-editor-btn redbot-editor-btn-primary" id="redbot-essay-send" onclick="window.coachRedbot?.sendEssay()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> Enviar para Correcao
                 </button>
-                <button class="redbot-editor-btn redbot-editor-btn-secondary" onclick="window.coachRedbot?.addQuickMsg('Quero analisar minha redação por partes')">
+                <button class="redbot-editor-btn redbot-editor-btn-secondary" onclick="window.coachRedbot?.addQuickMsg('Gostaria de analisar minha redacao em partes')">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Analisar por Partes
                 </button>
               </div>
@@ -394,7 +410,7 @@ class CoachRedbot {
               <textarea
                 class="redbot-input"
                 id="redbot-input"
-                placeholder="Digite sua mensagem para o Coach RedBot..."
+                placeholder="Digite sua mensagem para o Professor..."
                 rows="1"
                 oninput="window.coachRedbot?.autoResize(this); window.coachRedbot?.onInputChange()"
                 onkeydown="window.coachRedbot?.handleKeydown(event)"
@@ -467,10 +483,10 @@ class CoachRedbot {
     btn.id = 'coach-redbot-db-btn';
     btn.className = 'redbot-db-btn';
     btn.innerHTML = `
-      <div class="redbot-db-icon"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><!-- Head --><circle cx="50" cy="42" r="24" fill="url(#rb-grad)" stroke="currentColor" stroke-width="2"/><!-- Robot ears --><rect x="18" y="35" width="8" height="14" rx="3" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="74" y="35" width="8" height="14" rx="3" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><!-- Left eye --><circle cx="40" cy="38" r="8" fill="white"/><circle cx="40" cy="38" r="4.5" fill="currentColor"/><circle cx="38" cy="36" r="2" fill="rgba(255,255,255,0.8)"/><!-- Right eye --><circle cx="60" cy="38" r="8" fill="white"/><circle cx="60" cy="38" r="4.5" fill="currentColor"/><circle cx="58" cy="36" r="2" fill="rgba(255,255,255,0.8)"/><!-- Smile --><path d="M42 50 Q50 56 58 50" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><!-- Body --><rect x="24" y="62" width="52" height="30" rx="8" fill="url(#rb-grad)" stroke="currentColor" stroke-width="2"/><!-- Body buttons --><rect x="32" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="42" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="52" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><rect x="62" y="68" width="6" height="10" rx="1.5" fill="rgba(255,255,255,0.3)"/><!-- Chest indicator --><circle cx="50" cy="84" r="3" fill="rgba(255,255,255,0.3)" stroke="currentColor" stroke-width="1" opacity="0.6"/><!-- Graduation Cap (mortarboard) - drawn AFTER head so it sits on top --><path d="M26 14 L50 4 L74 14 L50 24 Z" fill="url(#rb-grad2)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="42" y="14" width="16" height="5" rx="2" fill="url(#rb-grad)" stroke="currentColor" stroke-width="1.5"/><!-- Tassel on LEFT side to avoid competing with right ear --><path d="M26 14 Q14 16 16 26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="27" r="2.5" fill="currentColor"/><defs><linearGradient id="rb-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="rb-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg></div>
+      <div class="redbot-db-icon"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: var(--color-primary);"><path d="M10 40 L50 10 L90 40 L50 70 Z" fill="currentColor" opacity="0.3"/><rect x="30" y="45" width="40" height="32" rx="3" fill="currentColor" opacity="0.15"/></svg></div>
       <div class="redbot-db-content">
-        <strong class="redbot-db-title">Coach RedBot — Correção de Redação</strong>
-        <span class="redbot-db-subtitle">Robô coach especialista em redação nota 1000</span>
+        <strong class="redbot-db-title">Professor de Redacao — Correcao de Redacao</strong>
+        <span class="redbot-db-subtitle">Correcao detalhada por competencias C1-C5</span>
       </div>
       <div class="redbot-db-arrow">→</div>
     `;
@@ -541,7 +557,7 @@ class CoachRedbot {
   handleTool(action) {
     switch (action) {
       case 'novo-tema':
-        this.addQuickMsg('Quero um tema de redação para treinar');
+        this.addQuickMsg('Quero um tema de redacao para treinar');
         break;
       case 'competencias':
         this.showCompetenciesModal();
@@ -550,7 +566,7 @@ class CoachRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // COMPETÊNCIAS MODAL
+  // COMPETENCIAS MODAL
   // ════════════════════════════════════════════════════════════════════════════
 
   showCompetenciesModal() {
@@ -559,18 +575,18 @@ class CoachRedbot {
     overlay.innerHTML = `
       <div class="redbot-modal">
         <div class="redbot-modal-h">
-          <h3 class="redbot-modal-title">📋 Competências C1 a C5</h3>
-          <button class="redbot-modal-x" onclick="this.closest('.redbot-modal-overlay').remove()">✕</button>
+          <h3 class="redbot-modal-title">Competencias C1 a C5</h3>
+          <button class="redbot-modal-x" onclick="this.closest('.redbot-modal-overlay').remove()">×</button>
         </div>
         <div class="redbot-modal-body">
-          <p class="redbot-modal-intro">No ENEM e na maioria dos concursos, a redação é corrigida por 5 competências. Cada uma vale até 200 pontos, totalizando 1000.</p>
+          <p class="redbot-modal-intro">No ENEM e na maioria dos concursos, a redacao e corrigida por 5 competencias. Cada uma vale ate 200 pontos, totalizando 1000.</p>
           ${Object.values(COMPETENCIES).map(c => `
             <div class="redbot-comp-card">
-              <h4>${c.icon} ${c.label}</h4>
+              <h4>${c.label}</h4>
               <p>${c.description}</p>
-              <p class="redbot-comp-check"><strong>🔍 O que avaliamos:</strong> ${c.whatWeCheck}</p>
+              <p class="redbot-comp-check"><strong>O que avaliamos:</strong> ${c.whatWeCheck}</p>
               <div class="redbot-comp-tips">
-                <strong>💡 Dicas:</strong>
+                <strong>Dicas do Professor:</strong>
                 <ul>${c.tips.map(t => `<li>${t}</li>`).join('')}</ul>
               </div>
             </div>
@@ -603,13 +619,11 @@ class CoachRedbot {
 
       this.hideTypingIndicator();
 
-      // result pode ser string (fallback local) ou objeto (resposta da IA)
       let replyText;
       if (typeof result === 'string') {
         replyText = result;
       } else {
         replyText = this.formatCoachReply(result);
-        // Salva scores se o modelo retornou dados estruturados
         if (result.scores) {
           const comp = {};
           let total = 0;
@@ -621,7 +635,6 @@ class CoachRedbot {
             this.lastScores = { comp, media: Math.round(total) };
           }
         }
-        // Fallback: tenta extrair scores do texto do reply
         if (!result.scores && result.reply) {
           this.extractScoresFromReply(result.reply);
         }
@@ -633,8 +646,8 @@ class CoachRedbot {
 
     } catch (error) {
       this.hideTypingIndicator();
-      this.addMessage('Desculpe, ocorreu um erro. Pode tentar novamente?', 'coach');
-      console.error('[Coach RedBot] Erro:', error);
+      this.addMessage('Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.', 'coach');
+      console.error('[Professor de Redação] Erro:', error);
     }
 
     this.isProcessing = false;
@@ -644,7 +657,7 @@ class CoachRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // FORMATA RESPOSTA DO COACH USANDO DADOS ESTRUTURADOS
+  // FORMATACAO DA RESPOSTA DO PROFESSOR
   // ════════════════════════════════════════════════════════════════════════════
 
   formatCoachReply(data) {
@@ -653,101 +666,86 @@ class CoachRedbot {
     const { scores, summary, strongPoints, problems, socraticQuestion, nextSteps, reply } = data;
     let r = '';
 
-    // ── Se tem dados estruturados (scores, summary), usa formatação completa ──
     if (scores || summary || strongPoints || problems) {
-      // Scores formatados com labels corretos do COMPETENCIES
       if (scores) {
-        r += `📊 **Estimativa de nota por competência:**\n\n`;
+        r += `**Estimativa de nota por competencia:**\n\n`;
         let total = 0;
         for (const [key, comp] of Object.entries(COMPETENCIES)) {
           const val = scores[key];
           if (val !== undefined && val !== null) {
             const num = parseInt(val);
             if (!isNaN(num)) {
-              r += `**${comp.icon} ${comp.label}:** ${num}/200\n`;
+              r += `**${comp.label}:** ${num}/200\n`;
               r += `_${comp.description.slice(0, 60)}..._\n\n`;
               total += num;
             }
           }
         }
-        r += `**🏆 Total estimado: ${total}/1000**\n\n`;
+        r += `**Total estimado: ${total}/1000**\n\n`;
         r += `---\n\n`;
       }
 
-      // Resumo
-      if (summary) r += `📝 **Resumo do desempenho:**\n${summary}\n\n---\n\n`;
+      if (summary) r += `**Resumo do desempenho:**\n${summary}\n\n---\n\n`;
 
-      // Pontos fortes
       if (strongPoints && strongPoints.length > 0) {
-        r += `✅ **Pontos fortes:**\n`;
-        strongPoints.forEach(p => { r += `• ${p}\n`; });
+        r += `**Pontos fortes:**\n`;
+        strongPoints.forEach(p => { r += `- ${p}\n`; });
         r += `\n`;
       }
 
-      // Problemas
       if (problems && problems.length > 0) {
-        r += `🔴 **Principais problemas:**\n`;
+        r += `**Principais problemas:**\n`;
         problems.forEach((p, i) => { r += `${i+1}. ${p}\n`; });
         r += `\n`;
       }
 
-      // Pergunta socrática
       if (socraticQuestion) {
-        r += `🤔 **Reflita:** ${socraticQuestion}\n\n`;
+        r += `**Reflita sobre:** ${socraticQuestion}\n\n`;
       }
 
-      // Próximos passos
       if (nextSteps && nextSteps.length > 0) {
-        r += `👉 **Próximos passos:**\n`;
-        nextSteps.forEach(s => { r += `• ${s}\n`; });
+        r += `**Proximos passos:**\n`;
+        nextSteps.forEach(s => { r += `- ${s}\n`; });
         r += `\n`;
       }
 
-      // Pergunta obrigatória
-      r += `🤔 **Qual desses você quer corrigir primeiro?** (Me diga o número ou descreva)\n\n`;
+      r += `**Qual destes aspectos gostaria de corrigir primeiro?** (Informe o numero ou descreva)\n\n`;
 
       return r.trim();
     }
 
-    // ── Se só tem reply (modelo retornou apenas texto) ──
-    // Extrai scores do reply e adiciona correção de escala/labels no topo
     if (reply) {
       const extractedScores = this._extractScoresFromText(reply);
       
       if (extractedScores && Object.keys(extractedScores).length >= 3) {
-        // Normaliza 0-10 → 0-200
         const allLe10 = Object.values(extractedScores).every(v => v <= 10);
-        r += `📊 **Notas corrigidas (escala 0-200):**\n\n`;
+        r += `**Notas corrigidas (escala 0-200):**\n\n`;
         let totalNormalized = 0;
         for (const [key, comp] of Object.entries(COMPETENCIES)) {
           const rawVal = extractedScores[key];
           if (rawVal !== undefined) {
             const normalized = allLe10 ? rawVal * 20 : rawVal;
             totalNormalized += normalized;
-            r += `**${comp.icon} ${comp.label}:** ${normalized}/200\n`;
+            r += `**${comp.label}:** ${normalized}/200\n`;
           }
         }
-        r += `\n**🏆 Total: ${totalNormalized}/1000**\n\n`;
-        r += `_💡 As notas acima foram extraídas automaticamente do texto do Coach e convertidas para a escala oficial (0-200 por competência)._
-\n---\n\n`;
-        // Adiciona dicas com base nas notas mais baixas
+        r += `\n**Total: ${totalNormalized}/1000**\n\n`;
+        r += `_As notas acima foram extraidas automaticamente do texto do Professor e convertidas para a escala oficial (0-200 por competencia)._\n\n---\n\n`;
         const sorted = Object.entries(extractedScores)
           .map(([k, v]) => ({ key: k, val: allLe10 ? v * 20 : v, comp: COMPETENCIES[k] }))
           .sort((a, b) => a.val - b.val);
         if (sorted.length >= 2) {
-          r += `💡 **Dica rápida:** Sua menor nota foi em **${sorted[0].comp.label}**. ${sorted[0].comp.tips[0]}\n\n---\n\n`;
+          r += `**Observacao:** Sua menor nota foi em **${sorted[0].comp.label}**. ${sorted[0].comp.tips[0]}\n\n---\n\n`;
         }
       }
 
-      // Mantém o texto original do modelo abaixo
       r += reply;
       return r;
     }
 
-    return 'Obrigado! Como posso ajudar com sua redação?';
+    return 'Obrigado pela mensagem. Como posso ajudar com sua redacao hoje?';
   }
 
-  // Extrai scores do texto do reply (usa mesma lógica de extractScoresFromReply)
   _extractScoresFromText(text) {
     const regex = /c([1-5])(?:[^:]*?)\s*[:=]\s*(\d{1,3})/gi;
     let match;
@@ -759,7 +757,7 @@ class CoachRedbot {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // COMUNICAÇÃO COM IA + FALLBACK
+  // COMUNICACAO COM IA + FALLBACK
   // ════════════════════════════════════════════════════════════════════════════
 
   async sendToAI(userMessage, type = 'chat') {
@@ -781,11 +779,10 @@ class CoachRedbot {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-      // Retorna o objeto completo se houver reply OU dados estruturados
       if (data.reply || data.scores || data.summary) return data;
-      return 'Desculpe, não consegui processar sua solicitação. Pode tentar novamente?';
+      return 'Nao foi possivel processar sua solicitacao. Por favor, tente novamente.';
     } catch (error) {
-      console.error('[Coach RedBot] Erro na comunicação com IA:', error);
+      console.error('[Professor de Redação] Erro na comunicacao com IA:', error);
       return this.getFallback(userMessage);
     }
   }
@@ -797,11 +794,11 @@ class CoachRedbot {
       return this.localCorrection(userMessage);
     }
 
-    if (msg.includes('tema') || msg.includes('redação nova') || msg.includes('novo tema')) {
+    if (msg.includes('tema') || msg.includes('redacao nova') || msg.includes('novo tema')) {
       return this.generateRandomTheme();
     }
 
-    if (msg.includes('c1') || msg.includes('c2') || msg.includes('c3') || msg.includes('c4') || msg.includes('c5') || msg.includes('competência')) {
+    if (msg.includes('c1') || msg.includes('c2') || msg.includes('c3') || msg.includes('c4') || msg.includes('c5') || msg.includes('competencia')) {
       return this.getCompetenciesResponse(msg);
     }
 
@@ -809,100 +806,100 @@ class CoachRedbot {
       return this.getExamplesResponse();
     }
 
-    if (msg.includes('progresso') || msg.includes('desempenho') || msg.includes('evolução') || msg.includes('plano')) {
+    if (msg.includes('progresso') || msg.includes('desempenho') || msg.includes('evolucao') || msg.includes('plano')) {
       return this.getProgressResponse();
     }
 
-    if (msg.includes('repertório') || msg.includes('repertorio') || msg.includes('citação') || msg.includes('referência')) {
+    if (msg.includes('repertorio') || msg.includes('citacao') || msg.includes('referencia')) {
       return this.getRepertoryResponse();
     }
 
-    if (msg.includes('introdução') || msg.includes('desenvolvimento') || msg.includes('conclusão')) {
-      return `📝 **Vamos trabalhar essa parte da redação!**\n\nMande o texto que você já escreveu para essa parte que eu analiso com base nas competências:\n\n✅ **O que vou avaliar:**\n- Estrutura adequada\n- Coesão e coerência\n- Argumentação\n- Adequação ao tema\n\n**👉 Envie o trecho que você escreveu!**`;
+    if (msg.includes('introducao') || msg.includes('desenvolvimento') || msg.includes('conclusao')) {
+      return `**Vamos trabalhar esta parte da redacao.**\n\nEnvie o trecho que voce ja escreveu para esta parte e farei a analise com base nas competencias:\n\n**O que vou avaliar:**\n- Estrutura adequada\n- Coesao e coerencia\n- Argumentacao\n- Adequacao ao tema\n\n**Envie o trecho que voce escreveu.**`;
     }
 
-    if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite')) {
-      return `🤖🎓 **Olá! Eu sou o Coach RedBot!**\n\nSeu robô coach especialista em **redação para concursos!** Posso ajudar com:\n\n📝 **Corrigir sua redação** — Envie o texto completo\n🎯 **Criar temas** — Temas personalizados\n📋 **Explicar C1-C5** — Entenda cada competência\n🏆 **Exemplos Nota 1000** — Trechos nota máxima\n📚 **Repertórios** — Autores, dados e filmes\n📊 **Análise de progresso** — Acompanhe sua evolução\n\n**👉 Como posso te ajudar hoje?** 🚀`;
+    if (msg.includes('ola') || msg.includes('oi') || msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite')) {
+      return `**Professor de Redacao**\n\nBem-vindo ao modulo de correcao de redacao. Posso ajuda-lo com:\n\n**Correcao completa** - Envie sua redacao para analise detalhada por competencias\n**Temas personalizados** - Sugiro temas alinhados com ENEM e concursos\n**Competencias C1-C5** - Explicacao detalhada de cada criterio\n**Exemplos nota 1000** - Trechos comentados de redacoes nota maxima\n**Repertorios** - Autores, dados e referencias para enriquecer sua argumentacao\n**Analise de progresso** - Acompanhe sua evolucao ao longo do tempo\n\n**Como deseja comecar?**`;
     }
 
-    return `🤖🎓 **Coach RedBot aqui!**\n\nEntendi! Para te ajudar melhor:\n\n📝 **Envie sua redação** completa ou em partes para correção\n🎯 Peça um **tema de redação**\n📋 Pergunte sobre as **competências C1 a C5**\n🏆 Veja **exemplos nota 1000**\n📚 Peça **repertórios**\n\n**👉 O que você prefere?**`;
+    return `**Professor de Redacao**\n\nEntendi sua mensagem. Para que eu possa ajudar da melhor forma:\n\n- **Envie sua redacao** completa ou em partes para correcao detalhada\n- **Solicite um tema** de redacao para treinar\n- **Pergunte sobre as competencias** C1 a C5\n- **Veja exemplos** de trechos nota 1000\n- **Consulte repertorios** socioculturais\n\n**O que prefere?**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // FALLBACK: CORREÇÃO LOCAL
+  // FALLBACK: CORRECAO LOCAL
   // ════════════════════════════════════════════════════════════════════════════
 
   localCorrection(text) {
     const wordCount = text.split(/\s+/).length;
     const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim());
-    const hasIntro = text.toLowerCase().includes('introdução') || text.toLowerCase().includes('introducao') || paragraphs.length >= 3;
-    const hasConc = text.toLowerCase().includes('conclusão') || text.toLowerCase().includes('conclusao');
+    const hasIntro = text.toLowerCase().includes('introducao') || text.toLowerCase().includes('introducao') || paragraphs.length >= 3;
+    const hasConc = text.toLowerCase().includes('conclusao') || text.toLowerCase().includes('conclusao');
 
-    let r = `🤖📝 **Análise do Coach RedBot**\n\n`;
-    r += `📊 **Estatísticas:**\n- ${wordCount} palavras\n- ${paragraphs.length} parágrafos\n\n`;
-    r += `**✅ Pontos positivos:**\n`;
-    if (wordCount >= 200) r += `- ✅ Boa extensão (${wordCount} palavras)\n`;
-    if (paragraphs.length >= 3) r += `- ✅ ${paragraphs.length} parágrafos\n`;
-    if (hasIntro) r += `- ✅ Estrutura com introdução\n`;
-    if (hasConc) r += `- ✅ Inclui conclusão\n`;
+    let r = `**Analise do Professor de Redacao**\n\n`;
+    r += `**Estatisticas:**\n- ${wordCount} palavras\n- ${paragraphs.length} paragrafos\n\n`;
+    r += `**Pontos positivos:**\n`;
+    if (wordCount >= 200) r += `- Extensao adequada (${wordCount} palavras)\n`;
+    if (paragraphs.length >= 3) r += `- ${paragraphs.length} paragrafos identificados\n`;
+    if (hasIntro) r += `- Estrutura com introducao\n`;
+    if (hasConc) r += `- Inclui conclusao\n`;
 
-    r += `\n**📋 Por competência:**\n`;
-    r += `- **C1:** Avalie ortografia, concordância e formalidade\n`;
-    r += `- **C2:** O tema central está claro?\n`;
-    r += `- **C3:** Introdução, desenvolvimento e conclusão\n`;
-    r += `- **C4:** Uso de conectivos\n`;
-    r += `- **C5:** Proposta de intervenção?\n\n`;
+    r += `\n**Analise por competencia:**\n`;
+    r += `- **C1:** Verificar ortografia, concordancia e formalidade\n`;
+    r += `- **C2:** O tema central esta claro?\n`;
+    r += `- **C3:** Introducao, desenvolvimento e conclusao estao presentes?\n`;
+    r += `- **C4:** Uso de conectivos variados?\n`;
+    r += `- **C5:** Proposta de intervencao detalhada?\n\n`;
 
-    r += `**💡 Sugestões:**\n`;
-    if (!hasIntro) r += `- Comece com introdução clara com sua tese\n`;
-    if (!hasConc) r += `- Finalize com conclusão e proposta de intervenção\n`;
-    if (wordCount < 200) r += `- Texto curto — desenvolva melhor os argumentos\n`;
-    r += `- Revise pontuação e concordância\n`;
-    r += `- Use conectivos variados (ademais, contudo, portanto)\n\n`;
+    r += `**Recomendacoes:**\n`;
+    if (!hasIntro) r += `- Inicie com uma introducao clara apresentando sua tese\n`;
+    if (!hasConc) r += `- Finalize com conclusao e proposta de intervencao\n`;
+    if (wordCount < 200) r += `- O texto esta curto. Desenvolva melhor os argumentos\n`;
+    r += `- Revise pontuacao e concordancia\n`;
+    r += `- Utilize conectivos variados (ademais, contudo, portanto)\n\n`;
 
-    r += `**👉 Próximos passos:**\n1️⃣ Corrigir completo — notas C1-C5\n2️⃣ Parte específica — introdução, desenvolvimento ou conclusão\n3️⃣ Ver competências — entender C1, C2, C3, C4 ou C5`;
+    r += `**Proximos passos:**\n1. Correcao completa com notas C1-C5\n2. Analise de parte especifica (introducao, desenvolvimento ou conclusao)\n3. Explicacao detalhada de uma competencia`; 
     return r;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // FALLBACK: TEMA ALEATÓRIO
+  // FALLBACK: TEMA ALEATORIO
   // ════════════════════════════════════════════════════════════════════════════
 
   generateRandomTheme() {
     const temas = [
-      { tema: 'Os desafios da saúde pública no Brasil pós-pandemia', area: 'Saúde' },
-      { tema: 'A importância da educação digital na formação de jovens brasileiros', area: 'Educação' },
-      { tema: 'O papel das redes sociais na formação da opinião pública', area: 'Comunicação' },
-      { tema: 'Desafios para a preservação ambiental no século XXI', area: 'Meio Ambiente' },
-      { tema: 'A desigualdade de gênero no mercado de trabalho brasileiro', area: 'Sociedade' },
-      { tema: 'Os impactos da inteligência artificial no futuro do trabalho', area: 'Tecnologia' },
-      { tema: 'A crise de refugiados e a responsabilidade humanitária', area: 'Direitos Humanos' },
-      { tema: 'O envelhecimento populacional e as políticas públicas de assistência', area: 'Previdência' },
-      { tema: 'A segurança pública como direito fundamental do cidadão', area: 'Segurança' },
+      { tema: 'Os desafios da saude publica no Brasil pos-pandemia', area: 'Saude' },
+      { tema: 'A importancia da educacao digital na formacao de jovens brasileiros', area: 'Educacao' },
+      { tema: 'O papel das redes sociais na formacao da opiniao publica', area: 'Comunicacao' },
+      { tema: 'Desafios para a preservacao ambiental no seculo XXI', area: 'Meio Ambiente' },
+      { tema: 'A desigualdade de genero no mercado de trabalho brasileiro', area: 'Sociedade' },
+      { tema: 'Os impactos da inteligencia artificial no futuro do trabalho', area: 'Tecnologia' },
+      { tema: 'A crise de refugiados e a responsabilidade humanitaria', area: 'Direitos Humanos' },
+      { tema: 'O envelhecimento populacional e as politicas publicas de assistencia', area: 'Previdencia' },
+      { tema: 'A seguranca publica como direito fundamental do cidadao', area: 'Seguranca' },
       { tema: 'Os desafios da mobilidade urbana nas grandes cidades', area: 'Urbanismo' },
-      { tema: 'A valorização da cultura brasileira como identidade nacional', area: 'Cultura' },
-      { tema: 'Os impactos do trabalho remoto na saúde mental dos trabalhadores', area: 'Trabalho' }
+      { tema: 'A valorizacao da cultura brasileira como identidade nacional', area: 'Cultura' },
+      { tema: 'Os impactos do trabalho remoto na saude mental dos trabalhadores', area: 'Trabalho' }
     ];
     const s = temas[Math.floor(Math.random() * temas.length)];
-    return `🎯 **Tema de Redação — ${s.area}**\n\n**"${s.tema}"**\n\n📝 **Instruções:**\nRedação dissertativa-argumentativa de 20 a 30 linhas.\n\n✅ **Estrutura:**\n1. **Introdução** — Tese clara\n2. **Desenvolvimento (2 parágrafos)** — Argumentos com repertório\n3. **Conclusão** — Proposta de intervenção\n\n✅ **Requisitos:**\n- C1: Domínio da norma culta\n- C2: Compreensão do tema\n- C3: Organização das ideias\n- C4: Coesão textual\n- C5: Proposta de intervenção\n\n**👉 Quando terminar, cole aqui que eu corrijo!** 📝`;
+    return `**Tema de Redacao - ${s.area}**\n\n"${s.tema}"\n\n**Instrucoes:**\nRedacao dissertativa-argumentativa de 20 a 30 linhas.\n\n**Estrutura esperada:**\n1. Introducao com tese clara\n2. Desenvolvimento (2 paragrafos) com argumentos e repertorio\n3. Conclusao com proposta de intervencao\n\n**Criterios de correcao:**\n- C1: Dominio da norma culta\n- C2: Compreensao do tema\n- C3: Organizacao das ideias\n- C4: Coesao textual\n- C5: Proposta de intervencao\n\n**Quando terminar, cole aqui para correcao.**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // FALLBACK: COMPETÊNCIAS
+  // FALLBACK: COMPETENCIAS
   // ════════════════════════════════════════════════════════════════════════════
 
   getCompetenciesResponse(msg) {
     const text = msg.toLowerCase();
     for (const [key, comp] of Object.entries(COMPETENCIES)) {
-      if (text.includes(key) || text.includes(`competência ${key.replace('c', '')}`)) {
-        return `${comp.icon} **${comp.label}**\n\n${comp.description}\n\n🔍 **O que avaliamos:** ${comp.whatWeCheck}\n\n💡 **Dicas:**\n${comp.tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\n**👉 Quer ver outra competência?**`;
+      if (text.includes(key) || text.includes(`competencia ${key.replace('c', '')}`)) {
+        return `**${comp.label}**\n\n${comp.description}\n\n**O que avaliamos:** ${comp.whatWeCheck}\n\n**Dicas do Professor:**\n${comp.tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\n**Deseja ver outra competencia?**`;
       }
     }
-    let r = `📋 **Competências C1 a C5**\n\nRedação vale 1000 pontos, 5 competências de 200 cada:\n\n`;
+    let r = `**Competencias C1 a C5**\n\nRedacao vale 1000 pontos, distribuidos em 5 competencias de 200 cada:\n\n`;
     for (const comp of Object.values(COMPETENCIES)) {
-      r += `${comp.icon} **${comp.label.split(' — ')[0]}** — ${comp.description.split('.')[0]}.\n`;
+      r += `**${comp.label.split(' — ')[0]}** - ${comp.description.split('.')[0]}.\n`;
     }
-    r += `\n💡 **Dica:** C1 e C5 são onde a maioria perde mais pontos. Foco nelas!\n\n**👉 Digite o número (C1, C2, C3, C4 ou C5) para detalhes!**`;
+    r += `\n**Observacao:** C1 e C5 sao as competencias onde a maioria dos candidatos perde mais pontos.\n\n**Digite o numero (C1, C2, C3, C4 ou C5) para detalhes.**`;
     return r;
   }
 
@@ -911,27 +908,28 @@ class CoachRedbot {
   // ════════════════════════════════════════════════════════════════════════════
 
   getExamplesResponse() {
-    let r = `🏆 **Exemplos de Trechos Nota 1000**\n\n`;
+    let r = `**Exemplos de Trechos Nota 1000**\n\n`;
     for (const ex of EXEMPLOS_NOTA_1000) {
-      r += `**Tema:** ${ex.tema}\n_"${ex.trecho}"_\n⭐ **Destaque:** ${ex.destaque}\n\n`;
+      r += `**Tema:** ${ex.tema}\n_"${ex.trecho}"_\n**Destaque:** ${ex.destaque}\n\n`;
     }
-    r += `💡 **Padrão nota 1000:**\n1. **Repertório legitimado** (autores, dados, filmes)\n2. **Conectivos sofisticados** (ademais, outrossim, por conseguinte)\n3. **Tese clara** na introdução\n4. **Proposta detalhada** com agente, ação, meio e finalidade\n\n**👉 Quer treinar? Peça "novo tema"!** 🎯`;
+    r += `**Padrao nota 1000:**\n1. **Repertorio legitimado** (autores, dados, filmes)\n2. **Conectivos sofisticados** (ademais, outrossim, por conseguinte)\n3. **Tese clara** na introducao\n4. **Proposta detalhada** com agente, acao, meio e finalidade\n\n**Deseja treinar? Solicite um "novo tema".**`;
     return r;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // FALLBACK: REPERTÓRIO
+  // FALLBACK: REPERTORIO
   // ════════════════════════════════════════════════════════════════════════════
 
   getRepertoryResponse() {
-    return `📚 **Repertórios Socioculturais**\n\n` +
-      `**📖 Autores:**\n` +
-      `- Pierre Bourdieu — Capital cultural\n- Michel Foucault — Poder disciplinar\n- Zygmunt Bauman — Modernidade líquida\n- Hannah Arendt — Banalidade do mal\n- Paulo Freire — Educação libertadora\n- Milton Santos — Globalização\n\n` +
-      `**📊 Instituições:**\n` +
-      `- IBGE — Dados demográficos e educacionais\n- IPEA — Políticas públicas\n- ONU — ODS e direitos humanos\n- OMS — Saúde pública\n\n` +
-      `**🎬 Filmes:**\n` +
-      `- "Que horas ela volta?" — Desigualdade social\n- "Ilha das Flores" — Dignidade humana\n- "Democracia em Vertigem" — Crise política\n\n` +
-      `💡 Use UM repertório bem desenvolvido, não vários superficiais.\n\n**👉 Quer um repertório para um tema específico?**`;
+    return `**Repertorios Socioculturais**\n\n` +
+      `**Autores:**\n` +
+      `- Pierre Bourdieu - Capital cultural\n- Michel Foucault - Poder disciplinar\n- Zygmunt Bauman - Modernidade liquida\n- Hannah Arendt - Banalidade do mal\n- Paulo Freire - Educacao libertadora\n- Milton Santos - Globalizacao\n\n` +
+      `**Instituicoes:**\n` +
+      `- IBGE - Dados demograficos e educacionais\n- IPEA - Politicas publicas\n- ONU - ODS e direitos humanos\n- OMS - Saude publica\n\n` +
+      `**Filmes:**\n` +
+      `- "Que horas ela volta?" - Desigualdade social\n- "Ilha das Flores" - Dignidade humana\n- "Democracia em Vertigem" - Crise politica\n\n` +
+      `**Recomendacao:** Utilize UM repertorio bem desenvolvido, em vez de varios superficiais.\n\n` +
+      `**Deseja um repertorio para um tema especifico?**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -940,27 +938,27 @@ class CoachRedbot {
 
   getProgressResponse() {
     const profile = this.getProfileData();
-    return `📊 **Meu Progresso em Redação**\n\n` +
-      `📝 **Redações corrigidas:** ${profile.totalEssays}\n` +
-      `⭐ **Última nota:** ${this.lastScores ? this.lastScores.media + '/1000' : 'Nenhuma ainda'}\n` +
-      (this.lastScores ? `\n📋 **Competências:**\n${Object.entries(this.lastScores.comp).map(([k, v]) => `- ${k.toUpperCase()}: ${v}/200`).join('\n')}` : '') +
-      `\n\n💡 **Segredo nota 1000:**\n1️⃣ 1 redação por semana\n2️⃣ Revisar erros anteriores\n3️⃣ Acumular repertório\n4️⃣ Treinar conclusão\n\n**👉 Quer começar? Peça "novo tema"!** 🎯`;
+    return `**Meu Progresso em Redacao**\n\n` +
+      `**Redacoes corrigidas:** ${profile.totalEssays}\n` +
+      `**Ultima nota:** ${this.lastScores ? this.lastScores.media + '/1000' : 'Nenhuma ainda'}\n` +
+      (this.lastScores ? `\n**Competencias:**\n${Object.entries(this.lastScores.comp).map(([k, v]) => `- ${k.toUpperCase()}: ${v}/200`).join('\n')}` : '') +
+      `\n\n**Recomendacao para nota 1000:**\n1. Pratique 1 redacao por semana\n2. Revise os erros das correcoes anteriores\n3. Acumule repertorio sociocultural diversificado\n4. Treine especialmente a conclusao (C5)\n\n**Deseja comecar? Solicite um "novo tema".**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // UTILITÁRIOS
+  // UTILITARIOS
   // ════════════════════════════════════════════════════════════════════════════
 
   getStudentData() {
     try {
       const twin = this.modules.digitalTwin;
-      if (!twin) return 'Nenhum dado disponível ainda.';
+      if (!twin) return 'Nenhum dado disponivel ainda.';
       const profile = twin.getProfile();
-      if (!profile) return 'Perfil não iniciado.';
+      if (!profile) return 'Perfil nao iniciado.';
       const perf = profile.performance || {};
       const essays = perf.essays || { total: 0 };
-      return `DADOS DO ALUNO:\n- Total de questões: ${perf.questions?.total || 0}\n- Acertos: ${perf.questions?.correct || 0}\n- Redações: ${essays.total || 0}\n- Última nota: ${this.lastScores ? this.lastScores.media : 'N/A'}`;
-    } catch { return 'Dados indisponíveis.'; }
+      return `DADOS DO ALUNO:\n- Total de questoes: ${perf.questions?.total || 0}\n- Acertos: ${perf.questions?.correct || 0}\n- Redacoes: ${essays.total || 0}\n- Ultima nota: ${this.lastScores ? this.lastScores.media : 'N/A'}`;
+    } catch { return 'Dados indisponiveis.'; }
   }
 
   getProfileData() {
@@ -974,7 +972,6 @@ class CoachRedbot {
   }
 
   extractScoresFromReply(reply) {
-    // Aceita formatos: "C1: 7", "C1 (label): 7", "C1 = 120" etc.
     const regex = /c([1-5])(?:[^:]*?)\s*[:=]\s*(\d{1,3})/gi;
     let match;
     const scores = {};
@@ -982,7 +979,6 @@ class CoachRedbot {
       scores[`c${match[1]}`] = parseInt(match[2]);
     }
     if (Object.keys(scores).length >= 3) {
-      // Normaliza escala 0-10 → 0-200 (modelo sempre usa 0-10)
       const allLe10 = Object.values(scores).every(v => v <= 10);
       const comp = {};
       let total = 0;
@@ -992,7 +988,6 @@ class CoachRedbot {
         total += normalized;
       }
       this.lastScores = { comp, media: Math.round(total) };
-      // saveSession() é chamado pelo caller em processMessage
     }
   }
 
@@ -1039,17 +1034,15 @@ class CoachRedbot {
         element.innerHTML = formatted;
         return;
       }
-      // Renderiza até 8 caracteres por frame para reduzir reflows
       const batchSize = 8;
       for (let j = 0; j < batchSize && i < chars.length; j++, i++) {
-        // avança i sem precisar de buffer — usa formatted.slice
+        // avanca i
       }
       element.innerHTML = formatted.slice(0, i) + '<span class="redbot-cursor">|</span>';
 
-      // Determina delay baseado no próximo caractere
       const nextChar = i < chars.length ? chars[i] : '';
       let delay = REDBOT_CONFIG.typingDelay;
-      if (nextChar.match(/[.,!?;\n]/)) delay = 35;
+      if (nextChar.match(/[.,!?;\\n]/)) delay = 35;
       else if (nextChar === ' ') delay = 10;
 
       setTimeout(typeNextBatch, delay);
@@ -1060,7 +1053,6 @@ class CoachRedbot {
 
   formatMessage(text) {
     if (!text) return '';
-    // Sanitiza HTML para prevenir XSS
     let safe = text.replace(/[<>]/g, function(m) { return m === '<' ? '&lt;' : '&gt;'; });
     let html = safe
       .replace(/^### (.+)$/gm, '<h3 class="redbot-h3">$1</h3>')
@@ -1138,25 +1130,25 @@ class CoachRedbot {
   sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // RELATÓRIO
+  // RELATORIO
   // ════════════════════════════════════════════════════════════════════════════
 
   generateReport() {
-    let r = '=== 🤖 RELATÓRIO COACH REDBOT ===\n\n';
+    let r = '=== RELATORIO PROFESSOR DE REDACAO ===\n\n';
     r += `Mensagens: ${this.conversationHistory.length}\n`;
-    r += `Última nota: ${this.lastScores ? this.lastScores.media + '/1000' : 'N/A'}\n\n`;
-    r += '=== ÚLTIMAS ===\n';
+    r += `Ultima nota: ${this.lastScores ? this.lastScores.media + '/1000' : 'N/A'}\n\n`;
+    r += '=== ULTIMAS INTERACOES ===\n';
     const recent = this.conversationHistory.slice(-6);
     for (let i = 0; i < recent.length; i += 2) {
-      if (recent[i]) r += `\n👤: ${recent[i].content.slice(0, 80)}...\n`;
-      if (recent[i + 1]) r += `🤖: ${recent[i + 1].content.slice(0, 80)}...\n`;
+      if (recent[i]) r += `\nAluno: ${recent[i].content.slice(0, 80)}...\n`;
+      if (recent[i + 1]) r += `Professor: ${recent[i + 1].content.slice(0, 80)}...\n`;
     }
     return r;
   }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// INSTÂNCIA GLOBAL
+// INSTANCIA GLOBAL
 // ════════════════════════════════════════════════════════════════════════════
 
 let coachRedbot = null;
