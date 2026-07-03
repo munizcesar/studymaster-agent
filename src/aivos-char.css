@@ -1,0 +1,520 @@
+/**
+ * ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ * ┃     STUDYMASTER — AIVOS CHARACTER SYSTEM (Estilos)                 ┃
+ * ┃                                                                     ┃
+ * ┃  Componentes visuais do personagem AIVOS para uso em toda          ┃
+ * ┃  a plataforma. Requer apenas as variáveis CSS do design system     ┃
+ * ┃  existente (--color-*, --grad-*, --space-*, --radius-*).           ┃
+ * ┃                                                                     ┃
+ * ┃  USO: Adicione <link rel="stylesheet" href="src/aivos-char.css">   ┃
+ * ┃  no <head> para ativar.                                            ┃
+ * ┃                                                                     ┃
+ * ┃  Este arquivo é ADITIVO — não modifica nada existente.             ┃
+ * ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   AIVOS AVATAR
+   ───
+   Componente base: representa o personagem AIVOS em diferentes estados.
+   Classes: .aivos-avatar, .aivos-avatar--{size}, .aivos-avatar--{state}
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Container ── */
+.aivos-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, 
+    oklch(from var(--color-primary) l c h / 0.1) 0%, 
+    oklch(from var(--color-primary-mid) l c h / 0.06) 100%);
+  overflow: hidden;
+  transition: all 0.3s var(--bounce-ease);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.aivos-avatar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 100% 80% at 50% 30%, 
+    oklch(from var(--color-primary) l c h / 0.08) 0%, 
+    transparent 70%);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* ── Canvas do avatar (SVG inserido dinamicamente) ── */
+.aivos-avatar-svg {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Tamanhos ── */
+.aivos-avatar--sm {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+}
+.aivos-avatar--md {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+}
+.aivos-avatar--lg {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+}
+.aivos-avatar--xl {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-xl);
+}
+
+/* ── Estados (olhos, brilho do visor) ── */
+.aivos-avatar--idle .aivos-eye {
+  animation: aivosEyeIdle 3s ease-in-out infinite;
+}
+.aivos-avatar--thinking .aivos-eye {
+  animation: aivosEyeThinking 1.2s ease-in-out infinite;
+}
+.aivos-avatar--teaching .aivos-eye {
+  animation: aivosEyeTeaching 2s ease-in-out infinite;
+}
+.aivos-avatar--celebrating .aivos-eye {
+  animation: aivosEyeCelebrate 0.6s ease-in-out 3;
+}
+.aivos-avatar--warning .aivos-eye {
+  fill: var(--color-error);
+  animation: aivosEyeWarning 0.8s ease-in-out infinite;
+}
+
+/* ── Brilho do visor ── */
+.aivos-visor-glow {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.aivos-avatar--thinking .aivos-visor-glow,
+.aivos-avatar--teaching .aivos-visor-glow {
+  opacity: 0.6;
+  animation: aivosGlowPulse 1.8s ease-in-out infinite;
+}
+.aivos-avatar--celebrating .aivos-visor-glow {
+  opacity: 0.9;
+}
+
+/* ── Animações dos olhos ── */
+@keyframes aivosEyeIdle {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1); }
+  55% { transform: scaleY(0.15); }
+  60% { transform: scaleY(1); }
+}
+
+@keyframes aivosEyeThinking {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+}
+
+@keyframes aivosEyeTeaching {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+@keyframes aivosEyeCelebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+@keyframes aivosEyeWarning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── Pulso de luz do visor ── */
+@keyframes aivosGlowPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   AIVOS COACH
+   ───
+   Card com avatar + balão de fala + ação opcional.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivos-coach {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s var(--bounce-ease);
+  animation: aivosCoachIn 0.35s var(--bounce-ease) forwards;
+  max-width: 480px;
+}
+
+.aivos-coach:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes aivosCoachIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.aivos-coach-avatar {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aivos-coach-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aivos-coach-name {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.aivos-coach-message {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.aivos-coach-action {
+  margin-top: var(--space-1);
+}
+
+.aivos-coach-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--grad-brand);
+  color: white;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s var(--bounce-ease);
+  font-family: inherit;
+}
+
+.aivos-coach-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+.aivos-coach-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.aivos-coach-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   AIVOS BUBBLE
+   ───
+   Notificação flutuante com avatar mini + texto.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivos-bubble {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  animation: aivosBubbleIn 0.35s var(--bounce-ease) forwards;
+  max-width: 360px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aivos-bubble:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px oklch(from var(--color-primary) l c h / 0.15);
+}
+
+@keyframes aivosBubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.aivos-bubble--info {
+  border-left: 3px solid var(--color-primary);
+}
+.aivos-bubble--success {
+  border-left: 3px solid var(--color-success);
+}
+.aivos-bubble--warning {
+  border-left: 3px solid var(--color-warning);
+}
+.aivos-bubble--error {
+  border-left: 3px solid var(--color-error);
+}
+
+.aivos-bubble-avatar {
+  flex-shrink: 0;
+}
+
+.aivos-bubble-text {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+}
+
+.aivos-bubble-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.aivos-bubble-close:hover {
+  background: var(--color-divider);
+  color: var(--color-text);
+}
+
+.aivos-bubble-close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.aivos-bubble--out {
+  animation: aivosBubbleOut 0.3s ease forwards;
+}
+
+@keyframes aivosBubbleOut {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   AIVOS CELEBRATION
+   ───
+   Card de celebração com avatar + mensagem + confetti opcional.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivos-celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background: linear-gradient(135deg, 
+    oklch(from var(--color-primary) l c h / 0.06) 0%, 
+    oklch(from var(--color-primary-mid) l c h / 0.03) 100%);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  animation: aivosCelebIn 0.5s var(--bounce-ease) forwards;
+  max-width: 400px;
+  position: relative;
+  overflow: hidden;
+}
+
+.aivos-celebration::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 60% at 50% 0%, 
+    oklch(from var(--color-primary) l c h / 0.1) 0%, 
+    transparent 70%);
+  pointer-events: none;
+}
+
+@keyframes aivosCelebIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.aivos-celebration-avatar {
+  position: relative;
+  z-index: 1;
+  animation: aivosCelebAvatar 0.6s var(--bounce-ease) 0.2s both;
+}
+
+@keyframes aivosCelebAvatar {
+  0% { transform: scale(0.5) rotate(-10deg); }
+  60% { transform: scale(1.15) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.aivos-celebration-title {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.aivos-celebration-sub {
+  position: relative;
+  z-index: 1;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.aivos-celebration-score {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.aivos-celebration-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--grad-brand);
+  color: white;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s var(--bounce-ease);
+  font-family: inherit;
+}
+
+.aivos-celebration-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+.aivos-celebration-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ACESSIBILIDADE — Prefers Reduced Motion
+   ════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .aivos-avatar,
+  .aivos-avatar--idle .aivos-eye,
+  .aivos-avatar--thinking .aivos-eye,
+  .aivos-avatar--teaching .aivos-eye,
+  .aivos-avatar--celebrating .aivos-eye,
+  .aivos-avatar--warning .aivos-eye,
+  .aivos-visor-glow,
+  .aivos-coach,
+  .aivos-bubble,
+  .aivos-celebration,
+  .aivos-celebration-avatar {
+    animation: none !important;
+    transition: none !important;
+  }
+  .aivos-visor-glow {
+    opacity: 0.4 !important;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVO
+   ════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .aivos-coach {
+    padding: var(--space-3);
+    max-width: 100%;
+  }
+  .aivos-bubble {
+    bottom: var(--space-4);
+    right: var(--space-4);
+    left: var(--space-4);
+    max-width: none;
+  }
+  .aivos-celebration {
+    padding: var(--space-6);
+  }
+  .aivos-avatar--xl {
+    width: 72px;
+    height: 72px;
+  }
+}

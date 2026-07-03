@@ -7613,6 +7613,7 @@ async function callWorkerAndRender() {
     
     const data = await res.json();
     if (!res.ok) throw new Error(data.userMessage || `Erro HTTP ${res.status}`);
+    if (data.success === false) throw new Error(data.userMessage || 'O worker não conseguiu processar a requisição. Verifique os filtros e tente novamente.');
     if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
     state.generatedQuestions = data.questions;
     state.answered = 0; state.correct = 0;
@@ -7639,6 +7640,7 @@ async function callWorkerAndRender() {
 function normalizeErrorMessage(raw) {
   if (!raw) return 'Algo inesperado aconteceu. Tente novamente em instantes.';
   const msg = raw.toString();
+  if (msg.includes('MISSING_FILTER')) return 'Selecione uma disciplina nos filtros antes de gerar questões.';
   if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
     return 'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.';
   }
@@ -7659,7 +7661,7 @@ function normalizeErrorMessage(raw) {
 
 function showError(msg) {
   const normalized = normalizeErrorMessage(msg);
-  console.error('AIVOS error:', msg);
+  console.error('AIVOS error:', typeof msg === 'object' ? JSON.stringify(msg) : msg);
   
   // Show integrated error state
   const errorState = document.getElementById('error-state');
