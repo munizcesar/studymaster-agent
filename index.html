@@ -7724,16 +7724,48 @@ function recordSessionAnswer(idx, selectedKey, isCorrect) {
 // Estado da navegação de questão única
 let qNavState = { currentIdx: 0, selected: [], results: [] };
 
+
+
+/**
+ * Valida o schema de uma questao individual antes de renderizar.
+ * Previne quebra silenciosa da UI com questoes mal formatadas.
+ */
+function validateQuestionSchema(q) {
+  if (!q || typeof q !== 'object') return false;
+  if (!q.statement || typeof q.statement !== 'string') return false;
+  if (!q.options || !Array.isArray(q.options) || q.options.length < 2) return false;
+  if (!q.correctAnswer || typeof q.correctAnswer !== 'string') return false;
+  if (!q.explanation || typeof q.explanation !== 'string') return false;
+  for (const opt of q.options) {
+    if (!opt.key || !opt.text) return false;
+  }
+  return true;
+}
 function renderQuestions(questions) {
   const container = document.getElementById('questions-container');
   const chips     = document.getElementById('summary-chips');
   const sessionResult = document.getElementById('session-result');
   const retryWrongBtn = document.getElementById('retry-wrong-btn');
 
+  // Validar schema de cada questao - remover invalidas para evitar quebra silenciosa
+  const validQuestions = questions.filter(validateQuestionSchema);
+  const skipped = questions.length - validQuestions.length;
+  if (skipped > 0) {
+    console.warn('[AIVOS] ' + skipped + ' questao(oes) ignorada(s) por schema invalido');
+  }
+  if (validQuestions.length === 0) {
+    showError('Nenhuma questao valida foi recebida. Tente gerar novamente.');
+    container.classList.remove('visible');
+    return;
+  }
+
+  // Usar apenas questoes validas
+  state.generatedQuestions = validQuestions;
+
   qNavState = {
     currentIdx: 0,
-    selected: new Array(questions.length).fill(null),
-    results:  new Array(questions.length).fill(null),
+    selected: new Array(validQuestions.length).fill(null),
+    results:  new Array(validQuestions.length).fill(null),
   };
   state.answerResults = qNavState.results;
   state.answered = 0; state.correct = 0;
@@ -7745,19 +7777,24 @@ function renderQuestions(questions) {
   const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
     <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
-    <div class="chip">${questions.length} Questões</div>
+    <div class="chip">${validQuestions.length} Questões</div>
     <div class="chip">${state.alternativas} alternativas</div>
     <div class="chip">${idiomaLabel[state.idioma] || state.idioma}</div>
     <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
     ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip"><i data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
 
   retryWrongBtn.onclick = () => {
-    const wrongQuestions = state.generatedQuestions.filter((_, idx) => qNavState.results[idx] === false);
-    if (!wrongQuestions.length) return;
-    state.generatedQuestions = wrongQuestions;
-    state.answered = 0; state.correct = 0;
-    state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
-    renderQuestions(wrongQuestions);
+    try {
+      const wrongQuestions = state.generatedQuestions.filter((_, idx) => qNavState.results[idx] === false);
+      if (!wrongQuestions.length) return;
+      state.generatedQuestions = wrongQuestions;
+      state.answered = 0; state.correct = 0;
+      state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
+      renderQuestions(wrongQuestions);
+    } catch (err) {
+      console.error('[AIVOS] Erro no retry:', err);
+      showError('Erro ao re-renderizar questoes. Tente novamente.');
+    }
   };
 
   container.classList.add('visible');
@@ -7765,9 +7802,9 @@ function renderQuestions(questions) {
   // Detectar viewport: desktop (>= 1024px) ou mobile (< 1024px)
   const isDesktop = window.innerWidth >= 1024;
   if (isDesktop) {
-    renderAllQuestionsDesktop(questions);
+    renderAllQuestionsDesktop(validQuestions);
   } else {
-    renderSingleQuestion(questions, 0);
+    renderSingleQuestion(validQuestions, 0);
   }
   
   lucide.createIcons();
@@ -7839,14 +7876,14 @@ function renderAllQuestionsDesktop(questions) {
     return `
       <div class="question-card" data-question-idx="${idx}">
         <div class="question-number">Questão ${idx + 1} de ${total}</div>
-        <div class="question-statement">${q.statement}</div>
+        <div class="question-statement">${q.statement || ''}</div>
         <div class="options-list" id="qn-opts-${idx}">
           ${(q.options || []).map((opt, oIdx) => {
             const letter = opt.key;
             let cls = '';
             if (hasAnswered) {
-              if (opt.key === q.correctAnswer) cls = ' correct';
-              else if (opt.key === selectedKey && opt.key !== q.correctAnswer) cls = ' wrong';
+              if (opt.key === (q.correctAnswer || '')) cls = ' correct';
+              else if (opt.key === selectedKey && opt.key !== (q.correctAnswer || '')) cls = ' wrong';
             } else if (selectedKey === opt.key) {
               cls = ' selected';
             }
@@ -7858,7 +7895,7 @@ function renderAllQuestionsDesktop(questions) {
         <button class="q-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="q-resolver-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
         ${renderTrustBadge(q)}
         <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp-${idx}">
-          <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+          <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
           ${renderQuestionProof(q)}
         </div>
       </div>`;
@@ -7943,7 +7980,7 @@ function renderSingleQuestion(questions, idx) {
   list.innerHTML = `
     <div class="question-card">
       <div class="question-number">Questão ${idx + 1} de ${total}</div>
-      <div class="question-statement">${q.statement}</div>
+      <div class="question-statement">${q.statement || ''}</div>
       <div class="options-list" id="qn-opts">
         ${(q.options || []).map((opt, oIdx) => {
           const letter = opt.key;
@@ -7961,7 +7998,7 @@ function renderSingleQuestion(questions, idx) {
       </div>
       <button class="q-resolver-btn${hasAnswered || !selectedKey ? '' : ''} ${hasAnswered ? 'hidden' : ''}" id="q-resolver" ${selectedKey ? '' : 'disabled'}>Resolver</button>
       <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp">
-        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
         ${renderQuestionProof(q)}
       </div>
       <div class="q-nav-bar">
