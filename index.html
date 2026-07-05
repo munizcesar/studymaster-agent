@@ -1187,6 +1187,45 @@
     }
 
     /* Free material workspace */
+    .free-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+      width: 100%;
+    }
+    .free-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--color-divider);
+    }
+    .free-header .step-title {
+      margin: 0;
+      font-size: var(--text-xl);
+      font-weight: 800;
+      background: var(--grad-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .free-header .step-subtitle {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      line-height: 1.6;
+    }
+    .free-status-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-offset) 100%);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      transition: all var(--transition);
+    }
+    /* Free material workspace */
     .free-workspace {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 280px;
@@ -6507,6 +6546,145 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 const MAX_EXTRACTED_CHARS = 120000;
 const scriptPromises = {};
+
+function getFileExtension(fileName = '') {
+  const parts = fileName.toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+}
+
+function loadScriptOnce(urls, id, libLabel = 'biblioteca de extração') {
+  const candidates = Array.isArray(urls) ? urls : [urls];
+  if (scriptPromises[id]) return scriptPromises[id];
+  scriptPromises[id] = new Promise((resolve, reject) => {
+    if (document.getElementById(id)) return resolve();
+    let idx = 0;
+    const tryNext = () => {
+      const url = candidates[idx++];
+      if (!url) return reject(new Error(`Falha ao carregar ${libLabel}. Verifique sua conexão e tente novamente.`));
+      const script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        script.remove();
+        tryNext();
+      };
+      document.head.appendChild(script);
+    };
+    tryNext();
+  });
+  return scriptPromises[id];
+}
+
+async function extractTextFromFile(file, onProgress = () => {}) {
+  const extension = getFileExtension(file.name);
+  const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(extension) || file.type.startsWith('image/');
+
+  if (extension === 'txt' || extension === 'md' || file.type === 'text/plain' || file.type === 'text/markdown') {
+    onProgress({ percent: 45, label: 'Lendo arquivo de texto…' });
+    return file.text();
+  }
+
+  if (extension === 'pdf' || file.type === 'application/pdf') {
+    onProgress({ percent: 20, label: 'Carregando leitor de PDF…' });
+    await loadScriptOnce([
+      'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+    ], 'pdfjs-lib', 'o leitor de PDF');
+    if (!window.pdfjsLib) throw new Error('Leitor de PDF indisponível no momento.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    const bytes = await file.arrayBuffer();
+    let pdf;
+    try {
+      pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+    } catch {
+      pdf = await window.pdfjsLib.getDocument({ data: bytes, disableWorker: true }).promise;
+    }
+    let collected = '';
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+      collected += `${content.items.map(item => item.str).join(' ')}\n`;
+      onProgress({ percent: 20 + Math.round((pageNum / pdf.numPages) * 70), label: 'Extraindo texto do PDF…' });
+    }
+    if (!collected.trim()) {
+      if (!window.Tesseract) {
+        onProgress({ percent: 15, label: 'Carregando OCR para PDF escaneado…', loading: true });
+        await loadScriptOnce([
+          'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
+          'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
+        ], 'tesseract-lib', 'o OCR (Tesseract)');
+      }
+
+      let ocrCollected = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.8 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (!context) continue;
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        onProgress({
+          percent: 20 + Math.round((pageNum / pdf.numPages) * 70),
+          label: `PDF escaneado detectado: OCR da página ${pageNum}/${pdf.numPages}…`,
+          loading: true,
+        });
+
+        const result = await window.Tesseract.recognize(canvas, 'por+eng');
+        ocrCollected += `${result?.data?.text || ''}\n`;
+      }
+
+      if (!ocrCollected.trim()) {
+        throw new Error('Não foi possível extrair texto deste PDF escaneado. Tente enviar imagens com melhor qualidade ou colar o texto manualmente.');
+      }
+      return ocrCollected;
+    }
+    return collected;
+  }
+
+  if (extension === 'docx' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    onProgress({ percent: 20, label: 'Carregando leitor de DOCX…' });
+    await loadScriptOnce([
+      'https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js',
+      'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js',
+    ], 'mammoth-lib', 'o leitor de DOCX');
+    if (!window.mammoth) throw new Error('Leitor de DOCX indisponível no momento.');
+    const buffer = await file.arrayBuffer();
+    const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
+    onProgress({ percent: 90, label: 'Finalizando extração do DOCX…' });
+    return result.value || '';
+  }
+
+  if (isImage) {
+    if (!window.Tesseract) {
+      onProgress({ percent: 15, label: 'Realizando OCR na imagem…', loading: true });
+      await loadScriptOnce([
+        'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js',
+        'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js',
+      ], 'tesseract-lib', 'o OCR (Tesseract)');
+    }
+    onProgress({ percent: 30, label: 'Realizando OCR na imagem…', loading: true });
+    const result = await window.Tesseract.recognize(file, 'por+eng', {
+      logger: message => {
+        if (message?.status === 'recognizing text') {
+          onProgress({
+            percent: 30 + Math.round((message.progress || 0) * 65),
+            label: 'Realizando OCR na imagem…',
+            loading: true,
+          });
+        }
+      },
+    });
+    return result?.data?.text || '';
+  }
+
+  throw new Error('Formato de arquivo não suportado para extração.');
+}
+
 const STORAGE_KEYS = {
   streakDate: 'sm_streak_date',
   streakCount: 'sm_streak_count',
@@ -7269,55 +7447,66 @@ function renderStep2Redacao(container) {
 
 function renderStep2Livre(container) {
   container.innerHTML = `
-    <h2 class="step-title">Transforme qualquer material em treino</h2>
-    <p class="step-subtitle">Cole quanto quiser ou envie um arquivo. O sistema aceita materiais longos e usa esse conteúdo como base para montar as questões.</p>
-    <div class="free-workspace">
-      <div class="free-panel">
-        <div class="free-panel-header">
-          <div>
-            <span class="free-panel-kicker"><i data-lucide="file-text" width="13" height="13"></i> Base do estudo</span>
-            <strong class="free-panel-title">Texto que a IA vai usar como referência</strong>
-            <p class="free-panel-note">Um trecho curto já libera a próxima etapa, e materiais extensos também são aceitos.</p>
-          </div>
-          <span class="free-quality" id="free-quality"><i data-lucide="circle-alert" width="14" height="14"></i> Aguardando material</span>
-        </div>
-        <textarea id="free-txt" class="free-editor" placeholder="Cole aqui edital, resumo, anotações, apostila, questões comentadas ou transcrição de aula/vídeo.">${state.freeText}</textarea>
-        <div class="free-meter">
-          <span id="free-counter"><strong>${state.freeText.length}</strong> caracteres</span>
-          <span id="free-depth">Base inicial</span>
-        </div>
+    <div class="free-container">
+      <div class="free-header">
+        <h2 class="step-title">Estudar com seu Material</h2>
+        <p class="step-subtitle">Cole textos ou envie arquivos para gerar questões inteligentes baseadas no seu conteúdo</p>
       </div>
-      <aside class="free-side" aria-label="Ações e orientações do material livre">
-        <div class="free-action-panel">
-          <div class="free-action-title">
-            <i data-lucide="upload-cloud" width="18" height="18"></i>
-            Enviar material
-          </div>
-          <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
-          <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
-            <div class="free-upload-copy">
-              <i data-lucide="folder-up" width="24" height="24"></i>
-              <strong>Clique ou arraste o arquivo</strong>
-              <p style="color:var(--color-text-muted)">PDF, DOCX, TXT, MD, JPG, PNG ou WEBP</p>
+
+      <div class="free-status-card">
+        <span class="free-quality" id="free-quality"><i data-lucide="circle-alert" width="16" height="16"></i> Aguardando material</span>
+      </div>
+
+      <div class="free-workspace">
+        <div class="free-panel">
+          <div class="free-panel-header">
+            <div>
+              <span class="free-panel-kicker"><i data-lucide="file-text" width="13" height="13"></i> Campo de Texto</span>
+              <strong class="free-panel-title">Cole seu conteúdo aqui</strong>
+              <p class="free-panel-note">Edital, resumo, anotações, apostila ou qualquer material de estudo</p>
             </div>
           </div>
-        </div>
-        <div class="free-help-panel">
-          <strong><i data-lucide="sparkles" width="16" height="16"></i> Para melhores questões</strong>
-          <ul>
-            <li>Use trechos com conceitos, exemplos, regras ou tópicos cobrados.</li>
-            <li>PDFs escaneados e imagens passam por OCR antes de virar texto.</li>
-            <li>Materiais maiores ajudam a gerar perguntas mais contextualizadas.</li>
-          </ul>
+          <textarea id="free-txt" class="free-editor" placeholder="Cole aqui edital, resumo, anotações, apostila, questões comentadas ou transcrição de aula/vídeo.">${state.freeText}</textarea>
+          <div class="free-meter">
+            <span id="free-counter"><strong>${state.freeText.length}</strong> caracteres · <strong>0</strong> palavras</span>
+            <span id="free-depth">Base inicial</span>
+          </div>
         </div>
 
-      </aside>
-    </div>
-    <div class="upload-progress" id="upload-progress">
-      <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
-      <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
-    </div>
-    <p class="upload-error" id="upload-error" aria-live="polite"></p>`;
+        <aside class="free-side" aria-label="Ações e orientações do material livre">
+          <div class="free-action-panel">
+            <div class="free-action-title">
+              <i data-lucide="upload-cloud" width="18" height="18"></i>
+              Enviar arquivo
+            </div>
+            <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: var(--space-3);">Ou arraste um arquivo aqui</p>
+            <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
+            <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
+              <div class="free-upload-copy">
+                <i data-lucide="folder-up" width="28" height="28"></i>
+                <strong>Clique para enviar</strong>
+                <p style="color:var(--color-text-muted); font-size: var(--text-xs);">PDF, DOCX, TXT, MD, JPG, PNG, WEBP</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="free-help-panel">
+            <strong><i data-lucide="sparkles" width="16" height="16"></i> Dicas para melhores questões</strong>
+            <ul>
+              <li><span>Use trechos com conceitos, exemplos e regras</span></li>
+              <li><span>PDFs escaneados passam por OCR automático</span></li>
+              <li><span>Materiais maiores geram questões mais contextualizadas</span></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      <div class="upload-progress" id="upload-progress">
+        <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
+        <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
+      </div>
+      <p class="upload-error" id="upload-error" aria-live="polite"></p>
+    </div>`;
 
   const freeTextArea = document.getElementById('free-txt');
   const freeCounter = document.getElementById('free-counter');
