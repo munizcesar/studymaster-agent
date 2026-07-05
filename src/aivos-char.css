@@ -755,6 +755,175 @@
 
 
 /* ════════════════════════════════════════════════════════════════════════════
+   AIVOS ROUTE PLANNER (M1)
+   ───
+   Plano semanal de estudos personalizado.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Plan Card ── */
+.aivos-plan-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  animation: aivosCoachIn 0.4s var(--bounce-ease) forwards;
+}
+.aivos-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.aivos-plan-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+.aivos-plan-dates {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.aivos-plan-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.aivos-plan-progress-label {
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  font-weight: 600;
+}
+.aivos-plan-progress-pct {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* ── Days ── */
+.aivos-plan-days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+.aivos-plan-day {
+  padding: var(--space-3);
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+.aivos-plan-day:hover {
+  border-color: var(--color-primary);
+}
+.aivos-plan-day--done {
+  border-color: var(--color-success);
+  background: oklch(from var(--color-success) l c h / 0.06);
+}
+.aivos-plan-day--partial {
+  border-color: var(--color-primary);
+}
+.aivos-plan-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+.aivos-plan-day-name {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  text-transform: capitalize;
+}
+.aivos-plan-day-qty {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.aivos-plan-disciplines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.aivos-plan-disc {
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  color: var(--color-text);
+}
+.aivos-plan-disc--critical {
+  background: oklch(from var(--color-error) l c h / 0.12);
+  color: var(--color-error);
+}
+.aivos-plan-disc--mastered {
+  background: oklch(from var(--color-success) l c h / 0.1);
+  color: var(--color-success);
+}
+.aivos-plan-day-stats {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ── Summary ── */
+.aivos-plan-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.aivos-plan-metric {
+  text-align: center;
+  padding: var(--space-2);
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-md);
+}
+
+/* ── Analysis ── */
+.aivos-plan-analysis {
+  padding: var(--space-4);
+  background: oklch(from var(--color-primary) l c h / 0.04);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.12);
+  border-radius: var(--radius-lg);
+}
+.aivos-plan-analysis h4 {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3) 0;
+}
+.aivos-plan-analysis-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-1) 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.aivos-plan-analysis-row strong {
+  color: var(--color-text);
+}
+
+/* ── Plan Responsivo ── */
+@media (max-width: 768px) {
+  .aivos-plan-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .aivos-plan-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    RESPONSIVO
    ════════════════════════════════════════════════════════════════════════════ */
 
@@ -775,5 +944,666 @@
   .aivos-avatar--xl {
     width: 72px;
     height: 72px;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  SPRINT 5 — AIVOS AI TUTOR MODULES                                    */
+/*  M1 Route Planner · M2 Tutor Engine · M3 Review Scheduler             */
+/*  M4 Essay Grader · M5 Mind Mapper · M6 Progress Reporter              */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+/* ── Section titles ── */
+.aivos-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: var(--space-3, 12px) 0 var(--space-2, 8px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Empty state ── */
+.aivos-empty-state {
+  padding: var(--space-4, 16px);
+  text-align: center;
+  color: var(--color-muted, #94a3b8);
+  font-size: 0.85rem;
+  border: 1px dashed var(--color-border, #334155);
+  border-radius: var(--radius-md, 8px);
+  background: rgba(255,255,255,0.02);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  M1 — ROUTE PLANNER                                                    */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+.aivos-plan-card {
+  background: var(--color-card, #1e293b);
+  border: 1px solid var(--color-border, #334155);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-4, 16px);
+  margin-bottom: var(--space-3, 12px);
+}
+
+.aivos-plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3, 12px);
+}
+
+.aivos-plan-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: 0;
+}
+
+.aivos-plan-dates {
+  font-size: 0.75rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-plan-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1, 4px);
+  font-size: 0.8rem;
+}
+
+.aivos-plan-progress-label {
+  color: var(--color-text, #e2e8f0);
+}
+
+.aivos-plan-progress-pct {
+  font-weight: 700;
+  color: var(--color-primary, #3b82f6);
+}
+
+.aivos-plan-days {
+  margin: var(--space-3, 12px) 0;
+}
+
+.aivos-plan-day {
+  padding: var(--space-2, 8px);
+  border-left: 3px solid var(--color-border, #334155);
+  margin-bottom: var(--space-2, 8px);
+  border-radius: 0 var(--radius-sm, 4px) var(--radius-sm, 4px) 0;
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.2s;
+}
+
+.aivos-plan-day:hover {
+  border-left-color: var(--color-primary, #3b82f6);
+}
+
+.aivos-plan-day--done {
+  border-left-color: #22c55e;
+}
+
+.aivos-plan-day--partial {
+  border-left-color: #eab308;
+}
+
+.aivos-plan-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.aivos-plan-day-name {
+  font-weight: 600;
+  color: var(--color-text, #e2e8f0);
+  text-transform: capitalize;
+  font-size: 0.85rem;
+}
+
+.aivos-plan-day-qty {
+  font-size: 0.75rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-plan-disciplines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 4px);
+  margin-top: var(--space-1, 4px);
+}
+
+.aivos-plan-disc {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  background: rgba(59,130,246,0.1);
+  color: #93c5fd;
+}
+
+.aivos-plan-disc--critical {
+  background: rgba(239,68,68,0.15);
+  color: #fca5a5;
+}
+
+.aivos-plan-disc--mastered {
+  background: rgba(34,197,94,0.15);
+  color: #86efac;
+}
+
+.aivos-plan-day-stats {
+  font-size: 0.7rem;
+  color: var(--color-muted, #94a3b8);
+  margin-top: var(--space-1, 4px);
+}
+
+.aivos-plan-summary {
+  display: flex;
+  gap: var(--space-3, 12px);
+  justify-content: space-around;
+  margin: var(--space-3, 12px) 0;
+}
+
+.aivos-plan-metric {
+  text-align: center;
+}
+
+.aivos-plan-analysis {
+  border-top: 1px solid var(--color-border, #334155);
+  padding-top: var(--space-3, 12px);
+  margin-top: var(--space-2, 8px);
+}
+
+.aivos-plan-analysis h4 {
+  font-size: 0.8rem;
+  margin: 0 0 var(--space-2, 8px);
+  color: var(--color-text, #e2e8f0);
+}
+
+.aivos-plan-analysis-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 3px 0;
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-plan-analysis-row strong {
+  color: var(--color-text, #e2e8f0);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  M2 — TUTOR ENGINE (state indicators in coach containers)              */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+.aivos-tutor-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  font-size: 0.75rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-tutor-difficulty {
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: var(--radius-full, 999px);
+  background: rgba(59,130,246,0.15);
+  color: #93c5fd;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.aivos-tutor-accuracy {
+  font-weight: 600;
+  color: var(--color-primary, #3b82f6);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  M3 — REVIEW SCHEDULER                                                 */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+.aivos-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.aivos-review-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--color-border, #334155);
+  border-left: 3px solid #eab308;
+  border-radius: var(--radius-sm, 4px);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.aivos-review-item:hover {
+  border-color: var(--color-primary, #3b82f6);
+  background: rgba(59,130,246,0.05);
+}
+
+.aivos-review-info {
+  flex: 1;
+}
+
+.aivos-review-info strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-text, #e2e8f0);
+}
+
+.aivos-review-meta {
+  font-size: 0.7rem;
+  color: var(--color-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+.aivos-review-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  background: rgba(234,179,8,0.15);
+  color: #fde047;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  M4 — ESSAY GRADER                                                     */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+.aivos-essay-result {
+  background: var(--color-card, #1e293b);
+  border: 1px solid var(--color-border, #334155);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-4, 16px);
+}
+
+.aivos-essay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3, 12px);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aivos-essay-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: 0;
+}
+
+.aivos-essay-topic {
+  font-size: 0.8rem;
+  color: var(--color-primary, #3b82f6);
+  font-weight: 600;
+}
+
+.aivos-essay-offline-badge {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  background: rgba(234,179,8,0.15);
+  color: #fde047;
+  font-weight: 600;
+}
+
+.aivos-essay-scores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-3, 12px);
+}
+
+.aivos-essay-score {}
+
+.aivos-essay-score-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 3px;
+}
+
+.aivos-essay-score-label {
+  font-weight: 600;
+  color: var(--color-text, #e2e8f0);
+}
+
+.aivos-essay-score-value {
+  color: var(--color-muted, #94a3b8);
+  font-weight: 600;
+}
+
+.aivos-essay-score-bar {
+  height: 6px;
+  background: #1e293b;
+  border-radius: var(--radius-full, 999px);
+  overflow: hidden;
+}
+
+.aivos-essay-score-fill {
+  height: 100%;
+  border-radius: var(--radius-full, 999px);
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  transition: width 0.6s ease;
+}
+
+.aivos-essay-total {
+  text-align: right;
+  font-size: 1rem;
+  color: var(--color-text, #e2e8f0);
+  margin-top: var(--space-1, 4px);
+}
+
+.aivos-essay-total strong {
+  color: #22c55e;
+  font-size: 1.1rem;
+}
+
+.aivos-essay-section {
+  margin-top: var(--space-3, 12px);
+  padding: var(--space-2, 8px) 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.aivos-essay-section h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: 0 0 var(--space-1, 4px);
+}
+
+.aivos-essay-section ul,
+.aivos-essay-section ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.8rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-essay-section li {
+  margin-bottom: 3px;
+}
+
+.aivos-essay-section p {
+  font-size: 0.85rem;
+  color: var(--color-muted, #94a3b8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.aivos-essay-strong {
+  border-left: 3px solid #22c55e;
+  padding-left: var(--space-3, 12px);
+}
+
+.aivos-essay-problems {
+  border-left: 3px solid #ef4444;
+  padding-left: var(--space-3, 12px);
+}
+
+.aivos-essay-question {
+  border-left: 3px solid #eab308;
+  padding-left: var(--space-3, 12px);
+  background: rgba(234,179,8,0.05);
+}
+
+.aivos-essay-next {
+  border-left: 3px solid #3b82f6;
+  padding-left: var(--space-3, 12px);
+}
+
+/* Histórico */
+.aivos-essay-history {}
+
+.aivos-essay-history-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: 0 0 var(--space-2, 8px);
+}
+
+.aivos-essay-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.aivos-essay-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2, 8px);
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.aivos-essay-history-item:hover {
+  background: rgba(59,130,246,0.05);
+}
+
+.aivos-essay-history-topic {
+  color: var(--color-text, #e2e8f0);
+  font-weight: 500;
+}
+
+.aivos-essay-history-score {
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.aivos-essay-history-meta {
+  font-size: 0.65rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  M5 — MIND MAPPER                                                      */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+.aivos-mindmap-container {
+  background: var(--color-card, #1e293b);
+  border: 1px solid var(--color-border, #334155);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-3, 12px);
+  overflow-x: auto;
+}
+
+.aivos-mindmap-container svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.aivos-mindmap-container text {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  M6 — PROGRESS REPORTER                                                */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+.aivos-report {
+  background: var(--color-card, #1e293b);
+  border: 1px solid var(--color-border, #334155);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-4, 16px);
+}
+
+.aivos-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3, 12px);
+}
+
+.aivos-report-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: 0;
+}
+
+.aivos-report-date {
+  font-size: 0.75rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-report-metrics {
+  display: flex;
+  gap: var(--space-2, 8px);
+  justify-content: space-around;
+  margin-bottom: var(--space-3, 12px);
+  flex-wrap: wrap;
+}
+
+.aivos-report-metric {
+  text-align: center;
+  min-width: 70px;
+}
+
+.aivos-report-mv {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-primary, #3b82f6);
+}
+
+.aivos-report-ml {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--color-muted, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.aivos-report-section {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text, #e2e8f0);
+  margin: var(--space-3, 12px) 0 var(--space-2, 8px);
+}
+
+.aivos-report-table {
+  overflow-x: auto;
+}
+
+.aivos-report-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.aivos-report-table th,
+.aivos-report-table td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border, #334155);
+}
+
+.aivos-report-table th {
+  background: rgba(255,255,255,0.03);
+  color: var(--color-muted, #94a3b8);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+}
+
+.aivos-report-table td {
+  color: var(--color-text, #e2e8f0);
+}
+
+.aivos-report-table tr:hover td {
+  background: rgba(59,130,246,0.03);
+}
+
+.aivos-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.aivos-report-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2, 8px);
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.8rem;
+}
+
+.aivos-report-item strong {
+  color: var(--color-text, #e2e8f0);
+}
+
+.aivos-report-item span {
+  color: var(--color-muted, #94a3b8);
+}
+
+.aivos-report-footer {
+  margin-top: var(--space-3, 12px);
+  padding-top: var(--space-2, 8px);
+  border-top: 1px solid var(--color-border, #334155);
+  font-size: 0.7rem;
+  color: var(--color-muted, #94a3b8);
+  text-align: center;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  RESPONSIVO — MÓDULOS DA SPRINT 5                                     */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .aivos-plan-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .aivos-plan-summary {
+    flex-direction: column;
+    gap: var(--space-1, 4px);
+  }
+
+  .aivos-plan-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .aivos-dash-metrics {
+    gap: var(--space-1, 4px);
+  }
+
+  .aivos-metric {
+    min-width: 55px;
+  }
+
+  .aivos-report-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .aivos-report-metrics {
+    gap: var(--space-1, 4px);
+  }
+
+  .aivos-report-metric {
+    min-width: 55px;
+  }
+
+  .aivos-essay-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

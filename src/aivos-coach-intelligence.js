@@ -637,20 +637,18 @@
       CoachContextual.hide();
     },
 
-    /** Chamado quando as questões são carregadas */
-    onQuestionsLoaded: function() {
-      // Coach aparece no início da sessão
-      setTimeout(function() {
-        CoachContextual.onSessionStart();
-      }, 500);
-    },
-
     /** Chamado quando o usuário responde uma questão */
     onAnswer: function(isCorrect) {
       if (isCorrect) {
         CoachContextual.onCorrectAnswer();
       } else {
         CoachContextual.onWrongAnswer();
+      }
+      // Integracao com Tutor Engine (M2)
+      if (window.AivosTutorEngine) {
+        try {
+          AivosTutorEngine.processResult(isCorrect);
+        } catch(e) {}
       }
     },
 
@@ -661,6 +659,57 @@
       }
       // Atualizar dashboard
       setTimeout(function() { Dashboard.update(); }, 300);
+      // Integracao com Tutor Engine (M2)
+      if (window.AivosTutorEngine) {
+        try {
+          AivosTutorEngine.endSession();
+        } catch(e) {}
+      }
+      // Agendar revisoes para topicos com erro (M3)
+      if (window.AivosReviewScheduler && wrong > 0) {
+        try {
+          var tracker = window.AivosTracker;
+          if (tracker) {
+            var data = tracker.getAllData();
+            var questions = data.questions || [];
+            if (questions.length > 0) {
+              // Percorrer do fim para o inicio coletando as 'wrong' questoes erradas
+              var collected = 0;
+              var seenTopics = {};
+              for (var qi = questions.length - 1; qi >= 0 && collected < wrong; qi--) {
+                var q = questions[qi];
+                if (q && q.isCorrect === false) {
+                  var topicKey = (q.discipline || 'Geral') + ':' + (q.topic || 'Geral');
+                  if (!seenTopics[topicKey]) {
+                    seenTopics[topicKey] = true;
+                    AivosReviewScheduler.scheduleReview(q.topic || 'Questão', q.discipline || 'Geral');
+                  }
+                  collected++;
+                }
+              }
+            }
+          }
+          // Atualizar container de revisoes
+          var reviewContainer = document.getElementById('aivos-review-content');
+          if (reviewContainer) {
+            reviewContainer.innerHTML = '<h3 class="aivos-section-title">Revisoes Pendentes</h3>' + AivosReviewScheduler.renderPending();
+          }
+        } catch(e) {}
+      }
+    },
+
+    /** Chamado quando as questões são carregadas */
+    onQuestionsLoaded: function() {
+      // Coach aparece no início da sessão
+      setTimeout(function() {
+        CoachContextual.onSessionStart();
+      }, 500);
+      // Integracao com Tutor Engine (M2) - iniciar sessao
+      if (window.AivosTutorEngine) {
+        try {
+          AivosTutorEngine.startSession();
+        } catch(e) {}
+      }
     },
 
     /** Chamado quando o usuário volta ao início */

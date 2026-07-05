@@ -38,6 +38,12 @@
   <script src="src/aivos-memory.js"></script>
   <script src="src/aivos-tracker.js"></script>
   <script src="src/aivos-coach-intelligence.js"></script>
+  <script src="src/aivos-route-planner.js"></script>
+  <script src="src/aivos-tutor-engine.js"></script>
+  <script src="src/aivos-review-scheduler.js"></script>
+  <script src="src/aivos-essay-grader.js"></script>
+  <script src="src/aivos-mind-mapper.js"></script>
+  <script src="src/aivos-progress-reporter.js"></script>
   <style>
     :root {
       /* ── Neutral Scale (warm undertone, hue 250) ── */
@@ -6022,6 +6028,18 @@ pre, code { word-break: break-word; overflow-x: auto; }
             <div id="aivos-coach-container" style="display:none; margin-bottom:var(--space-4);"></div>
             <!-- AIVOS Dashboard Container -->
             <div id="aivos-dashboard-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Route Planner Container -->
+            <div id="aivos-planner-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Tutor Engine Container -->
+            <div id="aivos-tutor-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Review Scheduler Container -->
+            <div id="aivos-review-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Essay Grader Container -->
+            <div id="aivos-essay-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Mind Mapper Container -->
+            <div id="aivos-mindmap-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Progress Reporter Container -->
+            <div id="aivos-report-content" style="margin-bottom:var(--space-4);"></div>
             <div id="questions-list"></div>
             <div id="aivos-celebration-placeholder" style="margin-top:var(--space-4); display:none;"></div>
             <div class="hidden" id="session-result" role="status" aria-live="polite" aria-atomic="true" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
@@ -9189,6 +9207,55 @@ window.addEventListener('resize', () => {
       try {
         AivosCoachIntelligence.init();
       } catch(e) { console.warn('[AIVOS] Coach init error:', e); }
+    }
+    /* Inicializar Route Planner */
+    if (window.AivosRoutePlanner) {
+      try {
+        AivosRoutePlanner.generate();
+      } catch(e) { console.warn('[AIVOS] Planner init error:', e); }
+    }
+    /* Inicializar Tutor Engine */
+    if (window.AivosTutorEngine) {
+      try {
+        AivosTutorEngine.startSession();
+      } catch(e) { console.warn('[AIVOS] Tutor init error:', e); }
+    }
+    /* Renderizar Revisoes Pendentes */
+    if (window.AivosReviewScheduler) {
+      try {
+        var reviewContainer = document.getElementById('aivos-review-content');
+        if (reviewContainer) {
+          reviewContainer.innerHTML = '<h3 class="aivos-section-title">Revisoes Pendentes</h3>' + AivosReviewScheduler.renderPending();
+        }
+      } catch(e) { console.warn('[AIVOS] Review init error:', e); }
+    }
+    /* Renderizar Historico de Redacoes */
+    if (window.AivosEssayGrader) {
+      try {
+        var essayContainer = document.getElementById('aivos-essay-content');
+        if (essayContainer) {
+          essayContainer.innerHTML = AivosEssayGrader.renderHistory();
+        }
+      } catch(e) { console.warn('[AIVOS] Essay init error:', e); }
+    }
+    /* Renderizar Mapa Mental */
+    if (window.AivosMindMapper) {
+      try {
+        var mindContainer = document.getElementById('aivos-mindmap-content');
+        if (mindContainer) {
+          var svg = AivosMindMapper.renderSVG();
+          mindContainer.innerHTML = '<h3 class="aivos-section-title">Mapa Mental</h3>' + svg;
+        }
+      } catch(e) { console.warn('[AIVOS] MindMap init error:', e); }
+    }
+    /* Renderizar Relatorio de Progresso */
+    if (window.AivosProgressReporter) {
+      try {
+        var reportContainer = document.getElementById('aivos-report-content');
+        if (reportContainer) {
+          reportContainer.innerHTML = '<h3 class="aivos-section-title">Relatorio Semanal</h3>' + AivosProgressReporter.generateReport();
+        }
+      } catch(e) { console.warn('[AIVOS] Report init error:', e); }
     }
   })();
   </script>
