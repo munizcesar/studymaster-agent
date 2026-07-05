@@ -37,6 +37,7 @@
   <script src="src/aivos-char-system.js"></script>
   <script src="src/aivos-memory.js"></script>
   <script src="src/aivos-tracker.js"></script>
+  <script src="src/aivos-coach-intelligence.js"></script>
   <style>
     :root {
       /* ── Neutral Scale (warm undertone, hue 250) ── */
@@ -6017,6 +6018,10 @@ pre, code { word-break: break-word; overflow-x: auto; }
               <div class="score-progress"><div class="score-fill" id="score-fill"></div></div>
               <span class="score-value" id="score-value" aria-live="polite" aria-atomic="true">0/<span id="score-total">0</span></span>
             </div>
+            <!-- AIVOS Coach Contextual Container -->
+            <div id="aivos-coach-container" style="display:none; margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Dashboard Container -->
+            <div id="aivos-dashboard-content" style="margin-bottom:var(--space-4);"></div>
             <div id="questions-list"></div>
             <div id="aivos-celebration-placeholder" style="margin-top:var(--space-4); display:none;"></div>
             <div class="hidden" id="session-result" role="status" aria-live="polite" aria-atomic="true" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
@@ -6938,6 +6943,7 @@ function goHome() {
   scrollToTop();
   if (window.setAivosAvatarState) setAivosAvatarState('idle');
   var _pc = document.getElementById('aivos-celebration-placeholder'); if (_pc) { _pc.innerHTML = ''; _pc.style.display = 'none'; }
+  if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onGoHome(); } catch(e) {} }
 }
 
 function syncThemeIcon() {
@@ -7054,6 +7060,7 @@ function init() {
   document.getElementById('session-new-btn').addEventListener('click', () => {
     const sessionCompleted = state.generatedQuestions.length > 0 && state.answered === state.generatedQuestions.length;
     const bancaAtual = state.redacaoState.banca; resetRedacaoSession(); state.redacaoState.banca = bancaAtual;
+    if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onGoHome(); } catch(e) {} }
     goToStep(1);
   });
   window.addEventListener('quizCompleted', handleQuizCompleted);
@@ -7670,6 +7677,7 @@ async function callWorkerAndRender() {
   if (pc) { pc.innerHTML = ''; pc.style.display = 'none'; }
   if (window._celebrationTimer) { clearTimeout(window._celebrationTimer); window._celebrationTimer = null; }
   if (window.setAivosThinking) setAivosThinking();
+  if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onGenerateStart(); } catch(e) {} }
   if (window.AivosMemory) AivosMemory.startSession({ mode: state.mode, discipline: state.subject || state.concurso?.label || 'Geral' });
   const genScreen = document.getElementById('generating-screen');
   const errorState = document.getElementById('error-state');
@@ -7737,6 +7745,7 @@ async function callWorkerAndRender() {
     // Garantir que a tela de erro seja ocultada ao obter sucesso
     if (errorState) errorState.classList.add('hidden');
     renderQuestions(data.questions);
+    if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onQuestionsLoaded(); } catch(e) {} }
     // No mobile, entra automaticamente no Modo Foco
     if (window.innerWidth < 768) {
       setTimeout(openFullscreen, 200);
@@ -7869,6 +7878,10 @@ function recordSessionAnswer(idx, selectedKey, isCorrect) {
         statement: q.statement || ''
       }).catch(err => console.error('[AIVOS 360] Erro ao processar resposta:', err));
     }
+  }
+  // AIVOS Coach Intelligence: trigger on answer
+  if (window.AivosCoachIntelligence) {
+    try { AivosCoachIntelligence.onAnswer(isCorrect); } catch(e) {}
   }
   state.questionStartTime = Date.now();
 }
@@ -8243,6 +8256,12 @@ function showSessionResult() {
       } catch(e) {}
     })();
   }
+
+  // AIVOS Coach Intelligence: session complete
+  if (window.AivosCoachIntelligence) {
+    try { AivosCoachIntelligence.onSessionComplete(total, correct, wrong); } catch(e) {}
+  }
+
   if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
   setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
 
@@ -8413,6 +8432,7 @@ function attachQFQuestionEventListeners(wrap, idx) {
         if (window.AivosMemory) { try { AivosMemory.recordResponse({ questionId: q.id || 'q_' + idx, discipline: state.subject || state.concurso?.label || 'Geral', topic: state.topic || 'Geral', difficulty: state.difficulty || 'medium', isCorrect: correct, timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0 }); AivosMemory.updateSession({ questionsAnswered: 1, correct: correct ? 1 : 0, wrong: correct ? 0 : 1 }); } catch(e) {} }
         state.questionStartTime = Date.now();
         if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(correct);
+        if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onAnswer(correct); } catch(e) {} }
         
         // Verificar se todas as questões foram respondidas
         if (qfState.answered === qfState.questions.length) {
@@ -8594,6 +8614,7 @@ function renderQFQuestion(idx) {
       if (window.AivosMemory) { try { AivosMemory.recordResponse({ questionId: q.id || 'q_' + idx, discipline: state.subject || state.concurso?.label || 'Geral', topic: state.topic || 'Geral', difficulty: state.difficulty || 'medium', isCorrect: correct, timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0 }); AivosMemory.updateSession({ questionsAnswered: 1, correct: correct ? 1 : 0, wrong: correct ? 0 : 1 }); } catch(e) {} }
       state.questionStartTime = Date.now();
       if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(correct);
+      if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onAnswer(correct); } catch(e) {} }
       
       setTimeout(async () => {
         const exp = document.getElementById(`qf-exp-${idx}`);
@@ -8608,6 +8629,7 @@ function renderQFResult() {
   const total  = qfState.questions.length;
   const correct = qfState.correct;
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onSessionComplete(total, correct, total - correct); } catch(e) {} }
   
   let iconHtml = '';
   if (pct >= 80) iconHtml = '<i data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
@@ -9161,6 +9183,13 @@ window.addEventListener('resize', () => {
 
       AivosBubble.show({ text: message, type: bubbleType, autoHide: 8000 });
     }, 2000);
+
+    /* Inicializar Coach Intelligence */
+    if (window.AivosCoachIntelligence) {
+      try {
+        AivosCoachIntelligence.init();
+      } catch(e) { console.warn('[AIVOS] Coach init error:', e); }
+    }
   })();
   </script>
 

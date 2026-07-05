@@ -14,6 +14,265 @@
  */
 
 /* ════════════════════════════════════════════════════════════════════════════
+   AIVOS DASHBOARD & RECOMMENDATIONS
+   ───
+   Dashboard inteligente, recomendacoes e coach contextual.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Coach Container ── */
+#aivos-coach-container {
+  display: none;
+  margin-bottom: var(--space-4);
+}
+#aivos-coach-container .aivos-coach {
+  max-width: 100%;
+}
+
+/* ── Dashboard ── */
+.aivos-dashboard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  animation: aivosCoachIn 0.4s var(--bounce-ease) forwards;
+}
+.aivos-dash-header {
+  margin-bottom: var(--space-4);
+}
+.aivos-dash-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.aivos-dash-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+.aivos-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: white;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  border-radius: var(--radius-full);
+}
+.aivos-xp-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.aivos-xp-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.aivos-xp-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.aivos-xp-fill {
+  height: 100%;
+  background: var(--grad-brand);
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+.aivos-xp-next {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+/* ── Metrics Grid ── */
+.aivos-dash-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.aivos-metric {
+  text-align: center;
+  padding: var(--space-3);
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-lg);
+}
+.aivos-metric-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+.aivos-metric-label {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* ── Weekly Evolution ── */
+.aivos-dash-section {
+  margin-top: var(--space-4);
+}
+.aivos-section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3) 0;
+}
+.aivos-weekly-grid {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  height: 120px;
+  padding: var(--space-2) 0;
+}
+.aivos-weekly-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.aivos-bar-track {
+  width: 100%;
+  max-width: 32px;
+  height: 80px;
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  position: relative;
+  overflow: hidden;
+}
+.aivos-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--grad-brand);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.5s ease;
+  min-height: 2px;
+}
+.aivos-bar-label {
+  font-size: 10px;
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+}
+.aivos-bar-value {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* ── Disciplines List ── */
+.aivos-disc-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.aivos-disc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.aivos-disc-row:last-child { border-bottom: none; }
+.aivos-disc-name {
+  flex: 0 0 120px;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aivos-disc-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.aivos-disc-fill {
+  height: 100%;
+  background: var(--grad-brand);
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+.aivos-disc-acc {
+  flex: 0 0 40px;
+  text-align: right;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text);
+}
+.aivos-disc-critical .aivos-disc-fill { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.aivos-disc-mastered .aivos-disc-fill { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.aivos-empty-state {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ── Recommendation Card ── */
+.aivos-recommendation-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.08) 0%, oklch(from var(--color-accent) l c h / 0.05) 100%);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+  border-radius: var(--radius-xl);
+  animation: aivosCoachIn 0.35s var(--bounce-ease) forwards;
+}
+.aivos-rec-avatar { flex-shrink: 0; }
+.aivos-rec-body { flex: 1; min-width: 0; }
+.aivos-rec-name {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+.aivos-rec-msg {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: 1.6;
+  margin-bottom: var(--space-2);
+}
+.aivos-rec-btn {}
+
+/* ── Dashboard Responsivo ── */
+@media (max-width: 768px) {
+  .aivos-dash-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .aivos-metric-value { font-size: var(--text-base); }
+  .aivos-disc-name { flex-basis: 80px; }
+  .aivos-weekly-grid { height: 100px; }
+  .aivos-bar-track { max-width: 24px; height: 64px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    AIVOS AVATAR
    ───
    Componente base: representa o personagem AIVOS em diferentes estados.
