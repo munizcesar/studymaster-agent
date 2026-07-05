@@ -34,6 +34,9 @@
   <script src="src/aivos-360-integration.js"></script>
   <script src="src/prof-aivos-mentor.js"></script>
   <script src="src/redbot.js"></script>
+  <script src="src/aivos-char-system.js"></script>
+  <script src="src/aivos-memory.js"></script>
+  <script src="src/aivos-tracker.js"></script>
   <style>
     :root {
       /* ── Neutral Scale (warm undertone, hue 250) ── */
@@ -5667,6 +5670,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
 }
 .proof-chip strong { color: var(--color-text); }
 </style>
+  <link rel="stylesheet" href="src/aivos-char.css">
 </head>
 <body>
 
@@ -5711,9 +5715,12 @@ pre, code { word-break: break-word; overflow-x: auto; }
   <header class="site-header">
     <div class="container">
       <div class="header-inner">
-        <a href="#" class="logo" id="logo-home" aria-label="AIVOS - Voltar ao inicio">
-          <img src="aivos-logo.png" alt="AIVOS Logo" class="logo-icon" style="height: 42px; width: auto;">
-        </a>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <a href="#" class="logo" id="logo-home" aria-label="AIVOS - Voltar ao inicio">
+            <img src="aivos-logo.png" alt="AIVOS Logo" class="logo-icon" style="height: 42px; width: auto;">
+          </a>
+          <div id="aivos-header-avatar"></div>
+        </div>
         <div class="header-actions">
           <button class="drawer-toggle" data-drawer-toggle aria-label="Abrir painel">
             <span></span><span></span><span></span>
@@ -6011,6 +6018,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
               <span class="score-value" id="score-value" aria-live="polite" aria-atomic="true">0/<span id="score-total">0</span></span>
             </div>
             <div id="questions-list"></div>
+            <div id="aivos-celebration-placeholder" style="margin-top:var(--space-4); display:none;"></div>
             <div class="hidden" id="session-result" role="status" aria-live="polite" aria-atomic="true" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
               <div class="session-result-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-3);">
                 <div>
@@ -6928,6 +6936,8 @@ function goHome() {
   updateStepBar(1);
   updateNavButtons();
   scrollToTop();
+  if (window.setAivosAvatarState) setAivosAvatarState('idle');
+  var _pc = document.getElementById('aivos-celebration-placeholder'); if (_pc) { _pc.innerHTML = ''; _pc.style.display = 'none'; }
 }
 
 function syncThemeIcon() {
@@ -7656,6 +7666,11 @@ async function goToStep(target) {
 }
 
 async function callWorkerAndRender() {
+  var pc = document.getElementById('aivos-celebration-placeholder');
+  if (pc) { pc.innerHTML = ''; pc.style.display = 'none'; }
+  if (window._celebrationTimer) { clearTimeout(window._celebrationTimer); window._celebrationTimer = null; }
+  if (window.setAivosThinking) setAivosThinking();
+  if (window.AivosMemory) AivosMemory.startSession({ mode: state.mode, discipline: state.subject || state.concurso?.label || 'Geral' });
   const genScreen = document.getElementById('generating-screen');
   const errorState = document.getElementById('error-state');
   const qContainer = document.getElementById('questions-container');
@@ -7716,6 +7731,7 @@ async function callWorkerAndRender() {
     if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
     state.generatedQuestions = data.questions;
     state.answered = 0; state.correct = 0;
+    if (window.setAivosAvatarState) setAivosAvatarState('idle');
     state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
     genScreen.classList.add('hidden');
     // Garantir que a tela de erro seja ocultada ao obter sucesso
@@ -7728,6 +7744,7 @@ async function callWorkerAndRender() {
   } catch (err) {
     clearTimeout(timeoutId);
     clearInterval(msgInterval);
+    if (window.setAivosAvatarState) setAivosAvatarState('warning');
     if (err.name === 'AbortError') {
       showError('Tempo esgotado (timeout). O servidor demorou muito para responder. Tente reduzir a quantidade e tente novamente.');
     } else {
@@ -7797,6 +7814,41 @@ function recordSessionAnswer(idx, selectedKey, isCorrect) {
   if (isCorrect) state.sessionHistory.correct += 1;
   else state.sessionHistory.wrong += 1;
 
+  // Integrar AIVOS Memory + Tracker
+  if (window.AivosMemory && state.generatedQuestions && state.generatedQuestions[idx]) {
+    (function() {
+      try {
+        var q = state.generatedQuestions[idx];
+        AivosMemory.recordResponse({
+          questionId: q.id || 'q_' + idx,
+          discipline: state.subject || state.concurso?.label || 'Geral',
+          topic: state.topic || 'Geral',
+          difficulty: state.difficulty || 'medium',
+          isCorrect: isCorrect,
+          timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0
+        });
+        AivosMemory.updateSession({
+          questionsAnswered: 1,
+          correct: isCorrect ? 1 : 0,
+          wrong: isCorrect ? 0 : 1
+        });
+      } catch(e) { /* silent */ }
+    })();
+  }
+  if (window.AivosTracker) {
+    (function() {
+      try {
+        AivosTracker.logQuestion({
+          discipline: state.subject || state.concurso?.label || 'Geral',
+          topic: state.topic || 'Geral',
+          difficulty: state.difficulty || 'medium',
+          isCorrect: isCorrect,
+          timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0
+        });
+      } catch(e) { /* silent */ }
+    })();
+  }
+
   // Integrar com AIVOS 360 (Sistema completo)
   if (window.getAIVOS360 && state.generatedQuestions && state.generatedQuestions[idx]) {
     const aivos360 = window.getAIVOS360();
@@ -7818,6 +7870,7 @@ function recordSessionAnswer(idx, selectedKey, isCorrect) {
       }).catch(err => console.error('[AIVOS 360] Erro ao processar resposta:', err));
     }
   }
+  state.questionStartTime = Date.now();
 }
 
 // Estado da navegação de questão única
@@ -7838,6 +7891,8 @@ function validateQuestionSchema(q) {
   }
   return true;
 }
+window._celebrationTimer = null;
+
 function renderQuestions(questions) {
   const container = document.getElementById('questions-container');
   const chips     = document.getElementById('summary-chips');
@@ -7866,6 +7921,7 @@ function renderQuestions(questions) {
   };
   state.answerResults = qNavState.results;
   state.answered = 0; state.correct = 0;
+  state.questionStartTime = Date.now();
   sessionResult.classList.add('hidden');
   retryWrongBtn.classList.add('hidden');
   updateScore();
@@ -8018,6 +8074,7 @@ function handleDesktopAnswer(questions, idx, selectedKey) {
   if (expBox) expBox.classList.add('visible');
 
   if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
+  if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(isCorrect);
   
   if (state.answered === questions.length) {
     setTimeout(showSessionResult, 600);
@@ -8132,6 +8189,7 @@ function handleSingleAnswer(questions, idx, selectedKey) {
   if (expBox) expBox.classList.add('visible');
 
   if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
+  if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(isCorrect);
   if (state.answered === questions.length) {
     setTimeout(showSessionResult, 600);
   }
@@ -8160,6 +8218,34 @@ function showSessionResult() {
       date: new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
     });
   }
+    // AIVOS: End session + tracker
+  if (window.AivosMemory) {
+    try { AivosMemory.endSession(); } catch(e) {}
+  }
+  if (window.AivosTracker) {
+    try { AivosTracker.logSession({ startTime: Date.now() - 30000, endTime: Date.now(), questionsAnswered: total, correct: correct, wrong: wrong }); } catch(e) {}
+  }
+  // AIVOS: Celebration for high scores (>=70%)
+  if (window.AivosCelebration && percent >= 70) {
+    (function() {
+      try {
+        var celebContainer = document.getElementById('aivos-celebration-placeholder');
+        if (celebContainer) celebContainer.style.display = 'block';
+        if (celebContainer) {
+          var title = percent >= 90 ? 'Excelente!' : 'Muito bom!';
+          AivosCelebration.render(celebContainer, {
+            title: title,
+            sub: total + ' questoes respondidas',
+            score: percent + '% de acerto',
+            confetti: percent >= 90
+          });
+        }
+      } catch(e) {}
+    })();
+  }
+  if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
+  setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
+
   const answerHistory = state.sessionHistory.answers.filter(Boolean);
   history.innerHTML = answerHistory.map(answer => {
     const icon = answer.correct ? '✔️' : '❌';
@@ -8197,6 +8283,7 @@ function openFullscreen() {
   const qs = state.generatedQuestions;
   if (!qs || !qs.length) return;
   qfState = { questions: [...qs], answered: 0, correct: 0, wrong: 0, results: new Array(qs.length).fill(null), selected: new Array(qs.length).fill(null) };
+  state.questionStartTime = Date.now();
   qfSubLabel.textContent = state.mode === 'academic' ? (state.topic || state.subject || '') : (state.concurso?.label || 'Livre');
   qfBody.innerHTML = '';
   
@@ -8322,6 +8409,10 @@ function attachQFQuestionEventListeners(wrap, idx) {
         resBtn.classList.add('hidden');
         document.getElementById(`qf-exp-${idx}`).classList.add('visible');
         if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
+        if (window.AivosTracker) { try { AivosTracker.logQuestion({ discipline: state.subject || state.concurso?.label || 'Geral', topic: state.topic || 'Geral', difficulty: state.difficulty || 'medium', isCorrect: correct, timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0 }); } catch(e) {} }
+        if (window.AivosMemory) { try { AivosMemory.recordResponse({ questionId: q.id || 'q_' + idx, discipline: state.subject || state.concurso?.label || 'Geral', topic: state.topic || 'Geral', difficulty: state.difficulty || 'medium', isCorrect: correct, timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0 }); AivosMemory.updateSession({ questionsAnswered: 1, correct: correct ? 1 : 0, wrong: correct ? 0 : 1 }); } catch(e) {} }
+        state.questionStartTime = Date.now();
+        if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(correct);
         
         // Verificar se todas as questões foram respondidas
         if (qfState.answered === qfState.questions.length) {
@@ -8384,6 +8475,10 @@ function renderQFResultInline() {
   qfBody.appendChild(resultCard);
   lucide.createIcons();
   confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00','#16A34A'] });
+  if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
+  setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
+  if (window.AivosMemory) { try { AivosMemory.endSession(); } catch(e) {} }
+  if (window.AivosTracker) { try { AivosTracker.logSession({ startTime: Date.now() - 30000, endTime: Date.now(), questionsAnswered: total, correct: correct, wrong: total - correct }); } catch(e) {} }
   
   document.getElementById('qf-retry-inline-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
   document.getElementById('qf-close-inline-btn').addEventListener('click', closeFullscreen);
@@ -8495,6 +8590,10 @@ function renderQFQuestion(idx) {
       resBtn.classList.add('hidden');
       document.getElementById(`qf-exp-${idx}`).classList.add('visible');
       if (correct) confetti({ particleCount: 45, spread: 65, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
+      if (window.AivosTracker) { try { AivosTracker.logQuestion({ discipline: state.subject || state.concurso?.label || 'Geral', topic: state.topic || 'Geral', difficulty: state.difficulty || 'medium', isCorrect: correct, timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0 }); } catch(e) {} }
+      if (window.AivosMemory) { try { AivosMemory.recordResponse({ questionId: q.id || 'q_' + idx, discipline: state.subject || state.concurso?.label || 'Geral', topic: state.topic || 'Geral', difficulty: state.difficulty || 'medium', isCorrect: correct, timeToAnswer: state.questionStartTime ? Date.now() - state.questionStartTime : 0 }); AivosMemory.updateSession({ questionsAnswered: 1, correct: correct ? 1 : 0, wrong: correct ? 0 : 1 }); } catch(e) {} }
+      state.questionStartTime = Date.now();
+      if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(correct);
       
       setTimeout(async () => {
         const exp = document.getElementById(`qf-exp-${idx}`);
@@ -8547,6 +8646,10 @@ function renderQFResult() {
     </div>`;
   lucide.createIcons();
   confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00','#16A34A'] });
+  if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
+  setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
+  if (window.AivosMemory) { try { AivosMemory.endSession(); } catch(e) {} }
+  if (window.AivosTracker) { try { AivosTracker.logSession({ startTime: Date.now() - 30000, endTime: Date.now(), questionsAnswered: total, correct: correct, wrong: total - correct }); } catch(e) {} }
   document.getElementById('qf-retry-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
   document.getElementById('qf-close-btn').addEventListener('click', closeFullscreen);
 }
@@ -8996,6 +9099,69 @@ window.addEventListener('resize', () => {
     })();
   </script>
 
-</body>
-</html>
+    <!-- AIVOS Character System Init -->
+  <script>
+  (function() {
+    'use strict';
 
+    var AVATAR_CONTAINER_ID = 'aivos-header-avatar';
+    var avatarContainer = document.getElementById(AVATAR_CONTAINER_ID);
+
+    /* Helper: set avatar state from anywhere */
+    window.setAivosAvatarState = function(state) {
+      var c = document.getElementById(AVATAR_CONTAINER_ID);
+      if (c && window.AivosAvatar && c.querySelector('.aivos-avatar')) {
+        AivosAvatar.setState(c, state);
+      }
+    };
+
+    /* Helper: set avatar thinking state */
+    window.setAivosThinking = function() {
+      setAivosAvatarState('thinking');
+    };
+
+    /* Helper: brief celebration (1.5s) or warning (0.8s) feedback */
+    window.setAivosAnswerFeedback = function(isCorrect) {
+      if (window._celebrationTimer) clearTimeout(window._celebrationTimer);
+      setAivosAvatarState(isCorrect ? 'celebrating' : 'warning');
+      window._celebrationTimer = setTimeout(function() {
+        setAivosAvatarState('idle');
+        window._celebrationTimer = null;
+      }, isCorrect ? 1500 : 800);
+    };
+
+    /* Render avatar in header */
+    if (avatarContainer && window.AivosAvatar) {
+      AivosAvatar.render(avatarContainer, { size: 'sm', state: 'idle' });
+    }
+
+    /* Welcome bubble with contextual data */
+    setTimeout(function() {
+      if (typeof AivosBubble === 'undefined') return;
+
+      var message = 'Ola! Sou o AIVOS, seu assistente de estudos.';
+      var bubbleType = 'info';
+
+      if (window.AivosTracker) {
+        try {
+          var summary = AivosTracker.getSummary();
+          if (summary && summary.questions > 0) {
+            var streak = summary.streak || 0;
+            if (streak >= 5) {
+              message = 'Bem-vindo de volta! Voce esta com uma sequencia de ' + streak + ' acertos! 🔥';
+              bubbleType = 'success';
+            } else if (summary.accuracy >= 70) {
+              message = 'Bem-vindo! Seu rendimento geral e de ' + summary.accuracy + '%. Continue assim! 💪';
+            } else {
+              message = 'Bem-vindo! Voce ja respondeu ' + summary.questions + ' questoes ate agora. Vamos estudar?';
+            }
+          }
+        } catch(e) { /* fallback to generic */ }
+      }
+
+      AivosBubble.show({ text: message, type: bubbleType, autoHide: 8000 });
+    }, 2000);
+  })();
+  </script>
+
+</body>
