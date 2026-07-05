@@ -5659,50 +5659,6 @@ pre, code { word-break: break-word; overflow-x: auto; }
   font-weight: 700;
 }
 
-/* ── QUALITY BADGES ── */
-.quality-badge {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-4);
-  font-size: var(--text-xs);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-}
-.quality-badge.confidence-muito-alta { border-color: var(--color-success); background: oklch(from var(--color-success) l c h / 0.05); }
-.quality-badge.confidence-alta { border-color: oklch(from var(--color-success) l c h / 0.5); }
-.quality-badge.confidence-media { border-color: #f59e0b; background: oklch(0.9 0.05 80); }
-.quality-badge.confidence-baixa { border-color: var(--color-error); background: oklch(from var(--color-error) l c h / 0.05); }
-
-.badge-emoji { font-size: 1.25rem; }
-.badge-info { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
-.badge-info strong { font-weight: 700; color: var(--color-text); }
-.badge-tooltip { color: var(--color-text-muted); font-size: 11px; }
-.badge-extra {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: 4px;
-}
-.badge-sources, .badge-verified, .badge-warnings {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  font-size: 10px;
-}
-.badge-sources { background: oklch(from var(--color-primary) l c h / 0.1); color: var(--color-primary); }
-.badge-verified { background: oklch(from var(--color-success) l c h / 0.1); color: var(--color-success-dark, #166534); }
-.badge-warnings { background: oklch(from var(--color-error) l c h / 0.1); color: var(--color-error-dark, #991b1b); }
-.badge-score {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: var(--text-lg);
-  color: var(--color-text);
 }
 .question-proof {
   display: flex;
@@ -7948,40 +7904,6 @@ function renderQuestions(questions) {
   scrollToWizard(100);
 }
 
-  // -- FASE 3: Renderiza badge de confianca sempre visivel --
-  function renderTrustBadge(q) {
-    var badge = q._qualityBadge || {
-      confidence: 'Media',
-      emoji: '🟡',
-      score: '—',
-      message: 'Sem validacao de fontes. Verifique o conteudo.'
-    };
-    var confMap = { 'Muito Alta': 'muito-alta', 'Alta': 'alta', 'Media': 'media', 'Média': 'media', 'Baixa': 'baixa' };
-    var confClass = confMap[badge.confidence] || 'media';
-    var sourcesCount = q._sources || badge.sources || 0;
-    var antiH = q._antiHallucination || badge.antiHallucination || 'pending';
-    var sourcesHtml = sourcesCount > 0
-      ? '<span class="badge-sources"><i data-lucide="file-text" width="12" height="12"></i> ' + sourcesCount + ' fonte(s)</span>'
-      : '';
-    var antiHtml = '';
-    if (antiH === 'verified') {
-      antiHtml = '<span class="badge-verified"><i data-lucide="check-circle" width="12" height="12"></i> Verificado</span>';
-    } else if (antiH === 'warning') {
-      antiHtml = '<span class="badge-warnings"><i data-lucide="alert-triangle" width="12" height="12"></i> Revisao recomendada</span>';
-    }
-    var extraHtml = (sourcesHtml || antiHtml)
-      ? '<div class="badge-extra">' + sourcesHtml + antiHtml + '</div>'
-      : '';
-    return '<div class="quality-badge confidence-' + confClass + '">' +
-      '<span class="badge-emoji">' + badge.emoji + '</span>' +
-      '<div class="badge-info">' +
-        '<strong>Confianca ' + badge.confidence + '</strong>' +
-        '<span class="badge-tooltip">' + (badge.message || '') + '</span>' +
-        extraHtml +
-      '</div>' +
-      '<span class="badge-score">' + (badge.score || '—') + '</span>' +
-    '</div>';
-  }
 
 
 
@@ -8030,7 +7952,6 @@ function renderAllQuestionsDesktop(questions) {
           }).join('')}
         </div>
         <button class="q-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="q-resolver-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
-        ${renderTrustBadge(q)}
         <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp-${idx}">
           <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
           ${renderQuestionProof(q)}
@@ -8356,7 +8277,6 @@ function createQFQuestionElement(q, idx) {
       }).join('')}
     </div>
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
-    ${renderTrustBadge(q)}
     <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
       <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
       ${renderQuestionProof(q)}
