@@ -25,7 +25,7 @@ const REDBOT_CONFIG = {
 // SYSTEM PROMPT DO PROFESSOR UNIVERSITÁRIO
 // ════════════════════════════════════════════════════════════════════════════
 
-const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **Professor de Redação**, um tutor acadêmico especializado em redação para ENEM e concursos públicos. Seu método é acadêmico, rigoroso e fundamentado na matriz de competências oficial.
+const COACH_REDBOT_SYSTEM_PROMPT = `Você é o **AIVOS — Redação**, um tutor acadêmico especializado em redação para ENEM e concursos públicos. Seu método é acadêmico, rigoroso e fundamentado na matriz de competências oficial.
 
 # DEFINIÇÕES DE C1-C5 (cada uma vale 0 a 200, total 1000):
 - **C1** = Domínio da Escrita Formal (ortografia, concordância, regência, pontuação)
@@ -175,8 +175,6 @@ class CoachRedbot {
   init() {
     if (this.isInitialized) return;
     this.isInitialized = true;
-    console.log('[Professor de Redação] Coach de Redação iniciado');
-
     this.loadSession();
     this.scheduleRender();
 
@@ -193,33 +191,39 @@ class CoachRedbot {
       return typeof state !== 'undefined' && state.mode === 'redacao';
     };
 
-    const tryRenderNow = () => {
-      const dashboard = document.querySelector('.aivos360-dashboard');
-      if (dashboard && !this.chatWrapper && shouldRender()) {
-        this.renderUI();
-        this.addDashboardButton();
-        if (this._observer) {
-          this._observer.disconnect();
-          this._observer = null;
+    var self = this;
+
+    function tryNow() {
+      var dashboard = document.querySelector('.aivos360-dashboard');
+      if (dashboard && !self.chatWrapper && shouldRender()) {
+        self.renderUI();
+        self.addDashboardButton();
+        if (self._observer) {
+          self._observer.disconnect();
+          self._observer = null;
         }
-        clearInterval(this._renderInterval);
+        if (self._renderInterval) {
+          clearTimeout(self._renderInterval);
+          self._renderInterval = null;
+        }
         return true;
       }
       return false;
-    };
+    }
 
-    setTimeout(tryRenderNow, 50);
-    this._renderInterval = setInterval(tryRenderNow, 500);
-
+    // MutationObserver captura quando o DOM for montado
     if (!this._observer && typeof MutationObserver !== 'undefined') {
-      this._observer = new MutationObserver(() => {
-        if (tryRenderNow() && this._observer) {
-          this._observer.disconnect();
-          this._observer = null;
+      this._observer = new MutationObserver(function() {
+        if (tryNow()) {
+          self._observer.disconnect();
+          self._observer = null;
         }
       });
       this._observer.observe(document.body, { childList: true, subtree: true });
     }
+
+    // Timeout único como fallback
+    this._renderInterval = setTimeout(tryNow, 1000);
   }
 
   setModules(modules) {
@@ -239,7 +243,7 @@ class CoachRedbot {
       };
       localStorage.setItem('coachRedbotSession', JSON.stringify(session));
     } catch (e) {
-      console.warn('[Professor de Redação] Erro ao salvar sessao:', e);
+      console.warn('[AIVOS — Redação] Erro ao salvar sessao:', e);
     }
   }
 
@@ -251,11 +255,10 @@ class CoachRedbot {
         if (session.timestamp && Date.now() - session.timestamp < 86400000) {
           this.conversationHistory = session.history || [];
           this.lastScores = session.lastScores || null;
-          console.log('[Professor de Redação] Sessao restaurada com', this.conversationHistory.length, 'mensagens');
         }
       }
     } catch (e) {
-      console.warn('[Professor de Redação] Erro ao carregar sessao:', e);
+      console.warn('[AIVOS — Redação] Erro ao carregar sessao:', e);
     }
   }
 
@@ -292,34 +295,14 @@ class CoachRedbot {
     container.innerHTML = `
       <div class="redbot-layout">
 
-        <!-- SIDEBAR - Professor de Redação -->
+        <!-- SIDEBAR - AIVOS Redação -->
         <div class="redbot-sidebar">
           <div class="redbot-sidebar-inner">
             <div class="redbot-avatar">
-              <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: white; padding: 10px;">
-                <!-- Graduation Cap -->
-                <path d="M10 40 L50 10 L90 40 L50 70 Z" fill="currentColor" opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M50 10 L50 50" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-                <rect x="40" y="60" width="20" height="10" rx="2" fill="currentColor" opacity="0.25" stroke="currentColor" stroke-width="1"/>
-                <rect x="35" y="68" width="30" height="6" rx="2" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="0.8"/>
-                <path d="M90 40 L96 35" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-                <circle cx="97" cy="34" r="3" fill="currentColor" opacity="0.5"/>
-                <!-- Book/Knowledge -->
-                <rect x="30" y="45" width="40" height="32" rx="3" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.2"/>
-                <line x1="42" y1="52" x2="58" y2="52" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-                <line x1="42" y1="58" x2="58" y2="58" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-                <line x1="42" y1="64" x2="52" y2="64" stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-                <!-- Academic Decoration -->
-                <path d="M15 75 Q50 95 85 75" stroke="currentColor" stroke-width="1" fill="none" opacity="0.2" stroke-linecap="round"/>
-                <circle cx="50" cy="85" r="2" fill="currentColor" opacity="0.3"/>
-              </svg>
-              <div class="redbot-avatar-fallback" style="display:none">
-                <svg width="40" height="40" viewBox="0 0 100 100" fill="none"><path d="M10 40 L50 10 L90 40 L50 70 Z" fill="white" opacity="0.3"/><rect x="30" y="45" width="40" height="32" rx="3" fill="white" opacity="0.15"/></svg>
-              </div>
             </div>
 
             <h2 class="redbot-name">
-              Professor de Redação
+              AIVOS — Redação
             </h2>
 
             <div class="redbot-status">
@@ -375,14 +358,10 @@ class CoachRedbot {
             <div class="redbot-messages" id="redbot-messages">
               <div class="redbot-welcome">
                 <div class="redbot-welcome-avatar">
-                  <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 40 L50 10 L90 40 L50 70 Z" fill="currentColor" opacity="0.4"/>
-                    <rect x="30" y="45" width="40" height="32" rx="3" fill="currentColor" opacity="0.2"/>
-                  </svg>
                 </div>
                 <div class="redbot-welcome-content">
-                  <p class="redbot-welcome-name">Professor de Redacao</p>
-                  <p class="redbot-welcome-text">Bem-vindo. Cole sua redacao ou informe o tema que deseja treinar. Farei a correcao detalhada por competencias, apontando pontos fortes e areas que precisam de atencao. Pressione ENTER para enviar.</p>
+                    <p class="redbot-welcome-name">AIVOS — Redação</p>
+                    <p class="redbot-welcome-text">Bem-vindo. Cole sua redacao ou informe o tema que deseja treinar. Farei a correcao detalhada por competencias, apontando pontos fortes e areas que precisam de atencao. Pressione ENTER para enviar.</p>
                 </div>
               </div>
             </div>
@@ -410,7 +389,7 @@ class CoachRedbot {
               <textarea
                 class="redbot-input"
                 id="redbot-input"
-                placeholder="Digite sua mensagem para o Professor..."
+                placeholder="Digite sua mensagem para o AIVOS..."
                 rows="1"
                 oninput="window.coachRedbot?.autoResize(this); window.coachRedbot?.onInputChange()"
                 onkeydown="window.coachRedbot?.handleKeydown(event)"
@@ -424,6 +403,17 @@ class CoachRedbot {
 
       </div>
     `;
+
+    if (window.AivosAvatar) {
+      var sidebarAvatar = container.querySelector('.redbot-avatar');
+      var welcomeAvatar = container.querySelector('.redbot-welcome-avatar');
+      if (sidebarAvatar) {
+        AivosAvatar.render(sidebarAvatar, { size: 'xl', state: 'explaining', pose: 'explaining', accessory: 'book' });
+      }
+      if (welcomeAvatar) {
+        AivosAvatar.render(welcomeAvatar, { size: 'sm', state: 'idle', pose: 'idle' });
+      }
+    }
 
     this.chatWrapper = container;
     this.messagesContainer = container.querySelector('#redbot-messages');
@@ -483,15 +473,22 @@ class CoachRedbot {
     btn.id = 'coach-redbot-db-btn';
     btn.className = 'redbot-db-btn';
     btn.innerHTML = `
-      <div class="redbot-db-icon"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: var(--color-primary);"><path d="M10 40 L50 10 L90 40 L50 70 Z" fill="currentColor" opacity="0.3"/><rect x="30" y="45" width="40" height="32" rx="3" fill="currentColor" opacity="0.15"/></svg></div>
+      <div class="redbot-db-icon"></div>
       <div class="redbot-db-content">
-        <strong class="redbot-db-title">Professor de Redacao — Correcao de Redacao</strong>
+        <strong class="redbot-db-title">AIVOS — Redação</strong>
         <span class="redbot-db-subtitle">Correcao detalhada por competencias C1-C5</span>
       </div>
       <div class="redbot-db-arrow">→</div>
     `;
     btn.addEventListener('click', () => this.openChat());
     dashboard.insertBefore(btn, dashboard.firstChild);
+
+    if (window.AivosAvatar) {
+      var dbIcon = btn.querySelector('.redbot-db-icon');
+      if (dbIcon) {
+        AivosAvatar.render(dbIcon, { size: 'md', state: 'explaining', pose: 'pointing', accessory: 'pointer' });
+      }
+    }
   }
 
   openChat() {
@@ -586,7 +583,7 @@ class CoachRedbot {
               <p>${c.description}</p>
               <p class="redbot-comp-check"><strong>O que avaliamos:</strong> ${c.whatWeCheck}</p>
               <div class="redbot-comp-tips">
-                <strong>Dicas do Professor:</strong>
+                <strong>Dicas do AIVOS:</strong>
                 <ul>${c.tips.map(t => `<li>${t}</li>`).join('')}</ul>
               </div>
             </div>
@@ -647,7 +644,7 @@ class CoachRedbot {
     } catch (error) {
       this.hideTypingIndicator();
       this.addMessage('Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.', 'coach');
-      console.error('[Professor de Redação] Erro:', error);
+      console.error('[AIVOS — Redação] Erro:', error);
     }
 
     this.isProcessing = false;
@@ -730,7 +727,7 @@ class CoachRedbot {
           }
         }
         r += `\n**Total: ${totalNormalized}/1000**\n\n`;
-        r += `_As notas acima foram extraidas automaticamente do texto do Professor e convertidas para a escala oficial (0-200 por competencia)._\n\n---\n\n`;
+        r += `_As notas acima foram extraidas automaticamente do texto do AIVOS e convertidas para a escala oficial (0-200 por competencia)._\n\n---\n\n`;
         const sorted = Object.entries(extractedScores)
           .map(([k, v]) => ({ key: k, val: allLe10 ? v * 20 : v, comp: COMPETENCIES[k] }))
           .sort((a, b) => a.val - b.val);
@@ -782,7 +779,7 @@ class CoachRedbot {
       if (data.reply || data.scores || data.summary) return data;
       return 'Nao foi possivel processar sua solicitacao. Por favor, tente novamente.';
     } catch (error) {
-      console.error('[Professor de Redação] Erro na comunicacao com IA:', error);
+      console.error('[AIVOS — Redação] Erro na comunicacao com IA:', error);
       return this.getFallback(userMessage);
     }
   }
@@ -819,10 +816,10 @@ class CoachRedbot {
     }
 
     if (msg.includes('ola') || msg.includes('oi') || msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite')) {
-      return `**Professor de Redacao**\n\nBem-vindo ao modulo de correcao de redacao. Posso ajuda-lo com:\n\n**Correcao completa** - Envie sua redacao para analise detalhada por competencias\n**Temas personalizados** - Sugiro temas alinhados com ENEM e concursos\n**Competencias C1-C5** - Explicacao detalhada de cada criterio\n**Exemplos nota 1000** - Trechos comentados de redacoes nota maxima\n**Repertorios** - Autores, dados e referencias para enriquecer sua argumentacao\n**Analise de progresso** - Acompanhe sua evolucao ao longo do tempo\n\n**Como deseja comecar?**`;
+      return `**AIVOS — Redação**\n\nBem-vindo ao modulo de correcao de redacao. Posso ajuda-lo com:\n\n**Correcao completa** - Envie sua redacao para analise detalhada por competencias\n**Temas personalizados** - Sugiro temas alinhados com ENEM e concursos\n**Competencias C1-C5** - Explicacao detalhada de cada criterio\n**Exemplos nota 1000** - Trechos comentados de redacoes nota maxima\n**Repertorios** - Autores, dados e referencias para enriquecer sua argumentacao\n**Analise de progresso** - Acompanhe sua evolucao ao longo do tempo\n\n**Como deseja comecar?**`;
     }
 
-    return `**Professor de Redacao**\n\nEntendi sua mensagem. Para que eu possa ajudar da melhor forma:\n\n- **Envie sua redacao** completa ou em partes para correcao detalhada\n- **Solicite um tema** de redacao para treinar\n- **Pergunte sobre as competencias** C1 a C5\n- **Veja exemplos** de trechos nota 1000\n- **Consulte repertorios** socioculturais\n\n**O que prefere?**`;
+    return `**AIVOS — Redação**\n\nEntendi sua mensagem. Para que eu possa ajudar da melhor forma:\n\n- **Envie sua redacao** completa ou em partes para correcao detalhada\n- **Solicite um tema** de redacao para treinar\n- **Pergunte sobre as competencias** C1 a C5\n- **Veja exemplos** de trechos nota 1000\n- **Consulte repertorios** socioculturais\n\n**O que prefere?**`;
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -835,7 +832,7 @@ class CoachRedbot {
     const hasIntro = text.toLowerCase().includes('introducao') || text.toLowerCase().includes('introducao') || paragraphs.length >= 3;
     const hasConc = text.toLowerCase().includes('conclusao') || text.toLowerCase().includes('conclusao');
 
-    let r = `**Analise do Professor de Redacao**\n\n`;
+    let r = `**Analise do AIVOS — Redação**\n\n`;
     r += `**Estatisticas:**\n- ${wordCount} palavras\n- ${paragraphs.length} paragrafos\n\n`;
     r += `**Pontos positivos:**\n`;
     if (wordCount >= 200) r += `- Extensao adequada (${wordCount} palavras)\n`;
@@ -892,7 +889,7 @@ class CoachRedbot {
     const text = msg.toLowerCase();
     for (const [key, comp] of Object.entries(COMPETENCIES)) {
       if (text.includes(key) || text.includes(`competencia ${key.replace('c', '')}`)) {
-        return `**${comp.label}**\n\n${comp.description}\n\n**O que avaliamos:** ${comp.whatWeCheck}\n\n**Dicas do Professor:**\n${comp.tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\n**Deseja ver outra competencia?**`;
+        return `**${comp.label}**\n\n${comp.description}\n\n**O que avaliamos:** ${comp.whatWeCheck}\n\n**Dicas do AIVOS:**\n${comp.tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\n**Deseja ver outra competencia?**`;
       }
     }
     let r = `**Competencias C1 a C5**\n\nRedacao vale 1000 pontos, distribuidos em 5 competencias de 200 cada:\n\n`;
@@ -1134,14 +1131,14 @@ class CoachRedbot {
   // ════════════════════════════════════════════════════════════════════════════
 
   generateReport() {
-    let r = '=== RELATORIO PROFESSOR DE REDACAO ===\n\n';
+    let r = '=== RELATORIO AIVOS — REDACAO ===\n\n';
     r += `Mensagens: ${this.conversationHistory.length}\n`;
     r += `Ultima nota: ${this.lastScores ? this.lastScores.media + '/1000' : 'N/A'}\n\n`;
     r += '=== ULTIMAS INTERACOES ===\n';
     const recent = this.conversationHistory.slice(-6);
     for (let i = 0; i < recent.length; i += 2) {
       if (recent[i]) r += `\nAluno: ${recent[i].content.slice(0, 80)}...\n`;
-      if (recent[i + 1]) r += `Professor: ${recent[i + 1].content.slice(0, 80)}...\n`;
+      if (recent[i + 1]) r += `AIVOS: ${recent[i + 1].content.slice(0, 80)}...\n`;
     }
     return r;
   }

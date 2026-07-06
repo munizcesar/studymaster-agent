@@ -35,46 +35,36 @@ class AIVOS360Integration {
 
   async init() {
     if (this.isInitialized) {
-      console.log('[AIVOS 360] Já inicializado');
       return this.modules;
     }
 
-    console.log('[AIVOS 360] Iniciando integração...');
-
     try {
       // 1. DigitalTwin (fundação)
-      console.log('[AIVOS 360] Inicializando DigitalTwin...');
       this.modules.digitalTwin = window.digitalTwin;
       await this.modules.digitalTwin.init();
 
       // 2. ForgettingPredictor
-      console.log('[AIVOS 360] Inicializando ForgettingPredictor...');
       this.modules.forgettingPredictor = window.initForgettingPredictor(this.modules.digitalTwin);
 
       // 3. GapDetector
-      console.log('[AIVOS 360] Inicializando GapDetector...');
       this.modules.gapDetector = window.initGapDetector(this.modules.digitalTwin);
 
       // 4. RiskDetector
-      console.log('[AIVOS 360] Inicializando RiskDetector...');
       this.modules.riskDetector = window.initRiskDetector(
         this.modules.digitalTwin,
         this.modules.forgettingPredictor
       );
 
       // 5. MasteryCertifier
-      console.log('[AIVOS 360] Inicializando MasteryCertifier...');
       this.modules.masteryCertifier = window.initMasteryCertifier(
         this.modules.digitalTwin,
         this.modules.forgettingPredictor
       );
 
       // 6. AIAuditor
-      console.log('[AIVOS 360] Inicializando AIAuditor...');
       this.modules.aiAuditor = await window.initAIAuditor(this.modules.digitalTwin);
 
       // 7. ApprovalPredictor
-      console.log('[AIVOS 360] Inicializando ApprovalPredictor...');
       this.modules.approvalPredictor = window.initApprovalPredictor(
         this.modules.digitalTwin,
         this.modules.forgettingPredictor,
@@ -82,7 +72,6 @@ class AIVOS360Integration {
       );
 
       // 8. ApprovalDashboard
-      console.log('[AIVOS 360] Inicializando ApprovalDashboard...');
       this.modules.approvalDashboard = window.initApprovalDashboard(
         this.modules.digitalTwin,
         this.modules.forgettingPredictor,
@@ -92,7 +81,6 @@ class AIVOS360Integration {
       );
 
       // 9. ProactiveMentor (agora com todos os módulos)
-      console.log('[AIVOS 360] Inicializando ProactiveMentor...');
       this.modules.proactiveMentor = window.initProactiveMentor(
         this.modules.digitalTwin,
         this.modules.forgettingPredictor,
@@ -103,17 +91,13 @@ class AIVOS360Integration {
         this.modules.aiAuditor
       );
 
-      // 10. Prof. AIVOS Mentor (conversacional - depende de todos)
-      console.log('[AIVOS 360] Inicializando Prof. AIVOS Mentor...');
+      // 10. AIVOS Mentor (conversacional - depende de todos)
       this.modules.profAivosMentor = window.initProfAivosMentor(this.modules);
 
-      // 11. Coach RedBot (redação - depende de todos)
-      console.log('[AIVOS 360] Inicializando Coach RedBot...');
+      // 11. AIVOS Redação (redação - depende de todos)
       this.modules.coachRedbot = window.initCoachRedbot(this.modules);
 
       this.isInitialized = true;
-      console.log('[AIVOS 360] Integração concluída com sucesso!');
-
       // Executar análises iniciais
       await this.runInitialAnalyses();
 
@@ -129,8 +113,6 @@ class AIVOS360Integration {
   // ════════════════════════════════════════════════════════════════════════════
 
   async runInitialAnalyses() {
-    console.log('[AIVOS 360] Executando análises iniciais...');
-
     try {
       // Analisar lacunas
       if (this.modules.gapDetector) {
@@ -153,7 +135,6 @@ class AIVOS360Integration {
         this.modules.approvalPredictor.calculateApprovalProbability(profile);
       }
 
-      console.log('[AIVOS 360] Análises iniciais concluídas');
     } catch (error) {
       console.error('[AIVOS 360] Erro nas análises iniciais:', error);
     }
@@ -202,9 +183,6 @@ class AIVOS360Integration {
         this.modules.approvalPredictor.calculateApprovalProbability(profile);
       }
 
-      console.log('[AIVOS 360] Resposta processada através de todos os módulos');
-
-      console.log('[AIVOS 360] Resposta processada através de todos os módulos');
     } catch (error) {
       console.error('[AIVOS 360] Erro ao processar resposta:', error);
     }
@@ -312,7 +290,6 @@ let aivos360 = null;
 
 async function initAIVOS360() {
   if (aivos360) {
-    console.log('[AIVOS 360] Já existe instância');
     return aivos360;
   }
 

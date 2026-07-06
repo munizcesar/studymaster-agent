@@ -2817,17 +2817,7 @@
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
       color: white;
     }
-    .prof-aivos-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5em;
-      flex-shrink: 0;
-    }
+
     .prof-aivos-info {
       flex: 1;
       min-width: 0;
@@ -3024,8 +3014,6 @@
       animation: blink 0.8s infinite;
       color: var(--color-primary);
     }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
     .prof-aivos-welcome {
@@ -3086,7 +3074,7 @@
     @media (max-width: 480px) {
       .prof-aivos-card { padding: var(--space-3); }
       .prof-aivos-header { padding: var(--space-3); }
-      .prof-aivos-avatar { width: 32px; height: 32px; font-size: 1.2em; }
+  
       .prof-aivos-name { font-size: var(--text-sm); }
       .prof-aivos-messages { max-height: 280px; min-height: 180px; padding: var(--space-3); gap: var(--space-2); }
       .prof-aivos-msg { max-width: 95%; font-size: var(--text-sm); padding: var(--space-2) var(--space-3); }
@@ -3102,7 +3090,7 @@
     @media (max-width: 375px) {
       .prof-aivos-card { padding: var(--space-2); border-radius: var(--radius-lg); }
       .prof-aivos-header { padding: var(--space-2); }
-      .prof-aivos-avatar { width: 28px; height: 28px; font-size: 1em; }
+  
       .prof-aivos-messages { max-height: 220px; min-height: 140px; padding: var(--space-2); }
       .prof-aivos-msg { font-size: var(--text-xs); padding: var(--space-1) var(--space-2); }
       .prof-aivos-input-area { padding: var(--space-1) var(--space-2); }
@@ -3423,8 +3411,6 @@
     .prof-aivos-li-dash { position: relative; padding-left: 0; }
 
     /* Avatar */
-    .prof-aivos-avatar-icon { font-size: 1.4em; line-height: 1; transition: transform 0.3s ease; }
-    .prof-aivos-avatar:hover .prof-aivos-avatar-icon { transform: scale(1.15); }
     .prof-aivos-actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
 
     @keyframes pulse {
@@ -3434,20 +3420,12 @@
 
   
     /* COACH REDBOT - Animations & Layout */
-    @keyframes subtle-float {
-      0%, 100% { transform: translateY(0px) rotate(-1deg); }
       50% { transform: translateY(-12px) rotate(1deg); }
     }
-    @keyframes blink {
-      0%, 90%, 100% { transform: scaleY(1); }
       92%, 96% { transform: scaleY(0.1); }
     }
-    @keyframes hat-wobble {
-      0%, 100% { transform: rotate(-6deg) translateY(0); }
       50% { transform: rotate(6deg) translateY(-3px); }
     }
-    @keyframes redbot-pulse {
-      0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
 
@@ -3455,31 +3433,8 @@
     .redbot-layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); min-height: calc(100vh - 120px); max-height: calc(100vh - 120px); overflow: hidden; }
     .redbot-sidebar { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-5); display: flex; flex-direction: column; overflow-y: auto; position: sticky; top: var(--space-4); align-self: start; max-height: calc(100vh - 140px); }
     .redbot-sidebar-inner { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
-    .redbot-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.2);
-      position: relative;
-      flex-shrink: 0;
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.3s ease;
-    }
-    .redbot-avatar:hover { transform: scale(1.03); }
-    .redbot-avatar-img { width: 100%; height: 100%; object-fit: contain; padding: 20px; }
-    .redbot-avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; }
-    .redbot-hat { display: none; }
-    .redbot-avatar:hover { transform: scale(1.05); }
-    .redbot-avatar-img { width: 100%; height: 100%; object-fit: cover; animation: blink 5s infinite; }
-    .redbot-avatar-fallback { width: 100%; height: 100%; background: linear-gradient(135deg, #06b6d4, #0ea5e9); display: flex; align-items: center; justify-content: center; border-radius: 9999px; }
-    .redbot-avatar-emoji { font-size: 4em; }
     .redbot-hat { position: absolute; top: -5px; right: 5px; font-size: 2em; animation: hat-wobble 4s ease-in-out infinite; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
     .redbot-name { font-size: 1.5em; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: var(--space-2); }
-    .redbot-name-hat { font-size: 0.8em; }
     .redbot-status { display: flex; align-items: center; gap: var(--space-2); color: var(--color-success); font-size: var(--text-sm); }
     .redbot-status-dot { width: 12px; height: 12px; background: var(--color-success); border-radius: 50%; animation: redbot-pulse 2s infinite; }
     .redbot-bio { color: var(--color-text-muted); text-align: center; font-size: var(--text-sm); line-height: 1.6; }
@@ -3602,8 +3557,7 @@
       }
       .redbot-sidebar.open { left: 0; }
       .redbot-sidebar-inner { align-items: flex-start; }
-      .redbot-avatar { width: 80px; height: 80px; }
-      .redbot-name { font-size: var(--text-base); }
+        .redbot-name { font-size: var(--text-base); }
     }
     
     @media (max-width: 768px) {
@@ -3617,8 +3571,7 @@
       .redbot-send-btn { width: 40px; height: 40px; }
       .redbot-input { font-size: var(--text-base); padding: var(--space-3); }
       .redbot-essay-textarea { min-height: 80px; font-size: var(--text-sm); }
-      .redbot-avatar { width: 72px; height: 72px; }
-    }
+      }
     
     @media (max-width: 480px) {
       .redbot-messages { max-height: calc(100vh - 240px); padding: var(--space-3); gap: var(--space-3); }
@@ -3632,8 +3585,7 @@
       .redbot-send-btn { width: 36px; height: 36px; }
       .redbot-input { font-size: var(--text-sm); padding: var(--space-2); min-height: 38px; }
       .redbot-essay-textarea { min-height: 60px; }
-      .redbot-avatar { width: 56px; height: 56px; }
-      .redbot-name { font-size: var(--text-sm); }
+        .redbot-name { font-size: var(--text-sm); }
       .redbot-status { font-size: var(--text-xs); }
       .redbot-bio { font-size: var(--text-xs); }
       .redbot-new-theme-btn { font-size: var(--text-xs); padding: var(--space-1) var(--space-3); }
@@ -3647,8 +3599,7 @@
     }
     
     @media (max-width: 375px) {
-      .redbot-avatar { width: 48px; height: 48px; }
-      .redbot-messages { max-height: calc(100vh - 220px); padding: var(--space-2); }
+        .redbot-messages { max-height: calc(100vh - 220px); padding: var(--space-2); }
       .redbot-msg { padding: var(--space-1) var(--space-2); max-width: 97%; }
       .redbot-send-btn { width: 32px; height: 32px; }
       .redbot-input { font-size: var(--text-xs); padding: var(--space-2); }
