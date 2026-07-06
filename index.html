@@ -1236,16 +1236,39 @@
       align-items: start;
     }
     .free-panel {
-      border: 1.5px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       overflow: hidden;
-      box-shadow: 0 8px 32px oklch(0 0 0 / 0.08);
-      transition: all var(--transition);
+      box-shadow: 0 10px 40px oklch(0 0 0 / 0.06);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
     }
     .free-panel:hover {
-      box-shadow: 0 12px 48px oklch(0 0 0 / 0.12);
-      border-color: var(--color-primary-mid);
+      box-shadow: 0 20px 60px oklch(0 0 0 / 0.1);
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+    }
+    .free-editor {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-primary-light) transparent;
+    }
+    .free-editor::-webkit-scrollbar {
+      width: 6px;
+    }
+    .free-editor::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .free-editor::-webkit-scrollbar-thumb {
+      background-color: var(--color-primary-light);
+      border-radius: 20px;
+    }
+    .free-editor:focus {
+      background: rgba(255, 255, 255, 0.9);
+      outline: none;
+      box-shadow: inset 0 0 0 2px var(--color-primary-light);
     }
     .free-panel-header {
       display: flex;
