@@ -120,21 +120,32 @@
         var barW = Math.max(30, (n.accuracy / 100) * 280);
         var grad = n.status === 'mastered' ? 'url(#mg-mastered)' : n.status === 'critical' ? 'url(#mg-critical)' : 'url(#mg-learning)';
 
+        // Grupo do nó (com hover effects)
+        svg += '<g class=\"mm-node-group\">';
+
         // Linha conectora
-        svg += '<line x1=\"100\" y1=\"' + y + '\" x2=\"140\" y2=\"' + y + '\" stroke=\"#475569\" stroke-width=\"1\" opacity=\"0.4\"/>';
+        svg += '<line class=\"mm-connector\" x1=\"100\" y1=\"' + y + '\" x2=\"140\" y2=\"' + y + '\" stroke=\"#475569\" stroke-width=\"1\" opacity=\"0.4\"/>';
 
         // Círculo do nó
-        svg += '<circle cx=\"100\" cy=\"' + y + '\" r=\"6\" fill=\"' + (n.status === 'mastered' ? '#22c55e' : n.status === 'critical' ? '#ef4444' : '#3b82f6') + '\"/>';
+        var circleColor = n.status === 'mastered' ? '#22c55e' : n.status === 'critical' ? '#ef4444' : '#3b82f6';
+        svg += '<circle class=\"mm-node-circle\" cx=\"100\" cy=\"' + y + '\" r=\"6\" fill=\"' + circleColor + '\"/>';
 
         // Nome do tópico
-        svg += '<text x=\"150\" y=\"' + (y + 4) + '\" font-size=\"13\" font-weight=\"600\" fill=\"currentColor\">' + this.escapeXML(n.name) + '</text>';
+        svg += '<text class=\"mm-node-label\" x=\"150\" y=\"' + (y + 4) + '\" font-size=\"13\" font-weight=\"600\" fill=\"currentColor\">' + this.escapeXML(n.name) + '</text>';
 
-        // Barra de progresso
-        svg += '<rect x=\"320\" y=\"' + (y - 6) + '\" width=\"200\" height=\"10\" rx=\"5\" fill=\"#1e293b\"/>';
-        svg += '<rect x=\"320\" y=\"' + (y - 6) + '\" width=\"' + barW + '\" height=\"10\" rx=\"5\" fill=\"' + grad + '\"/>';
+        // Barra de progresso (background)
+        svg += '<rect class=\"mm-bar-bg\" x=\"320\" y=\"' + (y - 6) + '\" width=\"200\" height=\"10\" rx=\"5\" fill=\"#1e293b\"/>';
+        // Barra de progresso (fill)
+        svg += '<rect class=\"mm-bar-fill\" x=\"320\" y=\"' + (y - 6) + '\" width=\"' + barW + '\" height=\"10\" rx=\"5\" fill=\"' + grad + '\"/>';
 
         // Percentual
-        svg += '<text x=\"530\" y=\"' + (y + 4) + '\" font-size=\"12\" font-weight=\"700\" fill=\"currentColor\" text-anchor=\"end\">' + n.accuracy + '%</text>';
+        svg += '<text class=\"mm-node-pct\" x=\"530\" y=\"' + (y + 4) + '\" font-size=\"12\" font-weight=\"700\" fill=\"currentColor\" text-anchor=\"end\">' + n.accuracy + '%</text>';
+
+        // Tooltip (hover)
+        var tooltipTxt = this.escapeXML(n.name) + ' - ' + n.accuracy + '% (' + n.total + 'q' + (n.avgTime > 0 ? ', ' + n.avgTime + 's' : '') + ')';
+        svg += '<title>' + tooltipTxt + '</title>';
+
+        svg += '</g>';
       }
 
       // Legenda

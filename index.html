@@ -9211,7 +9211,35 @@ window.addEventListener('resize', () => {
     /* Inicializar Route Planner */
     if (window.AivosRoutePlanner) {
       try {
-        AivosRoutePlanner.generate();
+        // Renderizar UI de configuracao + plano
+        var plannerContainer = document.getElementById('aivos-planner-content');
+        if (plannerContainer) {
+          var goal = AivosRoutePlanner.getWeeklyGoal();
+          var avail = AivosRoutePlanner.getDailyAvailability();
+          var dayNames = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+          
+          var settingsHtml = '<div class="aivos-plan-card" style="margin-bottom:var(--space-3)">';
+          settingsHtml += '<div class="aivos-plan-header"><h3 class="aivos-plan-title">Configuração do Plano</h3></div>';
+          settingsHtml += '<div style="margin-bottom:var(--space-3)">';
+          settingsHtml += '<label style="font-size:0.8rem;color:var(--color-text,#e2e8f0);display:block;margin-bottom:4px">Meta semanal de questões:</label>';
+          settingsHtml += '<input id="planner-weekly-goal" type="number" min="5" max="200" value="' + goal + '" style="width:80px;padding:4px 8px;border:1px solid var(--color-border,#334155);border-radius:4px;background:var(--color-card,#1e293b);color:var(--color-text,#e2e8f0);font-size:0.85rem" />';
+          settingsHtml += '</div>';
+          settingsHtml += '<div style="margin-bottom:var(--space-3)">';
+          settingsHtml += '<label style="font-size:0.8rem;color:var(--color-text,#e2e8f0);display:block;margin-bottom:4px">Disponibilidade diária (minutos):</label>';
+          settingsHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
+          for (var di = 0; di < 7; di++) {
+            var val = avail[di] || 30;
+            settingsHtml += '<div style="text-align:center"><span style="font-size:0.6rem;color:var(--color-muted,#94a3b8);display:block">' + dayNames[di].slice(0, 3) + '</span><input type="number" min="0" max="240" value="' + val + '" class="planner-day-input" data-day="' + di + '" style="width:100%;padding:3px 2px;border:1px solid var(--color-border,#334155);border-radius:4px;background:var(--color-card,#1e293b);color:var(--color-text,#e2e8f0);font-size:0.75rem;text-align:center" /></div>';
+          }
+          settingsHtml += '</div></div>';
+          settingsHtml += '<button onclick="window.AivosRoutePlanner.setWeeklyGoal(parseInt(document.getElementById(\'planner-weekly-goal\').value) || 20);var a={};document.querySelectorAll(\'.planner-day-input\').forEach(function(el){a[parseInt(el.dataset.day)]=parseInt(el.value)||0});window.AivosRoutePlanner.setDailyAvailability(a);window.AivosRoutePlanner.generate();var pc=document.getElementById(\'aivos-planner-content\');if(pc){var p=window.AivosRoutePlanner.render();pc.innerHTML=p;}" style="padding:6px 16px;border:1px solid var(--color-primary,#3b82f6);border-radius:6px;background:var(--color-primary,#3b82f6);color:white;cursor:pointer;font-size:0.8rem;font-weight:600">Gerar Plano</button>';
+          settingsHtml += '</div>';
+          
+          plannerContainer.innerHTML = settingsHtml;
+          // Renderizar plano apos a config
+          var planHtml = AivosRoutePlanner.render();
+          plannerContainer.innerHTML = settingsHtml + planHtml;
+        }
       } catch(e) { console.warn('[AIVOS] Planner init error:', e); }
     }
     /* Inicializar Tutor Engine */

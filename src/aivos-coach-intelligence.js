@@ -694,6 +694,34 @@
           if (reviewContainer) {
             reviewContainer.innerHTML = '<h3 class="aivos-section-title">Revisoes Pendentes</h3>' + AivosReviewScheduler.renderPending();
           }
+          // Notificar coach contextual sobre revisoes (M3)
+          if (window.AivosReviewScheduler) {
+            try {
+              var pendingReviews = AivosReviewScheduler.getPendingReviews();
+              if (pendingReviews.length > 0 && pendingReviews.length <= 3) {
+                CoachContextual.show('📚 Você tem **' + pendingReviews.length + ' revisão' + (pendingReviews.length > 1 ? 'ões' : '') + ' pendente' + (pendingReviews.length > 1 ? 's' : '') + '**! Reveja os tópicos com erro para fixar o conteúdo.', {
+                  state: 'teaching',
+                  timeout: 10000
+                });
+              }
+            } catch(e) {}
+          }
+        } catch(e) {}
+      }
+      // Gerar mapa mental automaticamente ao final da sessao (M5)
+      if (window.AivosMindMapper) {
+        try {
+          var mindContainer = document.getElementById('aivos-mindmap-content');
+          if (mindContainer) {
+            var tracker = window.AivosTracker;
+            if (tracker) {
+              var data = tracker.getAllData();
+              var disciplines = Object.keys(data.byDiscipline || {});
+              var discToMap = AivosCoachIntelligence._lastSubject || (disciplines.length > 0 ? disciplines[0] : null);
+              var svg = AivosMindMapper.renderSVG(discToMap);
+              mindContainer.innerHTML = '<h3 class="aivos-section-title">Mapa Mental</h3>' + svg;
+            }
+          }
         } catch(e) {}
       }
     },
@@ -766,6 +794,25 @@
       CoachContextual.hide();
     }
   };
+
+  // Capturar disciplina atual do state global da aplicacao
+  AivosCoachIntelligence._lastSubject = null;
+  try {
+    var origGenerateStart = AivosCoachIntelligence.onGenerateStart;
+    if (origGenerateStart) {
+      AivosCoachIntelligence.onGenerateStart = function() {
+        origGenerateStart();
+        if (typeof window.state !== 'undefined') {
+          if (window.state.subject) {
+            AivosCoachIntelligence._lastSubject = window.state.subject;
+          }
+          if (window.state.concurso && window.state.concurso.label) {
+            AivosCoachIntelligence._lastSubject = window.state.concurso.label;
+          }
+        }
+      };
+    }
+  } catch(e) {}
 
   /* ══════════════════════════════════════════════════════════════════════════
      EXPORT (padrão do projeto: window.*)

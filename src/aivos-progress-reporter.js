@@ -93,12 +93,31 @@
 
         html += '<div class="aivos-report-footer">';
         html += '<p>Gerado por AIVOS AI Tutor em ' + new Date().toLocaleString('pt-BR') + '</p>';
+        html += '<button class="aivos-report-export-btn" onclick="window.AivosProgressReporter.downloadReport()" style="margin-top:8px;padding:6px 16px;border:1px solid var(--color-primary,#3b82f6);border-radius:6px;background:transparent;color:var(--color-primary,#3b82f6);cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s" onmouseover="this.style.background=\'rgba(59,130,246,0.1)\'" onmouseout="this.style.background=\'transparent\'">📥 Exportar HTML</button>';
         html += '</div>';
         html += '</div>';
 
         return html;
       } catch(e) {
         return '<div class="aivos-empty-state">Erro ao gerar relatorio.</div>';
+      }
+    },
+
+    /** Faz o download do relatório como arquivo HTML */
+    downloadReport: function() {
+      try {
+        var html = this.exportHTML();
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'relatorio-aivos-' + new Date().toISOString().slice(0, 10) + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      } catch(e) {
+        console.warn('[AivosReport] Erro ao baixar:', e);
       }
     },
 

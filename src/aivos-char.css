@@ -1427,6 +1427,68 @@
   font-family: system-ui, -apple-system, sans-serif;
 }
 
+/* ── SVG Node Interactivity ── */
+.aivos-mindmap-container svg .mm-node-group {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.aivos-mindmap-container svg .mm-node-group:hover .mm-node-label {
+  fill: #60a5fa;
+  font-weight: 700;
+}
+.aivos-mindmap-container svg .mm-node-group:hover .mm-connector {
+  stroke: #60a5fa;
+  stroke-width: 2;
+  opacity: 0.8;
+}
+.aivos-mindmap-container svg .mm-node-group:hover .mm-node-circle {
+  stroke: #fff;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(59,130,246,0.5));
+}
+.aivos-mindmap-container svg .mm-node-group:hover .mm-bar-bg {
+  opacity: 0.8;
+}
+.aivos-mindmap-container svg .mm-node-group:hover .mm-bar-fill {
+  filter: brightness(1.2);
+}
+
+/* ── Tooltip para nós (exibe via title) ── */
+.aivos-mindmap-container svg .mm-node-group .mm-tooltip {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.aivos-mindmap-container svg .mm-node-group:hover .mm-tooltip {
+  opacity: 1;
+}
+
+/* ── Bar animation ── */
+.aivos-mindmap-container svg .mm-bar-fill {
+  transition: width 0.6s ease, filter 0.2s ease;
+}
+
+/* ── Connector lines animation ── */
+.aivos-mindmap-container svg .mm-connector {
+  transition: all 0.3s ease;
+}
+
+/* ── Title hover ── */
+.aivos-mindmap-container svg .mm-title {
+  transition: fill 0.2s ease;
+}
+.aivos-mindmap-container svg .mm-title:hover {
+  fill: #60a5fa;
+}
+
+/* ── Legend hover ── */
+.aivos-mindmap-container svg .mm-legend-item {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.aivos-mindmap-container svg .mm-legend-item:hover {
+  opacity: 0.7;
+}
+
 /* ═════════════════════════════════════════════════════════════════════════ */
 /*  M6 — PROGRESS REPORTER                                                */
 /* ═════════════════════════════════════════════════════════════════════════ */
