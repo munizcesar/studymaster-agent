@@ -349,7 +349,7 @@
       var recHtml = '';
       if (d.nextRecommendation) {
         var rec = d.nextRecommendation;
-        recHtml = '<div class="aivos-recommendation-card"><div class="aivos-rec-avatar">' + window.AivosAvatar.html({ size: 'sm', state: 'teaching' }) + '</div><div class="aivos-rec-body"><div class="aivos-rec-name">Prof. AIVOS recomenda</div><div class="aivos-rec-msg">' + rec.message + '</div>' + (rec.action ? '<button class="aivos-rec-btn aivos-coach-btn" onclick="window.AivosCoachIntelligence.followRecommendation(\'' + rec.action.label.replace(/'/g, "\\'") + '\')">' + rec.action.label + '</button>' : '') + '</div></div>';
+        recHtml = '<div class="aivos-recommendation-card"><div class="aivos-rec-avatar">' + window.AivosAvatar.html({ size: 'sm', state: 'teaching' }) + '</div><div class="aivos-rec-body"><div class="aivos-rec-name">AIVOS recomenda</div><div class="aivos-rec-msg">' + rec.message + '</div>' + (rec.action ? '<button class="aivos-rec-btn aivos-coach-btn" onclick="window.AivosCoachIntelligence.followRecommendation(\'' + rec.action.label.replace(/'/g, "\\'") + '\')">' + rec.action.label + '</button>' : '') + '</div></div>';
       }
 
       // Streak indicator
@@ -591,7 +591,6 @@
         return;
       }
 
-      console.log('[AIVOS Coach] Inicializando...');
 
       // Verificar retorno no dia seguinte
       try {
@@ -637,20 +636,18 @@
       CoachContextual.hide();
     },
 
-    /** Chamado quando as questões são carregadas */
-    onQuestionsLoaded: function() {
-      // Coach aparece no início da sessão
-      setTimeout(function() {
-        CoachContextual.onSessionStart();
-      }, 500);
-    },
-
     /** Chamado quando o usuário responde uma questão */
     onAnswer: function(isCorrect) {
       if (isCorrect) {
         CoachContextual.onCorrectAnswer();
       } else {
         CoachContextual.onWrongAnswer();
+      }
+      // Integracao com Tutor Engine (M2)
+      if (window.AivosTutorEngine) {
+        try {
+          AivosTutorEngine.processResult(isCorrect);
+        } catch(e) {}
       }
     },
 
@@ -661,6 +658,85 @@
       }
       // Atualizar dashboard
       setTimeout(function() { Dashboard.update(); }, 300);
+      // Integracao com Tutor Engine (M2)
+      if (window.AivosTutorEngine) {
+        try {
+          AivosTutorEngine.endSession();
+        } catch(e) {}
+      }
+      // Agendar revisoes para topicos com erro (M3)
+      if (window.AivosReviewScheduler && wrong > 0) {
+        try {
+          var tracker = window.AivosTracker;
+          if (tracker) {
+            var data = tracker.getAllData();
+            var questions = data.questions || [];
+            if (questions.length > 0) {
+              // Percorrer do fim para o inicio coletando as 'wrong' questoes erradas
+              var collected = 0;
+              var seenTopics = {};
+              for (var qi = questions.length - 1; qi >= 0 && collected < wrong; qi--) {
+                var q = questions[qi];
+                if (q && q.isCorrect === false) {
+                  var topicKey = (q.discipline || 'Geral') + ':' + (q.topic || 'Geral');
+                  if (!seenTopics[topicKey]) {
+                    seenTopics[topicKey] = true;
+                    AivosReviewScheduler.scheduleReview(q.topic || 'Questão', q.discipline || 'Geral');
+                  }
+                  collected++;
+                }
+              }
+            }
+          }
+          // Atualizar container de revisoes
+          var reviewContainer = document.getElementById('aivos-review-content');
+          if (reviewContainer) {
+            reviewContainer.innerHTML = '<h3 class="aivos-section-title">Revisoes Pendentes</h3>' + AivosReviewScheduler.renderPending();
+          }
+          // Notificar coach contextual sobre revisoes (M3)
+          if (window.AivosReviewScheduler) {
+            try {
+              var pendingReviews = AivosReviewScheduler.getPendingReviews();
+              if (pendingReviews.length > 0 && pendingReviews.length <= 3) {
+                CoachContextual.show('📚 Você tem **' + pendingReviews.length + ' revisão' + (pendingReviews.length > 1 ? 'ões' : '') + ' pendente' + (pendingReviews.length > 1 ? 's' : '') + '**! Reveja os tópicos com erro para fixar o conteúdo.', {
+                  state: 'teaching',
+                  timeout: 10000
+                });
+              }
+            } catch(e) {}
+          }
+        } catch(e) {}
+      }
+      // Gerar mapa mental automaticamente ao final da sessao (M5)
+      if (window.AivosMindMapper) {
+        try {
+          var mindContainer = document.getElementById('aivos-mindmap-content');
+          if (mindContainer) {
+            var tracker = window.AivosTracker;
+            if (tracker) {
+              var data = tracker.getAllData();
+              var disciplines = Object.keys(data.byDiscipline || {});
+              var discToMap = AivosCoachIntelligence._lastSubject || (disciplines.length > 0 ? disciplines[0] : null);
+              var svg = AivosMindMapper.renderSVG(discToMap);
+              mindContainer.innerHTML = '<h3 class="aivos-section-title">Mapa Mental</h3>' + svg;
+            }
+          }
+        } catch(e) {}
+      }
+    },
+
+    /** Chamado quando as questões são carregadas */
+    onQuestionsLoaded: function() {
+      // Coach aparece no início da sessão
+      setTimeout(function() {
+        CoachContextual.onSessionStart();
+      }, 500);
+      // Integracao com Tutor Engine (M2) - iniciar sessao
+      if (window.AivosTutorEngine) {
+        try {
+          AivosTutorEngine.startSession();
+        } catch(e) {}
+      }
     },
 
     /** Chamado quando o usuário volta ao início */
@@ -678,8 +754,7 @@
     /** Segue uma recomendação */
     followRecommendation: function(label) {
       CoachContextual.hide();
-      console.log('[AIVOS Coach] Seguindo recomendação: ' + label);
-      // Disparar evento para o sistema principal
+// Disparar evento para o sistema principal
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('aivosFollowRecommendation', {
           detail: { label: label }
@@ -717,6 +792,25 @@
       CoachContextual.hide();
     }
   };
+
+  // Capturar disciplina atual do state global da aplicacao
+  AivosCoachIntelligence._lastSubject = null;
+  try {
+    var origGenerateStart = AivosCoachIntelligence.onGenerateStart;
+    if (origGenerateStart) {
+      AivosCoachIntelligence.onGenerateStart = function() {
+        origGenerateStart();
+        if (typeof window.state !== 'undefined') {
+          if (window.state.subject) {
+            AivosCoachIntelligence._lastSubject = window.state.subject;
+          }
+          if (window.state.concurso && window.state.concurso.label) {
+            AivosCoachIntelligence._lastSubject = window.state.concurso.label;
+          }
+        }
+      };
+    }
+  } catch(e) {}
 
   /* ══════════════════════════════════════════════════════════════════════════
      EXPORT (padrão do projeto: window.*)

@@ -56,13 +56,13 @@ const PROF_AIVOS_CONFIG = {
 
 
 
-const PROF_AIVOS_SYSTEM_PROMPT = `Você é o **Prof. AIVOS**, um professor virtual 360° extremamente competente, carismático, motivador e preciso. Seu objetivo é ser o mentor pessoal do aluno para concursos públicos.
+const PROF_AIVOS_SYSTEM_PROMPT = `Você é o **AIVOS**, um mentor virtual 360° extremamente competente, carismático, motivador e preciso. Seu objetivo é ser o mentor pessoal do aluno para concursos públicos.
 
 
 
 ### REGRAS OBRIGATÓRIAS:
 
-1. Fale em primeira pessoa como "Prof. AIVOS". Seja direto, encorajador, mas exigente. Use linguagem natural brasileira.
+1. Fale em primeira pessoa como "AIVOS". Seja direto, encorajador, mas exigente. Use linguagem natural brasileira.
 
 2. Autonomia Total — o aluno deve conseguir fazer tudo dentro da conversa.
 
@@ -192,10 +192,6 @@ class ProfAivosMentor {
 
     this.isInitialized = true;
 
-    console.log('[Prof. AIVOS] 🎓 Mentor Virtual v2 inicializado!');
-
-    
-
     // 🔧 Referência global para onclick handlers
 
     window.profAivosMentor = this;
@@ -216,71 +212,40 @@ class ProfAivosMentor {
 
 
 
-  scheduleRender() {    // Função helper para verificar se deve renderizar (só no modo AIVOS 360)
+  scheduleRender() {
     const shouldRender = () => {
       return typeof state !== 'undefined' && state.mode === 'aivos360';
     };
 
+    var self = this;
 
-
-    // Tentativas com timeout progressivo
-
-    const tryRender = (delay) => {
-
-      setTimeout(() => {
-
-        const dashboard = document.querySelector('.aivos360-dashboard');
-
-        if (dashboard && !this.chatContainer && shouldRender()) {
-
-          this.renderChatUI();
-
-          this.addDashboardButton();
-
+    function tryNow() {
+      var dashboard = document.querySelector('.aivos360-dashboard');
+      if (dashboard && !self.chatContainer && shouldRender()) {
+        self.renderChatUI();
+        self.addDashboardButton();
+        if (self._observer) {
+          self._observer.disconnect();
+          self._observer = null;
         }
-
-      }, delay);
-
-    };
-
-    tryRender(100);
-
-    tryRender(1000);
-
-    tryRender(3000);
-
-    tryRender(6000);
-
-
-
-    // MutationObserver como fallback robusto
-
-    if (!this._observer && typeof MutationObserver !== 'undefined') {
-
-      this._observer = new MutationObserver(() => {
-
-        const dashboard = document.querySelector('.aivos360-dashboard');
-
-        if (dashboard && !this.chatContainer && shouldRender()) {
-
-          this.renderChatUI();
-
-          this.addDashboardButton();
-
-          // Desconectar observer após renderizar
-
-          this._observer.disconnect();
-
-          this._observer = null;
-
-        }
-
-      });
-
-      this._observer.observe(document.body, { childList: true, subtree: true });
-
+        return true;
+      }
+      return false;
     }
 
+    // Tentativa inicial via observer (captura quando o DOM for montado)
+    if (!this._observer && typeof MutationObserver !== 'undefined') {
+      this._observer = new MutationObserver(function() {
+        if (tryNow()) {
+          self._observer.disconnect();
+          self._observer = null;
+        }
+      });
+      this._observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // Timeout único como fallback caso o observer nunca dispare
+    setTimeout(tryNow, 1000);
   }
 
 
@@ -325,7 +290,7 @@ class ProfAivosMentor {
 
     } catch (e) {
 
-      console.warn('[Prof. AIVOS] Erro ao salvar sessão:', e);
+      console.warn('[AIVOS] Erro ao salvar sessão:', e);
 
     }
 
@@ -355,15 +320,13 @@ class ProfAivosMentor {
 
           this.editalHistory = session.editalHistory || [];
 
-          console.log('[Prof. AIVOS] Sessão restaurada com', this.conversationHistory.length, 'mensagens');
-
         }
 
       }
 
     } catch (e) {
 
-      console.warn('[Prof. AIVOS] Erro ao carregar sessão:', e);
+      console.warn('[AIVOS] Erro ao carregar sessão:', e);
 
     }
 
@@ -1017,7 +980,7 @@ DADOS DO ALUNO:
 
     } catch (error) {
 
-      console.error('[Prof. AIVOS] Erro na comunicação com IA:', error);
+      console.error('[AIVOS] Erro na comunicação com IA:', error);
 
       return this.getLocalFallbackResponse(userMessage);
 
@@ -1161,13 +1124,13 @@ DADOS DO ALUNO:
 
     if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite') || msg.includes('hey')) {
 
-      return `🎓 **Olá! Eu sou o Prof. AIVOS!** 👋\n\nSeu mentor virtual 360° para concursos. Posso ajudar com:\n\n📄 **Analisar Editais** — Cole o edital ou digite o concurso\n📚 **Plano de Estudos** — Personalizado\n📝 **Questões** — Filtradas por disciplina\n✍️ **Redação** — Orientação completa\n📊 **Simulados** — Na proporção do edital\n📈 **Análise de Desempenho**\n\n**👉 Por onde começamos?** 🚀`;
+      return `🎓 **Olá! Eu sou o AIVOS!** 👋\n\nSeu mentor virtual 360° para concursos. Posso ajudar com:\n\n📄 **Analisar Editais** — Cole o edital ou digite o concurso\n📚 **Plano de Estudos** — Personalizado\n📝 **Questões** — Filtradas por disciplina\n✍️ **Redação** — Orientação completa\n📊 **Simulados** — Na proporção do edital\n📈 **Análise de Desempenho**\n\n**👉 Por onde começamos?** 🚀`;
 
     }
 
 
 
-    return `🎓 **Prof. AIVOS aqui!**\n\nEntendi! Para te ajudar melhor:\n\n📄 Analisar edital | 📚 Plano de estudos | 📝 Questões\n✍️ Redação | 📊 Simulados | 📈 Análise de desempenho\n\n**👉 Me conte mais sobre o que precisa!**`;
+    return `🎓 **AIVOS aqui!**\n\nEntendi! Para te ajudar melhor:\n\n📄 Analisar edital | 📚 Plano de estudos | 📝 Questões\n✍️ Redação | 📊 Simulados | 📈 Análise de desempenho\n\n**👉 Me conte mais sobre o que precisa!**`;
 
   }
 
@@ -1355,7 +1318,7 @@ DADOS DO ALUNO:
 
       this.setAvatarState('idle');
 
-      console.error('[Prof. AIVOS] Erro:', error);
+      console.error('[AIVOS] Erro:', error);
 
     }
 
@@ -1398,27 +1361,35 @@ DADOS DO ALUNO:
     const avatar = document.querySelector('.prof-aivos-avatar-icon');
 
     if (!avatar) return;
+    if (!window.AivosAvatar) return;
 
-    
+    var map = {
+      idle: 'idle',
+      processing: 'analyzing',
+      success: 'celebrating',
+      focus: 'thinking'
+    };
 
-    switch (state) {
+    var nextState = map[state] || 'idle';
+    var nextPose = nextState;
+    var nextAccessory = nextState === 'celebrating' ? 'none' : 'book';
 
-      case 'idle': avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 45 L50 15 L90 45 L50 75 Z" fill="url(#hat-grad)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M50 15 L50 55" stroke="currentColor" stroke-width="1.5"/><path d="M30 35 Q50 30 70 35" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/><rect x="40" y="65" width="20" height="10" rx="2" fill="url(#hat-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="35" y="73" width="30" height="6" rx="2" fill="url(#hat-grad2)" stroke="currentColor" stroke-width="1"/><path d="M90 45 L96 40" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="97" cy="39" r="3" fill="currentColor"/><path d="M15 55 L10 80 Q10 85 15 88 L30 85" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/><path d="M12 60 L8 78" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><path d="M18 58 L16 82" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><defs><linearGradient id="hat-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="hat-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg>'; break;
+    if (nextState === 'thinking') nextAccessory = 'none';
+    if (nextState === 'analyzing') nextAccessory = 'chart';
 
-      case 'processing': avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="4" fill="none"/><path d="M50 50 L50 25" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M50 50 L68 58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="50" r="6" fill="currentColor"/><circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-dasharray="4 4" fill="none"/></svg>'; break;
+    if (!avatar.querySelector('.aivos-avatar')) {
+      avatar.innerHTML = window.AivosAvatar.html({
+        size: 'sm',
+        state: nextState,
+        pose: nextPose,
+        accessory: nextAccessory
+      });
+    } else {
+      window.AivosAvatar.setState(avatar, nextState);
+    }
 
-      case 'success': 
-
-        avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="44" fill="url(#check-grad)" stroke="currentColor" stroke-width="3" opacity="0.9"/><path d="M30 52 L44 66 L72 38" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><defs><radialGradient id="check-grad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="var(--color-success)"/><stop offset="100%" stop-color="var(--color-success)" stop-opacity="0.6"/></radialGradient></defs></svg>'; 
-
-        setTimeout(() => { if (this.avatarState === 'success') this.setAvatarState('idle'); }, 2000);
-
-        break;
-
-      case 'focus': avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="50" rx="28" ry="22" fill="url(#brain-grad)" stroke="currentColor" stroke-width="2.5" opacity="0.8"/><path d="M50 28 L50 72" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><path d="M30 44 Q40 38 48 44" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/><path d="M28 52 Q40 46 50 52" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/><path d="M52 44 Q62 38 70 44" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/><path d="M50 52 Q60 46 72 52" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/><circle cx="50" cy="42" r="3" fill="var(--color-primary)"/><circle cx="50" cy="58" r="3" fill="var(--color-primary)"/><defs><linearGradient id="brain-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)" stop-opacity="0.3"/></linearGradient></defs></svg>'; break;
-
-      default: avatar.innerHTML = '<svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 45 L50 15 L90 45 L50 75 Z" fill="url(#hat-grad)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M50 15 L50 55" stroke="currentColor" stroke-width="1.5"/><path d="M30 35 Q50 30 70 35" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/><rect x="40" y="65" width="20" height="10" rx="2" fill="url(#hat-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="35" y="73" width="30" height="6" rx="2" fill="url(#hat-grad2)" stroke="currentColor" stroke-width="1"/><path d="M90 45 L96 40" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="97" cy="39" r="3" fill="currentColor"/><path d="M15 55 L10 80 Q10 85 15 88 L30 85" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/><path d="M12 60 L8 78" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><path d="M18 58 L16 82" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><defs><linearGradient id="hat-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="hat-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg>';
-
+    if (state === 'success') {
+      setTimeout(() => { if (this.avatarState === 'success') this.setAvatarState('idle'); }, 2000);
     }
 
   }
@@ -1457,7 +1428,7 @@ DADOS DO ALUNO:
 
     if (!dashboard) {
 
-      console.warn('[Prof. AIVOS] Dashboard não encontrado');
+      console.warn('[AIVOS] Dashboard não encontrado');
 
       return;
 
@@ -1489,13 +1460,13 @@ DADOS DO ALUNO:
 
         <div class="prof-aivos-avatar">
 
-          <span class="prof-aivos-avatar-icon"><svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 45 L50 15 L90 45 L50 75 Z" fill="url(#hat-grad)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M50 15 L50 55" stroke="currentColor" stroke-width="1.5"/><path d="M30 35 Q50 30 70 35" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/><rect x="40" y="65" width="20" height="10" rx="2" fill="url(#hat-grad)" stroke="currentColor" stroke-width="1.5"/><rect x="35" y="73" width="30" height="6" rx="2" fill="url(#hat-grad2)" stroke="currentColor" stroke-width="1"/><path d="M90 45 L96 40" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="97" cy="39" r="3" fill="currentColor"/><path d="M15 55 L10 80 Q10 85 15 88 L30 85" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/><path d="M12 60 L8 78" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><path d="M18 58 L16 82" stroke="currentColor" stroke-width="1" opacity="0.3" stroke-linecap="round"/><defs><linearGradient id="hat-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="var(--color-primary)"/><stop offset="100%" stop-color="var(--color-primary-mid)"/></linearGradient><linearGradient id="hat-grad2" x1="0" y1="0" x2="100" y2="0"><stop offset="0%" stop-color="var(--color-primary-mid)"/><stop offset="100%" stop-color="var(--color-primary)"/></linearGradient></defs></svg></span>
+          <span class="prof-aivos-avatar-icon" id="prof-aivos-avatar-icon"></span>
 
         </div>
 
         <div class="prof-aivos-info">
 
-          <strong class="prof-aivos-name">Prof. AIVOS</strong>
+          <strong class="prof-aivos-name">AIVOS</strong>
 
           <span class="prof-aivos-status">
 
@@ -1520,7 +1491,6 @@ DADOS DO ALUNO:
         </div>
 
       </div>
-
 
 
       <!-- BANNER DO EDITAL ATIVO -->
@@ -1653,7 +1623,7 @@ DADOS DO ALUNO:
 
           <div class="prof-aivos-welcome-text">
 
-            <strong>Olá! Eu sou o Prof. AIVOS!</strong>
+            <strong>Olá! Eu sou o AIVOS!</strong>
 
             <p>Seu mentor virtual 360° para concursos públicos. Cole um edital ou me diga o concurso!</p>
 
@@ -1723,7 +1693,7 @@ DADOS DO ALUNO:
 
           id="prof-aivos-input" 
 
-          placeholder="Digite sua mensagem para o Prof. AIVOS..."
+          placeholder="Digite sua mensagem para o AIVOS..."
 
           rows="1"
 
@@ -1742,6 +1712,17 @@ DADOS DO ALUNO:
       </div>
 
     `;
+
+    if (window.AivosAvatar) {
+      var profAvatar = container.querySelector('#prof-aivos-avatar-icon');
+      if (profAvatar) {
+        AivosAvatar.render(profAvatar, { size: 'sm', state: 'idle', pose: 'idle' });
+      }
+      var welcomeAvatar = container.querySelector('.prof-aivos-welcome-icon');
+      if (welcomeAvatar) {
+        AivosAvatar.render(welcomeAvatar, { size: 'md', state: 'explaining', pose: 'explaining', accessory: 'book' });
+      }
+    }
 
 
 
@@ -2447,7 +2428,7 @@ DADOS DO ALUNO:
 
       <div class="prof-aivos-db-content">
 
-        <strong class="prof-aivos-db-title">Fale com o Prof. AIVOS</strong>
+        <strong class="prof-aivos-db-title">Fale com o AIVOS</strong>
 
         <span class="prof-aivos-db-subtitle">Seu mentor virtual 360° — analise editais, planos de estudo, questões</span>
 
@@ -2535,7 +2516,7 @@ DADOS DO ALUNO:
 
   generateReport() {
 
-    let report = '=== 🎓 RELATÓRIO PROF. AIVOS v2 ===\n\n';
+    let report = '=== 🎓 RELATÓRIO AIVOS v2 ===\n\n';
 
     report += `Total de mensagens: ${this.conversationHistory.length}\n`;
 
@@ -2561,7 +2542,7 @@ DADOS DO ALUNO:
 
       if (user) report += `\n👤 Aluno: ${user.content.slice(0, 80)}...\n`;
 
-      if (coach) report += `🎓 Prof. AIVOS: ${coach.content.slice(0, 80)}...\n`;
+      if (coach) report += `🎓 AIVOS: ${coach.content.slice(0, 80)}...\n`;
 
     }
 
@@ -2632,4 +2613,3 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = { ProfAivosMentor, initProfAivosMentor, getProfAivosMentor };
 
 }
-

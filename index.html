@@ -38,6 +38,12 @@
   <script src="src/aivos-memory.js"></script>
   <script src="src/aivos-tracker.js"></script>
   <script src="src/aivos-coach-intelligence.js"></script>
+  <script src="src/aivos-route-planner.js"></script>
+  <script src="src/aivos-tutor-engine.js"></script>
+  <script src="src/aivos-review-scheduler.js"></script>
+  <script src="src/aivos-essay-grader.js"></script>
+  <script src="src/aivos-mind-mapper.js"></script>
+  <script src="src/aivos-progress-reporter.js"></script>
   <style>
     :root {
       /* ── Neutral Scale (warm undertone, hue 250) ── */
@@ -2834,17 +2840,7 @@
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
       color: white;
     }
-    .prof-aivos-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5em;
-      flex-shrink: 0;
-    }
+
     .prof-aivos-info {
       flex: 1;
       min-width: 0;
@@ -3041,8 +3037,6 @@
       animation: blink 0.8s infinite;
       color: var(--color-primary);
     }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
     .prof-aivos-welcome {
@@ -3103,7 +3097,7 @@
     @media (max-width: 480px) {
       .prof-aivos-card { padding: var(--space-3); }
       .prof-aivos-header { padding: var(--space-3); }
-      .prof-aivos-avatar { width: 32px; height: 32px; font-size: 1.2em; }
+  
       .prof-aivos-name { font-size: var(--text-sm); }
       .prof-aivos-messages { max-height: 280px; min-height: 180px; padding: var(--space-3); gap: var(--space-2); }
       .prof-aivos-msg { max-width: 95%; font-size: var(--text-sm); padding: var(--space-2) var(--space-3); }
@@ -3119,7 +3113,7 @@
     @media (max-width: 375px) {
       .prof-aivos-card { padding: var(--space-2); border-radius: var(--radius-lg); }
       .prof-aivos-header { padding: var(--space-2); }
-      .prof-aivos-avatar { width: 28px; height: 28px; font-size: 1em; }
+  
       .prof-aivos-messages { max-height: 220px; min-height: 140px; padding: var(--space-2); }
       .prof-aivos-msg { font-size: var(--text-xs); padding: var(--space-1) var(--space-2); }
       .prof-aivos-input-area { padding: var(--space-1) var(--space-2); }
@@ -3440,8 +3434,6 @@
     .prof-aivos-li-dash { position: relative; padding-left: 0; }
 
     /* Avatar */
-    .prof-aivos-avatar-icon { font-size: 1.4em; line-height: 1; transition: transform 0.3s ease; }
-    .prof-aivos-avatar:hover .prof-aivos-avatar-icon { transform: scale(1.15); }
     .prof-aivos-actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
 
     @keyframes pulse {
@@ -3451,20 +3443,12 @@
 
   
     /* COACH REDBOT - Animations & Layout */
-    @keyframes subtle-float {
-      0%, 100% { transform: translateY(0px) rotate(-1deg); }
       50% { transform: translateY(-12px) rotate(1deg); }
     }
-    @keyframes blink {
-      0%, 90%, 100% { transform: scaleY(1); }
       92%, 96% { transform: scaleY(0.1); }
     }
-    @keyframes hat-wobble {
-      0%, 100% { transform: rotate(-6deg) translateY(0); }
       50% { transform: rotate(6deg) translateY(-3px); }
     }
-    @keyframes redbot-pulse {
-      0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
 
@@ -3472,31 +3456,8 @@
     .redbot-layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); min-height: calc(100vh - 120px); max-height: calc(100vh - 120px); overflow: hidden; }
     .redbot-sidebar { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-5); display: flex; flex-direction: column; overflow-y: auto; position: sticky; top: var(--space-4); align-self: start; max-height: calc(100vh - 140px); }
     .redbot-sidebar-inner { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
-    .redbot-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.2);
-      position: relative;
-      flex-shrink: 0;
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-mid) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.3s ease;
-    }
-    .redbot-avatar:hover { transform: scale(1.03); }
-    .redbot-avatar-img { width: 100%; height: 100%; object-fit: contain; padding: 20px; }
-    .redbot-avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; }
-    .redbot-hat { display: none; }
-    .redbot-avatar:hover { transform: scale(1.05); }
-    .redbot-avatar-img { width: 100%; height: 100%; object-fit: cover; animation: blink 5s infinite; }
-    .redbot-avatar-fallback { width: 100%; height: 100%; background: linear-gradient(135deg, #06b6d4, #0ea5e9); display: flex; align-items: center; justify-content: center; border-radius: 9999px; }
-    .redbot-avatar-emoji { font-size: 4em; }
     .redbot-hat { position: absolute; top: -5px; right: 5px; font-size: 2em; animation: hat-wobble 4s ease-in-out infinite; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
     .redbot-name { font-size: 1.5em; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: var(--space-2); }
-    .redbot-name-hat { font-size: 0.8em; }
     .redbot-status { display: flex; align-items: center; gap: var(--space-2); color: var(--color-success); font-size: var(--text-sm); }
     .redbot-status-dot { width: 12px; height: 12px; background: var(--color-success); border-radius: 50%; animation: redbot-pulse 2s infinite; }
     .redbot-bio { color: var(--color-text-muted); text-align: center; font-size: var(--text-sm); line-height: 1.6; }
@@ -3619,8 +3580,7 @@
       }
       .redbot-sidebar.open { left: 0; }
       .redbot-sidebar-inner { align-items: flex-start; }
-      .redbot-avatar { width: 80px; height: 80px; }
-      .redbot-name { font-size: var(--text-base); }
+        .redbot-name { font-size: var(--text-base); }
     }
     
     @media (max-width: 768px) {
@@ -3634,8 +3594,7 @@
       .redbot-send-btn { width: 40px; height: 40px; }
       .redbot-input { font-size: var(--text-base); padding: var(--space-3); }
       .redbot-essay-textarea { min-height: 80px; font-size: var(--text-sm); }
-      .redbot-avatar { width: 72px; height: 72px; }
-    }
+      }
     
     @media (max-width: 480px) {
       .redbot-messages { max-height: calc(100vh - 240px); padding: var(--space-3); gap: var(--space-3); }
@@ -3649,8 +3608,7 @@
       .redbot-send-btn { width: 36px; height: 36px; }
       .redbot-input { font-size: var(--text-sm); padding: var(--space-2); min-height: 38px; }
       .redbot-essay-textarea { min-height: 60px; }
-      .redbot-avatar { width: 56px; height: 56px; }
-      .redbot-name { font-size: var(--text-sm); }
+        .redbot-name { font-size: var(--text-sm); }
       .redbot-status { font-size: var(--text-xs); }
       .redbot-bio { font-size: var(--text-xs); }
       .redbot-new-theme-btn { font-size: var(--text-xs); padding: var(--space-1) var(--space-3); }
@@ -3664,8 +3622,7 @@
     }
     
     @media (max-width: 375px) {
-      .redbot-avatar { width: 48px; height: 48px; }
-      .redbot-messages { max-height: calc(100vh - 220px); padding: var(--space-2); }
+        .redbot-messages { max-height: calc(100vh - 220px); padding: var(--space-2); }
       .redbot-msg { padding: var(--space-1) var(--space-2); max-width: 97%; }
       .redbot-send-btn { width: 32px; height: 32px; }
       .redbot-input { font-size: var(--text-xs); padding: var(--space-2); }
@@ -6045,6 +6002,18 @@ pre, code { word-break: break-word; overflow-x: auto; }
             <div id="aivos-coach-container" style="display:none; margin-bottom:var(--space-4);"></div>
             <!-- AIVOS Dashboard Container -->
             <div id="aivos-dashboard-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Route Planner Container -->
+            <div id="aivos-planner-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Tutor Engine Container -->
+            <div id="aivos-tutor-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Review Scheduler Container -->
+            <div id="aivos-review-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Essay Grader Container -->
+            <div id="aivos-essay-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Mind Mapper Container -->
+            <div id="aivos-mindmap-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- AIVOS Progress Reporter Container -->
+            <div id="aivos-report-content" style="margin-bottom:var(--space-4);"></div>
             <div id="questions-list"></div>
             <div id="aivos-celebration-placeholder" style="margin-top:var(--space-4); display:none;"></div>
             <div class="hidden" id="session-result" role="status" aria-live="polite" aria-atomic="true" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
@@ -9212,6 +9181,83 @@ window.addEventListener('resize', () => {
       try {
         AivosCoachIntelligence.init();
       } catch(e) { console.warn('[AIVOS] Coach init error:', e); }
+    }
+    /* Inicializar Route Planner */
+    if (window.AivosRoutePlanner) {
+      try {
+        // Renderizar UI de configuracao + plano
+        var plannerContainer = document.getElementById('aivos-planner-content');
+        if (plannerContainer) {
+          var goal = AivosRoutePlanner.getWeeklyGoal();
+          var avail = AivosRoutePlanner.getDailyAvailability();
+          var dayNames = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+          
+          var settingsHtml = '<div class="aivos-plan-card" style="margin-bottom:var(--space-3)">';
+          settingsHtml += '<div class="aivos-plan-header"><h3 class="aivos-plan-title">Configuração do Plano</h3></div>';
+          settingsHtml += '<div style="margin-bottom:var(--space-3)">';
+          settingsHtml += '<label style="font-size:0.8rem;color:var(--color-text,#e2e8f0);display:block;margin-bottom:4px">Meta semanal de questões:</label>';
+          settingsHtml += '<input id="planner-weekly-goal" type="number" min="5" max="200" value="' + goal + '" style="width:80px;padding:4px 8px;border:1px solid var(--color-border,#334155);border-radius:4px;background:var(--color-card,#1e293b);color:var(--color-text,#e2e8f0);font-size:0.85rem" />';
+          settingsHtml += '</div>';
+          settingsHtml += '<div style="margin-bottom:var(--space-3)">';
+          settingsHtml += '<label style="font-size:0.8rem;color:var(--color-text,#e2e8f0);display:block;margin-bottom:4px">Disponibilidade diária (minutos):</label>';
+          settingsHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
+          for (var di = 0; di < 7; di++) {
+            var val = avail[di] || 30;
+            settingsHtml += '<div style="text-align:center"><span style="font-size:0.6rem;color:var(--color-muted,#94a3b8);display:block">' + dayNames[di].slice(0, 3) + '</span><input type="number" min="0" max="240" value="' + val + '" class="planner-day-input" data-day="' + di + '" style="width:100%;padding:3px 2px;border:1px solid var(--color-border,#334155);border-radius:4px;background:var(--color-card,#1e293b);color:var(--color-text,#e2e8f0);font-size:0.75rem;text-align:center" /></div>';
+          }
+          settingsHtml += '</div></div>';
+          settingsHtml += '<button onclick="window.AivosRoutePlanner.setWeeklyGoal(parseInt(document.getElementById(\'planner-weekly-goal\').value) || 20);var a={};document.querySelectorAll(\'.planner-day-input\').forEach(function(el){a[parseInt(el.dataset.day)]=parseInt(el.value)||0});window.AivosRoutePlanner.setDailyAvailability(a);window.AivosRoutePlanner.generate();var pc=document.getElementById(\'aivos-planner-content\');if(pc){var p=window.AivosRoutePlanner.render();pc.innerHTML=p;}" style="padding:6px 16px;border:1px solid var(--color-primary,#3b82f6);border-radius:6px;background:var(--color-primary,#3b82f6);color:white;cursor:pointer;font-size:0.8rem;font-weight:600">Gerar Plano</button>';
+          settingsHtml += '</div>';
+          
+          plannerContainer.innerHTML = settingsHtml;
+          // Renderizar plano apos a config
+          var planHtml = AivosRoutePlanner.render();
+          plannerContainer.innerHTML = settingsHtml + planHtml;
+        }
+      } catch(e) { console.warn('[AIVOS] Planner init error:', e); }
+    }
+    /* Inicializar Tutor Engine */
+    if (window.AivosTutorEngine) {
+      try {
+        AivosTutorEngine.startSession();
+      } catch(e) { console.warn('[AIVOS] Tutor init error:', e); }
+    }
+    /* Renderizar Revisoes Pendentes */
+    if (window.AivosReviewScheduler) {
+      try {
+        var reviewContainer = document.getElementById('aivos-review-content');
+        if (reviewContainer) {
+          reviewContainer.innerHTML = '<h3 class="aivos-section-title">Revisoes Pendentes</h3>' + AivosReviewScheduler.renderPending();
+        }
+      } catch(e) { console.warn('[AIVOS] Review init error:', e); }
+    }
+    /* Renderizar Historico de Redacoes */
+    if (window.AivosEssayGrader) {
+      try {
+        var essayContainer = document.getElementById('aivos-essay-content');
+        if (essayContainer) {
+          essayContainer.innerHTML = AivosEssayGrader.renderHistory();
+        }
+      } catch(e) { console.warn('[AIVOS] Essay init error:', e); }
+    }
+    /* Renderizar Mapa Mental */
+    if (window.AivosMindMapper) {
+      try {
+        var mindContainer = document.getElementById('aivos-mindmap-content');
+        if (mindContainer) {
+          var svg = AivosMindMapper.renderSVG();
+          mindContainer.innerHTML = '<h3 class="aivos-section-title">Mapa Mental</h3>' + svg;
+        }
+      } catch(e) { console.warn('[AIVOS] MindMap init error:', e); }
+    }
+    /* Renderizar Relatorio de Progresso */
+    if (window.AivosProgressReporter) {
+      try {
+        var reportContainer = document.getElementById('aivos-report-content');
+        if (reportContainer) {
+          reportContainer.innerHTML = '<h3 class="aivos-section-title">Relatorio Semanal</h3>' + AivosProgressReporter.generateReport();
+        }
+      } catch(e) { console.warn('[AIVOS] Report init error:', e); }
     }
   })();
   </script>
