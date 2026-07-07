@@ -401,26 +401,60 @@
 
   function buildAvatarMarkup(opts) {
     var o = normalizeOptions(opts);
+    var ids = {
+      orb: avatarUid() + '-orb',
+      antenna: avatarUid() + '-antenna',
+      glow: avatarUid() + '-glow',
+      shell: avatarUid() + '-shell',
+      shell2: avatarUid() + '-shell2',
+      visor: avatarUid() + '-visor',
+      visor2: avatarUid() + '-visor2',
+      body: avatarUid() + '-body',
+      metal: avatarUid() + '-metal',
+      panel: avatarUid() + '-panel',
+      accent: avatarUid() + '-accent',
+      brand: avatarUid() + '-brand',
+      eyeIris: avatarUid() + '-eye-iris',
+      book: avatarUid() + '-book'
+    };
+
     var label = STATE_LABELS[o.state] || 'AIVOS';
     var accentClass = 'aivos-avatar--' + o.state;
     var poseClass = 'aivos-avatar--pose-' + o.pose;
 
+    // Serialize accessory-relevant gradient IDs into a data attribute for setState
+    var accIds = JSON.stringify({
+      p: ids.panel,
+      a: ids.accent,
+      b: ids.brand,
+      k: ids.book
+    });
+
     return '' +
       '<div class="aivos-avatar aivos-avatar--' + o.size + ' ' + accentClass + ' ' + poseClass + '" ' +
-        'data-size="' + esc(o.size) + '" data-state="' + esc(o.state) + '" data-pose="' + esc(o.pose) + '" ' +
-        'data-track-pointer="' + (o.trackPointer ? 'true' : 'false') + '" role="img" aria-label="' + esc(label) + '">' +
-        '<div class="aivos-minimal-mascot" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">' +
-           '<svg width="64" height="48" viewBox="0 0 64 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="aivos-head" style="transition: transform 220ms ease;">' +
-              '<rect x="2" y="2" width="60" height="44" rx="12" fill="var(--color-surface)" stroke="var(--color-text)" stroke-width="2"/>' +
-              '<g class="aivos-eyes" style="transform: translate(calc(var(--aivos-look-x, 0) * 1px), calc(var(--aivos-look-y, 0) * 1px)); transition: transform 120ms ease-out;">' +
-                '<circle cx="20" cy="20" r="4" fill="var(--color-text)" class="aivos-eye"/>' +
-                '<circle cx="44" cy="20" r="4" fill="var(--color-text)" class="aivos-eye"/>' +
-              '</g>' +
-              '<path class="aivos-mouth" d="M 24 32 Q 32 38 40 32" stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" fill="none" style="transition: d 220ms ease;"/>' +
-           '</svg>' +
-           '<div style="width: 2px; height: 8px; background: var(--color-text);"></div>' +
-           '<div style="padding: 4px 16px; border-radius: 12px; border: 2px solid var(--color-text); background: var(--color-surface); color: var(--color-text); font-size: 11px; font-weight: 700; letter-spacing: 1px;">AIVOS</div>' +
-        '</div>' +
+        'data-size="' + esc(o.size) + '" data-state="' + esc(o.state) + '" data-pose="' + esc(o.pose) + '" data-accessory="' + esc(o.accessory) + '" ' +
+        'data-track-pointer="' + (o.trackPointer ? 'true' : 'false') + '" data-acc-ids="' + esc(accIds) + '" role="img" aria-label="' + esc(label) + '">' +
+        '<svg class="aivos-avatar-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+          '<defs>' + buildDefs(ids) + '</defs>' +
+
+          '<g class="aivos-avatar__scene">' + buildScene(ids) + '</g>' +
+
+          '<g class="aivos-avatar__robot">' +
+            '<g class="aivos-avatar__shadow">' + buildShadow() + '</g>' +
+
+            '<g class="aivos-avatar__body">' + buildBody(ids) + '</g>' +
+
+            '<g class="aivos-avatar__head">' + buildHead(ids) + '</g>' +
+
+            '<g class="aivos-avatar__discs">' + buildDiscs(ids) + '</g>' +
+
+            buildArmLeft(ids) +
+
+            buildArmRight(ids) +
+
+            '<g class="aivos-avatar__accessories">' + buildAccessory(o.accessory, ids) + '</g>' +
+          '</g>' +
+        '</svg>' +
       '</div>';
   }
 
