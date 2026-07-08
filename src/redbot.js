@@ -404,7 +404,16 @@ class CoachRedbot {
       </div>
     `;
 
-    if (window.AivosAvatar) {
+    if (window.Aivo) {
+      var sidebarAvatar = container.querySelector('.redbot-avatar');
+      var welcomeAvatar = container.querySelector('.redbot-welcome-avatar');
+      if (sidebarAvatar) {
+        this.sidebarAivo = new Aivo(sidebarAvatar, { size: 'xl', state: 'speaking' });
+      }
+      if (welcomeAvatar) {
+        this.welcomeAivo = new Aivo(welcomeAvatar, { size: 'sm', state: 'idle' });
+      }
+    } else if (window.AivosAvatar) {
       var sidebarAvatar = container.querySelector('.redbot-avatar');
       var welcomeAvatar = container.querySelector('.redbot-welcome-avatar');
       if (sidebarAvatar) {
@@ -483,7 +492,12 @@ class CoachRedbot {
     btn.addEventListener('click', () => this.openChat());
     dashboard.insertBefore(btn, dashboard.firstChild);
 
-    if (window.AivosAvatar) {
+    if (window.Aivo) {
+      var dbIcon = btn.querySelector('.redbot-db-icon');
+      if (dbIcon) {
+        this.dbAivo = new Aivo(dbIcon, { size: 'md', state: 'speaking' });
+      }
+    } else if (window.AivosAvatar) {
       var dbIcon = btn.querySelector('.redbot-db-icon');
       if (dbIcon) {
         AivosAvatar.render(dbIcon, { size: 'md', state: 'explaining', pose: 'pointing', accessory: 'pointer' });
@@ -605,6 +619,8 @@ class CoachRedbot {
 
     this.isProcessing = true;
     this.setInputState(false);
+    
+    if (this.sidebarAivo) this.sidebarAivo.setState('thinking');
 
     this.addMessage(userMessage, 'user');
     this.conversationHistory.push({ role: 'user', content: userMessage });
@@ -651,6 +667,7 @@ class CoachRedbot {
     this.setInputState(true);
     this.inputElement?.focus();
     this.scrollToBottom();
+    if (this.sidebarAivo) this.sidebarAivo.setState('speaking');
   }
 
   // ════════════════════════════════════════════════════════════════════════════

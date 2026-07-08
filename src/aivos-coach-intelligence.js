@@ -349,7 +349,16 @@
       var recHtml = '';
       if (d.nextRecommendation) {
         var rec = d.nextRecommendation;
-        recHtml = '<div class="aivos-recommendation-card"><div class="aivos-rec-avatar">' + window.AivosAvatar.html({ size: 'sm', state: 'teaching' }) + '</div><div class="aivos-rec-body"><div class="aivos-rec-name">AIVOS recomenda</div><div class="aivos-rec-msg">' + rec.message + '</div>' + (rec.action ? '<button class="aivos-rec-btn aivos-coach-btn" onclick="window.AivosCoachIntelligence.followRecommendation(\'' + rec.action.label.replace(/'/g, "\\'") + '\')">' + rec.action.label + '</button>' : '') + '</div></div>';
+        var recAvatarHtml = '';
+        if (window.Aivo) {
+          var temp = document.createElement('div');
+          new Aivo(temp, { size: 'sm', state: rec.state === 'warning' ? 'concerned' : 'thinking' });
+          recAvatarHtml = temp.innerHTML;
+        } else if (window.AivosAvatar) {
+          recAvatarHtml = window.AivosAvatar.html({ size: 'sm', state: 'teaching' });
+        }
+        
+        recHtml = '<div class="aivos-recommendation-card"><div class="aivos-rec-avatar">' + recAvatarHtml + '</div><div class="aivos-rec-body"><div class="aivos-rec-name">AIVO recomenda</div><div class="aivos-rec-msg">' + rec.message + '</div>' + (rec.action ? '<button class="aivos-rec-btn aivos-coach-btn" onclick="window.AivosCoachIntelligence.followRecommendation(\'' + rec.action.label.replace(/'/g, "\\'") + '\')">' + rec.action.label + '</button>' : '') + '</div></div>';
       }
 
       // Streak indicator

@@ -1354,44 +1354,44 @@ DADOS DO ALUNO:
 
 
 
-  setAvatarState(state) {
-
+    setAvatarState(state) {
     this.avatarState = state;
+    const avatarContainer = document.querySelector('.prof-aivos-avatar-icon');
+    if (!avatarContainer) return;
 
-    const avatar = document.querySelector('.prof-aivos-avatar-icon');
-
-    if (!avatar) return;
-    if (!window.AivosAvatar) return;
-
-    var map = {
-      idle: 'idle',
-      processing: 'analyzing',
-      success: 'celebrating',
-      focus: 'thinking'
-    };
-
-    var nextState = map[state] || 'idle';
-    var nextPose = nextState;
-    var nextAccessory = nextState === 'celebrating' ? 'none' : 'book';
-
-    if (nextState === 'thinking') nextAccessory = 'none';
-    if (nextState === 'analyzing') nextAccessory = 'chart';
-
-    if (!avatar.querySelector('.aivos-avatar')) {
-      avatar.innerHTML = window.AivosAvatar.html({
-        size: 'sm',
-        state: nextState,
-        pose: nextPose,
-        accessory: nextAccessory
-      });
-    } else {
-      window.AivosAvatar.setState(avatar, nextState);
+    // Se o novo sistema Aivo estiver disponível, usá-lo
+    if (window.Aivo) {
+      if (!this.aivoInstance) {
+        this.aivoInstance = new Aivo(avatarContainer, { size: 'sm', state: 'idle' });
+      }
+      
+      const map = {
+        idle: 'idle',
+        processing: 'thinking',
+        success: 'success',
+        focus: 'focus'
+      };
+      
+      this.aivoInstance.setState(map[state] || 'idle');
+    } else if (window.AivosAvatar) {
+      // Fallback para o sistema antigo se necessário
+      var mapLegacy = {
+        idle: 'idle',
+        processing: 'analyzing',
+        success: 'celebrating',
+        focus: 'thinking'
+      };
+      var nextState = mapLegacy[state] || 'idle';
+      if (!avatarContainer.querySelector('.aivos-avatar')) {
+        avatarContainer.innerHTML = window.AivosAvatar.html({ size: 'sm', state: nextState });
+      } else {
+        window.AivosAvatar.setState(avatarContainer, nextState);
+      }
     }
 
     if (state === 'success') {
       setTimeout(() => { if (this.avatarState === 'success') this.setAvatarState('idle'); }, 2000);
     }
-
   }
 
 

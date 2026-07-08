@@ -563,17 +563,28 @@
 
       var message = opts.message || '';
       var state = normalizeState(opts.state || 'explaining');
-      var pose = normalizePose(opts.pose || state, state);
-      var accessory = normalizeAccessory(opts.accessory, state);
       var action = opts.action || null;
 
-      var avatarHtml = AivosAvatar.html({
-        size: opts.avatarSize || 'md',
-        state: state,
-        pose: pose,
-        accessory: accessory,
-        trackPointer: !!opts.trackPointer
-      });
+      var avatarHtml = '';
+      if (window.Aivo) {
+        var temp = document.createElement('div');
+        var aivoState = 'idle';
+        if (state === 'teaching' || state === 'explaining') aivoState = 'speaking';
+        if (state === 'waiting') aivoState = 'idle';
+        if (state === 'warning') aivoState = 'concerned';
+        new Aivo(temp, { size: opts.avatarSize || 'md', state: aivoState });
+        avatarHtml = temp.innerHTML;
+      } else {
+        var pose = normalizePose(opts.pose || state, state);
+        var accessory = normalizeAccessory(opts.accessory, state);
+        avatarHtml = AivosAvatar.html({
+          size: opts.avatarSize || 'md',
+          state: state,
+          pose: pose,
+          accessory: accessory,
+          trackPointer: !!opts.trackPointer
+        });
+      }
 
       var actionHtml = action
         ? '<button class="aivos-coach-btn" data-aivos-action="true">' + esc(action.label || 'Continuar') + '</button>'
@@ -583,7 +594,7 @@
         '<div class="aivos-coach" role="status" aria-live="polite">' +
           '<div class="aivos-coach-avatar">' + avatarHtml + '</div>' +
           '<div class="aivos-coach-body">' +
-            '<div class="aivos-coach-name">AIVOS</div>' +
+            '<div class="aivos-coach-name">AIVO</div>' +
             '<div class="aivos-coach-message">' + message + '</div>' +
             (actionHtml ? '<div class="aivos-coach-action">' + actionHtml + '</div>' : '') +
           '</div>' +
@@ -615,7 +626,14 @@
       var existing = document.querySelectorAll('.aivos-bubble');
       existing.forEach(function(bubble) { bubble.remove(); });
 
-      var avatarHtml = AivosAvatar.html({ size: 'sm', state: 'waiting', pose: 'waiting' });
+      var avatarHtml = '';
+      if (window.Aivo) {
+        var temp = document.createElement('div');
+        new Aivo(temp, { size: 'sm', state: 'idle' });
+        avatarHtml = temp.innerHTML;
+      } else {
+        avatarHtml = AivosAvatar.html({ size: 'sm', state: 'waiting', pose: 'waiting' });
+      }
       var bubble = document.createElement('div');
       bubble.className = 'aivos-bubble aivos-bubble--' + type;
       bubble.setAttribute('role', 'alert');
@@ -675,13 +693,20 @@
       var score = opts.score || null;
       var action = opts.action || null;
 
-      var avatarHtml = AivosAvatar.html({
-        size: 'xl',
-        state: 'celebrating',
-        pose: 'celebrating',
-        accessory: opts.accessory || 'none',
-        trackPointer: !!opts.trackPointer
-      });
+      var avatarHtml = '';
+      if (window.Aivo) {
+        var temp = document.createElement('div');
+        new Aivo(temp, { size: 'xl', state: 'success' });
+        avatarHtml = temp.innerHTML;
+      } else {
+        avatarHtml = AivosAvatar.html({
+          size: 'xl',
+          state: 'celebrating',
+          pose: 'celebrating',
+          accessory: opts.accessory || 'none',
+          trackPointer: !!opts.trackPointer
+        });
+      }
 
       var actionHtml = action
         ? '<button class="aivos-celebration-btn" data-aivos-action="true">' + esc(action.label || 'Continuar') + '</button>'

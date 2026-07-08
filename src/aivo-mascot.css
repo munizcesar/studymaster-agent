@@ -1,0 +1,243 @@
+/**
+ * ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ * ┃     AIVOS — NOVO SISTEMA DE MASCOTE AIVO (Estilos)                 ┃
+ * ┃                                                                     ┃
+ * ┃  Animações, transições e estilos para o mascote minimalista Aivo.  ┃
+ * ┃  Suporta temas claro/escuro e respeita prefers-reduced-motion.     ┃
+ * ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MASCOTE AIVO — Estilos Base
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivo-mascot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  color: currentColor;
+  transition: color 0.3s ease;
+}
+
+.aivo-mascot[data-state="celebrating"] {
+  animation: aivo-celebrate 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CORPO — Animações de Respiração
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivo-body {
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+@keyframes aivo-breathing {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.05);
+  }
+}
+
+@keyframes aivo-celebrate {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) scale(1.08);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    transform: translateY(-8px) scale(1.08);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   OLHOS — Piscadas e Movimentos
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivo-eye {
+  transition: transform 0.2s ease;
+}
+
+.aivo-eye-white {
+  transition: all 0.2s ease;
+}
+
+.aivo-eye-iris {
+  transition: all 0.15s ease;
+}
+
+.aivo-eye-pupil {
+  transition: cx 0.1s ease, cy 0.1s ease;
+}
+
+.aivo-eye-glint {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes aivo-blink {
+  0% {
+    ry: 8;
+  }
+  50% {
+    ry: 1;
+  }
+  100% {
+    ry: 8;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SOBRANCELHAS — Expressões Emocionais
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivo-eyebrow {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+
+.aivo-eyebrow-line {
+  transition: all 0.3s ease;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   BOCA — Expressões
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivo-mouth {
+  transition: all 0.25s ease;
+}
+
+.aivo-mouth path,
+.aivo-mouth circle,
+.aivo-mouth ellipse {
+  transition: all 0.25s ease;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ACESSIBILIDADE — Respeitar prefers-reduced-motion
+   ════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .aivo-mascot,
+  .aivo-body,
+  .aivo-eye,
+  .aivo-eye-white,
+  .aivo-eye-iris,
+  .aivo-eye-pupil,
+  .aivo-eyebrow,
+  .aivo-eyebrow-line,
+  .aivo-mouth,
+  .aivo-mouth path,
+  .aivo-mouth circle,
+  .aivo-mouth ellipse {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CONTAINER RESPONSIVO
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.aivo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+}
+
+/* Suporte para diferentes tamanhos */
+.aivo-container.aivo-xs {
+  min-height: 24px;
+}
+
+.aivo-container.aivo-sm {
+  min-height: 32px;
+}
+
+.aivo-container.aivo-md {
+  min-height: 48px;
+}
+
+.aivo-container.aivo-lg {
+  min-height: 96px;
+}
+
+.aivo-container.aivo-xl {
+  min-height: 120px;
+}
+
+.aivo-container.aivo-xxl {
+  min-height: 180px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   TEMAS — Dark Mode / Light Mode
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Light Mode (padrão) */
+[data-theme="light"] .aivo-mascot {
+  color: #000000;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .aivo-mascot {
+  color: #ffffff;
+}
+
+/* Auto (respeita preferência do sistema) */
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] .aivo-mascot {
+    color: #ffffff;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  [data-theme="auto"] .aivo-mascot {
+    color: #000000;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MICRO-INTERAÇÕES
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Hover effect (quando aplicável) */
+.aivo-mascot:hover {
+  filter: brightness(1.05);
+}
+
+/* Focus visible para acessibilidade */
+.aivo-mascot:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVIDADE
+   ════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .aivo-mascot {
+    /* Mascote escala automaticamente via viewBox */
+  }
+}
+
+@media (max-width: 480px) {
+  .aivo-mascot {
+    /* Mascote continua responsivo */
+  }
+}
