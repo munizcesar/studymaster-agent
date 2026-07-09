@@ -565,26 +565,10 @@
       var state = normalizeState(opts.state || 'explaining');
       var action = opts.action || null;
 
-      var avatarHtml = '';
-      if (window.Aivo) {
-        var temp = document.createElement('div');
-        var aivoState = 'idle';
-        if (state === 'teaching' || state === 'explaining') aivoState = 'speaking';
-        if (state === 'waiting') aivoState = 'idle';
-        if (state === 'warning') aivoState = 'concerned';
-        new Aivo(temp, { size: opts.avatarSize || 'md', state: aivoState });
-        avatarHtml = temp.innerHTML;
-      } else {
-        var pose = normalizePose(opts.pose || state, state);
-        var accessory = normalizeAccessory(opts.accessory, state);
-        avatarHtml = AivosAvatar.html({
-          size: opts.avatarSize || 'md',
-          state: state,
-          pose: pose,
-          accessory: accessory,
-          trackPointer: !!opts.trackPointer
-        });
-      }
+      var aivoState = 'idle';
+      if (state === 'teaching' || state === 'explaining') aivoState = 'speaking';
+      if (state === 'waiting') aivoState = 'idle';
+      if (state === 'warning') aivoState = 'concerned';
 
       var actionHtml = action
         ? '<button class="aivos-coach-btn" data-aivos-action="true">' + esc(action.label || 'Continuar') + '</button>'
@@ -592,13 +576,19 @@
 
       el.innerHTML =
         '<div class="aivos-coach" role="status" aria-live="polite">' +
-          '<div class="aivos-coach-avatar">' + avatarHtml + '</div>' +
+          '<div class="aivos-coach-avatar" id="aivos-coach-avatar"></div>' +
           '<div class="aivos-coach-body">' +
             '<div class="aivos-coach-name">AIVO</div>' +
             '<div class="aivos-coach-message">' + message + '</div>' +
             (actionHtml ? '<div class="aivos-coach-action">' + actionHtml + '</div>' : '') +
           '</div>' +
         '</div>';
+
+      /* Render new Aivo mascot in coach avatar */
+      var coachAvatar = el.querySelector('#aivos-coach-avatar');
+      if (coachAvatar && window.AivoAPI) {
+        window.AivoAPI.render(coachAvatar, { size: 40, state: aivoState });
+      }
 
       if (action && action.onClick) {
         var btn = el.querySelector('[data-aivos-action]');
@@ -626,22 +616,20 @@
       var existing = document.querySelectorAll('.aivos-bubble');
       existing.forEach(function(bubble) { bubble.remove(); });
 
-      var avatarHtml = '';
-      if (window.Aivo) {
-        var temp = document.createElement('div');
-        new Aivo(temp, { size: 'sm', state: 'idle' });
-        avatarHtml = temp.innerHTML;
-      } else {
-        avatarHtml = AivosAvatar.html({ size: 'sm', state: 'waiting', pose: 'waiting' });
-      }
       var bubble = document.createElement('div');
       bubble.className = 'aivos-bubble aivos-bubble--' + type;
       bubble.setAttribute('role', 'alert');
       bubble.setAttribute('aria-live', 'assertive');
       bubble.innerHTML =
-        '<div class="aivos-bubble-avatar">' + avatarHtml + '</div>' +
+        '<div class="aivos-bubble-avatar" id="aivos-bubble-avatar"></div>' +
         '<div class="aivos-bubble-text">' + text + '</div>' +
         '<button class="aivos-bubble-close" aria-label="Fechar">&times;</button>';
+
+      /* Render new Aivo mascot in bubble avatar */
+      var bubbleAvatar = bubble.querySelector('#aivos-bubble-avatar');
+      if (bubbleAvatar && window.AivoAPI) {
+        window.AivoAPI.render(bubbleAvatar, { size: 32, state: 'idle' });
+      }
 
       document.body.appendChild(bubble);
 
@@ -693,33 +681,24 @@
       var score = opts.score || null;
       var action = opts.action || null;
 
-      var avatarHtml = '';
-      if (window.Aivo) {
-        var temp = document.createElement('div');
-        new Aivo(temp, { size: 'xl', state: 'success' });
-        avatarHtml = temp.innerHTML;
-      } else {
-        avatarHtml = AivosAvatar.html({
-          size: 'xl',
-          state: 'celebrating',
-          pose: 'celebrating',
-          accessory: opts.accessory || 'none',
-          trackPointer: !!opts.trackPointer
-        });
-      }
-
       var actionHtml = action
         ? '<button class="aivos-celebration-btn" data-aivos-action="true">' + esc(action.label || 'Continuar') + '</button>'
         : '';
 
       el.innerHTML =
         '<div class="aivos-celebration" role="status" aria-live="polite">' +
-          '<div class="aivos-celebration-avatar">' + avatarHtml + '</div>' +
+          '<div class="aivos-celebration-avatar" id="aivos-celebration-avatar"></div>' +
           '<div class="aivos-celebration-title">' + title + '</div>' +
           (sub ? '<div class="aivos-celebration-sub">' + sub + '</div>' : '') +
           (score ? '<div class="aivos-celebration-score">' + score + '</div>' : '') +
           (actionHtml ? actionHtml : '') +
         '</div>';
+
+      /* Render new Aivo mascot in celebration avatar */
+      var celebAvatar = el.querySelector('#aivos-celebration-avatar');
+      if (celebAvatar && window.AivoAPI) {
+        window.AivoAPI.render(celebAvatar, { size: 80, state: 'celebrating' });
+      }
 
       if (action && action.onClick) {
         var btn = el.querySelector('[data-aivos-action]');
