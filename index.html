@@ -48,6 +48,8 @@
   <script src="src/aivos-progress-reporter.js"></script>
   <!-- 🎭 Aivo Mascot Bundle (React + framer-motion) -->
   <script src="dist/aivo-mascot-bundle.js"></script>
+  <!-- 🎭 AIVO Presence (instância única) -->
+  <script src="src/aivo-presence.js"></script>
   <style>
     :root {
       /* ── Neutral Scale (warm undertone, hue 250) ── */
@@ -5717,7 +5719,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
     </div>
   </header>
 
-  <section class="hero">
+  <section class="hero" data-aivo-anchor="hero">
     <div class="hero-bg-svg">
       <svg viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
         <!-- Orbital ring 1 - Large, slow float -->
@@ -5794,7 +5796,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
     </div>
   </section>
 
-  <main id="wizard" class="wizard-section">
+  <main id="wizard" class="wizard-section" data-aivo-anchor="wizard">
     <div class="container">
 
       <nav class="steps-bar" aria-label="Progresso do configurador">

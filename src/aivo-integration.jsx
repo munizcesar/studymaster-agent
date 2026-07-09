@@ -11,6 +11,13 @@
  *     work everywhere else via backward-compatible shims.
  *   - `AivosAvatar.html()` is NOT shimmed — coach cards, celebration
  *     banners, and the dashboard use the original SVG.
+ * 
+ * ── AIVO Presence ──
+ *   - Todas as chamadas AivoAPI.render() são interceptadas.
+ *   - Se o container possuir um ancestral [data-aivo-anchor], o
+ *     render é redirecionado para o sistema AivoPresence (instância
+ *     única, movimentação física entre âncoras).
+ *   - Containers sem âncora continuam com o comportamento legado.
  */
 
 import React from 'react';
@@ -73,13 +80,75 @@ function getThemeMode() {
   return html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 }
 
-/* ── Track all mounted roots ── */
+/* ── Presence root (instância única do React) ── */
+let presenceRoot = null;
+let presenceData = { size: SIZE_PRESETS.xl, state: 'idle' };
+
+/* ── Track all mounted roots (legado) ── */
 const roots = new Map();
 const mountData = new Map(); // container -> { size, state }
+
+/* ── Helper: encontra a âncora mais próxima de um container ── */
+function findAnchor(container) {
+  if (!container || !container.closest) return null;
+  // O container pode ser a própria âncora ou ter um ancestral âncora
+  if (container.hasAttribute && container.hasAttribute('data-aivo-anchor')) {
+    return container;
+  }
+  return container.closest('[data-aivo-anchor]');
+}
+
+/* ── Helper: renderiza no container de presença ── */
+function renderToPresence(anchorEl, options) {
+  const anchorName = anchorEl.getAttribute('data-aivo-anchor');
+  const size = getSize(options.size);
+  const state = getState(options.state);
+  const theme = getThemeMode();
+
+  presenceData = { size, state };
+
+  // Garantir que o Presence está inicializado
+  if (!window.AivoPresence) {
+    console.warn('[AivoAPI] AivoPresence não disponível. Usando render legado.');
+    return false;
+  }
+
+  window.AivoPresence.init();
+  const container = window.AivoPresence.getContainer();
+  if (!container) return false;
+
+  // Criar/atualizar o root React no container de presença
+  if (!presenceRoot) {
+    presenceRoot = createRoot(container);
+  }
+  presenceRoot.render(<Aivo size={size} state={state} themeMode={theme} />);
+
+  // Conectar callback de mudança de estado
+  window.AivoPresence.onStateChange = function(newState, newSize) {
+    const s = getSize(newSize);
+    const st = getState(newState);
+    presenceData = { size: s, state: st };
+    if (presenceRoot) {
+      presenceRoot.render(<Aivo size={s} state={st} themeMode={getThemeMode()} />);
+    }
+  };
+
+  // Mover o AIVO para a âncora
+  window.AivoPresence.moveTo(anchorName, { state, size: getSize(options.size) });
+
+  return true;
+}
 
 /* ── Auto-update theme on all instances ── */
 const themeObserver = new MutationObserver(() => {
   const theme = getThemeMode();
+  // Atualizar instância Presence
+  if (presenceRoot) {
+    presenceRoot.render(
+      <Aivo size={presenceData.size} state={presenceData.state} themeMode={theme} />
+    );
+  }
+  // Atualizar instâncias legado
   for (const [container, root] of roots) {
     const data = mountData.get(container);
     if (data) {
@@ -97,7 +166,10 @@ themeObserver.observe(document.documentElement, {
 /* ── Global API ── */
 window.AivoAPI = {
   /**
-   * Render or update an Aivo mascot inside a container element.
+   * Render or update an Aivo mascot.
+   * Se o container possuir uma âncora data-aivo-anchor, redireciona
+   * para o sistema Presence (instância única). Caso contrário,
+   * mantém o comportamento legado (render no próprio container).
    */
   render(container, options = {}) {
     if (!container || !(container instanceof Element)) {
@@ -105,6 +177,15 @@ window.AivoAPI = {
       return;
     }
 
+    // Tentar Presence primeiro
+    const anchorEl = findAnchor(container);
+    if (anchorEl && window.AivoPresence) {
+      if (renderToPresence(anchorEl, options)) {
+        return; // Presença assumiu o render
+      }
+    }
+
+    // Fallback legado: renderizar no próprio container
     const size = getSize(options.size);
     const state = getState(options.state);
     const theme = getThemeMode();
@@ -129,6 +210,21 @@ window.AivoAPI = {
    */
   setState(container, state) {
     if (!container) return;
+    // Se for Presence, atualizar o root Presence
+    const anchorEl = findAnchor(container);
+    if (anchorEl && presenceRoot) {
+      const mapped = getState(state);
+      presenceData = { ...presenceData, state: mapped };
+      presenceRoot.render(
+        <Aivo size={presenceData.size} state={mapped} themeMode={getThemeMode()} />
+      );
+      // Atualizar estado no Presence sem mover (já está na âncora)
+      if (window.AivoPresence && window.AivoPresence.onStateChange) {
+        window.AivoPresence.onStateChange(mapped, presenceData.size);
+      }
+      return;
+    }
+    // Fallback legado
     const data = mountData.get(container) || { size: SIZE_PRESETS.lg };
     this.render(container, { size: data.size, state });
   },
@@ -178,6 +274,17 @@ window.AivoAPI = {
 function defineSetAivosAvatarState() {
   window.setAivosAvatarState = function(state) {
     const mapped = getState(state);
+    // Atualizar Presence se disponível
+    if (presenceRoot) {
+      presenceData = { ...presenceData, state: mapped };
+      presenceRoot.render(
+        <Aivo size={presenceData.size} state={mapped} themeMode={getThemeMode()} />
+      );
+      if (window.AivoPresence && window.AivoPresence.onStateChange) {
+        window.AivoPresence.onStateChange(mapped, presenceData.size);
+      }
+    }
+    // Também atualizar instâncias legado
     for (const [container] of mountData) {
       window.AivoAPI.setState(container, mapped);
     }
