@@ -5704,7 +5704,6 @@ pre, code { word-break: break-word; overflow-x: auto; }
           <a href="#" class="logo" id="logo-home" aria-label="AIVOS - Voltar ao inicio">
             <img src="aivos-logo.png" alt="AIVOS Logo" class="logo-icon" style="height: 42px; width: auto;">
           </a>
-          <div id="aivos-header-avatar"></div>
         </div>
         <div class="header-actions">
           <button class="drawer-toggle" data-drawer-toggle aria-label="Abrir painel">
@@ -5819,7 +5818,10 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
         <!-- STEP 1 -->
         <div class="wizard-step active" id="step-1" data-step="1">
-          <h2 class="step-title">Como você quer estudar hoje?</h2>
+          <div class="step-title-row" style="display:flex;align-items:center;gap:16px;">
+            <h2 class="step-title" style="margin:0;">Como você quer estudar hoje?</h2>
+            <div id="wizard-mascot" style="flex-shrink:0;"></div>
+          </div>
           <p class="step-subtitle">Escolha o modo ideal para o seu objetivo de hoje</p>
             <div class="mode-grid">
               <button type="button" class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
@@ -9148,36 +9150,54 @@ window.addEventListener('resize', () => {
       }, isCorrect ? 1500 : 800);
     };
 
-    /* Render avatar in header */
-    if (avatarContainer && window.AivosAvatar) {
-      AivosAvatar.render(avatarContainer, { size: 'sm', state: 'idle' });
+    /* Render new Aivo mascot beside wizard title */
+    var wizardMascotEl = document.getElementById('wizard-mascot');
+    if (wizardMascotEl && window.AivoAPI) {
+      window.AivoAPI.render(wizardMascotEl, { size: 'md', state: 'greeting' });
     }
 
-    /* Welcome bubble with contextual data */
+    /* Welcome card with new Aivo mascot */
     setTimeout(function() {
-      if (typeof AivosBubble === 'undefined') return;
-
-      var message = 'Ola! Sou o AIVOS, seu assistente de estudos.';
-      var bubbleType = 'info';
-
+      var welcomeMessage = 'Olá! Sou o AIVOS, seu assistente de estudos.';
       if (window.AivosTracker) {
         try {
           var summary = AivosTracker.getSummary();
           if (summary && summary.questions > 0) {
             var streak = summary.streak || 0;
             if (streak >= 5) {
-              message = 'Bem-vindo de volta! Voce esta com uma sequencia de ' + streak + ' acertos! 🔥';
-              bubbleType = 'success';
+              welcomeMessage = 'Bem-vindo de volta! Voce esta com uma sequencia de ' + streak + ' acertos! \ud83d\udd25';
             } else if (summary.accuracy >= 70) {
-              message = 'Bem-vindo! Seu rendimento geral e de ' + summary.accuracy + '%. Continue assim! 💪';
+              welcomeMessage = 'Bem-vindo! Seu rendimento geral e de ' + summary.accuracy + '%. Continue assim! \ud83d\udcaa';
             } else {
-              message = 'Bem-vindo! Voce ja respondeu ' + summary.questions + ' questoes ate agora. Vamos estudar?';
+              welcomeMessage = 'Bem-vindo! Voce ja respondeu ' + summary.questions + ' questoes ate agora. Vamos estudar?';
             }
           }
-        } catch(e) { /* fallback to generic */ }
+        } catch(e) {}
       }
 
-      AivosBubble.show({ text: message, type: bubbleType, autoHide: 8000 });
+      /* Create welcome card with Aivo mascot */
+      var wizardCard = document.getElementById('wizard-card');
+      if (!wizardCard) return;
+      var existing = document.getElementById('aivo-welcome-card');
+      if (existing) existing.remove();
+
+      var card = document.createElement('div');
+      card.id = 'aivo-welcome-card';
+      card.style.cssText = 'display:flex;align-items:center;gap:16px;padding:16px 20px;margin-bottom:20px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:14px;box-shadow:0 4px 20px rgba(13,71,255,0.07);';
+      card.innerHTML =
+        '<div id="aivo-welcome-mascot" style="flex-shrink:0;width:72px;height:72px;"></div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-base);color:var(--color-text);margin-bottom:4px;">AIVOS</strong>' +
+          '<p style="margin:0;color:var(--color-text-muted);font-size:var(--text-sm);line-height:1.5;">' + welcomeMessage + '</p>' +
+        '</div>' +
+        '<button onclick="this.closest(\'#aivo-welcome-card\').remove()" style="flex-shrink:0;width:28px;height:28px;border:none;background:var(--color-surface-hover);border-radius:50%;cursor:pointer;color:var(--color-text-faint);display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;">&times;</button>';
+
+      wizardCard.insertBefore(card, wizardCard.firstChild);
+
+      var welcomeMascotEl = document.getElementById('aivo-welcome-mascot');
+      if (welcomeMascotEl && window.AivoAPI) {
+        window.AivoAPI.render(welcomeMascotEl, { size: 72, state: 'greeting' });
+      }
     }, 2000);
 
     /* Inicializar Coach Intelligence */
