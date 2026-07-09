@@ -199,7 +199,9 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
   const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
   const [jitterL, setJitterL] = useState({ x: 0, y: 0 });
   const [jitterR, setJitterR] = useState({ x: 0, y: 0 });
-  const [breath, setBreath] = useState({ y: 0, scaleY: 1 });
+  const [breath, setBreath] = useState({ y: 0, x: 0, scaleY: 1, scaleX: 1, rotate: 0 });
+  const [breathPhase, setBreathPhase] = useState('inhale'); // 'inhale' | 'exhale' (para re-render do halo)
+  const breathPhaseRef = useRef('inhale'); // ref sem stale closure para o timing
   const [speakFrame, setSpeakFrame] = useState(0);
   const [reducedMotion] = useState(prefersReducedMotion);
   const colors = PALETTE[themeMode] || PALETTE.light;
@@ -280,22 +282,39 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => { cancelled = true; clearTimeout(t); };
   }, [reducedMotion]);
 
-  // respiração orgânica — profundidade e duração variam a cada ciclo, então
-  // nunca repete de forma idêntica (diferente de um loop fixo)
+  // respiração orgânica assimétrica — inspiração mais lenta que expiração,
+  // com balanço lateral sutil (sway) e rotação do corpo. Cada ciclo varia
+  // profundidade, duração e amplitude do sway, nunca repetindo de forma idêntica.
   useEffect(() => {
-    if (!BREATH_STATES.includes(state) || reducedMotion) { setBreath({ y: 0, scaleY: 1 }); return; }
+    if (!BREATH_STATES.includes(state) || reducedMotion) {
+      setBreath({ y: 0, x: 0, scaleY: 1, scaleX: 1, rotate: 0 });
+      setBreathPhase('inhale');
+      return;
+    }
     let cancelled = false;
     let t;
-    let up = true;
-    const depthByState = { idle: 6, happy: 5, calm: 3, sleepy: 3 };
-    const speedByState = { idle: 1700, happy: 1800, calm: 2600, sleepy: 2400 };
+    breathPhaseRef.current = 'inhale';
+    const depthByState = { idle: 8, happy: 6, calm: 4, sleepy: 3 };
+    const speedByState = { idle: 1500, happy: 1800, calm: 2400, sleepy: 2200 };
     const baseDepth = depthByState[state] ?? 5;
     const baseSpeed = speedByState[state] ?? 2000;
     const cycle = () => {
       const depth = baseDepth * (0.75 + Math.random() * 0.5);
-      const dur = baseSpeed * (0.85 + Math.random() * 0.3);
-      setBreath({ y: up ? -depth : 0, scaleY: up ? 1 + depth * 0.003 : 1 });
-      up = !up;
+      const sway = baseDepth * 0.3 * (Math.random() * 0.3 + 0.85);
+      // Alterna entre inspiração e expiração via ref (sem stale closure)
+      const nextPhase = breathPhaseRef.current === 'inhale' ? 'exhale' : 'inhale';
+      breathPhaseRef.current = nextPhase;
+      setBreathPhase(nextPhase); // atualiza state para re-render do halo
+      if (nextPhase === 'inhale') {
+        // Inspiração: flutua para cima, balança lateral, expande corpo
+        setBreath({ y: -depth, x: sway, scaleY: 1 + depth * 0.004, scaleX: 1 + depth * 0.002, rotate: sway * 0.5 });
+      } else {
+        // Expiração: retorna ao neutro
+        setBreath({ y: 0, x: 0, scaleY: 1, scaleX: 1, rotate: 0 });
+      }
+      // Inspiração mais lenta (1.15x), expiração mais rápida (0.85x)
+      const timingFactor = nextPhase === 'inhale' ? 1.15 : 0.85;
+      const dur = baseSpeed * timingFactor * (0.85 + Math.random() * 0.2);
       t = setTimeout(() => { if (!cancelled) cycle(); }, dur);
     };
     cycle();
@@ -342,9 +361,15 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
   const bodyAnimate = reducedMotion
     ? { ...body.animate, y: 0, x: 0, scaleX: 1, scaleY: 1, rotate: 0 }
     : isBreathing
-      ? { ...body.animate, y: breath.y, scaleY: breath.scaleY }
+      ? { ...body.animate, y: breath.y, x: breath.x, scaleX: breath.scaleX, scaleY: breath.scaleY, rotate: breath.rotate }
       : body.animate;
-  const bodyTransition = isBreathing ? { duration: 1.3, ease: "easeInOut" } : body.transition;
+  const bodyTransition = isBreathing
+    ? { type: "spring", stiffness: 160, damping: 22, mass: 1.3 }
+    : body.transition;
+  // Brilho do halo sincronizado com a respiração: mais brilhante na inspiração
+  const haloOpacity = isBreathing && state === "idle"
+    ? (breathPhase === 'inhale' ? [0.35, 0.65, 0.35] : [0.25, 0.50, 0.25])
+    : [0.3, 0.6, 0.3];
   // o corpo "pesa" um pouco mais que os olhos: usa uma mola mais lenta, então
   // reage um instante depois — é a diferença entre um adesivo e uma criatura
   const bodyLeanX = reducedMotion ? 0 : eyeOffset.x * 0.4;
@@ -422,9 +447,9 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
               cx="100" cy="100" r="100"
               fill="url(#haloGlow)"
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              animate={{ opacity: haloOpacity }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: isBreathing && state === "idle" ? 1.8 : 3.6, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
           {state === "loading" && (
