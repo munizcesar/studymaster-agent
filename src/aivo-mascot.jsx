@@ -34,16 +34,18 @@ const PALETTE = {
   dark: { paper: "#141416", card: "#1C1C1F", ink: "#F2F2F0", inkSoft: "#9A9A9F", line: "#2C2C30", accent: "#4D88FF" },
 };
 
-// corpo em "gota": mais estreito no topo, mais largo na base, leve assimetria
-// organica. Verificado por plot (largura em y=68 e y=94) antes de usar —
-// olhos e sobrancelhas têm ~30-40 unidades de folga de cada lado.
-const BLOB_PATH = "M 102 17 C 142 19, 177 62, 177 106 C 177 147, 144 183, 98 185 C 56 183, 23 147, 23 106 C 23 62, 58 19, 102 17 Z";
+// Corpo redesenhado: curvas contínuas e fluidas inspiradas na identidade visual
+// AIVOS. A silhueta evoca uma gota em movimento — mais larga na base,
+// com assimetria orgânica sutil que sugere fluxo e energia contida.
+// A curva direita é mais projetada para fora, a esquerda mais recolhida,
+// criando uma sensação de movimento mesmo quando parado.
+const BLOB_PATH = "M 100 10 C 155 12, 196 50, 198 106 C 200 158, 158 198, 100 198 C 42 198, 2 158, 2 106 C 2 50, 45 12, 100 10 Z";
 
-const EYE_L = { x: 77, y: 95 };
-const EYE_R = { x: 123, y: 95 };
-const BROW_L = { x: 77, y: 69 };
-const BROW_R = { x: 123, y: 69 };
-const RING_R = 92;
+const EYE_L = { x: 78, y: 97 };
+const EYE_R = { x: 122, y: 97 };
+const BROW_L = { x: 78, y: 70 };
+const BROW_R = { x: 122, y: 70 };
+const RING_R = 98;
 const SPEAK_RY = [2.5, 5.5, 3.5, 6.5, 2.5];
 
 const BODY_VARIANTS = {
@@ -339,8 +341,14 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
   // reage um instante depois — é a diferença entre um adesivo e uma criatura
   const bodyLeanX = reducedMotion ? 0 : eyeOffset.x * 0.4;
   const bodyLeanRotate = reducedMotion ? 0 : eyeOffset.x * 0.3;
-  const strokeW = size < 60 ? 5.5 : 3.5;
-  const browH = size < 60 ? 6.5 : 4.5;
+  const strokeW = size < 60 ? 5 : 3;
+  const browH = size < 60 ? 6 : 4;
+  const isSmall = size < 60;
+  const eyeW = isSmall ? 12 : 11;
+  const eyeH = isSmall ? 26 : 24;
+  const eyeRx = isSmall ? 6 : 5.5;
+  const glintR = isSmall ? 0 : 2.1;
+  const mouthStrokeW = isSmall ? 5.5 : 5;
   const circumference = 2 * Math.PI * RING_R;
   const ringDash = `${circumference * 0.22} ${circumference}`;
   const mouthType = MOUTH_MAP[state] || "none";
@@ -360,7 +368,18 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
         <defs>
           <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={colors.card} stopOpacity="1" />
-            <stop offset="100%" stopColor={colors.card} stopOpacity="0.85" />
+            <stop offset="100%" stopColor={colors.card} stopOpacity="0.82" />
+          </linearGradient>
+          <linearGradient id="bodyBrand" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={colors.accent} stopOpacity="0.18" />
+            <stop offset="35%" stopColor={colors.accent} stopOpacity="0.02" />
+            <stop offset="65%" stopColor="#00B8FF" stopOpacity="0" />
+            <stop offset="100%" stopColor="#00B8FF" stopOpacity="0.12" />
+          </linearGradient>
+          <linearGradient id="bodyStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={colors.accent} stopOpacity={themeMode === "light" ? "0.55" : "0.70"} />
+            <stop offset="50%" stopColor={colors.accent} stopOpacity={themeMode === "light" ? "0.30" : "0.45"} />
+            <stop offset="100%" stopColor="#00B8FF" stopOpacity={themeMode === "light" ? "0.50" : "0.65"} />
           </linearGradient>
           <linearGradient id="ringBrand" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor={colors.accent} />
@@ -368,12 +387,19 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
             <stop offset="100%" stopColor="#00B8FF" />
           </linearGradient>
           <radialGradient id="haloGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="60%" stopColor={colors.accent} stopOpacity="0" />
-            <stop offset="85%" stopColor={colors.accent} stopOpacity="0.08" />
+            <stop offset="50%" stopColor={colors.accent} stopOpacity="0" />
+            <stop offset="80%" stopColor={colors.accent} stopOpacity={themeMode === "light" ? "0.06" : "0.10"} />
             <stop offset="100%" stopColor={colors.accent} stopOpacity="0" />
           </radialGradient>
           <filter id="glowFilter">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="6" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -413,37 +439,67 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
           )}
         </AnimatePresence>
 
+        {/* Energy halo ring behind body */}
         <motion.path
-          d={BLOB_PATH} fill="url(#bodyGrad)" stroke={colors.ink} strokeWidth={strokeW} strokeLinejoin="round"
+          d={BLOB_PATH}
+          fill="none"
+          stroke="url(#haloGlow)"
+          strokeWidth={strokeW * 2.5 + 4}
+          strokeLinejoin="round"
+          animate={bodyAnimate}
+          transition={bodyTransition}
+          style={{
+            originX: 0.5, originY: 0.5,
+            filter: "url(#softGlow)",
+            opacity: themeMode === "light" ? 0.5 : 0.6
+          }}
+        />
+        {/* Body fill with brand gradient overlay */}
+        <motion.path
+          d={BLOB_PATH} fill="url(#bodyGrad)" stroke="none" strokeWidth="0"
           animate={bodyAnimate} transition={bodyTransition} style={{ originX: 0.5, originY: 0.5 }}
         />
+        {/* Brand gradient lighting overlay */}
+        <motion.path
+          d={BLOB_PATH} fill="url(#bodyBrand)" stroke="none" strokeWidth="0"
+          animate={bodyAnimate} transition={bodyTransition} style={{ originX: 0.5, originY: 0.5, pointerEvents: "none" }}
+        />
+        {/* Colored outline with brand gradient */}
+        <motion.path
+          d={BLOB_PATH} fill="none" stroke="url(#bodyStroke)" strokeWidth={strokeW} strokeLinejoin="round"
+          animate={bodyAnimate} transition={bodyTransition} style={{ originX: 0.5, originY: 0.5, pointerEvents: "none" }}
+        />
 
+        {/* Sobrancelhas refinadas: mais finas, com fill brand em estados de conquista */}
         <motion.g animate={{ y: getBrowAnim(state, "left").y }} transition={{ duration: 0.25, ease: "easeOut" }}>
           <motion.rect
-            x={BROW_L.x - 10} y={BROW_L.y - browH / 2} width="20" height={browH} rx={browH / 2} fill={colors.ink}
+            x={BROW_L.x - 10} y={BROW_L.y - browH / 2} width="20" height={browH} rx={browH / 2}
+            fill={state === "proud" || state === "celebrating" ? "url(#bodyStroke)" : colors.ink}
             animate={{ rotate: getBrowAnim(state, "left").rotate }} transition={{ duration: 0.25, ease: "easeOut" }}
             style={{ originX: 0.5, originY: 0.5 }}
           />
         </motion.g>
         <motion.g animate={{ y: getBrowAnim(state, "right").y }} transition={{ duration: 0.25, ease: "easeOut" }}>
           <motion.rect
-            x={BROW_R.x - 10} y={BROW_R.y - browH / 2} width="20" height={browH} rx={browH / 2} fill={colors.ink}
+            x={BROW_R.x - 10} y={BROW_R.y - browH / 2} width="20" height={browH} rx={browH / 2}
+            fill={state === "proud" || state === "celebrating" ? "url(#bodyStroke)" : colors.ink}
             animate={{ rotate: getBrowAnim(state, "right").rotate }} transition={{ duration: 0.25, ease: "easeOut" }}
             style={{ originX: 0.5, originY: 0.5 }}
           />
         </motion.g>
 
+        {/* Olhos em formato de pílula mais elegantes */}
         <motion.g animate={{ x: eyeOffset.x, y: eyeOffset.y }} transition={{ type: "spring", stiffness: 260, damping: 20 }}>
           <motion.g animate={{ x: jitterL.x, y: jitterL.y }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
             <motion.g animate={getEyeAnim(state, blinking, "left")} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }}>
-              <rect x={EYE_L.x - 6.5} y={EYE_L.y - 14} width="13" height="28" rx="6.5" fill={colors.ink} />
-              {!NO_GLINT.includes(state) && <circle cx={EYE_L.x - 2.6} cy={EYE_L.y - 7} r="2.1" fill={colors.card} opacity="0.9" />}
+              <rect x={EYE_L.x - eyeW / 2} y={EYE_L.y - eyeH / 2} width={eyeW} height={eyeH} rx={eyeRx} fill={colors.ink} />
+              {!NO_GLINT.includes(state) && !isSmall && <circle cx={EYE_L.x - 2.4} cy={EYE_L.y - 6} r={glintR} fill={colors.card} opacity="0.85" />}
             </motion.g>
           </motion.g>
           <motion.g animate={{ x: jitterR.x, y: jitterR.y }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
             <motion.g animate={getEyeAnim(state, blinking, "right")} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }}>
-              <rect x={EYE_R.x - 6.5} y={EYE_R.y - 14} width="13" height="28" rx="6.5" fill={colors.ink} />
-              {!NO_GLINT.includes(state) && <circle cx={EYE_R.x - 2.6} cy={EYE_R.y - 7} r="2.1" fill={colors.card} opacity="0.9" />}
+              <rect x={EYE_R.x - eyeW / 2} y={EYE_R.y - eyeH / 2} width={eyeW} height={eyeH} rx={eyeRx} fill={colors.ink} />
+              {!NO_GLINT.includes(state) && !isSmall && <circle cx={EYE_R.x - 2.4} cy={EYE_R.y - 6} r={glintR} fill={colors.card} opacity="0.85" />}
             </motion.g>
           </motion.g>
         </motion.g>
@@ -463,10 +519,10 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
           <AnimatePresence mode="wait">
             {mouthType !== "none" && (
               <motion.g key={mouthType} initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }}>
-                {mouthType === "smile" && <path d="M 86 130 Q 100 142 114 130" fill="none" stroke={colors.ink} strokeWidth="6" strokeLinecap="round" />}
-                {mouthType === "flat" && <path d="M 90 128 Q 100 124 110 128" fill="none" stroke={colors.ink} strokeWidth="5.5" strokeLinecap="round" />}
-                {mouthType === "soft" && <path d="M 90 130 Q 100 134 110 130" fill="none" stroke={colors.ink} strokeWidth="5.5" strokeLinecap="round" />}
-                {mouthType === "open" && <circle cx="100" cy="131" r="6" fill={colors.ink} />}
+                {mouthType === "smile" && <path d="M 84 130 Q 100 144 116 130" fill="none" stroke={colors.ink} strokeWidth={mouthStrokeW} strokeLinecap="round" />}
+                {mouthType === "flat" && <path d="M 90 128 Q 100 124 110 128" fill="none" stroke={colors.ink} strokeWidth={mouthStrokeW} strokeLinecap="round" />}
+                {mouthType === "soft" && <path d="M 90 130 Q 100 134 110 130" fill="none" stroke={colors.ink} strokeWidth={mouthStrokeW} strokeLinecap="round" />}
+                {mouthType === "open" && <circle cx="100" cy="131" r="5.5" fill={colors.ink} />}
               </motion.g>
             )}
           </AnimatePresence>
