@@ -172,7 +172,7 @@
     st.el.style.transform = 'translate3d(0,0,0) scale(' + STANDBY_SCALE + ')';
   }
 
-  function exitStandby(pos, anchorName) {
+  function exitStandby(pos) {
     if (!st.el) return;
     cancelPending();
     st.isStandby = false;
@@ -195,24 +195,59 @@
   // ═══════════════════════════════════════════════════════════════════════════
 
   /**
-   * Move o AIVO para uma âncora.
-   * @param {string} anchorName
-   * @param {object} [opts] - { state, size }
+   * Calcula a posição alvo a partir de um elemento DOM.
+   * Posiciona à direita por padrão, ou à esquerda se não houver espaço,
+   * ou abaixo se não houver espaço lateral.
    */
-  function moveTo(anchorName, opts) {
+  function calcPosFromElement(targetEl, mascotSize) {
+    var rect = targetEl.getBoundingClientRect();
+    var size = mascotSize || MASCOT_DEFAULT_SIZE;
+    var gap = 12;
+
+    // Tentar direita
+    var spaceRight = window.innerWidth - rect.right;
+    if (spaceRight >= size + gap) {
+      return {
+        x: rect.right + gap,
+        y: rect.top + rect.height / 2 - size / 2,
+        rotate: -2,
+        side: 'right',
+      };
+    }
+
+    // Tentar esquerda
+    if (rect.left >= size + gap) {
+      return {
+        x: rect.left - size - gap,
+        y: rect.top + rect.height / 2 - size / 2,
+        rotate: 2,
+        side: 'left',
+      };
+    }
+
+    // Centralizar abaixo
+    return {
+      x: rect.left + rect.width / 2 - size / 2,
+      y: rect.bottom + gap,
+      rotate: -1,
+      side: 'bottom',
+    };
+  }
+
+  /**
+   * Core animation: move o #aivo-presence para a posição { x, y }
+   * com as 3 fases (preparação → voo → chegada).
+   */
+  function animateTo(pos, opts) {
     init();
     opts = opts || {};
 
-    // Cancelar animação anterior imediatamente
     cancelPending();
 
-    var pos = calcPosition(anchorName, opts.size);
     if (!pos) {
       enterStandby();
       return;
     }
-
-    st.currentAnchor = anchorName;
 
     // Atualizar estado do React antes de mover
     if (opts.state && st.onStateChange) {
@@ -220,7 +255,7 @@
     }
 
     if (st.isStandby) {
-      exitStandby(pos, anchorName);
+      exitStandby(pos);
       return;
     }
 
@@ -233,9 +268,9 @@
     var dx = pos.x - srcRect.left;
     var dy = pos.y - srcRect.top;
     var angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    var tiltAngle = Math.max(-8, Math.min(8, angle * 0.08)); // max ±8°
+    var tiltAngle = Math.max(-8, Math.min(8, angle * 0.08));
 
-    // Tilt instantâneo (sem herdar transição anterior do standby)
+    // Tilt instantâneo (sem herdar transição anterior)
     st.el.style.transition = 'none';
     st.el.style.transform = 'translate3d(' + srcRect.left + 'px, ' + srcRect.top + 'px, 0) scale(1) rotate(' + tiltAngle + 'deg)';
 
@@ -247,8 +282,6 @@
       st.el.classList.add('aivo-flying');
       st.el.setAttribute('data-aivo-phase', 'flying');
 
-      // Curva: adiciona rotação na direção oposta do movimento para simular
-      // inércia. Ao final, a rotação retorna a 0 (chegada).
       var flightRotate = pos.rotate || 0;
 
       st.el.style.transition = [
@@ -264,7 +297,6 @@
         st.el.classList.add('aivo-arrive');
         st.el.setAttribute('data-aivo-phase', 'arrive');
 
-        // Retornar rotação a 0 com bounce
         st.el.style.transition = [
           'transform ' + PHASE_ARRIVE_MS + 'ms cubic-bezier(0.34, 1.56, 0.64, 1)',
         ].join(',');
@@ -280,6 +312,35 @@
       }, PHASE_FLIGHT_MS);
       st._prepareTimer = null;
     }, PHASE_PREPARE_MS);
+  }
+
+  /**
+   * Move o AIVO para uma âncora (por nome).
+   * @param {string} anchorName
+   * @param {object} [opts] - { state, size }
+   */
+  function moveTo(anchorName, opts) {
+    init();
+    opts = opts || {};
+    var pos = calcPosition(anchorName, opts.size);
+    if (!pos) { enterStandby(); return; }
+    st.currentAnchor = anchorName;
+    animateTo(pos, opts);
+  }
+
+  /**
+   * Move o AIVO para a posição de QUALQUER elemento DOM.
+   * Usa getBoundingClientRect() do elemento alvo.
+   * @param {Element} targetEl
+   * @param {object} [opts] - { state, size }
+   */
+  function moveToElement(targetEl, opts) {
+    init();
+    opts = opts || {};
+    var pos = calcPosFromElement(targetEl, opts.size);
+    if (!pos) { enterStandby(); return; }
+    st.currentAnchor = targetEl.getAttribute('data-aivo-anchor') || '_element_';
+    animateTo(pos, opts);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -329,6 +390,7 @@
   window.AivoPresence = {
     init: init,
     moveTo: moveTo,
+    moveToElement: moveToElement,
     enterStandby: enterStandby,
     getContainer: getContainer,
     getCurrentAnchor: getCurrentAnchor,
