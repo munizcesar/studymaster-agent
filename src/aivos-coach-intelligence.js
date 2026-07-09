@@ -350,15 +350,7 @@
       if (d.nextRecommendation) {
         var rec = d.nextRecommendation;
         var recAvatarHtml = '';
-        if (window.Aivo) {
-          var temp = document.createElement('div');
-          new Aivo(temp, { size: 'sm', state: rec.state === 'warning' ? 'concerned' : 'thinking' });
-          recAvatarHtml = temp.innerHTML;
-        } else if (window.AivosAvatar) {
-          recAvatarHtml = window.AivosAvatar.html({ size: 'sm', state: 'teaching' });
-        }
-        
-        recHtml = '<div class="aivos-recommendation-card"><div class="aivos-rec-avatar">' + recAvatarHtml + '</div><div class="aivos-rec-body"><div class="aivos-rec-name">AIVO recomenda</div><div class="aivos-rec-msg">' + rec.message + '</div>' + (rec.action ? '<button class="aivos-rec-btn aivos-coach-btn" onclick="window.AivosCoachIntelligence.followRecommendation(\'' + rec.action.label.replace(/'/g, "\\'") + '\')">' + rec.action.label + '</button>' : '') + '</div></div>';
+        recHtml = '<div class="aivos-recommendation-card"><div class="aivos-rec-avatar" id="aivos-rec-avatar"></div><div class="aivos-rec-body"><div class="aivos-rec-name">AIVO recomenda</div><div class="aivos-rec-msg">' + rec.message + '</div>' + (rec.action ? '<button class="aivos-rec-btn aivos-coach-btn" onclick="window.AivosCoachIntelligence.followRecommendation(\'' + rec.action.label.replace(/'/g, "\\'") + '\')">' + rec.action.label + '</button>' : '') + '</div></div>';
       }
 
       // Streak indicator
@@ -406,6 +398,11 @@
       var container = getContainer(DASHBOARD_CONTAINER_ID);
       if (!container) return;
       container.innerHTML = this.render();
+      /* Render new Aivo mascot in recommendation card avatar */
+      var recAvatar = document.getElementById('aivos-rec-avatar');
+      if (recAvatar && window.AivoAPI && recAvatar.children.length === 0) {
+        try { window.AivoAPI.render(recAvatar, { size: 32, state: 'idle' }); } catch(e) {}
+      }
     }
   };
 
