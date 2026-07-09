@@ -18,8 +18,6 @@ import { Sun, Moon, Mic, Check, X } from "lucide-react";
  *  - Reduzi a amplitude de greeting/success/celebrating/surprised em relação
  *    à versão anterior — o guia pede "nunca infantilidade", e o bounce
  *    exagerado de antes lia mais como personagem de app infantil.
- *  - `accent` abaixo é um placeholder — troque pelo hex oficial da AIVOS
- *    assim que vocês tiverem a paleta fechada.
  *
  * Props:
  *  - size       número em px (ou use SIZE_PRESETS.md etc.)
@@ -364,16 +362,44 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
             <stop offset="0%" stopColor={colors.card} stopOpacity="1" />
             <stop offset="100%" stopColor={colors.card} stopOpacity="0.85" />
           </linearGradient>
+          <linearGradient id="ringBrand" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={colors.accent} />
+            <stop offset="50%" stopColor="#7C4DFF" />
+            <stop offset="100%" stopColor="#00B8FF" />
+          </linearGradient>
+          <radialGradient id="haloGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="60%" stopColor={colors.accent} stopOpacity="0" />
+            <stop offset="85%" stopColor={colors.accent} stopOpacity="0.08" />
+            <stop offset="100%" stopColor={colors.accent} stopOpacity="0" />
+          </radialGradient>
+          <filter id="glowFilter">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
       <motion.g animate={{ x: bodyLeanX, rotate: bodyLeanRotate }} transition={{ type: "spring", stiffness: 90, damping: 14 }} style={{ originX: 0.5, originY: 0.5 }}>
         <AnimatePresence>
+          {(state === "idle" || state === "calm") && (
+            <motion.circle
+              key="halo"
+              cx="100" cy="100" r="100"
+              fill="url(#haloGlow)"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
           {state === "loading" && (
             <motion.circle
-              key="ring-loading" cx="100" cy="100" r={RING_R} fill="none" stroke={colors.accent}
-              strokeWidth={strokeW + 1} strokeLinecap="round" strokeDasharray={ringDash}
+              key="ring-loading" cx="100" cy="100" r={RING_R} fill="none" stroke="url(#ringBrand)"
+              strokeWidth={strokeW + 1.5} strokeLinecap="round" strokeDasharray={ringDash}
               initial={{ opacity: 0 }} animate={{ opacity: 1, rotate: 360 }} exit={{ opacity: 0 }}
               transition={{ rotate: { repeat: Infinity, ease: "linear", duration: 1.1 }, opacity: { duration: 0.2 } }}
-              style={{ originX: 0.5, originY: 0.5 }}
+              style={{ originX: 0.5, originY: 0.5, filter: "drop-shadow(0 0 6px rgba(13,71,255,0.3))" }}
             />
           )}
           {state === "listening" && (
@@ -670,7 +696,7 @@ export default function AivoShowcase() {
 
         <p style={{ marginTop: 56, fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: colors.inkSoft, textAlign: "center", lineHeight: 1.7 }}>
           {"<Aivo size={} state={} themeMode={} lookTarget={} />"}
-          <br />accent é placeholder — trocar pelo hex oficial da AIVOS
+
         </p>
       </div>
     </div>

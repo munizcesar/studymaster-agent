@@ -2379,7 +2379,7 @@
     }
     
 
-    /* 🧠 MENTOR CEREBRO - Mensagens Proativas */
+    /* MENTOR CEREBRO - Mensagens Proativas */
     .mentor-messages {
       display: flex;
       flex-direction: column;
@@ -2523,7 +2523,7 @@
       transform: translateY(0) scale(0.99);
     }
 
-    /* 🧠 Indicador de Cerebro (brain widget) */
+    /* Indicador de Cerebro (brain widget) */
     .mentor-brain-widget {
       display: flex;
       align-items: center;
@@ -8262,7 +8262,7 @@ function showSessionResult() {
 
   const answerHistory = state.sessionHistory.answers.filter(Boolean);
   history.innerHTML = answerHistory.map(answer => {
-    const icon = answer.correct ? '✔️' : '❌';
+    const icon = answer.correct ? '<i data-lucide="check-circle-2" width="12" height="12"></i>' : '<i data-lucide="x-circle" width="12" height="12"></i>';
     const label = answer.correct ? 'Acerto' : 'Erro';
     return `<span role="listitem" class="session-history-item ${answer.correct ? 'correct' : 'wrong'}">${icon} Q${answer.question}: ${label}</span>`;
   }).join('');
