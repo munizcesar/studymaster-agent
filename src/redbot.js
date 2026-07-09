@@ -404,23 +404,14 @@ class CoachRedbot {
       </div>
     `;
 
-    if (window.Aivo) {
+    if (window.AivoAPI) {
       var sidebarAvatar = container.querySelector('.redbot-avatar');
       var welcomeAvatar = container.querySelector('.redbot-welcome-avatar');
       if (sidebarAvatar) {
-        this.sidebarAivo = new Aivo(sidebarAvatar, { size: 'xl', state: 'speaking' });
+        window.AivoAPI.render(sidebarAvatar, { size: 'xl', state: 'explaining' });
       }
       if (welcomeAvatar) {
-        this.welcomeAivo = new Aivo(welcomeAvatar, { size: 'sm', state: 'idle' });
-      }
-    } else if (window.AivosAvatar) {
-      var sidebarAvatar = container.querySelector('.redbot-avatar');
-      var welcomeAvatar = container.querySelector('.redbot-welcome-avatar');
-      if (sidebarAvatar) {
-        AivosAvatar.render(sidebarAvatar, { size: 'xl', state: 'explaining', pose: 'explaining', accessory: 'book' });
-      }
-      if (welcomeAvatar) {
-        AivosAvatar.render(welcomeAvatar, { size: 'sm', state: 'idle', pose: 'idle' });
+        window.AivoAPI.render(welcomeAvatar, { size: 'sm', state: 'idle' });
       }
     }
 
@@ -492,15 +483,10 @@ class CoachRedbot {
     btn.addEventListener('click', () => this.openChat());
     dashboard.insertBefore(btn, dashboard.firstChild);
 
-    if (window.Aivo) {
+    if (window.AivoAPI) {
       var dbIcon = btn.querySelector('.redbot-db-icon');
       if (dbIcon) {
-        this.dbAivo = new Aivo(dbIcon, { size: 'md', state: 'speaking' });
-      }
-    } else if (window.AivosAvatar) {
-      var dbIcon = btn.querySelector('.redbot-db-icon');
-      if (dbIcon) {
-        AivosAvatar.render(dbIcon, { size: 'md', state: 'explaining', pose: 'pointing', accessory: 'pointer' });
+        window.AivoAPI.render(dbIcon, { size: 'md', state: 'explaining' });
       }
     }
   }
@@ -620,7 +606,8 @@ class CoachRedbot {
     this.isProcessing = true;
     this.setInputState(false);
     
-    if (this.sidebarAivo) this.sidebarAivo.setState('thinking');
+    var sidebarStateEl = this.chatWrapper?.querySelector('.redbot-avatar');
+    if (sidebarStateEl && window.AivoAPI) window.AivoAPI.setState(sidebarStateEl, 'thinking');
 
     this.addMessage(userMessage, 'user');
     this.conversationHistory.push({ role: 'user', content: userMessage });
@@ -667,7 +654,8 @@ class CoachRedbot {
     this.setInputState(true);
     this.inputElement?.focus();
     this.scrollToBottom();
-    if (this.sidebarAivo) this.sidebarAivo.setState('speaking');
+    var sidebarStateEl = this.chatWrapper?.querySelector('.redbot-avatar');
+    if (sidebarStateEl && window.AivoAPI) window.AivoAPI.setState(sidebarStateEl, 'speaking');
   }
 
   // ════════════════════════════════════════════════════════════════════════════

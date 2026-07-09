@@ -1359,35 +1359,19 @@ DADOS DO ALUNO:
     const avatarContainer = document.querySelector('.prof-aivos-avatar-icon');
     if (!avatarContainer) return;
 
-    // Se o novo sistema Aivo estiver disponível, usá-lo
-    if (window.Aivo) {
-      if (!this.aivoInstance) {
-        this.aivoInstance = new Aivo(avatarContainer, { size: 'sm', state: 'idle' });
-      }
-      
-      const map = {
-        idle: 'idle',
-        processing: 'thinking',
-        success: 'success',
-        focus: 'focus'
-      };
-      
-      this.aivoInstance.setState(map[state] || 'idle');
-    } else if (window.AivosAvatar) {
-      // Fallback para o sistema antigo se necessário
-      var mapLegacy = {
-        idle: 'idle',
-        processing: 'analyzing',
-        success: 'celebrating',
-        focus: 'thinking'
-      };
-      var nextState = mapLegacy[state] || 'idle';
-      if (!avatarContainer.querySelector('.aivos-avatar')) {
-        avatarContainer.innerHTML = window.AivosAvatar.html({ size: 'sm', state: nextState });
-      } else {
-        window.AivosAvatar.setState(avatarContainer, nextState);
-      }
-    }
+    if (!window.AivoAPI) return;
+
+    var map = {
+      idle: 'idle',
+      processing: 'loading',
+      success: 'success',
+      focus: 'focus'
+    };
+
+    var nextState = map[state] || 'idle';
+
+    // Use AivoAPI.render which handles both first render and updates
+    window.AivoAPI.render(avatarContainer, { size: 'sm', state: nextState });
 
     if (state === 'success') {
       setTimeout(() => { if (this.avatarState === 'success') this.setAvatarState('idle'); }, 2000);
@@ -1713,14 +1697,14 @@ DADOS DO ALUNO:
 
     `;
 
-    if (window.AivosAvatar) {
+    if (window.AivoAPI) {
       var profAvatar = container.querySelector('#prof-aivos-avatar-icon');
       if (profAvatar) {
-        AivosAvatar.render(profAvatar, { size: 'sm', state: 'idle', pose: 'idle' });
+        window.AivoAPI.render(profAvatar, { size: 'sm', state: 'idle' });
       }
       var welcomeAvatar = container.querySelector('.prof-aivos-welcome-icon');
       if (welcomeAvatar) {
-        AivosAvatar.render(welcomeAvatar, { size: 'md', state: 'explaining', pose: 'explaining', accessory: 'book' });
+        window.AivoAPI.render(welcomeAvatar, { size: 'md', state: 'explaining' });
       }
     }
 
