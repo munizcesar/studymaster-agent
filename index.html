@@ -9151,7 +9151,7 @@ window.addEventListener('resize', () => {
 
     /* Welcome bubble (auto-dismiss) with new Aivo mascot */
     setTimeout(function() {
-      var welcomeMessage = 'Olá! Sou o AIVOS, seu assistente de estudos.';
+      var welcomeMessage = 'Olá! Sou o AIVO, seu assistente de estudos.';
       if (window.AivosTracker) {
         try {
           var summary = AivosTracker.getSummary();
@@ -9175,7 +9175,7 @@ window.addEventListener('resize', () => {
       bubble.innerHTML =
         '<div id="aivo-welcome-bubble-mascot" style="flex-shrink:0;width:56px;height:56px;"></div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;">AIVOS</strong>' +
+          '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;">AIVO</strong>' +
           '<p style="margin:0;color:var(--color-text-muted);font-size:var(--text-xs);line-height:1.5;">' + welcomeMessage + '</p>' +
         '</div>';
 

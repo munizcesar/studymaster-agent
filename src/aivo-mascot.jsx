@@ -39,13 +39,21 @@ const PALETTE = {
 // com assimetria orgânica sutil que sugere fluxo e energia contida.
 // A curva direita é mais projetada para fora, a esquerda mais recolhida,
 // criando uma sensação de movimento mesmo quando parado.
-const BLOB_PATH = "M 100 10 C 155 12, 196 50, 198 106 C 200 158, 158 198, 100 198 C 42 198, 2 158, 2 106 C 2 50, 45 12, 100 10 Z";
+// Corpo em formato de gota clássica: estreito no topo, alargando suavemente
+// até o meio, e arredondando na base. A altura é ~35% maior que a largura,
+// garantindo uma silhueta inequivocamente de gota — nunca redonda.
+// As curvas são contínuas e elegantes, sem ângulos retos.
+// Gota clássica: estreita no topo (ponto em y=0), alargamento contínuo até o
+// máximo em ~60% da altura (y=118, largura=110px), depois arredondando para
+// a base. A altura (196px) é 78% maior que a largura máxima (110px) —
+// silhueta inequivocamente de gota, nunca redonda.
+const BLOB_PATH = "M 100 0 C 110 2, 118 10, 128 38 C 140 72, 155 118, 150 148 C 146 172, 126 196, 100 196 C 74 196, 54 172, 50 148 C 45 118, 60 72, 72 38 C 82 10, 90 2, 100 0 Z";
 
 const EYE_L = { x: 78, y: 97 };
 const EYE_R = { x: 122, y: 97 };
 const BROW_L = { x: 78, y: 70 };
 const BROW_R = { x: 122, y: 70 };
-const RING_R = 98;
+const RING_R = 76;
 const SPEAK_RY = [2.5, 5.5, 3.5, 6.5, 2.5];
 
 const BODY_VARIANTS = {
