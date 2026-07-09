@@ -32,19 +32,19 @@ import { Sun, Moon, Mic, Check, X } from "lucide-react";
 export const SIZE_PRESETS = { xs: 24, sm: 40, md: 64, lg: 120, xl: 200, xxl: 280 };
 
 const PALETTE = {
-  light: { paper: "#FAFAF8", card: "#FFFFFF", ink: "#18181B", inkSoft: "#6E6E73", line: "#E7E5E1", accent: "#C08A34" },
-  dark: { paper: "#141416", card: "#1C1C1F", ink: "#F2F2F0", inkSoft: "#9A9A9F", line: "#2C2C30", accent: "#E0AE5D" },
+  light: { paper: "#FAFAF8", card: "#FFFFFF", ink: "#18181B", inkSoft: "#6E6E73", line: "#E7E5E1", accent: "#0D47FF" },
+  dark: { paper: "#141416", card: "#1C1C1F", ink: "#F2F2F0", inkSoft: "#9A9A9F", line: "#2C2C30", accent: "#4D88FF" },
 };
 
 // corpo em "gota": mais estreito no topo, mais largo na base, leve assimetria
 // organica. Verificado por plot (largura em y=68 e y=94) antes de usar —
 // olhos e sobrancelhas têm ~30-40 unidades de folga de cada lado.
-const BLOB_PATH = "M 103 19 C 140 21, 174 62, 174 106 C 174 145, 143 181, 98 183 C 57 181, 27 148, 27 110 C 27 65, 63 21, 103 19 Z";
+const BLOB_PATH = "M 102 17 C 142 19, 177 62, 177 106 C 177 147, 144 183, 98 185 C 56 183, 23 147, 23 106 C 23 62, 58 19, 102 17 Z";
 
-const EYE_L = { x: 76, y: 94 };
-const EYE_R = { x: 124, y: 94 };
-const BROW_L = { x: 76, y: 68 };
-const BROW_R = { x: 124, y: 68 };
+const EYE_L = { x: 77, y: 95 };
+const EYE_R = { x: 123, y: 95 };
+const BROW_L = { x: 77, y: 69 };
+const BROW_R = { x: 123, y: 69 };
 const RING_R = 92;
 const SPEAK_RY = [2.5, 5.5, 3.5, 6.5, 2.5];
 
@@ -341,7 +341,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
   // reage um instante depois — é a diferença entre um adesivo e uma criatura
   const bodyLeanX = reducedMotion ? 0 : eyeOffset.x * 0.4;
   const bodyLeanRotate = reducedMotion ? 0 : eyeOffset.x * 0.3;
-  const strokeW = size < 60 ? 6 : 4;
+  const strokeW = size < 60 ? 5.5 : 3.5;
   const browH = size < 60 ? 6.5 : 4.5;
   const circumference = 2 * Math.PI * RING_R;
   const ringDash = `${circumference * 0.22} ${circumference}`;
@@ -359,6 +359,12 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
       }}
     >
       <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={`Aivo — ${STATE_CAPTIONS[state] || state}`}>
+        <defs>
+          <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colors.card} stopOpacity="1" />
+            <stop offset="100%" stopColor={colors.card} stopOpacity="0.85" />
+          </linearGradient>
+        </defs>
       <motion.g animate={{ x: bodyLeanX, rotate: bodyLeanRotate }} transition={{ type: "spring", stiffness: 90, damping: 14 }} style={{ originX: 0.5, originY: 0.5 }}>
         <AnimatePresence>
           {state === "loading" && (
@@ -382,7 +388,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
         </AnimatePresence>
 
         <motion.path
-          d={BLOB_PATH} fill={colors.card} stroke={colors.ink} strokeWidth={strokeW} strokeLinejoin="round"
+          d={BLOB_PATH} fill="url(#bodyGrad)" stroke={colors.ink} strokeWidth={strokeW} strokeLinejoin="round"
           animate={bodyAnimate} transition={bodyTransition} style={{ originX: 0.5, originY: 0.5 }}
         />
 
