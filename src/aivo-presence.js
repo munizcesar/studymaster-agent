@@ -224,18 +224,19 @@
       return;
     }
 
-    // ── Fase 1: Preparação (120ms) ──
-    // Inclinação sutil: olha para o destino
+    // ── Fase 1: Preparação (120ms) — tilt instantâneo na direção do destino ──
     st.el.classList.add('aivo-prepare');
     st.el.setAttribute('data-aivo-phase', 'prepare');
 
-    // Aplicar inclinação na direção do destino
+    // Posição atual via getBoundingClientRect para calcular direção
     var srcRect = st.el.getBoundingClientRect();
     var dx = pos.x - srcRect.left;
     var dy = pos.y - srcRect.top;
     var angle = Math.atan2(dy, dx) * (180 / Math.PI);
     var tiltAngle = Math.max(-8, Math.min(8, angle * 0.08)); // max ±8°
 
+    // Tilt instantâneo (sem herdar transição anterior do standby)
+    st.el.style.transition = 'none';
     st.el.style.transform = 'translate3d(' + srcRect.left + 'px, ' + srcRect.top + 'px, 0) scale(1) rotate(' + tiltAngle + 'deg)';
 
     st._prepareTimer = setTimeout(function() {
@@ -337,5 +338,12 @@
     get onStateChange() { return st.onStateChange; },
     set onStateChange(fn) { st.onStateChange = fn; },
   };
+
+  // Auto-inicializar assim que o DOM estiver pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
 })();

@@ -83,45 +83,24 @@ function getThemeMode() {
 /* ── Presence root (instância única do React) ── */
 let presenceRoot = null;
 let presenceData = { size: SIZE_PRESETS.xl, state: 'idle' };
+let presenceInitialized = false;
 
 /* ── Track all mounted roots (legado) ── */
 const roots = new Map();
 const mountData = new Map(); // container -> { size, state }
 
-/* ── Helper: encontra a âncora mais próxima de um container ── */
-function findAnchor(container) {
-  if (!container || !container.closest) return null;
-  // O container pode ser a própria âncora ou ter um ancestral âncora
-  if (container.hasAttribute && container.hasAttribute('data-aivo-anchor')) {
-    return container;
-  }
-  return container.closest('[data-aivo-anchor]');
-}
-
-/* ── Helper: renderiza no container de presença ── */
-function renderToPresence(anchorEl, options) {
-  const anchorName = anchorEl.getAttribute('data-aivo-anchor');
-  const size = getSize(options.size);
-  const state = getState(options.state);
-  const theme = getThemeMode();
-
-  presenceData = { size, state };
-
-  // Garantir que o Presence está inicializado
-  if (!window.AivoPresence) {
-    console.warn('[AivoAPI] AivoPresence não disponível. Usando render legado.');
-    return false;
-  }
+/* ── Inicialização eager do Presence ── */
+function ensurePresenceReady() {
+  if (presenceInitialized) return true;
+  if (!window.AivoPresence) return false;
 
   window.AivoPresence.init();
   const container = window.AivoPresence.getContainer();
   if (!container) return false;
 
-  // Criar/atualizar o root React no container de presença
   if (!presenceRoot) {
     presenceRoot = createRoot(container);
   }
-  presenceRoot.render(<Aivo size={size} state={state} themeMode={theme} />);
 
   // Conectar callback de mudança de estado
   window.AivoPresence.onStateChange = function(newState, newSize) {
@@ -132,6 +111,33 @@ function renderToPresence(anchorEl, options) {
       presenceRoot.render(<Aivo size={s} state={st} themeMode={getThemeMode()} />);
     }
   };
+
+  presenceInitialized = true;
+  return true;
+}
+
+/* ── Helper: encontra a âncora mais próxima de um container ── */
+function findAnchor(container) {
+  if (!container || !container.closest) return null;
+  if (container.hasAttribute && container.hasAttribute('data-aivo-anchor')) {
+    return container;
+  }
+  return container.closest('[data-aivo-anchor]');
+}
+
+/* ── Helper: renderiza no container de presença ── */
+function renderToPresence(anchorEl, options) {
+  if (!ensurePresenceReady()) return false;
+
+  const anchorName = anchorEl.getAttribute('data-aivo-anchor');
+  const size = getSize(options.size);
+  const state = getState(options.state);
+  const theme = getThemeMode();
+
+  presenceData = { size, state };
+
+  // Renderizar o AIVO no container de presença (já criado pelo ensurePresenceReady)
+  presenceRoot.render(<Aivo size={size} state={state} themeMode={theme} />);
 
   // Mover o AIVO para a âncora
   window.AivoPresence.moveTo(anchorName, { state, size: getSize(options.size) });
