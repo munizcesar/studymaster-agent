@@ -5818,10 +5818,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
         <!-- STEP 1 -->
         <div class="wizard-step active" id="step-1" data-step="1">
-          <div class="step-title-row" style="display:flex;align-items:center;gap:16px;">
-            <h2 class="step-title" style="margin:0;">Como você quer estudar hoje?</h2>
-            <div id="wizard-mascot" style="flex-shrink:0;"></div>
-          </div>
+                    <h2 class="step-title">Como você quer estudar hoje?</h2>
           <p class="step-subtitle">Escolha o modo ideal para o seu objetivo de hoje</p>
             <div class="mode-grid">
               <button type="button" class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
@@ -9150,13 +9147,9 @@ window.addEventListener('resize', () => {
       }, isCorrect ? 1500 : 800);
     };
 
-    /* Render new Aivo mascot beside wizard title */
-    var wizardMascotEl = document.getElementById('wizard-mascot');
-    if (wizardMascotEl && window.AivoAPI) {
-      window.AivoAPI.render(wizardMascotEl, { size: 'md', state: 'greeting' });
-    }
 
-    /* Welcome card with new Aivo mascot */
+
+    /* Welcome bubble (auto-dismiss) with new Aivo mascot */
     setTimeout(function() {
       var welcomeMessage = 'Olá! Sou o AIVOS, seu assistente de estudos.';
       if (window.AivosTracker) {
@@ -9175,29 +9168,41 @@ window.addEventListener('resize', () => {
         } catch(e) {}
       }
 
-      /* Create welcome card with Aivo mascot */
-      var wizardCard = document.getElementById('wizard-card');
-      if (!wizardCard) return;
-      var existing = document.getElementById('aivo-welcome-card');
-      if (existing) existing.remove();
-
-      var card = document.createElement('div');
-      card.id = 'aivo-welcome-card';
-      card.style.cssText = 'display:flex;align-items:center;gap:16px;padding:16px 20px;margin-bottom:20px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:14px;box-shadow:0 4px 20px rgba(13,71,255,0.07);';
-      card.innerHTML =
-        '<div id="aivo-welcome-mascot" style="flex-shrink:0;width:72px;height:72px;"></div>' +
+      /* Create auto-dismiss bubble */
+      var bubble = document.createElement('div');
+      bubble.id = 'aivo-welcome-bubble';
+      bubble.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:380px;animation:bubbleIn 0.4s cubic-bezier(0.16,1,0.3,1);';
+      bubble.innerHTML =
+        '<div id="aivo-welcome-bubble-mascot" style="flex-shrink:0;width:56px;height:56px;"></div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-base);color:var(--color-text);margin-bottom:4px;">AIVOS</strong>' +
-          '<p style="margin:0;color:var(--color-text-muted);font-size:var(--text-sm);line-height:1.5;">' + welcomeMessage + '</p>' +
-        '</div>' +
-        '<button onclick="this.closest(\'#aivo-welcome-card\').remove()" style="flex-shrink:0;width:28px;height:28px;border:none;background:var(--color-surface-hover);border-radius:50%;cursor:pointer;color:var(--color-text-faint);display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;">&times;</button>';
+          '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;">AIVOS</strong>' +
+          '<p style="margin:0;color:var(--color-text-muted);font-size:var(--text-xs);line-height:1.5;">' + welcomeMessage + '</p>' +
+        '</div>';
 
-      wizardCard.insertBefore(card, wizardCard.firstChild);
+      document.body.appendChild(bubble);
 
-      var welcomeMascotEl = document.getElementById('aivo-welcome-mascot');
-      if (welcomeMascotEl && window.AivoAPI) {
-        window.AivoAPI.render(welcomeMascotEl, { size: 72, state: 'greeting' });
+      /* Render Aivo mascot inside bubble */
+      var bubbleMascot = document.getElementById('aivo-welcome-bubble-mascot');
+      if (bubbleMascot && window.AivoAPI) {
+        window.AivoAPI.render(bubbleMascot, { size: 56, state: 'greeting' });
       }
+
+      /* Add CSS animation for bubble */
+      if (!document.getElementById('aivo-bubble-style')) {
+        var style = document.createElement('style');
+        style.id = 'aivo-bubble-style';
+        style.textContent = '@keyframes bubbleIn{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes bubbleOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(20px) scale(0.95)}}';
+        document.head.appendChild(style);
+      }
+
+      /* Auto-dismiss after 6 seconds */
+      setTimeout(function() {
+        var b = document.getElementById('aivo-welcome-bubble');
+        if (b) {
+          b.style.animation = 'bubbleOut 0.3s cubic-bezier(0.16,1,0.3,1) forwards';
+          setTimeout(function() { if (b.parentNode) b.remove(); }, 400);
+        }
+      }, 6000);
     }, 2000);
 
     /* Inicializar Coach Intelligence */
