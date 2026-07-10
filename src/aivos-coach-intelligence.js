@@ -7,7 +7,7 @@
  * ┃  - Dashboard de desempenho com evolução semanal                    ┃
  * ┃  - Aparições contextuais do AivosCoach no fluxo do sistema         ┃
  * ┃                                                                     ┃
- * ┃  Dependências: AivosAvatar, AivosCoach, AivosMemory, AivosTracker  ┃
+ * ┃  Dependências: AivosCoach, AivosMemory, AivosTracker              ┃
  * ┃                                                                     ┃
  * ┃  USO: <script src="src/aivos-coach-intelligence.js"></script>       ┃
  * ┃                                                                     ┃
@@ -592,7 +592,7 @@
       state.initialized = true;
 
       // Não inicializar se componentes não existirem
-      if (!window.AivosCoach || !window.AivosAvatar) {
+      if (!window.AivosCoach) {
         console.warn('[AIVOS Coach] Componentes não disponíveis');
         return;
       }

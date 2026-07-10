@@ -6937,7 +6937,7 @@ function goHome() {
   updateStepBar(1);
   updateNavButtons();
   scrollToTop();
-  if (window.setAivosAvatarState) setAivosAvatarState('idle');
+  if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle');
   var _pc = document.getElementById('aivos-celebration-placeholder'); if (_pc) { _pc.innerHTML = ''; _pc.style.display = 'none'; }
   if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onGoHome(); } catch(e) {} }
 }
@@ -7735,7 +7735,7 @@ async function callWorkerAndRender() {
     if (!data.questions || !data.questions.length) throw new Error(data.userMessage || 'Nenhuma questão retornada. Tente ajustar o tópico.');
     state.generatedQuestions = data.questions;
     state.answered = 0; state.correct = 0;
-    if (window.setAivosAvatarState) setAivosAvatarState('idle');
+    if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle');
     state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
     genScreen.classList.add('hidden');
     // Garantir que a tela de erro seja ocultada ao obter sucesso
@@ -7749,7 +7749,7 @@ async function callWorkerAndRender() {
   } catch (err) {
     clearTimeout(timeoutId);
     clearInterval(msgInterval);
-    if (window.setAivosAvatarState) setAivosAvatarState('warning');
+    if (window.AivoAPI) window.AivoAPI.setState(document.body, 'warning');
     if (err.name === 'AbortError') {
       showError('Tempo esgotado (timeout). O servidor demorou muito para responder. Tente reduzir a quantidade e tente novamente.');
     } else {
@@ -8258,8 +8258,8 @@ function showSessionResult() {
     try { AivosCoachIntelligence.onSessionComplete(total, correct, wrong); } catch(e) {}
   }
 
-  if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
-  setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
+  if (window.AivoAPI) window.AivoAPI.setState(document.body, 'celebrating');
+  setTimeout(function() { if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle'); }, 3000);
 
   const answerHistory = state.sessionHistory.answers.filter(Boolean);
   history.innerHTML = answerHistory.map(answer => {
@@ -8491,8 +8491,8 @@ function renderQFResultInline() {
   qfBody.appendChild(resultCard);
   lucide.createIcons();
   confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00','#16A34A'] });
-  if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
-  setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
+  if (window.AivoAPI) window.AivoAPI.setState(document.body, 'celebrating');
+  setTimeout(function() { if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle'); }, 3000);
   if (window.AivosMemory) { try { AivosMemory.endSession(); } catch(e) {} }
   if (window.AivosTracker) { try { AivosTracker.logSession({ startTime: Date.now() - 30000, endTime: Date.now(), questionsAnswered: total, correct: correct, wrong: total - correct }); } catch(e) {} }
   
@@ -8664,8 +8664,8 @@ function renderQFResult() {
     </div>`;
   lucide.createIcons();
   confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00','#16A34A'] });
-  if (window.setAivosAvatarState) setAivosAvatarState('celebrating');
-  setTimeout(function() { if (window.setAivosAvatarState) setAivosAvatarState('idle'); }, 3000);
+  if (window.AivoAPI) window.AivoAPI.setState(document.body, 'celebrating');
+  setTimeout(function() { if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle'); }, 3000);
   if (window.AivosMemory) { try { AivosMemory.endSession(); } catch(e) {} }
   if (window.AivosTracker) { try { AivosTracker.logSession({ startTime: Date.now() - 30000, endTime: Date.now(), questionsAnswered: total, correct: correct, wrong: total - correct }); } catch(e) {} }
   document.getElementById('qf-retry-btn').addEventListener('click', () => { closeFullscreen(); document.getElementById('restart-btn').click(); });
@@ -9122,28 +9122,18 @@ window.addEventListener('resize', () => {
   (function() {
     'use strict';
 
-    var AVATAR_CONTAINER_ID = 'aivos-header-avatar';
-    var avatarContainer = document.getElementById(AVATAR_CONTAINER_ID);
-
-    /* Helper: set avatar state from anywhere */
-    window.setAivosAvatarState = function(state) {
-      var c = document.getElementById(AVATAR_CONTAINER_ID);
-      if (c && window.AivosAvatar && c.querySelector('.aivos-avatar')) {
-        AivosAvatar.setState(c, state);
-      }
-    };
 
     /* Helper: set avatar thinking state */
     window.setAivosThinking = function() {
-      setAivosAvatarState('thinking');
+      if (window.AivoAPI) window.AivoAPI.setState(document.body, 'thinking');
     };
 
     /* Helper: brief celebration (1.5s) or warning (0.8s) feedback */
     window.setAivosAnswerFeedback = function(isCorrect) {
       if (window._celebrationTimer) clearTimeout(window._celebrationTimer);
-      setAivosAvatarState(isCorrect ? 'celebrating' : 'warning');
+      if (window.AivoAPI) window.AivoAPI.setState(document.body, isCorrect ? 'celebrating' : 'warning');
       window._celebrationTimer = setTimeout(function() {
-        setAivosAvatarState('idle');
+        if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle');
         window._celebrationTimer = null;
       }, isCorrect ? 1500 : 800);
     };
@@ -9174,18 +9164,18 @@ window.addEventListener('resize', () => {
       bubble.id = 'aivo-welcome-bubble';
       bubble.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:380px;animation:bubbleIn 0.4s cubic-bezier(0.16,1,0.3,1);';
       bubble.innerHTML =
-        '<div id="aivo-welcome-bubble-mascot" style="flex-shrink:0;width:56px;height:56px;"></div>' +
-        '<div style="flex:1;min-width:0;">' +
+        '
+        <div style="flex:1;min-width:0;">' +
           '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;">AIVO</strong>' +
           '<p style="margin:0;color:var(--color-text-muted);font-size:var(--text-xs);line-height:1.5;">' + welcomeMessage + '</p>' +
         '</div>';
 
       document.body.appendChild(bubble);
 
-      /* Render Aivo mascot inside bubble */
-      var bubbleMascot = document.getElementById('aivo-welcome-bubble-mascot');
-      if (bubbleMascot && window.AivoAPI) {
-        window.AivoAPI.render(bubbleMascot, { size: 56, state: 'greeting' });
+      /* Trigger Presence to move AIVO to bubble position */
+      var bubbleEl = document.getElementById('aivo-welcome-bubble');
+      if (bubbleEl && window.AivoAPI) {
+        window.AivoAPI.render(bubbleEl, { size: 56, state: 'greeting' });
       }
 
       /* Add CSS animation for bubble */
