@@ -47,6 +47,7 @@
   <script src="src/aivos-progress-reporter.js"></script>
   <!-- 🎭 AIVO Presence (instância única) — DEVE carregar ANTES do bundle -->
 <!-- 🎭 Aivo Mascot Bundle (React + framer-motion) -->
+  <script src="src/aivo-presence.js"></script>
   <script src="dist/aivo-mascot-bundle.js"></script>
   <style>
     :root {
@@ -9156,11 +9157,10 @@ window.addEventListener('resize', () => {
       bubble.id = 'aivo-welcome-bubble';
       bubble.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:380px;animation:bubbleIn 0.4s cubic-bezier(0.16,1,0.3,1);';
       bubble.innerHTML =
-        '
-        <div style="flex:1;min-width:0;">' +
-          '<strong style="display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;">AIVO</strong>' +
-          '<p style="margin:0;color:var(--color-text-muted);font-size:var(--text-xs);line-height:1.5;">' + welcomeMessage + '</p>' +
-        '</div>';
+        `<div style='flex:1;min-width:0;'>` +
+          `<strong style='display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;'>AIVO</strong>` +
+          `<p style='margin:0;color:var(--color-text-muted);font-size:var(--text-xs);line-height:1.5;'>${welcomeMessage}</p>` +
+        `</div>`;
 
       document.body.appendChild(bubble);
 
