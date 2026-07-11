@@ -36,6 +36,7 @@
   <script src="src/redbot.js"></script>
   <script src="src/aivos-char-system.js"></script>
   <link rel="stylesheet" href="src/aivo-mascot.css">
+  <script src="src/aivo-mascot-system.js"></script>
   <script src="src/aivos-memory.js"></script>
   <script src="src/aivos-tracker.js"></script>
   <script src="src/aivos-coach-intelligence.js"></script>
@@ -5772,11 +5773,11 @@ pre, code { word-break: break-word; overflow-x: auto; }
         <div class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Plataforma IA para Concursos</div>
         <h1 class="hero-title-main">Prepare-se para<br><span class="hero-accent">concursos com IA de verdade</span></h1>
         <p class="hero-description">
-          Questões personalizadas, redação com correção instantânea por 5 critérios e um mentor IA que adapta seu plano de estudos 24 horas por dia.
+          Questões personalizadas, redação com correção instantânea (C1-C5) e um mentor inteligente que adapta seu plano de estudos 24 horas por dia.
         </p>
         <ul class="hero-features">
-          <li><i data-lucide="zap" width="20" height="20"></i> Questões criadas na hora, no seu nível</li>
-          <li><i data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos por 5 critérios</li>
+          <li><i data-lucide="zap" width="20" height="20"></i> Questões geradas instantaneamente no seu nível</li>
+          <li><i data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos (C1-C5)</li>
           <li><i data-lucide="brain" width="20" height="20"></i> Mentor IA que aprende com seu desempenho</li>
         </ul>
         <div class="hero-cta-group">
@@ -6119,7 +6120,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
             <tr><td>Relevância</td><td>Genérico e vago</td><td>Específico para seu concurso/matéria</td></tr>
             <tr><td>Nível das questões</td><td>Aleatório</td><td>Calibrado pela dificuldade escolhida</td></tr>
             <tr><td>Gabarito</td><td>Sem explicação</td><td>Comentado com justificativa</td></tr>
-            <tr><td>Custo</td><td>Pago (cursinhos)</td><td>100% gratuito</td></tr>
+            <tr><td>Custo</td><td>Pago (cursinhos)</td><td>Acessível</td></tr>
           </tbody>
         </table>
       </div>
@@ -6495,6 +6496,49 @@ const state = {
 
 // Inicializar AIVOS 360 Coaching (Sistema completo)
 document.addEventListener('DOMContentLoaded', async () => {
+  // Inicializar AivoPresence (sistema de mascote)
+  if (window.AivoPresence) {
+    try {
+      window.AivoPresence.init();
+      console.log('[AivoPresence] Sistema inicializado com sucesso');
+      
+      // Mover mascote para a âncora hero após um pequeno delay
+      setTimeout(() => {
+        if (window.AivoPresence) {
+          window.AivoPresence.moveTo('hero');
+          console.log('[AivoPresence] Mascote movido para hero');
+          
+          // Tornar mascote visível
+          setTimeout(() => {
+            if (window.AivoPresence) {
+              window.AivoPresence.exitStandby();
+              console.log('[AivoPresence] Mascote visível');
+            }
+          }, 300);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('[AivoPresence] Erro na inicialização:', error);
+    }
+  }
+
+  // Fallback: Inicializar mascote vanilla JS se o bundle React não funcionar
+  if (window.Aivo && !window.AivoEngine) {
+    try {
+      const container = document.getElementById('aivo-presence');
+      if (container) {
+        const aivo = new window.Aivo(container, {
+          size: 'xl',
+          state: 'greeting',
+          theme: 'auto'
+        });
+        console.log('[Aivo Mascot] Sistema vanilla JS inicializado');
+      }
+    } catch (error) {
+      console.error('[Aivo Mascot] Erro na inicialização vanilla:', error);
+    }
+  }
+
   if (window.initAIVOS360) {
     try {
       await window.initAIVOS360();
@@ -8891,7 +8935,7 @@ window.addEventListener('resize', () => {
           </button>
           <button class="drawer-action-btn action-aivos360" data-action="aivos360">
             <span class="drawer-action-icon"><i data-lucide="compass" width="18" height="18"></i></span>
-            <span class="drawer-action-text"><strong>Plano AIVOS 360</strong><span>Mentor de aprovação inteligente</span></span>
+            <span class="drawer-action-text"><strong>Plano AIVOS 360</strong><span>Seu mentor pessoal de aprovação com análise inteligente</span></span>
             <i data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow"></i>
           </button>
         </div>
