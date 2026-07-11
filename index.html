@@ -36,7 +36,6 @@
   <script src="src/redbot.js"></script>
   <script src="src/aivos-char-system.js"></script>
   <link rel="stylesheet" href="src/aivo-mascot.css">
-  <script src="src/aivo-mascot-system.js"></script>
   <script src="src/aivos-memory.js"></script>
   <script src="src/aivos-tracker.js"></script>
   <script src="src/aivos-coach-intelligence.js"></script>
@@ -6496,49 +6495,6 @@ const state = {
 
 // Inicializar AIVOS 360 Coaching (Sistema completo)
 document.addEventListener('DOMContentLoaded', async () => {
-  // Inicializar AivoPresence (sistema de mascote)
-  if (window.AivoPresence) {
-    try {
-      window.AivoPresence.init();
-      console.log('[AivoPresence] Sistema inicializado com sucesso');
-      
-      // Mover mascote para a âncora hero após um pequeno delay
-      setTimeout(() => {
-        if (window.AivoPresence) {
-          window.AivoPresence.moveTo('hero');
-          console.log('[AivoPresence] Mascote movido para hero');
-          
-          // Tornar mascote visível
-          setTimeout(() => {
-            if (window.AivoPresence) {
-              window.AivoPresence.exitStandby();
-              console.log('[AivoPresence] Mascote visível');
-            }
-          }, 300);
-        }
-      }, 500);
-    } catch (error) {
-      console.error('[AivoPresence] Erro na inicialização:', error);
-    }
-  }
-
-  // Fallback: Inicializar mascote vanilla JS se o bundle React não funcionar
-  if (window.Aivo && !window.AivoEngine) {
-    try {
-      const container = document.getElementById('aivo-presence');
-      if (container) {
-        const aivo = new window.Aivo(container, {
-          size: 'xl',
-          state: 'greeting',
-          theme: 'auto'
-        });
-        console.log('[Aivo Mascot] Sistema vanilla JS inicializado');
-      }
-    } catch (error) {
-      console.error('[Aivo Mascot] Erro na inicialização vanilla:', error);
-    }
-  }
-
   if (window.initAIVOS360) {
     try {
       await window.initAIVOS360();
