@@ -8,7 +8,7 @@
 
 import { chromium } from 'playwright';
 
-const URL = 'https://41a1e50a.studymaster-agent.pages.dev';
+const URL = 'https://5d092c42.studymaster-agent.pages.dev';
 const EXPECTED_COMMIT = '94bf42c195fa2c548b6d8247c6e640934d0c8e78';
 
 async function wait(ms) {

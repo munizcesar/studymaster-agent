@@ -14,7 +14,7 @@
 
 import { chromium } from 'playwright';
 
-const URL = 'https://41a1e50a.studymaster-agent.pages.dev';
+const URL = 'https://5d092c42.studymaster-agent.pages.dev';
 const VIEWPORT = { width: 1280, height: 800 };
 const TIMEOUT = 30000;
 
