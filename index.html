@@ -5771,25 +5771,18 @@ pre, code { word-break: break-word; overflow-x: auto; }
         <div class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Plataforma IA para Concursos</div>
         <h1 class="hero-title-main">Prepare-se para<br><span class="hero-accent">concursos com IA de verdade</span></h1>
         <p class="hero-description">
-          Questões personalizadas, redação com correção instantânea C1-C5 e um mentor inteligente 
-          que adapta seu plano de estudos 24 horas por dia.
+          Questões personalizadas, redação com correção instantânea por 5 critérios e um mentor IA que adapta seu plano de estudos 24 horas por dia.
         </p>
         <ul class="hero-features">
           <li><i data-lucide="zap" width="20" height="20"></i> Questões criadas na hora, no seu nível</li>
-          <li><i data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos (C1-C5)</li>
+          <li><i data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos por 5 critérios</li>
           <li><i data-lucide="brain" width="20" height="20"></i> Mentor IA que aprende com seu desempenho</li>
         </ul>
         <div class="hero-cta-group">
           <a href="#wizard" class="btn btn-primary btn-large">Começar Agora Grátis <i data-lucide="arrow-right" width="20" height="20"></i></a>
           <a href="#wizard" class="btn btn-secondary btn-large" onclick="document.querySelector('.features-section').scrollIntoView({behavior:'smooth'})">Ver como funciona</a>
         </div>
-        <div class="hero-trust">
-          <span><i data-lucide="shield-check" width="16" height="16"></i> 100% gratuito</span>
-          <span class="dot-separator"></span>
-          <span><i data-lucide="database" width="16" height="16"></i> +10 mil questões na base</span>
-          <span class="dot-separator"></span>
-          <span><i data-lucide="users" width="16" height="16"></i> +5.000 concurseiros ativos</span>
-        </div>
+
       </div>
     </div>
   </section>
@@ -5875,7 +5868,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Plano de Estudos Inteligente</strong>
-                  <span>Seu mentor pessoal de aprovação com análise inteligente de desempenho.</span>
+                  <span>Seu mentor IA que analisa cada questão, identifica lacunas e traça a rota mais rápida para sua aprovação.</span>
                 </div>
                 <ul class="mode-benefits">
                   <li>Visualize sua probabilidade de aprovação e nível de domínio</li>
@@ -7090,7 +7083,7 @@ function renderStep2() {
 }
 
 function renderStep2AIVOS360(container) {
-  container.innerHTML = '<div class="aivos360-dashboard"><div class="aivos360-mode-selector"><div class="aivos360-mode-info"><span class="aivos360-mode-icon"><i data-lucide="compass" width="24" height="24"></i></span><div class="aivos360-mode-text"><h4>Plano AIVOS 360</h4><p>Seu mentor pessoal de aprovacao com analise inteligente</p></div></div></div><div class="aivos360-metrics-grid"><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="brain" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Dominio</span><span class="metric-value" id="aivosDomainPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Aprovacao</span><span class="metric-value" id="aivosApprovalPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="zap" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Ofensividade</span><span class="metric-value" id="aivosOffensivePct">0%</span></div></div></div><div id="prof-aivos-chat-area"></div></div>';
+  container.innerHTML = '<div class="aivos360-dashboard"><div class="aivos360-mode-selector"><div class="aivos360-mode-info"><span class="aivos360-mode-icon"><i data-lucide="compass" width="24" height="24"></i></span><div class="aivos360-mode-text"><h4>Plano AIVOS 360</h4><p>Seu mentor IA que analisa cada questão, identifica lacunas e traça a rota mais rápida para sua aprovação</p></div></div></div><div class="aivos360-metrics-grid"><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="brain" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Dominio</span><span class="metric-value" id="aivosDomainPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Aprovacao</span><span class="metric-value" id="aivosApprovalPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="zap" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Ofensividade</span><span class="metric-value" id="aivosOffensivePct">0%</span></div></div></div><div id="prof-aivos-chat-area"></div></div>';
   setTimeout(function() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     window.dispatchEvent(new CustomEvent('aivos360DashboardReady'));
