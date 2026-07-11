@@ -67,24 +67,29 @@ const BODY_VARIANTS = {
   listening: { animate: { y: 0, x: 0, scaleX: [1, 1.012, 1], scaleY: [1, 1.012, 1], rotate: 0 }, transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" } },
   speaking: { animate: { y: -1, x: 0, scaleX: 1, scaleY: 1.005, rotate: 0 }, transition: { duration: 0.2, ease: "easeOut" } },
   thinking: { animate: { rotate: [0, -2.5, 2.5, 0], y: 0, x: 0, scaleX: 1, scaleY: 1 }, transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut" } },
+  teaching: { animate: { y: [0, -1, 1, 0], x: 0, rotate: [0, -1, 1, 0], scaleX: 1, scaleY: 1 }, transition: { duration: 3.2, repeat: Infinity, ease: "easeInOut" } },
+  walking: { animate: { y: 0, x: [0, 4, 0, -4, 0], rotate: [0, 2, 0, -2, 0], scaleX: 1, scaleY: 1 }, transition: { duration: 1.6, repeat: Infinity, ease: "easeInOut" } },
   curious: { animate: { rotate: -9, y: -2, x: 0, scaleX: 1, scaleY: 1 }, transition: { duration: 0.3, ease: "easeOut" } },
   loading: { animate: { y: 0, x: 0, scaleX: [1, 1.03, 1], scaleY: [1, 1.03, 1], rotate: 0 }, transition: { duration: 1.1, repeat: Infinity, ease: "easeInOut" } },
   surprised: { animate: { scaleX: [1, 0.94, 1.03, 1], scaleY: [1, 1.08, 0.98, 1], y: [0, -5, 0], x: 0, rotate: 0 }, transition: { duration: 0.35, ease: "easeOut" } },
   confused: { animate: { rotate: [0, -4, 4, -2, 0], y: 0, x: 0, scaleX: 1, scaleY: 1 }, transition: { duration: 0.7, ease: "easeInOut" } },
   error: { animate: { x: [0, -5, 5, -5, 4, -2, 0], y: 0, scaleX: 1, scaleY: 1, rotate: [0, -2, 2, -1, 0] }, transition: { duration: 0.5, ease: "easeInOut" } },
   concerned: { animate: { y: 2, x: 0, scaleX: 1, scaleY: 0.99, rotate: 0 }, transition: { duration: 0.35, ease: "easeOut" } },
+  warning: { animate: { x: [0, -2, 2, -1, 0], y: 1, scaleX: 1, scaleY: 0.98, rotate: [0, 1, -1, 0] }, transition: { duration: 0.6, ease: "easeOut" } },
   success: { animate: { scaleX: [1, 0.95, 1.04, 1], scaleY: [1, 1.07, 0.96, 1], y: [0, -4, 0], x: 0, rotate: 0 }, transition: { duration: 0.45, ease: "easeOut" } },
   celebrating: { animate: { scaleX: [1, 0.93, 1.06, 0.97, 1], scaleY: [1, 1.1, 0.93, 1.04, 1], y: [0, -9, 0, -3, 0], x: 0, rotate: [0, -2.5, 2.5, 0] }, transition: { duration: 0.75, ease: "easeOut" } },
   happy: { animate: { y: [0, -5, 0], x: 0, scaleX: 1, scaleY: 1, rotate: 0 }, transition: { duration: 3.6, repeat: Infinity, ease: "easeInOut" } },
   proud: { animate: { rotate: [0, 4, 0], y: [0, 1, 0], x: 0, scaleX: 1, scaleY: 1 }, transition: { duration: 0.6, ease: "easeOut" } },
+  hidden: { animate: { opacity: 0, scale: 0.5, y: 0, x: 0, rotate: 0 }, transition: { duration: 0.3, ease: "easeOut" } },
 };
 
 // "speaking" tem boca animada à parte (ver render) — não entra neste mapa.
 const MOUTH_MAP = {
   idle: "none", calm: "none", greeting: "smile", sleepy: "none", focus: "none",
-  typing: "none", password: "none", listening: "none", thinking: "flat", curious: "none",
-  loading: "none", surprised: "open", confused: "flat", error: "flat", concerned: "soft",
-  success: "smile", celebrating: "smile", happy: "smile", proud: "smile",
+  typing: "none", password: "none", listening: "none", thinking: "flat", teaching: "smile",
+  walking: "none", curious: "none",
+  loading: "none", surprised: "open", confused: "flat", error: "flat", concerned: "soft", warning: "soft",
+  success: "smile", celebrating: "smile", happy: "smile", proud: "smile", hidden: "none",
 };
 
 const STATE_CAPTIONS = {
@@ -98,29 +103,34 @@ const STATE_CAPTIONS = {
   listening: "ouvindo com atenção",
   speaking: "respondendo",
   thinking: "avaliando com calma",
+  teaching: "explicando um conceito",
+  walking: "movendo-se para o próximo tópico",
   curious: "reparando em algo novo",
   loading: "processando",
   surprised: "não esperava por isso",
   confused: "não ficou claro",
   error: "algo não funcionou",
   concerned: "isso pode precisar de atenção",
+  warning: "atenção — algo merece cuidado",
   success: "confirmado",
   celebrating: "conquista registrada",
   happy: "tudo tranquilo por aqui",
   proud: "bom progresso",
+  hidden: "modo invisível",
 };
 
 const STATE_GROUPS = [
-  { label: "base", states: ["idle", "calm", "greeting", "sleepy"] },
-  { label: "atenção", states: ["focus", "typing", "password", "listening", "speaking"] },
+  { label: "base", states: ["idle", "calm", "greeting", "sleepy", "hidden"] },
+  { label: "atenção", states: ["focus", "typing", "password", "listening", "speaking", "teaching"] },
   { label: "raciocínio", states: ["thinking", "curious", "loading"] },
-  { label: "atrito", states: ["confused", "error", "concerned", "surprised"] },
+  { label: "movimento", states: ["walking"] },
+  { label: "atrito", states: ["confused", "error", "concerned", "surprised", "warning"] },
   { label: "conquista", states: ["success", "celebrating", "happy", "proud"] },
 ];
 
-const BLINK_EYES = ["idle", "focus", "curious", "thinking", "concerned", "happy", "proud", "confused", "calm", "listening"];
-const NO_GLINT = ["password", "loading", "sleepy"];
-const BREATH_STATES = ["idle", "calm", "happy", "sleepy"];
+const BLINK_EYES = ["idle", "focus", "curious", "thinking", "teaching", "concerned", "warning", "happy", "proud", "confused", "calm", "listening"];
+const NO_GLINT = ["password", "loading", "sleepy", "hidden"];
+const BREATH_STATES = ["idle", "calm", "happy", "sleepy", "teaching"];
 // idle, focus, curious e happy não aparecem em FIXED_GAZE nem são "calm" —
 // por eliminação, esses quatro acompanham o cursor (ver efeito de gaze abaixo).
 
@@ -132,14 +142,18 @@ const FIXED_GAZE = {
   listening: { x: 0, y: -1 },
   speaking: { x: 0, y: 0 },
   thinking: { x: -3.6, y: -4.2 },
+  teaching: { x: 0, y: -2 },
+  walking: { x: 2, y: 0 },
   loading: { x: 0, y: 0 },
   surprised: { x: 0, y: 0 },
   confused: { x: 2, y: 1 },
   error: { x: 0, y: 0 },
   concerned: { x: 0, y: 2 },
+  warning: { x: 0, y: 3 },
   success: { x: 0, y: 0 },
   celebrating: { x: 0, y: 0 },
   proud: { x: 0, y: 0 },
+  hidden: { x: 0, y: 0 },
 };
 
 function prefersReducedMotion() {
@@ -165,6 +179,10 @@ function getEyeAnim(state, blinking, side) {
     case "confused": return { scaleY: 0.92, rotate: 0, opacity: 1 };
     case "calm": return { scaleY: 0.96, rotate: 0, opacity: 1 };
     case "listening": return { scaleY: 1.02, rotate: 0, opacity: 1 };
+    case "teaching": return { scaleY: 1.04, rotate: 0, opacity: 1 };
+    case "walking": return { scaleY: 0.94, rotate: 0, opacity: 1 };
+    case "warning": return { scaleY: 0.96, rotate: 0, opacity: 1 };
+    case "hidden": return { scaleY: 0, rotate: 0, opacity: 0 };
     default: return { scaleY: 1, rotate: 0, opacity: 1 };
   }
 }
@@ -187,6 +205,10 @@ function getBrowAnim(state, side) {
     case "happy": return { rotate: 0, y: -1 };
     case "proud": return { rotate: 0, y: -2 };
     case "sleepy": return { rotate: 0, y: 2 };
+    case "teaching": return { rotate: 0, y: -2 };
+    case "walking": return side === "left" ? { rotate: 2, y: 0 } : { rotate: -2, y: 0 };
+    case "warning": return side === "left" ? { rotate: -8, y: 1 } : { rotate: 8, y: 1 };
+    case "hidden": return { rotate: 0, y: 4 };
     default: return { rotate: 0, y: 0 };
   }
 }

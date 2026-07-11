@@ -55,7 +55,8 @@
 
   function init() {
     if (st.initialized) return;
-    st.initialized = true;
+    // Nao tentar criar o container se o body ainda nao existe (scripts no <head>)
+    if (!document.body) return;
 
     var el = document.createElement('div');
     el.id = PRESENCE_ID;
@@ -70,6 +71,9 @@
     ].join(';');
     document.body.appendChild(el);
     st.el = el;
+
+    // Soh marcar como inicializado apos sucesso
+    st.initialized = true;
 
     // Escaneamento inicial + observador de âncoras dinâmicas
     scanAnchors();

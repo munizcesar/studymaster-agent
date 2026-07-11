@@ -78,18 +78,50 @@ function getThemeMode() {
 let presenceRoot = null;
 let presenceData = { size: SIZE_PRESETS.xl, state: 'idle' };
 let presenceInitialized = false;
+let presenceRetryCount = 0;
+const PRESENCE_MAX_RETRIES = 100; // 100 * 100ms = 10s total
 
-/* ── Inicialização eager do Presence ── */
+/* ── Inicialização do Presence com retry ── */
+let presenceRetrying = false;
+
 function ensurePresenceReady() {
   if (presenceInitialized) return true;
-  if (!window.AivoPresence) return false;
 
+  // Evitar loops paralelos de retry
+  if (presenceRetrying) return false;
+
+  // Verificar se AivoPresence e body estao prontos
+  if (!window.AivoPresence || !document.body) {
+    if (presenceRetryCount < PRESENCE_MAX_RETRIES) {
+      presenceRetryCount++;
+      presenceRetrying = true;
+      setTimeout(() => { presenceRetrying = false; ensurePresenceReady(); }, 100);
+    }
+    return false;
+  }
+
+  // Inicializar o sistema Presence (cria o container #aivo-presence)
+  // init() eh seguro: retorna sem erro se body nao estiver pronto
   window.AivoPresence.init();
   const container = window.AivoPresence.getContainer();
-  if (!container) return false;
 
+  // Container ainda não foi criado (body existe mas init() pode ter sido adiado)
+  if (!container || !document.body.contains(container)) {
+    if (presenceRetryCount < PRESENCE_MAX_RETRIES) {
+      presenceRetryCount++;
+      presenceRetrying = true;
+      setTimeout(() => { presenceRetrying = false; ensurePresenceReady(); }, 100);
+    }
+    return false;
+  }
+
+  // Criar o React root (UMA ÚNICA VEZ) e renderizar imediatamente
   if (!presenceRoot) {
     presenceRoot = createRoot(container);
+    // Render inicial eager: garante que o container nunca fique vazio
+    presenceRoot.render(
+      <Aivo size={presenceData.size} state={presenceData.state} themeMode={getThemeMode()} />
+    );
   }
 
   // Conectar callback de mudança de estado
@@ -103,6 +135,7 @@ function ensurePresenceReady() {
   };
 
   presenceInitialized = true;
+  console.log('[AivoAPI] Presence ready, React root created');
   return true;
 }
 
@@ -132,14 +165,26 @@ window.AivoAPI = {
       return;
     }
 
-    if (!ensurePresenceReady()) return;
+    if (!ensurePresenceReady()) {
+      console.warn('[AivoAPI] Presence not ready yet');
+      return;
+    }
 
     const size = getSize(options.size);
     const state = getState(options.state);
     presenceData = { size, state };
 
+    // Debug: verificar se o componente Aivo esta disponivel
+    if (typeof Aivo !== 'function' && typeof Aivo !== 'object') {
+      console.error('[AivoAPI] Aivo component is NOT available! Type:', typeof Aivo);
+    }
+
     // Renderizar o AIVO no Presence root (único)
-    presenceRoot.render(<Aivo size={size} state={state} themeMode={getThemeMode()} />);
+    if (presenceRoot) {
+      presenceRoot.render(<Aivo size={size} state={state} themeMode={getThemeMode()} />);
+    } else {
+      console.error('[AivoAPI] presenceRoot is null!');
+    }
 
     // Mover o AIVO para a posição do container alvo
     window.AivoPresence.moveToElement(container, { state, size });
