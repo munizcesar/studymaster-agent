@@ -7005,6 +7005,18 @@ function init() {
   // Gerenciar histórico do navegador
   window.addEventListener('popstate', handlePopState);
 
+  // Inicializar mascote Aivo no hero
+  setTimeout(() => {
+    const heroEl = document.querySelector('[data-aivo-anchor="hero"]');
+    if (heroEl && window.AivoAPI) {
+      window.AivoAPI.render(heroEl, { size: 'xl', state: 'greeting' });
+      console.log('Aivo mascote initialized in hero');
+    } else if (window.Aivo) {
+      window.Aivo.move('[data-aivo-anchor="hero"]', { size: 'xl', state: 'greeting' });
+      console.log('Aivo mascote moved to hero');
+    }
+  }, 1000);
+
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();
     goHome();
