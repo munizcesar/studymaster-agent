@@ -50,6 +50,18 @@
   <script src="src/aivo-presence.js"></script>
   <script src="dist/aivo-mascot-bundle.js"></script>
   <style>
+    /* Aivo Mascot Container Styles */
+    #aivo-presence {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #aivo-presence * {
+      pointer-events: auto;
+    }
+
     :root {
       /* ── Neutral Scale (warm undertone, hue 250) ── */
       --neutral-50:  oklch(0.99 0.004 250);
