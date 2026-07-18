@@ -6933,6 +6933,8 @@ function goHome() {
   if (window.AivoAPI) window.AivoAPI.setState(document.body, 'idle');
   var _pc = document.getElementById('aivos-celebration-placeholder'); if (_pc) { _pc.innerHTML = ''; _pc.style.display = 'none'; }
   if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onGoHome(); } catch(e) {} }
+  // Atualizar histórico do navegador
+  updateHistoryState();
 }
 
 function syncThemeIcon() {
@@ -6940,6 +6942,51 @@ function syncThemeIcon() {
   if (!icon) return;
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+}
+
+// Gerenciamento de histórico do navegador
+function updateHistoryState() {
+  const stateData = {
+    step: state.currentStep,
+    mode: state.mode,
+    area: state.area,
+    subject: state.subject,
+    topic: state.topic
+  };
+  const url = new URL(window.location);
+  if (state.currentStep === 1 && !state.mode) {
+    url.hash = '';
+  } else {
+    url.hash = `step-${state.currentStep}`;
+  }
+  window.history.pushState(stateData, '', url);
+}
+
+function handlePopState(event) {
+  if (event.state) {
+    const { step, mode, area, subject, topic } = event.state;
+    // Restaurar estado
+    if (mode) state.mode = mode;
+    if (area) state.area = area;
+    if (subject) state.subject = subject;
+    if (topic) state.topic = topic;
+    // Navegar para o step
+    if (step && step !== state.currentStep) {
+      const currEl = document.getElementById(`step-${state.currentStep}`);
+      const nextEl = document.getElementById(`step-${step}`);
+      if (currEl && nextEl) {
+        currEl.classList.remove('active');
+        nextEl.classList.add('active');
+        state.currentStep = step;
+        updateStepBar(step);
+        updateNavButtons();
+        scrollToWizard(50);
+      }
+    }
+  } else {
+    // Se não há estado, voltar para step 1
+    goHome();
+  }
 }
 
 function init() {
@@ -6954,6 +7001,9 @@ function init() {
   getTodayCount();
   updateStreakBadge();
   updateDailyPerf();
+
+  // Gerenciar histórico do navegador
+  window.addEventListener('popstate', handlePopState);
 
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();
@@ -7628,7 +7678,7 @@ function updateNavButtons() {
 async function goToStep(target) {
   if (target < 1 || target > 3) return;
   state.direction = target > state.currentStep ? 'forward' : 'backward';
-  
+
   const currEl = document.getElementById(`step-${state.currentStep}`);
   const nextEl = document.getElementById(`step-${target}`);
   if (!currEl || !nextEl || target === state.currentStep) return;
@@ -7643,6 +7693,8 @@ async function goToStep(target) {
     updateStepBar(target);
     updateNavButtons();
     scrollToWizard(50);
+    // Atualizar histórico do navegador
+    updateHistoryState();
     if (target === 3) {
       if (state.mode === 'redacao') {
         // Hide screens and use Coach RedBot dashboard
