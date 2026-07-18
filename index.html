@@ -7019,15 +7019,35 @@ function init() {
 
   // Inicializar mascote Aivo no hero
   setTimeout(() => {
+    console.log('Attempting to initialize Aivo mascot...');
+    console.log('window.AivoAPI:', window.AivoAPI);
+    console.log('window.Aivo:', window.Aivo);
+    console.log('window.__AIVO_ROOT_EXISTS__:', window.__AIVO_ROOT_EXISTS__);
+
     const heroEl = document.querySelector('[data-aivo-anchor="hero"]');
+    console.log('Hero element:', heroEl);
+
+    const presenceContainer = document.getElementById('aivo-presence');
+    console.log('Presence container:', presenceContainer);
+    console.log('Presence container children:', presenceContainer ? presenceContainer.children.length : 'N/A');
+
+    // Forçar container a ficar visível
+    if (presenceContainer) {
+      presenceContainer.style.opacity = '1';
+      presenceContainer.style.transform = 'translate3d(0, 0, 0) scale(1)';
+      console.log('Forced presence container to be visible');
+    }
+
     if (heroEl && window.AivoAPI) {
       window.AivoAPI.render(heroEl, { size: 'xl', state: 'greeting' });
-      console.log('Aivo mascote initialized in hero');
+      console.log('Aivo mascote initialized in hero via AivoAPI');
     } else if (window.Aivo) {
       window.Aivo.move('[data-aivo-anchor="hero"]', { size: 'xl', state: 'greeting' });
-      console.log('Aivo mascote moved to hero');
+      console.log('Aivo mascote moved to hero via Aivo.move');
+    } else {
+      console.error('Aivo API not available. Mascot cannot be initialized.');
     }
-  }, 1000);
+  }, 1500);
 
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();
