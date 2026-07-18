@@ -65,8 +65,8 @@
       'z-index:9000',
       'pointer-events:none',
       'will-change:transform,opacity',
-      'transform:translate3d(0,0,0) scale(' + STANDBY_SCALE + ')',
-      'opacity:0',
+      'transform:translate3d(0,0,0) scale(1)',
+      'opacity:1',
       'transition:opacity 0.5s ease, transform 0.5s ease',
     ].join(';');
     document.body.appendChild(el);
