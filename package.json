@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@playwright/test": "^1.61.1",
     "acorn": "^8.17.0",
     "esbuild": "^0.28.1",
     "framer-motion": "^12.42.2",
