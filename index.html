@@ -89,12 +89,13 @@
       cursor: pointer !important;
       pointer-events: auto !important;
       user-select: none;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .mascot-avatar:hover { transform: scale(1.08); }
+    .mascot-avatar:hover { transform: scale(1.15) !important; }
+    .mascot-avatar:active, .mascot-avatar.chat-open { transform: scale(1.25) !important; }
     .speech-bubble {
       position: relative !important;
       max-width: 260px !important;
@@ -7353,6 +7354,20 @@ function init() {
       } else if (window.Aivo && window.Aivo.goHome) {
         try { window.Aivo.goHome(); } catch(e) {}
       }
+
+      // Mascot click fix (Bypass react stopPropagation e ajustes de P2)
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.mascot-avatar') || e.target.closest('#aivo-presence')) {
+          if (typeof toggleDrawer === 'function') {
+            toggleDrawer();
+          }
+          const avatar = document.querySelector('.mascot-avatar');
+          if (avatar) {
+             avatar.classList.add('chat-open');
+             setTimeout(() => avatar.classList.remove('chat-open'), 300);
+          }
+        }
+      }, true);
 
       // Mascot doesn't spawn at logo anymore to prevent flying behavior
     };
