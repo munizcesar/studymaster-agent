@@ -5914,6 +5914,11 @@ pre, code { word-break: break-word; overflow-x: auto; }
               </div>
             </div>
           </div>
+
+          <!-- STEP 4 -->
+          <div class="wizard-step" id="step-4" data-step="4">
+            <div id="step-4-content"></div>
+          </div>
         </div>
 
         <!-- STEP 3 -->
@@ -7118,18 +7123,394 @@ function renderStep2() {
 }
 
 function renderStep2AIVOS360(container) {
-  container.innerHTML = '<div class="aivos360-dashboard" style="max-height: 85vh; overflow-y: auto; overflow-x: hidden; padding-right: var(--space-2); scrollbar-width: thin; scrollbar-color: var(--color-primary) transparent;"><div class="aivos360-mode-selector"><div class="aivos360-mode-info"><span class="aivos360-mode-icon"><i data-lucide="compass" width="24" height="24"></i></span><div class="aivos360-mode-text"><h4>Campo de Estudo Inteligente</h4><p>Seu mentor IA que analisa cada questão, identifica lacunas e traça a rota mais rápida para sua aprovação</p></div></div></div><div class="aivos360-metrics-grid"><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="brain" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Domínio Global</span><span class="metric-value" id="aivosDomainPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Chance de Aprovação</span><span class="metric-value" id="aivosApprovalPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="zap" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Ofensividade</span><span class="metric-value" id="aivosOffensivePct">0%</span></div></div></div><div id="prof-aivos-chat-area"></div><div class="aivos360-hub-sections" style="display: flex; flex-direction: column; gap: var(--space-6); margin-top: var(--space-6); border-top: 1px solid var(--color-divider); padding-top: var(--space-5);"><div id="aivos-dashboard-content"></div><div id="aivos-planner-content"></div><div id="aivos-tutor-content"></div><div id="aivos-review-content"></div><div id="aivos-essay-content"></div><div id="aivos-mindmap-content"></div><div id="aivos-report-content"></div></div></div>';
-  setTimeout(function() {
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    // Re-renderizar dashboards globais ao abrir o hub
-    if (window.AivosCoachIntelligence && window.AivosCoachIntelligence.Dashboard) window.AivosCoachIntelligence.Dashboard.update();
-    if (window.AivosRoutePlanner) {
-      var pCont = document.getElementById('aivos-planner-content');
-      if(pCont) pCont.innerHTML = window.AivosRoutePlanner.renderPlan();
-    }
-    window.dispatchEvent(new CustomEvent('aivos360DashboardReady'));
-  }, 150);
+  container.innerHTML = `
+    <div class="aivos360-setup" style="display: flex; flex-direction: column; gap: var(--space-4);">
+      <div class="setup-header">
+        <h3 style="margin-bottom: var(--space-2); color: var(--color-text);">QG do Mentor - Setup Inicial</h3>
+        <p style="color: var(--color-text-muted); font-size: 0.95rem;">Forneça os detalhes do seu edital para iniciarmos o mapeamento.</p>
+      </div>
+
+      <div class="setup-cards" style="display: grid; grid-template-columns: 1fr; gap: var(--space-4);">
+        <!-- Card 1: Textarea -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="file-text" width="18" height="18"></i> Descrição do Edital
+          </label>
+          <textarea id="aivos-edital-text" rows="4" placeholder="Cole aqui os tópicos do seu edital ou descreva o concurso..." style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); resize: vertical;"></textarea>
+        </div>
+
+        <!-- Card 2: Upload PDF -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="upload-cloud" width="18" height="18"></i> Upload PDF
+          </label>
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <label for="aivos-edital-pdf" class="btn-secondary" style="cursor: pointer; padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.9rem;">
+              Escolher arquivo
+            </label>
+            <input type="file" id="aivos-edital-pdf" accept=".pdf" style="display: none;" onchange="document.getElementById('pdf-name').textContent = this.files[0] ? this.files[0].name : 'Nenhum arquivo selecionado'">
+            <span id="pdf-name" style="color: var(--color-text-muted); font-size: 0.9rem;">Nenhum arquivo selecionado</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Link do Edital -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="link" width="18" height="18"></i> Link do Edital
+          </label>
+          <input type="url" id="aivos-edital-link" placeholder="https://..." style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+        </div>
+
+        <!-- Card 4: Nível Inicial -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="bar-chart-2" width="18" height="18"></i> Nível Inicial
+          </label>
+          <select id="aivos-nivel-inicial" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+            <option value="iniciante">Iniciante</option>
+            <option value="intermediario">Intermediário</option>
+            <option value="avancado">Avançado</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="btn-analisar-raio-x" class="btn-primary btn-ripple" style="margin-top: var(--space-4); width: 100%; font-size: 1.1rem; padding: 14px;">
+        <i data-lucide="scan-line" width="20" height="20"></i> Gerar Raio-X do Edital
+      </button>
+
+      <div id="raio-x-results" style="margin-top: var(--space-4);"></div>
+    </div>
+  `;
+  setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 150);
 }
+
+function renderStep3Aivos360(container) {
+  let inner = container.querySelector('#step-3-content-aivos');
+  if (!inner) {
+    inner = document.createElement('div');
+    inner.id = 'step-3-content-aivos';
+    container.appendChild(inner);
+  }
+  inner.innerHTML = `
+    <div class="aivos360-planning" style="display: flex; flex-direction: column; gap: var(--space-4); animation: fadeIn 0.3s ease;">
+      <div class="setup-header">
+        <h3 style="margin-bottom: var(--space-2); color: var(--color-text);">Planejamento da Rota</h3>
+        <p style="color: var(--color-text-muted); font-size: 0.95rem;">Ajuste o cronograma para que a IA adapte a carga ao seu ritmo.</p>
+      </div>
+
+      <div class="setup-cards" style="display: grid; grid-template-columns: 1fr; gap: var(--space-4);">
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="clock" width="18" height="18"></i> Carga Horária Diária (horas)
+          </label>
+          <input type="number" id="aivos-ch-diaria" min="1" max="16" value="4" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+        </div>
+
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="calendar" width="18" height="18"></i> Data da Prova
+          </label>
+          <input type="date" id="aivos-data-prova" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+        </div>
+
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="coffee" width="18" height="18"></i> Dias de Descanso
+          </label>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-3);">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="0"> Dom</label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="1"> Seg</label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="2"> Ter</label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="3"> Qua</label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="4"> Qui</label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="5"> Sex</label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="6"> Sáb</label>
+          </div>
+        </div>
+
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i data-lucide="target" width="18" height="18"></i> Foco Metodológico
+          </label>
+          <select id="aivos-foco" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+            <option value="teoria">Teoria (60% Leituras / 40% Questões)</option>
+            <option value="questoes">Questões (20% Leituras / 80% Questões)</option>
+            <option value="misto" selected>Misto (50/50)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 150);
+}
+
+function renderStep4Aivos360(container) {
+  const editalData = window.state?.editalProcessado?.disciplinas || [];
+  let editalHTML = '';
+  
+  if (editalData.length === 0) {
+    editalHTML = '<div class="edital-item" style="text-align: center; color: #9CA3AF; padding: 24px;">Nenhum edital carregado</div>';
+  } else {
+    editalData.forEach(disc => {
+      let statusIcon = '🔴';
+      let statusColor = 'text-red-400';
+      let statusLabel = 'Atenção';
+      
+      if (disc.dominio >= 80) {
+        statusIcon = '🟢';
+        statusColor = 'text-green-400';
+        statusLabel = 'Dominado';
+      } else if (disc.dominio >= 50) {
+        statusIcon = '🟡';
+        statusColor = 'text-yellow-400';
+        statusLabel = 'Revisão';
+      }
+      
+      editalHTML += `
+        <div class="edital-item">
+          <strong>${disc.nome}</strong>
+          <span class="status ${statusColor}">${statusIcon} ${statusLabel} (${disc.dominio}%)</span>
+        </div>
+      `;
+    });
+  }
+
+  // Tema Dark Premium CSS Injetado Direto
+  const css = `
+    .aivos-mentoria-wrapper {
+      --bg-main: #111827;
+      --bg-card: #1F2937;
+      --border-color: #374151;
+      --primary: #3B82F6;
+      --primary-hover: #60A5FA;
+      --radius: 16px;
+      
+      background: var(--bg-main);
+      color: #F9FAFB;
+      min-height: 80vh;
+      border-radius: var(--radius);
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 24px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .aivos-mentoria-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Coluna Esquerda: Edital Vivo */
+    .edital-vivo-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+    .edital-item {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+    .edital-item:hover { background: rgba(255,255,255,0.08); }
+    .edital-item .status { font-size: 0.8rem; margin-top: 4px; display: block; }
+
+    /* Coluna Central: A Rota */
+    .rota-center {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .rota-meta {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .rota-tempo {
+      color: #9CA3AF;
+      font-size: 1rem;
+      margin-bottom: 32px;
+    }
+    .btn-comecar-sessao {
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      padding: 16px 32px;
+      border-radius: 99px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+      transition: all 200ms ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-comecar-sessao:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    }
+
+    /* Coluna Direita: Revisão */
+    .revisao-quiz {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .revisao-quiz h4 { margin-top: 0; color: var(--primary-hover); }
+
+    /* FAB Mentor */
+    .fab-mentor {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 100;
+      transition: all 200ms ease;
+    }
+    .fab-mentor:hover { transform: scale(1.05); }
+
+    /* Mobile */
+    .mobile-bottom-bar { display: none; }
+    .bottom-sheet {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      height: 85vh;
+      background: var(--bg-card);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      z-index: 999;
+      transition: bottom 300ms ease;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+      padding: 24px;
+    }
+    .bottom-sheet.open { bottom: 0; }
+    .bottom-sheet-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); z-index: 998;
+      opacity: 0; pointer-events: none; transition: opacity 300ms;
+    }
+    .bottom-sheet-overlay.open { opacity: 1; pointer-events: auto; }
+
+    @media (max-width: 1024px) {
+      .aivos-mentoria-wrapper {
+        grid-template-columns: 1fr;
+        padding-bottom: 80px;
+      }
+      .col-edital, .col-revisao { display: none; }
+      .mobile-bottom-bar {
+        display: flex;
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        padding: 12px 24px;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .btn-mobile-edital {
+        background: transparent; border: 1px solid var(--border-color);
+        color: white; padding: 8px 16px; border-radius: 8px;
+        display: flex; align-items: center; gap: 8px;
+      }
+    }
+  `;
+
+  let style = document.getElementById('aivos-mentor-css');
+  if(!style) {
+    style = document.createElement('style');
+    style.id = 'aivos-mentor-css';
+    style.innerHTML = css;
+    document.head.appendChild(style);
+  }
+
+  container.innerHTML = `
+    <div class="aivos-mentoria-wrapper">
+      
+      <!-- ESQUERDA: Edital Vivo -->
+      <div class="aivos-mentoria-col col-edital">
+        <div class="edital-vivo-title"><i data-lucide="book-open"></i> Edital Vivo</div>
+        <div style="overflow-y: auto; flex: 1;">
+          ${editalHTML}
+        </div>
+      </div>
+
+      <!-- CENTRO: A Rota -->
+      <div class="aivos-mentoria-col rota-center">
+        <h3 style="margin-top: 40px; color: #E5E7EB;">A Rota de Hoje</h3>
+        <div class="rota-meta">40 Questões + Revisão D7</div>
+        <div class="rota-tempo"><i data-lucide="clock" style="display:inline; vertical-align:middle;"></i> Tempo Planejado: 2h 30m</div>
+        <button class="btn-comecar-sessao">
+          <i data-lucide="play-circle"></i> COMEÇAR SESSÃO
+        </button>
+      </div>
+
+      <!-- DIREITA: Motor de Revisão -->
+      <div class="aivos-mentoria-col col-revisao">
+        <div class="edital-vivo-title"><i data-lucide="zap"></i> Motor de Revisão</div>
+        <p style="color: #9CA3AF; font-size: 0.9rem;">Seu cérebro está prestes a esquecer 3 tópicos importantes.</p>
+        
+        <div class="revisao-quiz">
+          <h4>Mini Quiz Surpresa</h4>
+          <p style="font-size: 0.9rem; margin-bottom: 12px;">Qual o prazo de validade de um concurso público?</p>
+          <button class="btn-secondary" style="width: 100%; margin-bottom: 8px; text-align: left;">A) 1 ano</button>
+          <button class="btn-secondary" style="width: 100%; margin-bottom: 8px; text-align: left;">B) Até 2 anos, prorrogável</button>
+          <button class="btn-secondary" style="width: 100%; text-align: left;">C) 4 anos</button>
+        </div>
+      </div>
+
+      <!-- Mobile Bottom Bar -->
+      <div class="mobile-bottom-bar">
+        <button class="btn-mobile-edital" onclick="document.getElementById('mobile-sheet').classList.add('open'); document.getElementById('mobile-overlay').classList.add('open');">
+          <i data-lucide="list"></i> Edital Vivo
+        </button>
+      </div>
+
+      <!-- Mobile Bottom Sheet -->
+      <div class="bottom-sheet-overlay" id="mobile-overlay" onclick="this.classList.remove('open'); document.getElementById('mobile-sheet').classList.remove('open');"></div>
+      <div class="bottom-sheet" id="mobile-sheet">
+        <div class="edital-vivo-title" style="margin-bottom: 24px;"><i data-lucide="book-open"></i> Edital Vivo</div>
+        ${editalHTML}
+      </div>
+
+      <!-- FAB Mentor -->
+      <div class="fab-mentor" title="Mentor AIVOS">
+        <i data-lucide="message-circle"></i>
+      </div>
+
+    </div>
+  `;
+  setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 150);
+}
+
 function renderRedacaoCoachDashboard() {
   var container = document.getElementById('step-3');
   if (!container) return;
@@ -7666,7 +8047,7 @@ function updateNavButtons() {
 }
 
 async function goToStep(target) {
-  if (target < 1 || target > 3) return;
+  if (target < 1 || target > 4) return;
   state.direction = target > state.currentStep ? 'forward' : 'backward';
 
   const currEl = document.getElementById(`step-${state.currentStep}`);
@@ -7686,6 +8067,12 @@ async function goToStep(target) {
     // Atualizar histórico do navegador
     updateHistoryState();
     if (target === 3) {
+      if (state.mode === 'aivos360') {
+        document.getElementById('generating-screen').classList.add('hidden');
+        document.getElementById('questions-container').classList.remove('visible');
+        renderStep3Aivos360(document.getElementById('step-3'));
+        return;
+      }
       if (state.mode === 'redacao') {
         // Hide screens and use Coach RedBot dashboard
         document.getElementById('generating-screen').classList.add('hidden');
@@ -7699,6 +8086,12 @@ async function goToStep(target) {
       }
       // Start question generation
       callWorkerAndRender();
+    }
+    
+    if (target === 4) {
+      if (state.mode === 'aivos360') {
+        renderStep4Aivos360(document.getElementById('step-4-content'));
+      }
     }
   });
 }
@@ -9284,5 +9677,6 @@ window.addEventListener('resize', () => {
     }
   })();
   </script>
-
+  
+  <script src="src/mentor-class-controller.js" defer></script>
 </body>

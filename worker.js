@@ -2151,3 +2151,57 @@ if (mode === "academic") {
 export {
   worker_default as default
 };
+
+// -------------------------------------------------------------
+// INTEGRAÇÃO MENTOR CLASS - WEB WORKER CONTEXT
+// -------------------------------------------------------------
+
+self.onmessage = async function(event) {
+    const { command, payload } = event.data;
+
+    if (command === 'START_SESSION') {
+        try {
+            // 1. Extrai o contexto enviado pelo frontend
+            const { editalData, nivel, foco } = payload;
+            
+            // 2. Simula o tempo de resposta da API / Processamento da IA
+            // Substitua este bloco pela sua chamada real fetch() para o backend/LLM
+            const questoesGeradas = await gerarSessaoEstudosSimulada(editalData, nivel, foco);
+
+            // 3. Devolve a resposta pronta para a UI renderizar
+            self.postMessage({
+                status: 'success',
+                questoes: questoesGeradas
+            });
+
+        } catch (error) {
+            // Se a API falhar ou a IA alucinar, captura o erro
+            self.postMessage({
+                status: 'error',
+                error: error.message || "Falha na geração da bateria de estudos."
+            });
+        }
+    }
+};
+
+// Função real chamando o backend do Mentor Class
+async function gerarSessaoEstudosSimulada(editalData, nivel, foco) {
+    const response = await fetch("https://mentor-class-backend.cesarmuniz0816.workers.dev/api/gerar-sessao", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            editalData,
+            nivel,
+            foco
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error("O servidor falhou ao gerar as questões (Erro " + response.status + ").");
+    }
+
+    const data = await response.json();
+    return data.questoes;
+}

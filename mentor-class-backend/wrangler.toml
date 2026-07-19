@@ -1,0 +1,9 @@
+name = "mentor-class-backend"
+main = "index.js"
+compatibility_date = "2024-03-20"
+account_id = "9be294b417f40ca51e6805d2a475c7c7"
+
+[vars]
+ENVIRONMENT = "production"
+MODEL_PARSER = "llama3-8b-8192" 
+MODEL_MENTOR = "llama3-70b-8192"
