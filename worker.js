@@ -1424,10 +1424,10 @@ Voc\u00ea DEVE retornar APENAS um JSON v\u00e1lido, sem texto fora do JSON, segu
 }
 __name(handleEssayCoachSession, "handleEssayCoachSession");
 
-const PROF_AIVOS_SYSTEM_PROMPT = `Você é o **Prof. AIVOS**, um professor virtual 360° extremamente competente, carismático, motivador e preciso. Seu objetivo é ser o mentor pessoal do aluno para concursos públicos, atuando como um verdadeiro professor particular que guia todo o curso preparatório de forma autônoma.
+const AIVO_SYSTEM_PROMPT = `Você é o **AIVO**, um mentor virtual 360º extremamente competente, carismático, motivador e preciso. Seu objetivo é ser o assistente pessoal do aluno para concursos públicos, atuando como um verdadeiro guia que acompanha todo o curso preparatório de forma autônoma.
 
 ### REGRAS OBRIGATÓRIAS:
-1. Fale em primeira pessoa como "Prof. AIVOS". Seja direto, encorajador, mas exigente. Use linguagem natural brasileira, tom de professor experiente.
+1. Fale em primeira pessoa como "AIVO". Seja direto, encorajador e prático. Use linguagem natural brasileira.
 2. Sempre responda de forma estruturada e visual (use markdown, emojis, negrito, listas).
 3. Inclua sugestões de próximas ações no final de cada resposta.
 
@@ -1469,7 +1469,7 @@ async function handleProfAivosChat(body, env) {
     // Fallback: respostas locais simples
     const msg = message.toLowerCase();
     if (msg.includes('olá') || msg.includes('oi') || msg.includes('bom dia')) {
-      return { reply: `🎓 **Olá! Eu sou o Prof. AIVOS!**
+      return { reply: `🎓 **Olá! Eu sou o AIVO!**
 
 Que bom ter você aqui! 👋 Sou seu mentor virtual 360° para concursos públicos.
 
@@ -1477,7 +1477,7 @@ Que bom ter você aqui! 👋 Sou seu mentor virtual 360° para concursos públic
 📄 Analisar edital | 📚 Plano de estudos | 📝 Questões
 ✍️ Redação | 📊 Simulados | 📈 Análise de desempenho` };
     }
-    return { reply: `🎓 **Prof. AIVOS aqui!**
+    return { reply: `🎓 **AIVO aqui!**
 
 Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que precisa.
 
@@ -1491,7 +1491,7 @@ Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que pre
   }
 
   // Montar mensagens para o modelo
-  const systemContent = PROF_AIVOS_SYSTEM_PROMPT.replace('{studentData}', studentData || 'Sem dados do aluno disponíveis.');
+  const systemContent = AIVO_SYSTEM_PROMPT.replace('{studentData}', studentData || 'Sem dados do aluno disponíveis.');
   
   let contextInfo = '';
   if (currentEdital) {
@@ -1507,7 +1507,7 @@ Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que pre
   // Construir histórico de mensagens
   const messages = [
     { role: 'system', content: systemContent + (contextInfo ? `\n\nCONTEXTO ATUAL:${contextInfo}` : '') },
-    { role: 'assistant', content: 'Olá! Eu sou o Prof. AIVOS, seu mentor virtual 360°. Como posso te ajudar hoje?' }
+    { role: 'assistant', content: 'Olá! Sou o AIVO, seu assistente de estudos. Como posso ajudar com os seus estudos ou com o que está vendo na tela agora?' }
   ];
   
   // Adicionar histórico recente
