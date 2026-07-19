@@ -433,16 +433,22 @@ export default function AivoTourOverlay() {
     }, 1200);
   };
 
-  const toggleChat = () => {
+  const toggleChat = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (tourState.active) handleDismiss();
     
     // Se estava fechado e vai abrir, dá as boas vindas se history estiver vazio
-    if (!isChatOpen && chatHistory.length === 0) {
-      setChatHistory([
-        { role: 'assistant', content: 'Olá! Sou o Prof. AIVOS, seu mentor 360º. Como posso ajudar com os seus estudos ou com o que está vendo na tela agora?' }
-      ]);
-    }
-    setIsChatOpen(!isChatOpen);
+    setIsChatOpen(prev => {
+      if (!prev && chatHistory.length === 0) {
+        setChatHistory([
+          { role: 'assistant', content: 'Olá! Sou o Prof. AIVOS, seu mentor 360º. Como posso ajudar com os seus estudos ou com o que está vendo na tela agora?' }
+        ]);
+      }
+      return !prev;
+    });
   };
 
   const handleSendMessage = async () => {

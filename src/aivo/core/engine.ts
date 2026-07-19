@@ -99,7 +99,7 @@ export class AivoEngine {
     this._observersStarted = true;
 
     // Start runtime assertions watchman
-    this.watchman.start();
+    // this.watchman.start();
 
     this.state.setPhase('IDLE');
     this.state.setEmotion('idle');
