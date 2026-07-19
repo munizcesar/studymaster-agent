@@ -59,7 +59,11 @@
       position: fixed;
       z-index: 9999;
       pointer-events: none;
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      left: 16px;
+      bottom: 100px;
+      width: 120px;
+      height: 120px;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
     }
 
     #aivo-presence * {
@@ -6960,30 +6964,36 @@ function init() {
     console.log('window.Aivo:', window.Aivo);
     console.log('window.__AIVO_ROOT_EXISTS__:', window.__AIVO_ROOT_EXISTS__);
 
-    const heroEl = document.querySelector('[data-aivo-anchor="hero"]');
-    console.log('Hero element:', heroEl);
+    // Inicializar mascote AIVO com múltiplos fallbacks
+    const initMascot = () => {
+      const presenceContainer = document.getElementById('aivo-presence');
+      if (presenceContainer) {
+        // Garantir que o container seja visível independente do sistema de animação
+        presenceContainer.style.opacity = '1';
+        presenceContainer.style.transform = 'translate3d(0,0,0) scale(1)';
+      }
 
-    const presenceContainer = document.getElementById('aivo-presence');
-    console.log('Presence container:', presenceContainer);
-    console.log('Presence container children:', presenceContainer ? presenceContainer.children.length : 'N/A');
+      if (window.AivoEngineInstance) {
+        // Nova arquitetura
+        try {
+          window.AivoEngineInstance.goHome();
+        } catch(e) {}
+      } else if (window.Aivo && window.Aivo.goHome) {
+        try { window.Aivo.goHome(); } catch(e) {}
+      }
 
-    // Forçar container a ficar visível
-    if (presenceContainer) {
-      presenceContainer.style.opacity = '1';
-      presenceContainer.style.transform = 'translate3d(0, 0, 0) scale(1)';
-      console.log('Forced presence container to be visible');
-    }
-
-    if (heroEl && window.AivoAPI) {
-      window.AivoAPI.render(heroEl, { size: 'xl', state: 'greeting' });
-      console.log('Aivo mascote initialized in hero via AivoAPI');
-    } else if (window.Aivo) {
-      window.Aivo.move('[data-aivo-anchor="hero"]', { size: 'xl', state: 'greeting' });
-      console.log('Aivo mascote moved to hero via Aivo.move');
-    } else {
-      console.error('Aivo API not available. Mascot cannot be initialized.');
-    }
-  }, 1500);
+      const heroEl = document.querySelector('[data-aivo-anchor="hero"]');
+      if (heroEl && window.AivoAPI) {
+        try {
+          window.AivoAPI.render(heroEl, { size: 'xl', state: 'greeting' });
+        } catch(e) {}
+      } else if (window.Aivo) {
+        try {
+          window.Aivo.move('[data-aivo-anchor="hero"]', { size: 'xl', state: 'greeting' });
+        } catch(e) {}
+      }
+    };
+    setTimeout(initMascot, 1500);
 
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();
