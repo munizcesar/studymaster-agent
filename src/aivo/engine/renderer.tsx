@@ -6,9 +6,9 @@
  * Renders the <Aivo /> component into the #aivo-presence container.
  */
 
-import type React from 'react';
+import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { Aivo } from '../../aivo-mascot';
+import AivoTourOverlay, { Aivo } from '../../aivo-mascot';
 import type { AivoState, AivoThemeMode } from './types';
 import { SIZE_PRESETS } from './constants';
 import { EventBus } from './events';
@@ -74,11 +74,14 @@ export class Renderer {
 
     this.lastRenderTime = Date.now();
     this.root.render(
-      <Aivo
-        size={this.state.size}
-        state={this.state.state}
-        themeMode={this.state.themeMode}
-      />
+      <>
+        <Aivo
+          size={this.state.size}
+          state={this.state.state}
+          themeMode={this.state.themeMode}
+        />
+        <AivoTourOverlay />
+      </>
     );
   }
 
