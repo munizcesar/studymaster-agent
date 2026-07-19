@@ -449,9 +449,10 @@ export default function AivoTourOverlay() {
               boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
               pointerEvents: 'auto',
               position: 'absolute',
-              bottom: '100%',
-              right: '0',
-              marginBottom: '16px',
+              right: '100%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              marginRight: '16px',
               zIndex: 10,
             }}
           >
@@ -478,16 +479,17 @@ export default function AivoTourOverlay() {
                 Entendi ›
               </button>
             </div>
-            {/* Seta apontando para o mascote (abaixo) */}
+            {/* Seta apontando para o mascote (à direita do balão) */}
             <div style={{
               position: 'absolute',
-              bottom: '-8px',
-              right: '52px',
+              right: '-8px',
+              top: '50%',
+              marginTop: '-8px',
               width: '16px',
               height: '16px',
               background: '#ffffff',
               border: '1px solid rgba(0,0,0,0.12)',
-              borderTop: 'none',
+              borderBottom: 'none',
               borderLeft: 'none',
               transform: 'rotate(45deg)',
             }} />
