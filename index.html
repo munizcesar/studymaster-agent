@@ -8827,9 +8827,10 @@ function updateScore() {
   const fill = document.getElementById('score-fill');
   const value = document.getElementById('score-value');
   const total = state.generatedQuestions.length;
-  const progress = total > 0 ? (state.answered / total) * 100 : 0;
+  // Progress bar represents correct answers out of total questions
+  const progress = total > 0 ? (state.correct / total) * 100 : 0;
   fill.style.width = `${progress}%`;
-  value.innerHTML = `${state.answered}/<span id="score-total">${total}</span>`;
+  value.innerHTML = `${state.correct}/<span id="score-total">${total}</span>`;
 }
 
 // ── Quiz Fullscreen ──────────────────────────────────────────────────────────
