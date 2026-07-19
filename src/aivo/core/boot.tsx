@@ -35,7 +35,7 @@ import { getAivoBus } from './event-bus';
 function AivoFloatingAvatar({ engine }: { engine: any }) {
   const [emotion, setEmotion] = useState<string>('idle');
   const [message, setMessage] = useState<string | null>(null);
-  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [showBubble, setShowBubble] = useState<boolean>(true);
 
   useEffect(() => {
     const handleEmotion = (e: any) => {
@@ -46,13 +46,13 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
     const handleTour = (e: any) => {
       if (e?.detail?.message) {
         setMessage(e.detail.message);
-        setIsVisible(true); // Mostra o mascote ao receber mensagem
+        setShowBubble(true);
       }
     };
     window.addEventListener('aivo-tour', handleTour);
 
-    // Expoe funcao global para mostrar o mascote externamente
-    (window as any).AivoShow = () => setIsVisible(true);
+    // Expoe funcao global para mostrar o balao externamente
+    (window as any).AivoShow = () => setShowBubble(true);
 
     return () => {
       window.removeEventListener('aivo-engine-emotion', handleEmotion);
@@ -63,39 +63,26 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMessage(null);
+    setShowBubble(false);
   };
 
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('[AIVO] Avatar clicado, isVisible:', isVisible);
+    console.log('[AIVO] Avatar clicado');
     if (message) {
+      // Fecha o balao se tiver mensagem
       setMessage(null);
-    } else {
-      // Minimiza o mascote — FAB vai aparecer no lugar
-      setIsVisible(false);
+      setShowBubble(false);
+    } else if ((window as any).ProfAivosMentor) {
+      // Abre o chat do mentor
+      (window as any).ProfAivosMentor.toggle?.();
     }
   };
 
-  // Quando minimizado: mostra apenas o FAB de recuperacao
-  if (!isVisible) {
-    return ReactDOM.createPortal(
-      <button
-        className="aivo-recall-fab"
-        title="Chamar AIVO"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsVisible(true);
-        }}
-      >
-        🤖
-      </button>,
-      document.body
-    ) as any;
-  }
-
+  // SEMPRE renderiza o avatar oficial — nunca troca por icone generico
   const content = (
-    <div className="mascot-wrapper">
-      {message && (
+    <div className="mascot-wrapper" style={{ pointerEvents: 'auto' }}>
+      {showBubble && message && (
         <div className="speech-bubble">
           {message}
           <button onClick={handleDismiss} className="btn-entendi">
@@ -106,7 +93,8 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
       <div
         className="mascot-avatar"
         onClick={handleAvatarClick}
-        title={message ? 'Fechar mensagem' : 'Minimizar AIVO'}
+        style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+        title="Falar com AIVO"
       >
         <Aivo size={64} state={emotion as any} themeMode="dark" />
       </div>
@@ -115,6 +103,7 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
 
   return ReactDOM.createPortal(content, document.body) as any;
 }
+
 
 
 let rootCreated = false;
