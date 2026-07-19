@@ -375,8 +375,6 @@ export default function AivoTourOverlay() {
     message: "",
     mascotState: "idle",
   });
-  const [themeMode, setThemeMode] = useState("dark");
-
   // O mascote sempre usa tema claro para ter destaque, mesmo no dark mode
   const themeMode = "light";
 
