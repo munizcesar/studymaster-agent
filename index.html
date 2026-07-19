@@ -1797,6 +1797,19 @@
 .error-state { display: none; }
 .error-state.hidden { display: none; }
 .error-state:not(.hidden) { display: block; }
+.error-suggestions {
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.error-suggestions p { margin-bottom: var(--space-2); }
+.error-suggestions ul { list-style: none; padding-left: var(--space-3); }
+.error-suggestions li { margin-bottom: var(--space-1); padding-left: var(--space-3); position: relative; }
+.error-suggestions li::before { content: "•"; position: absolute; left: 0; color: var(--color-primary); }
 
 .questions-container { display: none; }
 .questions-container.visible { display: block; }
@@ -6028,15 +6041,28 @@ pre, code { word-break: break-word; overflow-x: auto; }
             <p class="generating-label" id="generating-label">Gerando suas questões personalizadas…</p>
             <p class="generating-sub" id="generating-sub">Isso leva apenas alguns segundos</p>
             
-            <!-- Error State (Integrated) -->
-            <div class="error-state hidden" id="error-state" style="margin-top: var(--space-4); padding: var(--space-4); background: oklch(from var(--color-error) l c h / 0.1); border: 1px solid var(--color-error); border-radius: var(--radius-md);">
-              <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
-                <i data-lucide="alert-triangle" width="24" height="24" style="color: var(--color-error);"></i>
-                <div>
-                  <strong style="color: var(--color-error);">Erro ao gerar questões</strong>
-                  <p class="error-msg" id="error-msg" style="margin: 0; font-size: var(--text-sm); color: var(--color-text);">Não foi possível conectar ao servidor.</p>
-                </div>
+            <!-- Error State (Amigável) -->
+            <div class="error-screen hidden" id="error-state" style="margin-top: var(--space-4); padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); text-align: center;">
+              <div class="error-icon" style="margin-bottom: var(--space-3); color: var(--color-error); display: flex; justify-content: center;">
+                <i data-lucide="alert-triangle" width="48" height="48"></i>
               </div>
+              <h3 style="margin-bottom: var(--space-2); color: var(--color-text);">
+                Oops! Algo deu errado
+              </h3>
+              <p class="error-msg" id="error-msg" style="color: var(--color-text-muted); font-size: 1.05rem;">
+                Não foi possível gerar suas questões no momento.
+              </p>
+              
+              <!-- Sugestões -->
+              <div class="error-suggestions">
+                <p><strong>Tente:</strong></p>
+                <ul>
+                  <li>Verificar sua conexão com a internet</li>
+                  <li>Aguardar alguns segundos e tentar novamente</li>
+                  <li>Recarregar a página (F5)</li>
+                </ul>
+              </div>
+              
               <button type="button" class="btn-primary btn-ripple" id="retry-btn" style="width: 100%; max-width: 200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: var(--space-2);">
                 <i data-lucide="refresh-cw" width="16" height="16"></i>
                 Tentar novamente
@@ -8323,12 +8349,14 @@ function normalizeErrorMessage(raw) {
   if (msg.toLowerCase().includes('timeout')) {
     return 'A requisição demorou muito. Tente novamente em alguns segundos.';
   }
+  // Se for qualquer outra coisa (como um stack trace ou erro técnico), retornamos mensagem genérica.
   return 'Algo inesperado aconteceu. Tente novamente em instantes.';
 }
 
 function showError(msg) {
   const normalized = normalizeErrorMessage(msg);
-  console.error('AIVOS error:', typeof msg === 'object' ? JSON.stringify(msg) : msg);
+  // Log silencioso (sem expor para user)
+  console.error('[AIVOS Error Context]:', typeof msg === 'object' ? JSON.stringify(msg) : msg);
   
   // Show integrated error state
   const errorState = document.getElementById('error-state');
@@ -8339,7 +8367,9 @@ function showError(msg) {
   const sub = document.getElementById('generating-sub');
   
   if (errorState) {
+    // Agora usamos 'error-screen' ou 'error-state' no HTML
     errorState.classList.remove('hidden');
+    errorState.classList.add('visible'); // Opcional, mantemos remove('hidden')
     if (errorMsg) errorMsg.textContent = normalized;
   }
   
