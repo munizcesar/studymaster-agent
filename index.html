@@ -5954,20 +5954,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
             </div>
             <!-- AIVOS Coach Contextual Container -->
             <div id="aivos-coach-container" style="display:none; margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Dashboard Container -->
-            <div id="aivos-dashboard-content" style="margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Route Planner Container -->
-            <div id="aivos-planner-content" style="margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Tutor Engine Container -->
-            <div id="aivos-tutor-content" style="margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Review Scheduler Container -->
-            <div id="aivos-review-content" style="margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Essay Grader Container -->
-            <div id="aivos-essay-content" style="margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Mind Mapper Container -->
-            <div id="aivos-mindmap-content" style="margin-bottom:var(--space-4);"></div>
-            <!-- AIVOS Progress Reporter Container -->
-            <div id="aivos-report-content" style="margin-bottom:var(--space-4);"></div>
+            <!-- Os dashboards do AIVOS foram movidos para o Campo de Estudo Inteligente (step-2) -->
             <div id="questions-list"></div>
             <div id="aivos-celebration-placeholder" style="margin-top:var(--space-4); display:none;"></div>
             <div class="hidden" id="session-result" role="status" aria-live="polite" aria-atomic="true" style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
@@ -7123,11 +7110,17 @@ function renderStep2() {
 }
 
 function renderStep2AIVOS360(container) {
-  container.innerHTML = '<div class="aivos360-dashboard"><div class="aivos360-mode-selector"><div class="aivos360-mode-info"><span class="aivos360-mode-icon"><i data-lucide="compass" width="24" height="24"></i></span><div class="aivos360-mode-text"><h4>Plano AIVOS 360</h4><p>Seu mentor IA que analisa cada questão, identifica lacunas e traça a rota mais rápida para sua aprovação</p></div></div></div><div class="aivos360-metrics-grid"><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="brain" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Dominio</span><span class="metric-value" id="aivosDomainPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Aprovacao</span><span class="metric-value" id="aivosApprovalPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="zap" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Ofensividade</span><span class="metric-value" id="aivosOffensivePct">0%</span></div></div></div><div id="prof-aivos-chat-area"></div></div>';
+  container.innerHTML = '<div class="aivos360-dashboard" style="max-height: 85vh; overflow-y: auto; overflow-x: hidden; padding-right: var(--space-2); scrollbar-width: thin; scrollbar-color: var(--color-primary) transparent;"><div class="aivos360-mode-selector"><div class="aivos360-mode-info"><span class="aivos360-mode-icon"><i data-lucide="compass" width="24" height="24"></i></span><div class="aivos360-mode-text"><h4>Campo de Estudo Inteligente</h4><p>Seu mentor IA que analisa cada questão, identifica lacunas e traça a rota mais rápida para sua aprovação</p></div></div></div><div class="aivos360-metrics-grid"><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="brain" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Domínio Global</span><span class="metric-value" id="aivosDomainPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="target" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Chance de Aprovação</span><span class="metric-value" id="aivosApprovalPct">0%</span></div></div><div class="aivos360-metric-card"><div class="metric-icon"><i data-lucide="zap" width="24" height="24"></i></div><div class="metric-content"><span class="metric-label">Ofensividade</span><span class="metric-value" id="aivosOffensivePct">0%</span></div></div></div><div id="prof-aivos-chat-area"></div><div class="aivos360-hub-sections" style="display: flex; flex-direction: column; gap: var(--space-6); margin-top: var(--space-6); border-top: 1px solid var(--color-divider); padding-top: var(--space-5);"><div id="aivos-dashboard-content"></div><div id="aivos-planner-content"></div><div id="aivos-tutor-content"></div><div id="aivos-review-content"></div><div id="aivos-essay-content"></div><div id="aivos-mindmap-content"></div><div id="aivos-report-content"></div></div></div>';
   setTimeout(function() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
+    // Re-renderizar dashboards globais ao abrir o hub
+    if (window.AivosCoachIntelligence && window.AivosCoachIntelligence.Dashboard) window.AivosCoachIntelligence.Dashboard.update();
+    if (window.AivosRoutePlanner) {
+      var pCont = document.getElementById('aivos-planner-content');
+      if(pCont) pCont.innerHTML = window.AivosRoutePlanner.renderPlan();
+    }
     window.dispatchEvent(new CustomEvent('aivos360DashboardReady'));
-  }, 100);
+  }, 150);
 }
 function renderRedacaoCoachDashboard() {
   var container = document.getElementById('step-3');
