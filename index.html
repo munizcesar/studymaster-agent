@@ -6993,7 +6993,9 @@ function init() {
         } catch(e) {}
       }
     };
+    initMascot(); // Executa imediatamente E agenda para 1.5s também
     setTimeout(initMascot, 1500);
+  }, 500);
 
   document.getElementById('logo-home').addEventListener('click', e => {
     e.preventDefault();
