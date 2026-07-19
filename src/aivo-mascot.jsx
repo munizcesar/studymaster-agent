@@ -448,7 +448,7 @@ export default function AivoTourOverlay() {
               pointerEvents: 'auto',
               position: 'absolute',
               bottom: '100%',
-              left: '0',
+              right: '0',
               marginBottom: '16px',
               zIndex: 10,
             }}
@@ -480,7 +480,7 @@ export default function AivoTourOverlay() {
             <div style={{
               position: 'absolute',
               bottom: '-8px',
-              left: '32px',
+              right: '52px',
               width: '16px',
               height: '16px',
               background: '#ffffff',
@@ -502,12 +502,12 @@ export default function AivoTourOverlay() {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         style={{ pointerEvents: 'auto', cursor: 'pointer' }}
         onClick={() => {
-          if (!tourState.active) {
-            window.dispatchEvent(new CustomEvent('aivo-tour', {
-              detail: { message: 'Olá! Precisa de ajuda? É só perguntar!', state: 'greeting' }
-            }));
-          } else {
+          if (tourState.active) {
             handleDismiss();
+          }
+          // Abrir o chat / IA
+          if (typeof window !== 'undefined' && window.toggleDrawer) {
+            window.toggleDrawer(true);
           }
         }}
       >
