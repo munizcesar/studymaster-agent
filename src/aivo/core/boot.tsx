@@ -63,7 +63,7 @@ function boot(): void {
 
   // 5. Re-render on emotion changes
   engine.events.on('emotion:change', (data) => {
-    // AivoTourOverlay handles its own state via events
+    window.dispatchEvent(new CustomEvent('aivo-engine-emotion', { detail: data }));
     (window as any).__AIVO_ROOT_EXISTS__ = true;
   });
 

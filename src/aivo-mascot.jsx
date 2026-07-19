@@ -377,17 +377,8 @@ export default function AivoTourOverlay() {
   });
   const [themeMode, setThemeMode] = useState("dark");
 
-  // Detecta tema do documento
-  useEffect(() => {
-    const update = () => {
-      const t = document.documentElement.getAttribute('data-theme');
-      setThemeMode(t === 'light' ? 'light' : 'dark');
-    };
-    update();
-    const obs = new MutationObserver(update);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => obs.disconnect();
-  }, []);
+  // O mascote sempre usa tema claro para ter destaque, mesmo no dark mode
+  const themeMode = "light";
 
   // Listener Global de eventos de tour
   useEffect(() => {
@@ -409,6 +400,17 @@ export default function AivoTourOverlay() {
     };
     window.addEventListener('aivo-tour', handleTourEvent);
     return () => window.removeEventListener('aivo-tour', handleTourEvent);
+  }, []);
+
+  // Listener para sincronizar a emoção (rosto) do mascote com a engine legada
+  useEffect(() => {
+    const handleEmotionEvent = (e) => {
+      if (e.detail?.emotion) {
+        setTourState(prev => ({ ...prev, mascotState: e.detail.emotion }));
+      }
+    };
+    window.addEventListener('aivo-engine-emotion', handleEmotionEvent);
+    return () => window.removeEventListener('aivo-engine-emotion', handleEmotionEvent);
   }, []);
 
   const handleDismiss = () => {
