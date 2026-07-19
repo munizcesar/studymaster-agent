@@ -6984,16 +6984,7 @@ function init() {
         try { window.Aivo.goHome(); } catch(e) {}
       }
 
-      const heroEl = document.querySelector('[data-aivo-anchor="hero"]');
-      if (heroEl && window.AivoAPI) {
-        try {
-          window.AivoAPI.render(heroEl, { size: 'xl', state: 'greeting' });
-        } catch(e) {}
-      } else if (window.Aivo) {
-        try {
-          window.Aivo.move('[data-aivo-anchor="hero"]', { size: 'xl', state: 'greeting' });
-        } catch(e) {}
-      }
+      // Mascot doesn't spawn at logo anymore to prevent flying behavior
     };
     setTimeout(initMascot, 1000);
   }, 500);
