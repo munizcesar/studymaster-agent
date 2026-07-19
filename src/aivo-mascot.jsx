@@ -421,14 +421,12 @@ export default function AivoTourOverlay() {
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 9999,
+        position: 'relative',
+        width: '120px',
+        height: '120px',
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: '12px',
+        alignItems: 'center',
+        justifyContent: 'center',
         pointerEvents: 'none',
       }}
     >
@@ -448,7 +446,11 @@ export default function AivoTourOverlay() {
               width: '280px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
               pointerEvents: 'auto',
-              position: 'relative',
+              position: 'absolute',
+              bottom: '100%',
+              left: '0',
+              marginBottom: '16px',
+              zIndex: 10,
             }}
           >
             <p style={{ color: '#1a1a1a', fontSize: '14px', lineHeight: '1.5', marginBottom: '12px', fontWeight: 500 }}>
@@ -478,7 +480,7 @@ export default function AivoTourOverlay() {
             <div style={{
               position: 'absolute',
               bottom: '-8px',
-              right: '52px',
+              left: '32px',
               width: '16px',
               height: '16px',
               background: '#ffffff',
