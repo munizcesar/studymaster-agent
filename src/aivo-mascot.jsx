@@ -373,132 +373,148 @@ export default function AivoTourOverlay() {
   const [tourState, setTourState] = useState({
     active: false,
     message: "",
-    targetId: null,
     mascotState: "idle",
   });
-  
-  const [position, setPosition] = useState({ x: -200, y: -200 });
-  const [isMobile, setIsMobile] = useState(false);
+  const [themeMode, setThemeMode] = useState("dark");
 
-  // Verifica tamanho da tela para comportamento responsivo
+  // Detecta tema do documento
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const update = () => {
+      const t = document.documentElement.getAttribute('data-theme');
+      setThemeMode(t === 'light' ? 'light' : 'dark');
+    };
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
   }, []);
 
-  // Lógica para seguir o elemento alvo
-  const updatePosition = useCallback(() => {
-    if (isMobile) return; // No mobile ele fica fixo no canto
-    
-    if (tourState.active && tourState.targetId) {
-      const el = document.querySelector(tourState.targetId);
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        // Tenta posicionar na lateral direita, se não houver espaço, joga pra esquerda ou acima
-        const spaceRight = window.innerWidth - rect.right > 300;
-        
-        setPosition({
-          x: spaceRight ? rect.right + 20 : rect.left - 240,
-          y: rect.top + (rect.height / 2) - 40 // Centralizado verticalmente com o elemento
-        });
-      }
-    }
-  }, [tourState, isMobile]);
-
-  // Listener Global para ser chamado de qualquer lugar do código Vanilla/React
-  // Exemplo de uso: window.dispatchEvent(new CustomEvent('aivo-tour', { detail: { targetId: '#meu-botao', message: 'Clique aqui!', state: 'speaking' } }))
+  // Listener Global de eventos de tour
   useEffect(() => {
     const handleTourEvent = (e) => {
       if (e.detail?.close) {
-        setTourState(prev => ({ ...prev, active: false }));
+        setTourState(prev => ({ ...prev, active: false, mascotState: 'idle' }));
         return;
       }
-      
       setTourState({
         active: true,
         message: e.detail.message || "Olá!",
-        targetId: e.detail.targetId || null,
         mascotState: e.detail.state || "greeting",
       });
-      
-      // Volta para state idle depois de falar
       if (e.detail.state === "speaking") {
         setTimeout(() => {
           setTourState(prev => ({ ...prev, mascotState: "idle" }));
         }, 3000);
       }
     };
-
     window.addEventListener('aivo-tour', handleTourEvent);
-    window.addEventListener('scroll', updatePosition);
-    window.addEventListener('resize', updatePosition);
-    
-    // Dispara primeira medição
-    setTimeout(updatePosition, 100);
+    return () => window.removeEventListener('aivo-tour', handleTourEvent);
+  }, []);
 
-    return () => {
-      window.removeEventListener('aivo-tour', handleTourEvent);
-      window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [updatePosition]);
-
-  if (!tourState.active) return null;
-
-  // Lógica de fechamento no botão "Entendi"
   const handleDismiss = () => {
     setTourState(prev => ({ ...prev, mascotState: "success" }));
     setTimeout(() => {
-      setTourState(prev => ({ ...prev, active: false }));
+      setTourState(prev => ({ ...prev, active: false, mascotState: 'idle' }));
     }, 1200);
   };
 
   return (
-    <motion.div
-      className="fixed inset-0 pointer-events-none z-[9999]"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
+      style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: '12px',
+        pointerEvents: 'none',
+      }}
     >
+      {/* Balão de fala — só aparece quando tour está ativo */}
+      <AnimatePresence>
+        {tourState.active && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            style={{
+              background: '#ffffff',
+              border: '1px solid rgba(0,0,0,0.12)',
+              borderRadius: '16px',
+              padding: '16px',
+              width: '280px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              pointerEvents: 'auto',
+              position: 'relative',
+            }}
+          >
+            <p style={{ color: '#1a1a1a', fontSize: '14px', lineHeight: '1.5', marginBottom: '12px', fontWeight: 500 }}>
+              {tourState.message}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleDismiss}
+                style={{
+                  background: '#1B365D',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                Entendi ›
+              </button>
+            </div>
+            {/* Seta apontando para o mascote (abaixo) */}
+            <div style={{
+              position: 'absolute',
+              bottom: '-8px',
+              right: '52px',
+              width: '16px',
+              height: '16px',
+              background: '#ffffff',
+              border: '1px solid rgba(0,0,0,0.12)',
+              borderTop: 'none',
+              borderLeft: 'none',
+              transform: 'rotate(45deg)',
+            }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mascote — sempre visível */}
       <motion.div
-        className="absolute pointer-events-auto flex items-end md:items-start gap-4"
-        initial={isMobile ? { bottom: -100, right: 20 } : { x: position.x, y: position.y + 50, opacity: 0 }}
-        animate={isMobile ? { bottom: 20, right: 20 } : { x: position.x, y: position.y, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 70, damping: 15 }}
+        animate={tourState.active
+          ? { scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }
+          : { scale: 1, rotate: 0 }
+        }
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+        onClick={() => {
+          if (!tourState.active) {
+            window.dispatchEvent(new CustomEvent('aivo-tour', {
+              detail: { message: 'Olá! Precisa de ajuda? É só perguntar!', state: 'greeting' }
+            }));
+          } else {
+            handleDismiss();
+          }
+        }}
       >
-        {/* Balão de Fala (Tooltip) */}
-        <div className="bg-white border border-gray-200 shadow-2xl rounded-2xl p-4 w-64 md:w-72 relative order-1 md:order-2 flex flex-col justify-between">
-          <div className="text-gray-800 text-sm font-medium leading-relaxed mb-4">
-            {tourState.message}
-          </div>
-          
-          <div className="flex justify-end">
-            <button
-              onClick={handleDismiss}
-              className="bg-[#1B365D] hover:bg-blue-900 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1 shadow-md"
-            >
-              Entendi <ChevronRight size={14} />
-            </button>
-          </div>
-
-          {/* Seta do balão apontando para o mascote */}
-          <div 
-            className={`absolute w-4 h-4 bg-white border-b border-l border-gray-200 transform rotate-45 
-              ${isMobile ? 'bottom-[-8px] right-8' : 'left-[-8px] top-8'}`} 
-          />
-        </div>
-
-        {/* O Mascote em si */}
-        <div className="order-2 md:order-1 drop-shadow-2xl">
-          <Aivo 
-            size={isMobile ? 80 : 100} 
-            state={tourState.mascotState} 
-            themeMode="light" 
-          />
-        </div>
+        <Aivo
+          size={100}
+          state={tourState.mascotState}
+          themeMode={themeMode}
+        />
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

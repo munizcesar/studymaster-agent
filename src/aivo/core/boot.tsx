@@ -53,14 +53,7 @@ function boot(): void {
 
   // 3. Eager render
   function render() {
-    const html = document.documentElement;
-    const theme = html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    root.render(
-      <>
-        <Aivo size={120} state="idle" themeMode={theme} />
-        <AivoTourOverlay />
-      </>
-    );
+    root.render(<AivoTourOverlay />);
   }
   render();
 
@@ -70,13 +63,7 @@ function boot(): void {
 
   // 5. Re-render on emotion changes
   engine.events.on('emotion:change', (data) => {
-    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    root.render(
-      <>
-        <Aivo size={120} state={(data?.emotion as any) || 'idle'} themeMode={theme} />
-        <AivoTourOverlay />
-      </>
-    );
+    // AivoTourOverlay handles its own state via events
     (window as any).__AIVO_ROOT_EXISTS__ = true;
   });
 
