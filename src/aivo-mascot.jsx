@@ -11,12 +11,12 @@ export const SIZE_PRESETS = { xs: 24, sm: 40, md: 64, lg: 120, xl: 200, xxl: 280
 const PALETTE = {
   light: {
     paper: "#FAFAF8", card: "#FFFFFF", ink: "#18181B", inkSoft: "#6E6E73", line: "#E7E5E1", accent: "#C08A34",
-    sphereHi: "#FFFFFF", sphereMid: "#EEEEED", sphereEdge: "#CACACE",
+    sphereHi: "#FFFFFF", sphereMid: "#F6F4FA", sphereBlue: "#DCD3F0", spherePurple: "#EAC0DC", sphereEdge: "#F3B990",
     eyeDeep: "#242428", eyeDeepSoft: "#3C3C42",
   },
   dark: {
     paper: "#141416", card: "#1C1C1F", ink: "#F2F2F0", inkSoft: "#9A9A9F", line: "#2C2C30", accent: "#E0AE5D",
-    sphereHi: "#4C4C52", sphereMid: "#2E2D31", sphereEdge: "#151517",
+    sphereHi: "#DEDCE2", sphereMid: "#B7AFC9", sphereBlue: "#7D6B9E", spherePurple: "#A8628F", sphereEdge: "#C17A4E",
     eyeDeep: "#000000", eyeDeepSoft: "#0C0C0E",
   },
 };
@@ -288,9 +288,11 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     >
       <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={`Aivo Mascot`}>
         <defs>
-          <radialGradient id={`sphere-${uid}`} cx="32%" cy="26%" r="80%">
+          <radialGradient id={`sphere-${uid}`} cx="32%" cy="26%" r="85%">
             <stop offset="0%" stopColor={colors.sphereHi} />
-            <stop offset="55%" stopColor={colors.sphereMid} />
+            <stop offset="38%" stopColor={colors.sphereMid} />
+            <stop offset="66%" stopColor={colors.sphereBlue} />
+            <stop offset="85%" stopColor={colors.spherePurple} />
             <stop offset="100%" stopColor={colors.sphereEdge} />
           </radialGradient>
           <linearGradient id={`eye-${uid}`} x1="0" y1="0" x2="0" y2="1">
