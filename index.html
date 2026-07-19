@@ -5740,6 +5740,180 @@ pre, code { word-break: break-word; overflow-x: auto; }
   color: var(--color-text-muted);
 }
 .proof-chip strong { color: var(--color-text); }
+
+    /* FASE 4: LABORATÓRIO DE IA (Resumos e Flashcards) */
+    .lab-actions-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .btn-lab-action {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-base);
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-lab-action:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+    }
+    .btn-lab-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-lab-action i {
+      color: var(--color-primary);
+    }
+
+    /* Flashcard UI */
+    .flashcard-container {
+      perspective: 1000px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto 20px;
+      height: 300px;
+    }
+    .flashcard {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .flashcard.flipped {
+      transform: rotateY(180deg);
+    }
+    .flashcard-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+    }
+    .flashcard-front {
+      background: var(--bg-card);
+      color: var(--text-base);
+    }
+    .flashcard-back {
+      background: linear-gradient(135deg, var(--bg-body), var(--bg-card));
+      color: var(--text-base);
+      transform: rotateY(180deg);
+      border: 1px solid var(--color-primary);
+    }
+    .flashcard-text {
+      font-size: 1.25rem;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+    .flashcard-title {
+      position: absolute;
+      top: 16px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+      font-weight: 700;
+    }
+    .flashcard-hint {
+      position: absolute;
+      bottom: 16px;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .flashcard-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .flashcard-actions.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .fc-btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .fc-btn-err { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .fc-btn-err:hover { background: #ef4444; color: white; }
+    .fc-btn-hit { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+    .fc-btn-hit:hover { background: #22c55e; color: white; }
+    
+    .fc-progress {
+      text-align: center;
+      margin-top: 16px;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* Resumo UI */
+    .resumo-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .resumo-container h1, .resumo-container h2, .resumo-container h3 {
+      color: var(--color-primary);
+      margin-bottom: 16px;
+      margin-top: 24px;
+    }
+    .resumo-container h1:first-child { margin-top: 0; }
+    .resumo-container ul, .resumo-container ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+      line-height: 1.6;
+    }
+    .resumo-container p {
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .resumo-container strong {
+      color: var(--text-base);
+    }
+    .resumo-container blockquote {
+      border-left: 4px solid var(--color-primary);
+      padding-left: 16px;
+      color: var(--color-text-muted);
+      background: var(--bg-body);
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+
 </style>
   <link rel="stylesheet" href="src/aivos-char.css">
 </head>
@@ -8099,6 +8273,22 @@ function renderStep2Livre(container) {
         </aside>
       </div>
 
+          <div class="lab-actions-container" id="lab-actions" style="display: none;">
+            <button type="button" class="btn-lab-action" onclick="generateResumo()">
+              <i aria-hidden="true" data-lucide="align-left" width="24" height="24"></i>
+              Resumo Inteligente
+            </button>
+            <button type="button" class="btn-lab-action" onclick="generateFlashcards()">
+              <i aria-hidden="true" data-lucide="layers" width="24" height="24"></i>
+              Flashcards (Anki)
+            </button>
+            <button type="button" class="btn-lab-action" onclick="document.getElementById('next-btn').click()">
+              <i aria-hidden="true" data-lucide="help-circle" width="24" height="24"></i>
+              Bateria de Questões
+            </button>
+          </div>
+
+
       <div class="upload-progress" id="upload-progress">
         <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
         <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
@@ -8135,6 +8325,21 @@ function renderStep2Livre(container) {
       freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
       freeDepth.textContent = 'Base inicial';
     }
+
+    if (state.mode === 'livre') {
+      const labActions = document.getElementById('lab-actions');
+      const nBtn = document.getElementById('next-btn');
+      if (labActions) {
+        if (length > 0) {
+          labActions.style.display = 'grid';
+          if (nBtn) nBtn.style.display = 'none'; // hide default next btn to use the lab actions instead
+        } else {
+          labActions.style.display = 'none';
+          if (nBtn) nBtn.style.display = 'block';
+        }
+      }
+    }
+
     lucide.createIcons();
   };
 
@@ -9909,5 +10114,149 @@ document.addEventListener('keydown', function(e) {
     }
   }
 });
+
+// ── FASE 4: LABORATÓRIO DE IA (Resumos e Flashcards) ──
+window.currentFlashcards = [];
+window.currentCardIndex = 0;
+
+async function runLabTask(labMode) {
+  if (!state.freeText || !state.freeText.trim()) return;
+  
+  document.getElementById('generating-screen').classList.remove('hidden');
+  document.getElementById(`step-${state.currentStep}`).classList.remove('active');
+  
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: labMode,
+        freeText: state.freeText,
+        userId: state.userId
+      })
+    });
+    
+    if (!response.ok) throw new Error('Falha ao processar material.');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.userMessage || 'Erro desconhecido.');
+    
+    document.getElementById('generating-screen').classList.add('hidden');
+    
+    // We will use step-3 container to render the result.
+    const container = document.getElementById('step-3');
+    container.innerHTML = '';
+    container.classList.add('active');
+    state.currentStep = 3;
+    updateStepBar(3);
+    document.getElementById('next-btn').classList.add('hidden');
+    document.getElementById('back-btn').classList.remove('hidden');
+    
+    if (labMode === 'resumo') {
+      const mdHtml = marked.parse(data.resumo);
+      container.innerHTML = `
+        <div class="step-header">
+          <h2 class="step-title"><i aria-hidden="true" data-lucide="align-left"></i> Resumo Estruturado</h2>
+          <p class="step-subtitle">Mnemônicos e conceitos-chave extraídos do seu material.</p>
+        </div>
+        <div class="resumo-container">${mdHtml}</div>
+      `;
+    } else if (labMode === 'flashcards') {
+      window.currentFlashcards = data.cards;
+      window.currentCardIndex = 0;
+      renderCurrentFlashcard(container);
+    }
+    
+    lucide.createIcons();
+    updateHistoryState();
+  } catch (err) {
+    document.getElementById('generating-screen').classList.add('hidden');
+    const container = document.getElementById('step-3');
+    container.innerHTML = `
+      <div class="error-state visible">
+        <i aria-hidden="true" data-lucide="alert-triangle"></i>
+        <h3>Erro ao processar</h3>
+        <p>${err.message}</p>
+        <button class="btn-primary" onclick="goToStep(2)">Voltar e Tentar Novamente</button>
+      </div>
+    `;
+    container.classList.add('active');
+    lucide.createIcons();
+  }
+}
+
+window.generateResumo = () => runLabTask('resumo');
+window.generateFlashcards = () => runLabTask('flashcards');
+
+function renderCurrentFlashcard(container) {
+  if (!container) container = document.getElementById('step-3');
+  const total = window.currentFlashcards.length;
+  if (total === 0) {
+    container.innerHTML = `<p>Nenhum flashcard pôde ser gerado deste material.</p>`;
+    return;
+  }
+  
+  if (window.currentCardIndex >= total) {
+    container.innerHTML = `
+      <div class="step-header" style="text-align: center; margin-top: 40px;">
+        <i aria-hidden="true" data-lucide="award" style="width:64px; height:64px; color: var(--color-primary);"></i>
+        <h2 class="step-title" style="margin-top: 16px;">Revisão Concluída!</h2>
+        <p class="step-subtitle">Você revisou todos os ${total} flashcards gerados deste material.</p>
+        <button class="btn-primary" onclick="goToStep(2)" style="margin-top: 24px;">Extrair Novo Material</button>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+  
+  const card = window.currentFlashcards[window.currentCardIndex];
+  
+  container.innerHTML = `
+    <div class="step-header">
+      <h2 class="step-title"><i aria-hidden="true" data-lucide="layers"></i> Flashcards (Repetição Espaçada)</h2>
+      <p class="step-subtitle">Clique no cartão para revelar a resposta. Tente forçar a memória antes de virar!</p>
+    </div>
+    
+    <div class="flashcard-container">
+      <div class="flashcard" id="active-flashcard" onclick="flipFlashcard()">
+        <div class="flashcard-face flashcard-front">
+          <div class="flashcard-title">Frente (Pergunta)</div>
+          <div class="flashcard-text">${card.front}</div>
+          <div class="flashcard-hint"><i aria-hidden="true" data-lucide="mouse-pointer-click" width="14" height="14"></i> Clique para revelar a resposta</div>
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="flashcard-title" style="color: var(--color-primary);">Verso (Resposta)</div>
+          <div class="flashcard-text">${card.back}</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flashcard-actions" id="flashcard-actions">
+      <button class="fc-btn fc-btn-err" onclick="nextFlashcard('err')"><i aria-hidden="true" data-lucide="x-circle" style="vertical-align: middle; margin-right: 6px;"></i>Errei / Não Lembrei</button>
+      <button class="fc-btn fc-btn-hit" onclick="nextFlashcard('hit')"><i aria-hidden="true" data-lucide="check-circle-2" style="vertical-align: middle; margin-right: 6px;"></i>Acertei / Lembrei</button>
+    </div>
+    
+    <div class="fc-progress">Card ${window.currentCardIndex + 1} de ${total}</div>
+  `;
+  lucide.createIcons();
+}
+
+window.flipFlashcard = () => {
+  const card = document.getElementById('active-flashcard');
+  const actions = document.getElementById('flashcard-actions');
+  if (card && actions) {
+    card.classList.add('flipped');
+    card.onclick = null; // desabilita virar de volta pra manter o fluxo de ação
+    setTimeout(() => {
+      actions.classList.add('visible');
+    }, 400);
+  }
+};
+
+window.nextFlashcard = (status) => {
+  // We can track spaced repetition logic here later. For now we just go next.
+  window.currentCardIndex++;
+  renderCurrentFlashcard();
+};
+
 </script>
 </body>

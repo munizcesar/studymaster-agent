@@ -38,35 +38,34 @@ class VectorizeIndexer:
         self.index_name = index_name
         self.base_url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/vectorize/indexes/{index_name}"
         self.logger = logging.getLogger("VectorizeIndexer")
-        
-        # Tentar importar cliente de embeddings
-        try:
-            from sentence_transformers import SentenceTransformer
-            self.embedder = SentenceTransformer('sentence-transformers/multilingual-bge-small-1.5-v2')
-            self.logger.info("Modelo de embeddings carregado")
-        except ImportError:
-            self.logger.warning(
-                "sentence-transformers não instalado. "
-                "Execute: pip install sentence-transformers"
-            )
-            self.embedder = None
+        import requests
+        self.requests = requests
+        self.logger.info("Usando Cloudflare AI (bge-m3 / 1024d) via REST API")
     
     def generate_embedding(self, text: str) -> Optional[List[float]]:
-        """Gera embedding para um texto"""
-        if not self.embedder:
-            self.logger.error("Embedder não disponível")
+        """Gera embedding para um texto usando Cloudflare AI"""
+        if not self.api_key or not self.account_id or self.api_key == "demo":
+            self.logger.error("Credenciais Cloudflare não configuradas para API AI")
             return None
-        
+            
+        url = f"https://api.cloudflare.com/client/v4/accounts/{self.account_id}/ai/run/@cf/baai/bge-m3"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {"text": [text[:1024]]}
         try:
-            # Truncar texto se necessário
-            text = text[:512]
-            embedding = self.embedder.encode(text, convert_to_tensor=False)
-            return embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
+            res = self.requests.post(url, headers=headers, json=data)
+            res.raise_for_status()
+            result = res.json()
+            if result.get('success'):
+                return result['result']['data'][0]
+            else:
+                self.logger.error(f"Erro CF API: {result.get('errors')}")
+                return None
         except Exception as e:
-            self.logger.error(f"Erro ao gerar embedding: {e}")
-            return None
-    
-    def prepare_document(self, question: Dict) -> Dict:
+            self.logger.error(f"Erro request embedding: {e}")
+            return Nonedef prepare_document(self, question: Dict) -> Dict:
         """Prepara um documento para indexação"""
         
         # Criar texto para embedding (statement + metadados)

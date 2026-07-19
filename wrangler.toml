@@ -24,3 +24,9 @@ binding = "AI"
 [[vectorize]]
 binding = "KNOWLEDGE_INDEX"
 index_name = "studymaster-knowledge"
+
+# Cloudflare Vectorize — banco vetorial de Provas Reais (1024 dimensões via BGE-M3)
+[[vectorize]]
+binding = "PROVAS_INDEX"
+index_name = "studymaster-provas"
+

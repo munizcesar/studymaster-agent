@@ -1686,6 +1686,71 @@ Entendi! Para te ajudar melhor, você pode:
   }
 }
 
+
+async function fetchRealProvas(body, env) {
+  try {
+     const { filter, difficulty, quantity = 5, subject, topic, prompt } = body;
+     const banca = body.banca;
+     let queryText = `${subject || ''} ${topic || ''} ${prompt || ''}`.trim() || 'Questão de concurso';
+     const embeddingRes = await env.AI.run("@cf/baai/bge-m3", { text: [queryText.slice(0, 512)] });
+     const vector = embeddingRes?.data?.[0];
+     
+     if (!vector) throw new Error("Falha ao gerar embedding para busca de provas");
+     
+     let filterQuery = {};
+     if (banca && banca !== 'A definir' && banca !== 'auto') {
+         if (banca.toLowerCase() === 'cespe' || banca.toLowerCase() === 'cebraspe') {
+            filterQuery = { "banca": { "$in": ["CESPE", "CEBRASPE"] } };
+         } else {
+            filterQuery = { "banca": banca };
+         }
+     }
+     
+     if (!env.PROVAS_INDEX) {
+         return { success: false, fallback: true, error: "PROVAS_INDEX não configurado" };
+     }
+
+     const searchResult = await env.PROVAS_INDEX.query(vector, { topK: quantity * 3, filter: filterQuery, returnMetadata: 'all' });
+     
+     const questions = [];
+     for (const match of searchResult.matches) {
+        if (questions.length >= quantity) break;
+        const meta = match.metadata;
+        if (!meta) continue;
+        
+        let options = [];
+        try {
+           options = JSON.parse(meta.options_str || "[]");
+        } catch { }
+        
+        if (options.length === 0) continue;
+
+        questions.push({
+           id: match.id,
+           statement: meta.statement,
+           options: options,
+           correctAnswer: meta.correctAnswer,
+           explanation: "Questão extraída diretamente da base de provas reais (" + meta.banca + " " + meta.year + ").",
+           optionExplanations: {},
+           banca: meta.banca,
+           year: meta.year,
+           difficulty: meta.difficulty,
+           qualityBadge: { level: "high", label: "🎯 Prova Real", description: `Extraída do concurso ${meta.banca} ${meta.year || ''}`, color: "green" },
+           ragFallback: false
+        });
+     }
+     
+     if (questions.length === 0) {
+        return { success: false, fallback: true, userMessage: "Nenhuma questão encontrada nesta banca para o tópico informado." };
+     }
+     
+     return { success: true, questions: questions, sources: [], metadata: { fromProvas: true, total: questions.length } };
+  } catch (e) {
+     return { success: false, fallback: true, error: e.message };
+  }
+}
+__name(fetchRealProvas, "fetchRealProvas");
+
 var worker_default = {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -1697,6 +1762,44 @@ var worker_default = {
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405, headers: corsHeaders });
     }
+
+    const url = new URL(request.url);
+    if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
+      try {
+        const payload = await request.json();
+        // payload should be an array of questions: [{id, statement, options, banca, subject, exam, difficulty, correctAnswer, year}]
+        const textsToEmbed = payload.map(q => {
+          const opts = (q.options || []).map(o => o.text).join(' ');
+          return `${q.statement} ${opts} Banca: ${q.banca} Assunto: ${q.subject || 'Geral'}`.substring(0, 1024);
+        });
+
+        const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: textsToEmbed });
+        
+        const vectors = payload.map((q, idx) => ({
+          id: q.id || crypto.randomUUID(),
+          values: embeddingResult.data[idx],
+          metadata: {
+            statement: (q.statement || "").substring(0, 256),
+            banca: q.banca || "Unknown",
+            exam: q.exam || "Unknown",
+            year: q.year || 0,
+            subject: q.subject || "Geral",
+            topic: q.topic || "",
+            difficulty: q.difficulty || "medium",
+            correctAnswer: q.correctAnswer || "A",
+            options_count: (q.options || []).length,
+            options_str: JSON.stringify(q.options || []),
+            indexed_at: new Date().toISOString()
+          }
+        }));
+
+        const result = await env.PROVAS_INDEX.upsert(vectors);
+        return new Response(JSON.stringify({ success: true, count: vectors.length, result }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
     try {
       const body = await request.json();
       const {
@@ -1778,6 +1881,17 @@ var worker_default = {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
+        
+        if (body.banca && body.banca !== 'A definir' && body.banca !== 'auto' && env.PROVAS_INDEX) {
+            const realProvas = await fetchRealProvas(body, env);
+            if (realProvas.success) {
+                return new Response(JSON.stringify(realProvas), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" }
+                });
+            }
+            console.warn(`[Provas Reais] Fallback ativado: ${realProvas.userMessage || realProvas.error}`);
+        }
+
         const result = await generateConcursosRAGQuestion(
           {
             filter,
@@ -1794,6 +1908,69 @@ var worker_default = {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
+
+      // ── FASE 4: LABORATÓRIO DE IA (Resumos e Flashcards) ──
+      if (mode === "resumo" || mode === "flashcards") {
+        try {
+          if (!freeText || !freeText.trim()) {
+            return new Response(JSON.stringify({ success: false, userMessage: "Nenhum material fornecido." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const textContext = freeText.slice(0, 15000); // Evitar max tokens
+
+          let systemPrompt = "";
+          let userPrompt = "";
+
+          if (mode === "resumo") {
+              systemPrompt = "Você é um assistente de estudos especialista em concursos. Seu objetivo é estruturar o texto fornecido pelo usuário em um resumo altamente eficiente em formato Markdown.";
+              userPrompt = `Crie um resumo esquematizado do texto a seguir. Utilize bullet points, destaque conceitos-chave com negrito e, se possível, inclua mnemônicos. Responda APENAS com o texto do resumo, sem introduções adicionais.\n\nTEXTO:\n${textContext}`;
+          } else if (mode === "flashcards") {
+              systemPrompt = "Você é um gerador de flashcards. Retorne APENAS um objeto JSON válido, sem markdown envolvendo, contendo um array 'cards' com objetos { 'front': 'pergunta focada', 'back': 'resposta curta' }.";
+              userPrompt = `Gere até 10 flashcards baseados no texto a seguir para estudo por repetição espaçada. O JSON DEVE ter o formato { "cards": [ { "front": "...", "back": "..." } ] }.\n\nTEXTO:\n${textContext}`;
+          }
+
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  model: 'llama-3.1-8b-instant',
+                  messages: [
+                      { role: 'system', content: systemPrompt },
+                      { role: 'user', content: userPrompt }
+                  ],
+                  temperature: 0.3,
+                  max_tokens: 1500,
+                  ...(mode === "flashcards" ? { response_format: { type: 'json_object' } } : {})
+              })
+          });
+
+          if (!response.ok) {
+              const errText = await response.text();
+              return new Response(JSON.stringify({ success: false, userMessage: "Erro no serviço de IA.", details: errText }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const data = await response.json();
+          const content = data?.choices?.[0]?.message?.content;
+          
+          if (mode === "flashcards") {
+              try {
+                  const parsed = JSON.parse(content);
+                  return new Response(JSON.stringify({ success: true, cards: parsed.cards || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              } catch {
+                  return new Response(JSON.stringify({ success: false, userMessage: "Falha ao gerar flashcards (formato inválido)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              }
+          } else {
+              return new Response(JSON.stringify({ success: true, resumo: content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+        } catch (error) {
+          return new Response(JSON.stringify({ success: false, userMessage: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
       // ── FREE STUDY MODES ──
       if (mode === "free-chat") {
         try {
