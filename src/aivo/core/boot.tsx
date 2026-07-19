@@ -73,11 +73,9 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
       // Fecha o balao se tiver mensagem
       setMessage(null);
       setShowBubble(false);
-    } else if (typeof (window as any).goToStep === 'function') {
-      // Navega para o Step 3 onde vive o chat do Prof. AIVOS
-      (window as any).goToStep(3);
-    } else if ((window as any).profAivosMentor?.openChat) {
-      (window as any).profAivosMentor.openChat();
+    } else {
+      // Alterna o balão de fala (abre se fechado, fecha se aberto)
+      setShowBubble(prev => !prev);
     }
   };
 
