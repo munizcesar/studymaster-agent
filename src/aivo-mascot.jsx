@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useId } from "react";
+import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Mic, Check, X } from "lucide-react";
 
@@ -481,14 +482,14 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
  *  - dismissLabel texto do botão (padrão "Entendi")
  */
 export function AivoTourOverlay({ message, onDismiss, mascotState = "focus", themeMode = "light", dismissLabel = "Entendi", style, className = "" }) {
-  return (
+  const portalContent = (
     <div className={`mascot-wrapper ${className}`} style={style}>
       {message && (
         <div className="speech-bubble">
           {message}
           {onDismiss && (
             <button
-              type="button" 
+              type="button"
               onClick={onDismiss}
               className="btn-entendi"
             >
@@ -502,6 +503,7 @@ export function AivoTourOverlay({ message, onDismiss, mascotState = "focus", the
       </div>
     </div>
   );
+  return ReactDOM.createPortal(portalContent, document.body);
 }
 
 /* ------------------------------------------------------------------ */
