@@ -294,6 +294,13 @@
       100% { transform: scale(1); }
     }
 
+
+    *:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+      border-radius: inherit;
+    }
+
     /* Glow utility - reusable accent glow on hover */
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -5743,16 +5750,16 @@ pre, code { word-break: break-word; overflow-x: auto; }
     <header class="qf-header">
       <div class="qf-header-left">
         <button class="qf-exit-btn" id="qf-exit-btn" aria-label="Sair do modo fullscreen">
-          <i data-lucide="chevron-left" width="20" height="20"></i>
+          <i aria-hidden="true" data-lucide="chevron-left" width="20" height="20"></i>
         </button>
         <span class="qf-subject-label" id="qf-subject-label"></span>
       </div>
     </header>
     <div class="qf-body" id="qf-body"></div>
     <div class="qf-bottom-bar" id="qf-bottom-bar" style="display:none">
-      <button class="qf-bb-btn" id="qf-prev-btn"><i data-lucide="chevron-left" width="16" height="16"></i> Anterior</button>
+      <button class="qf-bb-btn" id="qf-prev-btn"><i aria-hidden="true" data-lucide="chevron-left" width="16" height="16"></i> Anterior</button>
       <div class="qf-bb-status" id="qf-bb-status">Questão 1 de 10</div>
-      <button class="qf-bb-btn" id="qf-next-btn">Próximo <i data-lucide="chevron-right" width="16" height="16"></i></button>
+      <button class="qf-bb-btn" id="qf-next-btn">Próximo <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16"></i></button>
     </div>
   </div>
 
@@ -5763,11 +5770,11 @@ pre, code { word-break: break-word; overflow-x: auto; }
       <div class="qf-exit-modal-sub">Seu progresso nesta sessão será perdido. Deseja sair e iniciar um novo quiz?</div>
       <div class="qf-exit-modal-actions">
         <button class="qf-exit-continue-btn" id="qf-modal-continue">
-          <i data-lucide="book-open" width="18" height="18"></i>
+          <i aria-hidden="true" data-lucide="book-open" width="18" height="18"></i>
           Continuar estudando
         </button>
         <button class="qf-exit-leave-btn" id="qf-modal-leave">
-          <i data-lucide="rotate-ccw" width="15" height="15"></i>
+          <i aria-hidden="true" data-lucide="rotate-ccw" width="15" height="15"></i>
           Sair e começar novo quiz
         </button>
       </div>
@@ -5785,11 +5792,11 @@ pre, code { word-break: break-word; overflow-x: auto; }
           </a>
         </div>
         <div class="header-actions">
-          <button class="drawer-toggle" data-drawer-toggle aria-label="Abrir painel">
+          <button class="drawer-toggle" role="dialog" aria-modal="true" data-drawer-toggle aria-label="Abrir painel">
             <span></span><span></span><span></span>
           </button>
           <button class="theme-toggle" data-theme-toggle aria-label="Alternar tema">
-            <i data-lucide="sun" width="20" height="20" id="theme-icon"></i>
+            <i aria-hidden="true" data-lucide="sun" width="20" height="20" id="theme-icon"></i>
           </button>
         </div>
       </div>
@@ -5847,18 +5854,18 @@ pre, code { word-break: break-word; overflow-x: auto; }
     </div>
     <div class="container hero-container">
       <div class="hero-content">
-        <div class="hero-badge"><i data-lucide="sparkles" width="14" height="14"></i> Plataforma IA para Concursos</div>
+        <div class="hero-badge"><i aria-hidden="true" data-lucide="sparkles" width="14" height="14"></i> Plataforma IA para Concursos</div>
         <h1 class="hero-title-main">Prepare-se para<br><span class="hero-accent">concursos com IA de verdade</span></h1>
         <p class="hero-description">
           Questões personalizadas, redação com correção instantânea (C1-C5) e um mentor inteligente que adapta seu plano de estudos 24 horas por dia.
         </p>
         <ul class="hero-features">
-          <li><i data-lucide="zap" width="20" height="20"></i> Questões geradas instantaneamente no seu nível</li>
-          <li><i data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos (C1-C5)</li>
-          <li><i data-lucide="brain" width="20" height="20"></i> Mentor IA que aprende com seu desempenho</li>
+          <li><i aria-hidden="true" data-lucide="zap" width="20" height="20"></i> Questões geradas instantaneamente no seu nível</li>
+          <li><i aria-hidden="true" data-lucide="pen-tool" width="20" height="20"></i> Redação corrigida em segundos (C1-C5)</li>
+          <li><i aria-hidden="true" data-lucide="brain" width="20" height="20"></i> Mentor IA que aprende com seu desempenho</li>
         </ul>
         <div class="hero-cta-group">
-          <a href="#wizard" class="btn btn-primary btn-large">Começar Agora Grátis <i data-lucide="arrow-right" width="20" height="20"></i></a>
+          <a href="#wizard" class="btn btn-primary btn-large">Começar Agora Grátis <i aria-hidden="true" data-lucide="arrow-right" width="20" height="20"></i></a>
           <a href="#wizard" class="btn btn-secondary btn-large" onclick="document.querySelector('.features-section').scrollIntoView({behavior:'smooth'})">Ver como funciona</a>
         </div>
 
@@ -5894,7 +5901,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
           <p class="step-subtitle">Escolha o modo ideal para o seu objetivo de hoje</p>
             <div class="mode-grid">
               <button type="button" class="mode-card" data-mode="concurso" aria-label="Caderno de Questões">
-                <div class="mode-icon"><i data-lucide="clipboard-list" width="28" height="28"></i></div>
+                <div class="mode-icon"><i aria-hidden="true" data-lucide="clipboard-list" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Caderno de Questões</strong>
                   <span>Filtre questões por matéria, banca e cargo com múltipla escolha ou estilo CESPE (Certo/Errado).</span>
@@ -5902,11 +5909,11 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 <div class="mode-perf" id="mode-perf-concurso">
                   <span class="mode-perf-label">Hoje</span>
                   <span class="mode-perf-badge mode-perf-correct" title="Acertos">
-                    <i data-lucide="check" width="14" height="14"></i>
+                    <i aria-hidden="true" data-lucide="check" width="14" height="14"></i>
                     <span id="dp-correct">0</span>
                   </span>
                   <span class="mode-perf-badge mode-perf-wrong" title="Erros">
-                    <i data-lucide="x" width="14" height="14"></i>
+                    <i aria-hidden="true" data-lucide="x" width="14" height="14"></i>
                     <span id="dp-wrong">0</span>
                   </span>
                 </div>
@@ -5918,7 +5925,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: monte simulados de 20 questoes para treinar resistencia</div>
               </button>
               <button type="button" class="mode-card" data-mode="livre" aria-label="Estudar com seu Material">
-                <div class="mode-icon"><i data-lucide="file-text" width="28" height="28"></i></div>
+                <div class="mode-icon"><i aria-hidden="true" data-lucide="file-text" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Estudar com seu Material</strong>
                   <span>Transforme seus materiais de estudo em questões personalizadas.</span>
@@ -5931,7 +5938,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: cole o texto completo do edital ou resumo para questoes mais precisas</div>
               </button>
               <button type="button" class="mode-card" data-mode="redacao" aria-label="Redação Coach">
-                <div class="mode-icon"><i data-lucide="brain" width="28" height="28"></i></div>
+                <div class="mode-icon"><i aria-hidden="true" data-lucide="brain" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Redação Coach</strong>
                   <span>Escreva redações nota 1000 com correção completa e orientação personalizada.</span>
@@ -5944,7 +5951,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                 <div class="mode-tip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Dica: pratique 1 redação por semana para evoluir sua nota</div>
               </button>
               <button type="button" class="mode-card" data-mode="aivos360" aria-label="Mentor Class">
-                <div class="mode-icon"><i data-lucide="graduation-cap" width="28" height="28"></i></div>
+                <div class="mode-icon"><i aria-hidden="true" data-lucide="graduation-cap" width="28" height="28"></i></div>
                 <div class="mode-info">
                   <strong>Mentor Class</strong>
                   <span>Seu mentor IA que analisa cada questão, identifica lacunas e traça a rota mais rápida para sua aprovação.</span>
@@ -5972,7 +5979,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
             <div class="session-config-grid">
               <div class="session-config-card primary config-group" id="config-quantity">
                 <div class="session-card-head">
-                  <i data-lucide="list-checks" width="18" height="18"></i>
+                  <i aria-hidden="true" data-lucide="list-checks" width="18" height="18"></i>
                   <div>
                     <label class="config-label">Quantidade de questões</label>
                   </div>
@@ -5987,7 +5994,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
               <div class="session-config-card config-group" id="config-difficulty">
                 <div class="session-card-head">
-                  <i data-lucide="sliders-horizontal" width="18" height="18"></i>
+                  <i aria-hidden="true" data-lucide="sliders-horizontal" width="18" height="18"></i>
                   <div>
                     <label class="config-label">Dificuldade</label>
                   </div>
@@ -6001,7 +6008,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
               <div class="session-config-card config-group" id="config-type">
                 <div class="session-card-head">
-                  <i data-lucide="clipboard-list" width="18" height="18"></i>
+                  <i aria-hidden="true" data-lucide="clipboard-list" width="18" height="18"></i>
                   <div>
                     <label class="config-label">Tipo de questão</label>
                   </div>
@@ -6015,7 +6022,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
               <div class="session-config-card config-group" id="config-alternativas">
                 <div class="session-card-head">
-                  <i data-lucide="rows-3" width="18" height="18"></i>
+                  <i aria-hidden="true" data-lucide="rows-3" width="18" height="18"></i>
                   <div>
                     <label class="config-label">Alternativas</label>
                   </div>
@@ -6044,7 +6051,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
             <!-- Error State (Amigável) -->
             <div class="error-screen hidden" id="error-state" style="margin-top: var(--space-4); padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); text-align: center;">
               <div class="error-icon" style="margin-bottom: var(--space-3); color: var(--color-error); display: flex; justify-content: center;">
-                <i data-lucide="alert-triangle" width="48" height="48"></i>
+                <i aria-hidden="true" data-lucide="alert-triangle" width="48" height="48"></i>
               </div>
               <h3 style="margin-bottom: var(--space-2); color: var(--color-text);">
                 Oops! Algo deu errado
@@ -6064,7 +6071,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
               </div>
               
               <button type="button" class="btn-primary btn-ripple" id="retry-btn" style="width: 100%; max-width: 200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: var(--space-2);">
-                <i data-lucide="refresh-cw" width="16" height="16"></i>
+                <i aria-hidden="true" data-lucide="refresh-cw" width="16" height="16"></i>
                 Tentar novamente
               </button>
             </div>
@@ -6103,7 +6110,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
                   <div id="session-stats" style="color:var(--color-text-muted)"></div>
                 </div>
                 <button type="button" class="btn-primary btn-ripple" id="session-new-btn" style="margin-top:0;white-space:nowrap;">
-                  <i data-lucide="rotate-ccw" width="16" height="16"></i>
+                  <i aria-hidden="true" data-lucide="rotate-ccw" width="16" height="16"></i>
                   Nova sessão
                 </button>
               </div>
@@ -6114,11 +6121,11 @@ pre, code { word-break: break-word; overflow-x: auto; }
               </button>
             </div>
             <button class="btn-primary btn-ripple" id="fullscreen-btn" style="margin-top:var(--space-2);background:var(--grad-brand);">
-              <i data-lucide="maximize-2" width="16" height="16"></i>
+              <i aria-hidden="true" data-lucide="maximize-2" width="16" height="16"></i>
               Modo Foco (Fullscreen)
             </button>
             <button class="btn-ghost" id="restart-btn">
-              <i data-lucide="rotate-ccw" width="16" height="16"></i>
+              <i aria-hidden="true" data-lucide="rotate-ccw" width="16" height="16"></i>
               Novo Quiz
             </button>
           </div>
@@ -6127,12 +6134,12 @@ pre, code { word-break: break-word; overflow-x: auto; }
 
       <div class="wizard-nav" id="wizard-nav">
         <button class="btn-back hidden" id="back-btn">
-          <i data-lucide="arrow-left" width="18" height="18"></i>
+          <i aria-hidden="true" data-lucide="arrow-left" width="18" height="18"></i>
           Voltar
         </button>
         <button class="btn-next hidden" id="next-btn" disabled>
           Continuar
-          <i data-lucide="arrow-right" width="18" height="18"></i>
+          <i aria-hidden="true" data-lucide="arrow-right" width="18" height="18"></i>
         </button>
       </div>
 
@@ -6150,7 +6157,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
         <div class="steps-flow">
           <div class="step-item">
             <div class="step-visual">
-              <span class="step-icon"><i data-lucide="target" width="28" height="28"></i></span>
+              <span class="step-icon"><i aria-hidden="true" data-lucide="target" width="28" height="28"></i></span>
               <span class="step-number-badge">1</span>
             </div>
             <h3 class="step-title-flow">Qual seu objetivo?</h3>
@@ -6163,7 +6170,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
           </div>
           <div class="step-item">
             <div class="step-visual">
-              <span class="step-icon"><i data-lucide="sliders" width="28" height="28"></i></span>
+              <span class="step-icon"><i aria-hidden="true" data-lucide="sliders" width="28" height="28"></i></span>
               <span class="step-number-badge">2</span>
             </div>
             <h3 class="step-title-flow">Como estudar?</h3>
@@ -6176,7 +6183,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
           </div>
           <div class="step-item">
             <div class="step-visual">
-              <span class="step-icon"><i data-lucide="sparkles" width="28" height="28"></i></span>
+              <span class="step-icon"><i aria-hidden="true" data-lucide="sparkles" width="28" height="28"></i></span>
               <span class="step-number-badge">3</span>
             </div>
             <h3 class="step-title-flow">Estude</h3>
@@ -6195,7 +6202,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
         </div>
         <table class="compare-table reveal reveal-delay-1">
           <thead>
-            <tr><th>Situação</th><th><i data-lucide="x-circle" width="14" height="14"></i> Sem AIVOS</th><th><i data-lucide="check-circle-2" width="14" height="14"></i> Com AIVOS</th></tr>
+            <tr><th>Situação</th><th><i aria-hidden="true" data-lucide="x-circle" width="14" height="14"></i> Sem AIVOS</th><th><i aria-hidden="true" data-lucide="check-circle-2" width="14" height="14"></i> Com AIVOS</th></tr>
           </thead>
           <tbody>
             <tr><td>Criar questões</td><td>15-30 min pensando</td><td>Menos de 10 segundos</td></tr>
@@ -6403,7 +6410,7 @@ const concursoData = {
     { id: 'cgu', label: 'CGU — Auditor Federal', banca: 'CEBRASPE/CESPE' },
     { id: 'iphan', label: 'IPHAN — Especialista', banca: 'FCC' },
     { id: 'mec', label: 'MEC / FNDE — Analista', banca: 'CEBRASPE/CESPE' },
-    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro — colar edital', banca: 'A definir' },
+    { id: 'outro-edital', label: '<i aria-hidden="true" data-lucide="file-plus" width="14" height="14"></i> Outro — colar edital', banca: 'A definir' },
   ]},
   'Saúde / Residência': { concursos: [
     { id: 'revalida', label: 'Revalida — Revalidação de Diploma Médico', banca: 'INEP/MEC' },
@@ -6439,7 +6446,7 @@ const concursoData = {
     { id: 'camara-municipal', label: 'Câmara Municipal — Diversas Cidades', banca: 'VUNESP' },
     { id: 'mun-fiscal', label: 'Fiscal de Obras / Tributos Municipal', banca: 'VUNESP' },
     { id: 'mun-assistente', label: 'Assistente Social / Psicólogo Municipal', banca: 'IBFC' },
-    { id: 'outro-edital', label: '<i data-lucide="file-plus" width="14" height="14"></i> Outro município — colar edital', banca: 'A definir' },
+    { id: 'outro-edital', label: '<i aria-hidden="true" data-lucide="file-plus" width="14" height="14"></i> Outro município — colar edital', banca: 'A definir' },
   ]},
 };
 
@@ -7260,7 +7267,7 @@ function renderStep2AIVOS360(container) {
         <!-- Card 1: Textarea -->
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="file-text" width="18" height="18"></i> Descrição do Edital
+            <i aria-hidden="true" data-lucide="file-text" width="18" height="18"></i> Descrição do Edital
           </label>
           <textarea id="aivos-edital-text" rows="4" placeholder="Cole aqui os tópicos do seu edital ou descreva o concurso..." style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); resize: vertical;"></textarea>
         </div>
@@ -7268,7 +7275,7 @@ function renderStep2AIVOS360(container) {
         <!-- Card 2: Upload PDF -->
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="upload-cloud" width="18" height="18"></i> Upload PDF
+            <i aria-hidden="true" data-lucide="upload-cloud" width="18" height="18"></i> Upload PDF
           </label>
           <div style="display: flex; align-items: center; gap: var(--space-3);">
             <label for="aivos-edital-pdf" class="btn-secondary" style="cursor: pointer; padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.9rem;">
@@ -7282,7 +7289,7 @@ function renderStep2AIVOS360(container) {
         <!-- Card 3: Link do Edital -->
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="link" width="18" height="18"></i> Link do Edital
+            <i aria-hidden="true" data-lucide="link" width="18" height="18"></i> Link do Edital
           </label>
           <input type="url" id="aivos-edital-link" placeholder="https://..." style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
         </div>
@@ -7290,7 +7297,7 @@ function renderStep2AIVOS360(container) {
         <!-- Card 4: Nível Inicial -->
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="bar-chart-2" width="18" height="18"></i> Nível Inicial
+            <i aria-hidden="true" data-lucide="bar-chart-2" width="18" height="18"></i> Nível Inicial
           </label>
           <select id="aivos-nivel-inicial" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
             <option value="iniciante">Iniciante</option>
@@ -7301,7 +7308,7 @@ function renderStep2AIVOS360(container) {
       </div>
 
       <button id="btn-analisar-raio-x" class="btn-primary btn-ripple" style="margin-top: var(--space-4); width: 100%; font-size: 1.1rem; padding: 14px;">
-        <i data-lucide="scan-line" width="20" height="20"></i> Gerar Raio-X do Edital
+        <i aria-hidden="true" data-lucide="scan-line" width="20" height="20"></i> Gerar Raio-X do Edital
       </button>
 
       <div id="raio-x-results" style="margin-top: var(--space-4);"></div>
@@ -7327,21 +7334,21 @@ function renderStep3Aivos360(container) {
       <div class="setup-cards" style="display: grid; grid-template-columns: 1fr; gap: var(--space-4);">
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="clock" width="18" height="18"></i> Carga Horária Diária (horas)
+            <i aria-hidden="true" data-lucide="clock" width="18" height="18"></i> Carga Horária Diária (horas)
           </label>
           <input type="number" id="aivos-ch-diaria" min="1" max="16" value="4" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
         </div>
 
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="calendar" width="18" height="18"></i> Data da Prova
+            <i aria-hidden="true" data-lucide="calendar" width="18" height="18"></i> Data da Prova
           </label>
           <input type="date" id="aivos-data-prova" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
         </div>
 
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="coffee" width="18" height="18"></i> Dias de Descanso
+            <i aria-hidden="true" data-lucide="coffee" width="18" height="18"></i> Dias de Descanso
           </label>
           <div style="display: flex; flex-wrap: wrap; gap: var(--space-3);">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" value="0"> Dom</label>
@@ -7356,7 +7363,7 @@ function renderStep3Aivos360(container) {
 
         <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
           <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-            <i data-lucide="target" width="18" height="18"></i> Foco Metodológico
+            <i aria-hidden="true" data-lucide="target" width="18" height="18"></i> Foco Metodológico
           </label>
           <select id="aivos-foco" style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
             <option value="teoria">Teoria (60% Leituras / 40% Questões)</option>
@@ -7583,7 +7590,7 @@ function renderStep4Aivos360(container) {
       
       <!-- ESQUERDA: Edital Vivo -->
       <div class="aivos-mentoria-col col-edital">
-        <div class="edital-vivo-title"><i data-lucide="book-open"></i> Edital Vivo</div>
+        <div class="edital-vivo-title"><i aria-hidden="true" data-lucide="book-open"></i> Edital Vivo</div>
         <div style="overflow-y: auto; flex: 1;">
           ${editalHTML}
         </div>
@@ -7593,7 +7600,7 @@ function renderStep4Aivos360(container) {
             onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
             onmouseout="this.style.background='transparent'"
         >
-            <i data-lucide="trash-2"></i> Encerrar Mentoria Atual
+            <i aria-hidden="true" data-lucide="trash-2"></i> Encerrar Mentoria Atual
         </button>
       </div>
 
@@ -7601,15 +7608,15 @@ function renderStep4Aivos360(container) {
       <div class="aivos-mentoria-col rota-center">
         <h3 style="margin-top: 40px; color: #E5E7EB;">A Rota de Hoje</h3>
         <div class="rota-meta">40 Questões + Revisão D7</div>
-        <div class="rota-tempo"><i data-lucide="clock" style="display:inline; vertical-align:middle;"></i> Tempo Planejado: 2h 30m</div>
+        <div class="rota-tempo"><i aria-hidden="true" data-lucide="clock" style="display:inline; vertical-align:middle;"></i> Tempo Planejado: 2h 30m</div>
         <button class="btn-comecar-sessao">
-          <i data-lucide="play-circle"></i> COMEÇAR SESSÃO
+          <i aria-hidden="true" data-lucide="play-circle"></i> COMEÇAR SESSÃO
         </button>
       </div>
 
       <!-- DIREITA: Motor de Revisão -->
       <div class="aivos-mentoria-col col-revisao">
-        <div class="edital-vivo-title"><i data-lucide="zap"></i> Motor de Revisão</div>
+        <div class="edital-vivo-title"><i aria-hidden="true" data-lucide="zap"></i> Motor de Revisão</div>
         <p style="color: #9CA3AF; font-size: 0.9rem;">Seu cérebro está prestes a esquecer 3 tópicos importantes.</p>
         
         <div class="revisao-quiz">
@@ -7624,14 +7631,14 @@ function renderStep4Aivos360(container) {
       <!-- Mobile Bottom Bar -->
       <div class="mobile-bottom-bar">
         <button class="btn-mobile-edital" onclick="document.getElementById('mobile-sheet').classList.add('open'); document.getElementById('mobile-overlay').classList.add('open');">
-          <i data-lucide="list"></i> Edital Vivo
+          <i aria-hidden="true" data-lucide="list"></i> Edital Vivo
         </button>
       </div>
 
       <!-- Mobile Bottom Sheet -->
       <div class="bottom-sheet-overlay" id="mobile-overlay" onclick="this.classList.remove('open'); document.getElementById('mobile-sheet').classList.remove('open');"></div>
       <div class="bottom-sheet" id="mobile-sheet">
-        <div class="edital-vivo-title" style="margin-bottom: 24px;"><i data-lucide="book-open"></i> Edital Vivo</div>
+        <div class="edital-vivo-title" style="margin-bottom: 24px;"><i aria-hidden="true" data-lucide="book-open"></i> Edital Vivo</div>
         <div style="overflow-y: auto; max-height: 50vh; margin-bottom: 24px;">
             ${editalHTML}
         </div>
@@ -7641,13 +7648,13 @@ function renderStep4Aivos360(container) {
             onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
             onmouseout="this.style.background='transparent'"
         >
-            <i data-lucide="trash-2"></i> Encerrar Mentoria Atual
+            <i aria-hidden="true" data-lucide="trash-2"></i> Encerrar Mentoria Atual
         </button>
       </div>
 
       <!-- FAB Mentor -->
       <div class="fab-mentor" title="Mentor AIVOS">
-        <i data-lucide="message-circle"></i>
+        <i aria-hidden="true" data-lucide="message-circle"></i>
       </div>
 
     </div>
@@ -7827,7 +7834,7 @@ function renderStep2Concurso(container) {
 
     <div class="caf-section">
       <div class="caf-section-title">
-        <i data-lucide="book-open" width="14" height="14"></i> Conteúdo
+        <i aria-hidden="true" data-lucide="book-open" width="14" height="14"></i> Conteúdo
       </div>
       <div class="caf-grid">
         <div class="caf-field" style="grid-column:1/-1">
@@ -7853,7 +7860,7 @@ function renderStep2Concurso(container) {
 
     <div class="caf-section">
       <div class="caf-section-title">
-        <i data-lucide="landmark" width="14" height="14"></i> Concurso (opcional)
+        <i aria-hidden="true" data-lucide="landmark" width="14" height="14"></i> Concurso (opcional)
       </div>
       <div class="caf-grid">
         <div class="caf-field">
@@ -7886,7 +7893,7 @@ function renderStep2Concurso(container) {
 
     <div class="caf-section">
       <div class="caf-section-title">
-        <i data-lucide="calendar" width="14" height="14"></i> Período da Prova (opcional)
+        <i aria-hidden="true" data-lucide="calendar" width="14" height="14"></i> Período da Prova (opcional)
       </div>
       <div class="caf-grid">
         <div class="caf-field">
@@ -7963,7 +7970,7 @@ function renderStep2Redacao(container) {
       </select>
     </div>
     <div class="free-action-panel" style="margin-top: 1rem;">
-      <h3 class="free-action-title"><i data-lucide="brain" width="20" height="20"></i> Coach Interativo Inteligente</h3>
+      <h3 class="free-action-title"><i aria-hidden="true" data-lucide="brain" width="20" height="20"></i> Coach Interativo Inteligente</h3>
       <p style="font-size: var(--text-sm); color: var(--color-text); line-height: 1.6;">
         Ao avançar, você entrará em um <strong>chat contínuo</strong>. Se você digitar apenas o tema, o Coach guiará você etapa por etapa. Se colar uma redação completa, o Coach fará a correção de imediato (C1 a C5).
       </p>
@@ -7987,14 +7994,14 @@ function renderStep2Livre(container) {
       </div>
 
       <div class="free-status-card">
-        <span class="free-quality" id="free-quality"><i data-lucide="circle-alert" width="16" height="16"></i> Aguardando material</span>
+        <span class="free-quality" id="free-quality"><i aria-hidden="true" data-lucide="circle-alert" width="16" height="16"></i> Aguardando material</span>
       </div>
 
       <div class="free-workspace">
         <div class="free-panel">
           <div class="free-panel-header">
             <div>
-              <span class="free-panel-kicker"><i data-lucide="file-text" width="13" height="13"></i> Campo de Texto</span>
+              <span class="free-panel-kicker"><i aria-hidden="true" data-lucide="file-text" width="13" height="13"></i> Campo de Texto</span>
               <strong class="free-panel-title">Cole seu conteúdo aqui</strong>
               <p class="free-panel-note">Edital, resumo, anotações, apostila ou qualquer material de estudo</p>
             </div>
@@ -8009,14 +8016,14 @@ function renderStep2Livre(container) {
         <aside class="free-side" aria-label="Ações e orientações do material livre">
           <div class="free-action-panel">
             <div class="free-action-title">
-              <i data-lucide="upload-cloud" width="18" height="18"></i>
+              <i aria-hidden="true" data-lucide="upload-cloud" width="18" height="18"></i>
               Enviar arquivo
             </div>
             <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: var(--space-3);">Ou arraste um arquivo aqui</p>
             <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
             <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
               <div class="free-upload-copy">
-                <i data-lucide="folder-up" width="28" height="28"></i>
+                <i aria-hidden="true" data-lucide="folder-up" width="28" height="28"></i>
                 <strong>Clique para enviar</strong>
                 <p style="color:var(--color-text-muted); font-size: var(--text-xs);">PDF, DOCX, TXT, MD, JPG, PNG, WEBP</p>
               </div>
@@ -8024,7 +8031,7 @@ function renderStep2Livre(container) {
           </div>
 
           <div class="free-help-panel">
-            <strong><i data-lucide="sparkles" width="16" height="16"></i> Dicas para melhores questões</strong>
+            <strong><i aria-hidden="true" data-lucide="sparkles" width="16" height="16"></i> Dicas para melhores questões</strong>
             <ul>
               <li><span>Use trechos com conceitos, exemplos e regras</span></li>
               <li><span>PDFs escaneados passam por OCR automático</span></li>
@@ -8056,18 +8063,18 @@ function renderStep2Livre(container) {
     freeQuality.classList.remove('ready', 'warning');
     if (length >= 4000) {
       freeQuality.classList.add('ready');
-      freeQuality.innerHTML = '<i data-lucide="check-circle-2" width="14" height="14"></i> Material extenso';
+      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="check-circle-2" width="14" height="14"></i> Material extenso';
       freeDepth.textContent = 'Ótimo para perguntas contextualizadas';
     } else if (length >= 400) {
       freeQuality.classList.add('ready');
-      freeQuality.innerHTML = '<i data-lucide="badge-check" width="14" height="14"></i> Boa base';
+      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="badge-check" width="14" height="14"></i> Boa base';
       freeDepth.textContent = 'Bom volume para gerar questões focadas';
     } else if (length > 0) {
       freeQuality.classList.add('warning');
-      freeQuality.innerHTML = '<i data-lucide="arrow-right-circle" width="14" height="14"></i> Pronto para seguir';
+      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="arrow-right-circle" width="14" height="14"></i> Pronto para seguir';
       freeDepth.textContent = 'Texto curto: ideal para perguntas objetivas';
     } else {
-      freeQuality.innerHTML = '<i data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
+      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
       freeDepth.textContent = 'Base inicial';
     }
     lucide.createIcons();
@@ -8514,12 +8521,12 @@ function renderQuestions(questions) {
   const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto') ? state.bancaFoco : state.bancaInferida;
   const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
-    <div class="chip">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
-    <div class="chip">${validQuestions.length} Questões</div>
-    <div class="chip">${state.alternativas} alternativas</div>
-    <div class="chip">${idiomaLabel[state.idioma] || state.idioma}</div>
-    <div class="chip">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
-    ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip"><i data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
+    <div class="chip" role="button" tabindex="0">${{easy:'<span class="dot" style="background:#437a22"></span> Fácil',medium:'<span class="dot" style="background:#D4A827"></span> Médio',hard:'<span class="dot" style="background:#c0392b"></span> Difícil',extreme:'<span class="dot" style="background:#8b0000"></span> Extremo'}[state.difficulty]}</div>
+    <div class="chip" role="button" tabindex="0">${validQuestions.length} Questões</div>
+    <div class="chip" role="button" tabindex="0">${state.alternativas} alternativas</div>
+    <div class="chip" role="button" tabindex="0">${idiomaLabel[state.idioma] || state.idioma}</div>
+    <div class="chip" role="button" tabindex="0">${state.mode === 'academic' ? state.subject : state.concurso?.label || 'Livre'}</div>
+    ${bancaEfetiva && bancaEfetiva !== 'A definir' ? `<div class="chip" role="button" tabindex="0"><i aria-hidden="true" data-lucide="landmark" width="13" height="13"></i> ${bancaEfetiva}</div>` : ''}`;
 
   retryWrongBtn.onclick = () => {
     try {
@@ -8552,11 +8559,11 @@ function renderQuestions(questions) {
 function renderQuestionProof(q) {
   const proof = [];
   if (q.fonte) {
-    proof.push(`<span class="proof-chip"><i data-lucide="book-open-check" width="12" height="12"></i> Fonte: <strong>${q.fonte}</strong></span>`);
+    proof.push(`<span class="proof-chip"><i aria-hidden="true" data-lucide="book-open-check" width="12" height="12"></i> Fonte: <strong>${q.fonte}</strong></span>`);
   }
   const badge = q._qualityBadge;
   if (badge?.confidence) {
-    proof.push(`<span class="proof-chip"><i data-lucide="shield-check" width="12" height="12"></i> Confiança: <strong>${badge.confidence}</strong>${badge.score ? ` · ${badge.score}` : ''}</span>`);
+    proof.push(`<span class="proof-chip"><i aria-hidden="true" data-lucide="shield-check" width="12" height="12"></i> Confiança: <strong>${badge.confidence}</strong>${badge.score ? ` · ${badge.score}` : ''}</span>`);
   }
   return proof.length ? `<div class="question-proof">${proof.join('')}</div>` : '';
 }
@@ -8595,7 +8602,7 @@ function renderAllQuestionsDesktop(questions) {
         </div>
         <button class="q-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="q-resolver-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
         <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp-${idx}">
-          <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
+          <strong><i aria-hidden="true" data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
           ${renderQuestionProof(q)}
         </div>
       </div>`;
@@ -8698,18 +8705,18 @@ function renderSingleQuestion(questions, idx) {
       </div>
       <button class="q-resolver-btn${hasAnswered || !selectedKey ? '' : ''} ${hasAnswered ? 'hidden' : ''}" id="q-resolver" ${selectedKey ? '' : 'disabled'}>Resolver</button>
       <div class="explanation-box ${hasAnswered ? 'visible' : ''}" id="qn-exp">
-        <strong><i data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
+        <strong><i aria-hidden="true" data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${q.correctAnswer || 'N/A'}</strong><br>${q.explanation || ''}
         ${renderQuestionProof(q)}
       </div>
       <div class="q-nav-bar">
         <button class="q-nav-btn" id="q-prev" ${idx === 0 ? 'disabled' : ''}>
-          <i data-lucide="chevron-left" width="16" height="16"></i> Anterior
+          <i aria-hidden="true" data-lucide="chevron-left" width="16" height="16"></i> Anterior
         </button>
         <span class="q-nav-status">${idx + 1} / ${total}</span>
         <button class="q-nav-btn" id="q-next">
           ${idx + 1 === total
-            ? '<i data-lucide="flag" width="16" height="16"></i> Finalizar'
-            : 'Próximo <i data-lucide="chevron-right" width="16" height="16"></i>'}
+            ? '<i aria-hidden="true" data-lucide="flag" width="16" height="16"></i> Finalizar'
+            : 'Próximo <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16"></i>'}
         </button>
       </div>
     </div>`;
@@ -8839,7 +8846,7 @@ function showSessionResult() {
 
   const answerHistory = state.sessionHistory.answers.filter(Boolean);
   history.innerHTML = answerHistory.map(answer => {
-    const icon = answer.correct ? '<i data-lucide="check-circle-2" width="12" height="12"></i>' : '<i data-lucide="x-circle" width="12" height="12"></i>';
+    const icon = answer.correct ? '<i aria-hidden="true" data-lucide="check-circle-2" width="12" height="12"></i>' : '<i aria-hidden="true" data-lucide="x-circle" width="12" height="12"></i>';
     const label = answer.correct ? 'Acerto' : 'Erro';
     return `<span role="listitem" class="session-history-item ${answer.correct ? 'correct' : 'wrong'}">${icon} Q${answer.question}: ${label}</span>`;
   }).join('');
@@ -8957,7 +8964,7 @@ function createQFQuestionElement(q, idx) {
     </div>
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" data-question-idx="${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
     <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
-      <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      <strong><i aria-hidden="true" data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
       ${renderQuestionProof(q)}
     </div>`;
   
@@ -9028,10 +9035,10 @@ function renderQFResultInline() {
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
   
   let iconHtml = '';
-  if (pct >= 80) iconHtml = '<i data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
-  else if (pct >= 60) iconHtml = '<i data-lucide="thumbs-up" width="64" height="64" style="color: var(--color-primary)"></i>';
-  else if (pct >= 40) iconHtml = '<i data-lucide="book-open" width="64" height="64" style="color: var(--color-accent)"></i>';
-  else iconHtml = '<i data-lucide="target" width="64" height="64" style="color: var(--color-error)"></i>';
+  if (pct >= 80) iconHtml = '<i aria-hidden="true" data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
+  else if (pct >= 60) iconHtml = '<i aria-hidden="true" data-lucide="thumbs-up" width="64" height="64" style="color: var(--color-primary)"></i>';
+  else if (pct >= 40) iconHtml = '<i aria-hidden="true" data-lucide="book-open" width="64" height="64" style="color: var(--color-accent)"></i>';
+  else iconHtml = '<i aria-hidden="true" data-lucide="target" width="64" height="64" style="color: var(--color-error)"></i>';
   
   const msg   = pct >= 80 ? 'Excelente desempenho!' : pct >= 60 ? 'Bom trabalho!' : pct >= 40 ? 'Continue estudando!' : 'Não desista, pratique mais!';
   
@@ -9058,10 +9065,10 @@ function renderQFResultInline() {
     </div>
     <div class="qf-result-actions">
       <button class="qf-btn-primary btn-ripple" id="qf-retry-inline-btn">
-        <i data-lucide="rotate-ccw" width="16" height="16"></i> Novo Quiz
+        <i aria-hidden="true" data-lucide="rotate-ccw" width="16" height="16"></i> Novo Quiz
       </button>
       <button class="qf-btn-ghost" id="qf-close-inline-btn">
-        <i data-lucide="x" width="16" height="16"></i> Fechar Fullscreen
+        <i aria-hidden="true" data-lucide="x" width="16" height="16"></i> Fechar Fullscreen
       </button>
     </div>`;
   
@@ -9097,10 +9104,10 @@ function renderQFQuestion(idx) {
   
   nextBtn.disabled = false;
   if (idx + 1 >= qfState.questions.length) {
-    nextBtn.innerHTML = 'Finalizar <i data-lucide="flag" width="16" height="16"></i>';
+    nextBtn.innerHTML = 'Finalizar <i aria-hidden="true" data-lucide="flag" width="16" height="16"></i>';
     nextBtn.onclick = () => renderQFResult();
   } else {
-    nextBtn.innerHTML = 'Próximo <i data-lucide="chevron-right" width="16" height="16"></i>';
+    nextBtn.innerHTML = 'Próximo <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16"></i>';
     nextBtn.onclick = () => renderQFQuestion(idx + 1);
   }
 
@@ -9144,7 +9151,7 @@ function renderQFQuestion(idx) {
     </div>
     <button class="qf-resolver-btn ${hasAnswered ? 'hidden' : ''}" id="qf-res-${idx}" ${selectedKey ? '' : 'disabled'}>Resolver</button>
     <div class="qf-explanation ${hasAnswered ? 'visible' : ''}" id="qf-exp-${idx}">
-      <strong><i data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
+      <strong><i aria-hidden="true" data-lucide="check-circle" width="16" height="16"></i> Gabarito: ${q.correctAnswer}</strong><br>${q.explanation}
       ${renderQuestionProof(q)}
     </div>`;
   qfBody.innerHTML = '';
@@ -9205,10 +9212,10 @@ function renderQFResult() {
   if (window.AivosCoachIntelligence) { try { AivosCoachIntelligence.onSessionComplete(total, correct, total - correct); } catch(e) {} }
   
   let iconHtml = '';
-  if (pct >= 80) iconHtml = '<i data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
-  else if (pct >= 60) iconHtml = '<i data-lucide="thumbs-up" width="64" height="64" style="color: var(--color-primary)"></i>';
-  else if (pct >= 40) iconHtml = '<i data-lucide="book-open" width="64" height="64" style="color: var(--color-accent)"></i>';
-  else iconHtml = '<i data-lucide="target" width="64" height="64" style="color: var(--color-error)"></i>';
+  if (pct >= 80) iconHtml = '<i aria-hidden="true" data-lucide="award" width="64" height="64" style="color: var(--color-success)"></i>';
+  else if (pct >= 60) iconHtml = '<i aria-hidden="true" data-lucide="thumbs-up" width="64" height="64" style="color: var(--color-primary)"></i>';
+  else if (pct >= 40) iconHtml = '<i aria-hidden="true" data-lucide="book-open" width="64" height="64" style="color: var(--color-accent)"></i>';
+  else iconHtml = '<i aria-hidden="true" data-lucide="target" width="64" height="64" style="color: var(--color-error)"></i>';
   
   const msg   = pct >= 80 ? 'Excelente desempenho!' : pct >= 60 ? 'Bom trabalho!' : pct >= 40 ? 'Continue estudando!' : 'Não desista, pratique mais!';
   qfBody.innerHTML = `
@@ -9232,10 +9239,10 @@ function renderQFResult() {
       </div>
       <div class="qf-result-actions">
         <button class="qf-btn-primary btn-ripple" id="qf-retry-btn">
-          <i data-lucide="rotate-ccw" width="16" height="16"></i> Novo Quiz
+          <i aria-hidden="true" data-lucide="rotate-ccw" width="16" height="16"></i> Novo Quiz
         </button>
         <button class="qf-btn-ghost" id="qf-close-btn">
-          <i data-lucide="x" width="16" height="16"></i> Fechar Fullscreen
+          <i aria-hidden="true" data-lucide="x" width="16" height="16"></i> Fechar Fullscreen
         </button>
       </div>
     </div>`;
@@ -9375,68 +9382,68 @@ window.addEventListener('resize', () => {
 </script>
 
   <!-- ── Side Drawer ── -->
-  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="drawer-overlay" role="dialog" aria-modal="true" id="drawerOverlay"></div>
   <aside class="side-drawer" id="sideDrawer">
-    <div class="drawer-header">
-      <div class="drawer-header-left">
-        <span class="drawer-logo"><i data-lucide="graduation-cap" width="22" height="22"></i></span>
-        <span class="drawer-title">Painel de Estudo</span>
+    <div class="drawer-header" role="dialog" aria-modal="true">
+      <div class="drawer-header-left" role="dialog" aria-modal="true">
+        <span class="drawer-logo" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="graduation-cap" width="22" height="22"></i></span>
+        <span class="drawer-title" role="dialog" aria-modal="true">Painel de Estudo</span>
       </div>
       <button class="theme-toggle" data-drawer-close aria-label="Fechar painel">
-        <i data-lucide="x" width="20" height="20"></i>
+        <i aria-hidden="true" data-lucide="x" width="20" height="20"></i>
       </button>
     </div>
-    <div class="drawer-tabs">
-      <button class="drawer-tab active" data-drawer-tab="resumo">
-        <i data-lucide="layout-dashboard" width="16" height="16"></i>
+    <div class="drawer-tabs" role="dialog" aria-modal="true">
+      <button class="drawer-tab active" role="dialog" aria-modal="true" data-drawer-tab="resumo">
+        <i aria-hidden="true" data-lucide="layout-dashboard" width="16" height="16"></i>
         <span>Resumo</span>
       </button>
-      <button class="drawer-tab" data-drawer-tab="historico">
-        <i data-lucide="history" width="16" height="16"></i>
+      <button class="drawer-tab" role="dialog" aria-modal="true" data-drawer-tab="historico">
+        <i aria-hidden="true" data-lucide="history" width="16" height="16"></i>
         <span>Histórico</span>
       </button>
-      <button class="drawer-tab" data-drawer-tab="atalhos">
-        <i data-lucide="zap" width="16" height="16"></i>
+      <button class="drawer-tab" role="dialog" aria-modal="true" data-drawer-tab="atalhos">
+        <i aria-hidden="true" data-lucide="zap" width="16" height="16"></i>
         <span>Atalhos</span>
       </button>
-      <button class="drawer-tab" data-drawer-tab="mentor">
-        <i data-lucide="sparkles" width="16" height="16"></i>
+      <button class="drawer-tab" role="dialog" aria-modal="true" data-drawer-tab="mentor">
+        <i aria-hidden="true" data-lucide="sparkles" width="16" height="16"></i>
         <span>Mentor</span>
       </button>
     </div>
-    <div class="drawer-body">
+    <div class="drawer-body" role="dialog" aria-modal="true">
       <!-- Resumo (progresso hoje + streak) -->
-      <div class="drawer-panel active" data-drawer-panel="resumo">
+      <div class="drawer-panel active" role="dialog" aria-modal="true" data-drawer-panel="resumo">
         <!-- Streak Card (destaque) -->
-        <div class="drawer-streak-card" id="drawerStreakCard">
-          <div class="drawer-streak-icon"><i data-lucide="flame" width="26" height="26"></i></div>
-          <div class="drawer-streak-info">
-            <span class="drawer-streak-count" id="dStreak">0</span>
-            <span class="drawer-streak-label">dias de sequência</span>
+        <div class="drawer-streak-card" role="dialog" aria-modal="true" id="drawerStreakCard">
+          <div class="drawer-streak-icon" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="flame" width="26" height="26"></i></div>
+          <div class="drawer-streak-info" role="dialog" aria-modal="true">
+            <span class="drawer-streak-count" role="dialog" aria-modal="true" id="dStreak">0</span>
+            <span class="drawer-streak-label" role="dialog" aria-modal="true">dias de sequência</span>
           </div>
         </div>
-        <div class="drawer-panel-header">
-          <div class="rs-section-title"><i data-lucide="bar-chart-3" width="14" height="14"></i> Desempenho Hoje</div>
-          <span class="drawer-live-badge"><span class="drawer-live-dot"></span>Hoje</span>
+        <div class="drawer-panel-header" role="dialog" aria-modal="true">
+          <div class="rs-section-title"><i aria-hidden="true" data-lucide="bar-chart-3" width="14" height="14"></i> Desempenho Hoje</div>
+          <span class="drawer-live-badge" role="dialog" aria-modal="true"><span class="drawer-live-dot" role="dialog" aria-modal="true"></span>Hoje</span>
         </div>
         <div id="drawerProgressContent">
-          <div class="drawer-metrics-grid">
-            <div class="drawer-metric metric-total">
-              <span class="drawer-metric-value" id="dTotalQs">0</span>
-              <span class="drawer-metric-label">Questões</span>
+          <div class="drawer-metrics-grid" role="dialog" aria-modal="true">
+            <div class="drawer-metric metric-total" role="dialog" aria-modal="true">
+              <span class="drawer-metric-value" role="dialog" aria-modal="true" id="dTotalQs">0</span>
+              <span class="drawer-metric-label" role="dialog" aria-modal="true">Questões</span>
             </div>
-            <div class="drawer-metric metric-correct">
-              <span class="drawer-metric-value" id="dCorrect">0</span>
-              <span class="drawer-metric-label">Acertos</span>
+            <div class="drawer-metric metric-correct" role="dialog" aria-modal="true">
+              <span class="drawer-metric-value" role="dialog" aria-modal="true" id="dCorrect">0</span>
+              <span class="drawer-metric-label" role="dialog" aria-modal="true">Acertos</span>
             </div>
-            <div class="drawer-metric metric-wrong">
-              <span class="drawer-metric-value" id="dWrong">0</span>
-              <span class="drawer-metric-label">Erros</span>
+            <div class="drawer-metric metric-wrong" role="dialog" aria-modal="true">
+              <span class="drawer-metric-value" role="dialog" aria-modal="true" id="dWrong">0</span>
+              <span class="drawer-metric-label" role="dialog" aria-modal="true">Erros</span>
             </div>
           </div>
-          <div class="drawer-acc-row">
-            <div class="drawer-acc-label">Aproveitamento</div>
-            <div class="drawer-acc-value" id="dAccuracy">0%</div>
+          <div class="drawer-acc-row" role="dialog" aria-modal="true">
+            <div class="drawer-acc-label" role="dialog" aria-modal="true">Aproveitamento</div>
+            <div class="drawer-acc-value" role="dialog" aria-modal="true" id="dAccuracy">0%</div>
           </div>
           <div class="rs-progress-bar" style="margin-top: var(--space-2);">
             <div class="rs-progress-fill" id="dProgressFill" style="width: 0%;"></div>
@@ -9444,48 +9451,48 @@ window.addEventListener('resize', () => {
         </div>
       </div>
       <!-- Histórico -->
-      <div class="drawer-panel" data-drawer-panel="historico">
-        <div class="drawer-panel-header">
-          <div class="rs-section-title"><i data-lucide="clock" width="14" height="14"></i> Sessões Recentes</div>
+      <div class="drawer-panel" role="dialog" aria-modal="true" data-drawer-panel="historico">
+        <div class="drawer-panel-header" role="dialog" aria-modal="true">
+          <div class="rs-section-title"><i aria-hidden="true" data-lucide="clock" width="14" height="14"></i> Sessões Recentes</div>
         </div>
-        <div class="drawer-history-list" id="drawerHistoryList">
-          <div class="drawer-empty">Nenhuma sessão ainda. <br>Resolva questões para ver seu histórico.</div>
+        <div class="drawer-history-list" role="dialog" aria-modal="true" id="drawerHistoryList">
+          <div class="drawer-empty" role="dialog" aria-modal="true">Nenhuma sessão ainda. <br>Resolva questões para ver seu histórico.</div>
         </div>
       </div>
       <!-- Atalhos (4 modos reais) -->
-      <div class="drawer-panel" data-drawer-panel="atalhos">
-        <div class="drawer-panel-header">
-          <div class="rs-section-title"><i data-lucide="zap" width="14" height="14"></i> Ações Rápidas</div>
+      <div class="drawer-panel" role="dialog" aria-modal="true" data-drawer-panel="atalhos">
+        <div class="drawer-panel-header" role="dialog" aria-modal="true">
+          <div class="rs-section-title"><i aria-hidden="true" data-lucide="zap" width="14" height="14"></i> Ações Rápidas</div>
         </div>
-        <div class="drawer-actions-list">
-          <button class="drawer-action-btn action-concurso" data-action="concurso">
-            <span class="drawer-action-icon"><i data-lucide="clipboard-list" width="18" height="18"></i></span>
-            <span class="drawer-action-text"><strong>Caderno de Questões</strong><span>Filtre por banca e cargo</span></span>
-            <i data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow"></i>
+        <div class="drawer-actions-list" role="dialog" aria-modal="true">
+          <button class="drawer-action-btn action-concurso" role="dialog" aria-modal="true" data-action="concurso">
+            <span class="drawer-action-icon" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="clipboard-list" width="18" height="18"></i></span>
+            <span class="drawer-action-text" role="dialog" aria-modal="true"><strong>Caderno de Questões</strong><span>Filtre por banca e cargo</span></span>
+            <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow" role="dialog" aria-modal="true"></i>
           </button>
-          <button class="drawer-action-btn action-livre" data-action="livre">
-            <span class="drawer-action-icon"><i data-lucide="file-text" width="18" height="18"></i></span>
-            <span class="drawer-action-text"><strong>Material Livre</strong><span>Transforme seu material em questões</span></span>
-            <i data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow"></i>
+          <button class="drawer-action-btn action-livre" role="dialog" aria-modal="true" data-action="livre">
+            <span class="drawer-action-icon" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="file-text" width="18" height="18"></i></span>
+            <span class="drawer-action-text" role="dialog" aria-modal="true"><strong>Material Livre</strong><span>Transforme seu material em questões</span></span>
+            <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow" role="dialog" aria-modal="true"></i>
           </button>
-          <button class="drawer-action-btn action-redacao" data-action="redacao">
-            <span class="drawer-action-icon"><i data-lucide="brain" width="18" height="18"></i></span>
-            <span class="drawer-action-text"><strong>Redação Coach</strong><span>Correção completa C1 a C5</span></span>
-            <i data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow"></i>
+          <button class="drawer-action-btn action-redacao" role="dialog" aria-modal="true" data-action="redacao">
+            <span class="drawer-action-icon" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="brain" width="18" height="18"></i></span>
+            <span class="drawer-action-text" role="dialog" aria-modal="true"><strong>Redação Coach</strong><span>Correção completa C1 a C5</span></span>
+            <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow" role="dialog" aria-modal="true"></i>
           </button>
-          <button class="drawer-action-btn action-aivos360" data-action="aivos360">
-            <span class="drawer-action-icon"><i data-lucide="compass" width="18" height="18"></i></span>
-            <span class="drawer-action-text"><strong>Plano AIVOS 360</strong><span>Seu mentor pessoal de aprovação com análise inteligente</span></span>
-            <i data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow"></i>
+          <button class="drawer-action-btn action-aivos360" role="dialog" aria-modal="true" data-action="aivos360">
+            <span class="drawer-action-icon" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="compass" width="18" height="18"></i></span>
+            <span class="drawer-action-text" role="dialog" aria-modal="true"><strong>Plano AIVOS 360</strong><span>Seu mentor pessoal de aprovação com análise inteligente</span></span>
+            <i aria-hidden="true" data-lucide="chevron-right" width="16" height="16" class="drawer-action-arrow" role="dialog" aria-modal="true"></i>
           </button>
         </div>
       </div>
       <!-- Mentor IA -->
-      <div class="drawer-panel" data-drawer-panel="mentor">
-        <div class="drawer-panel-header">
-          <div class="rs-section-title"><i data-lucide="sparkles" width="14" height="14"></i> Mentor IA</div>
+      <div class="drawer-panel" role="dialog" aria-modal="true" data-drawer-panel="mentor">
+        <div class="drawer-panel-header" role="dialog" aria-modal="true">
+          <div class="rs-section-title"><i aria-hidden="true" data-lucide="sparkles" width="14" height="14"></i> Mentor IA</div>
         </div>
-        <div class="drawer-mentor-content" id="drawerMentorContent"></div>
+        <div class="drawer-mentor-content" role="dialog" aria-modal="true" id="drawerMentorContent"></div>
       </div>
     </div>
   </aside>
@@ -9544,13 +9551,13 @@ window.addEventListener('resize', () => {
               list.innerHTML = historyArr.slice(-5).reverse().map(function(s) {
                 pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
                 cls = pct >= 50 ? 'good' : 'bad';
-                return '<div class="drawer-history-item">' +
-                  '<div class="drawer-history-score ' + cls + '">' + pct + '%</div>' +
-                  '<div class="drawer-history-info"><strong>' + (s.label || s.mode || 'Estudo') + '</strong><span>' + s.total + ' questões · ' + s.correct + ' acertos</span></div>' +
-                  '<div class="drawer-history-time">' + (s.date || '') + '</div></div>';
+                return '<div class="drawer-history-item" role="dialog" aria-modal="true">' +
+                  '<div class="drawer-history-score ' + cls + '" role="dialog" aria-modal="true">' + pct + '%</div>' +
+                  '<div class="drawer-history-info" role="dialog" aria-modal="true"><strong>' + (s.label || s.mode || 'Estudo') + '</strong><span>' + s.total + ' questões · ' + s.correct + ' acertos</span></div>' +
+                  '<div class="drawer-history-time" role="dialog" aria-modal="true">' + (s.date || '') + '</div></div>';
               }).join('');
             } else {
-              list.innerHTML = '<div class="drawer-empty">Nenhuma sessão ainda.<br>Resolva questões para ver seu histórico.</div>';
+              list.innerHTML = '<div class="drawer-empty" role="dialog" aria-modal="true">Nenhuma sessão ainda.<br>Resolva questões para ver seu histórico.</div>';
             }
           }
         } catch(e) {}
@@ -9560,7 +9567,7 @@ window.addEventListener('resize', () => {
           mentorEl = document.getElementById('drawerMentorContent');
           if (mentorEl) {
             if (total === 0 && streak === 0) {
-              mentorEl.innerHTML = '<div class="drawer-empty"><i data-lucide="sparkles" width="24" height="24" style="display:inline-block;opacity:0.3;margin-bottom:var(--space-2)"></i><br>Resolva questões para receber dicas personalizadas do Mentor IA.</div>';
+              mentorEl.innerHTML = '<div class="drawer-empty" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="sparkles" width="24" height="24" style="display:inline-block;opacity:0.3;margin-bottom:var(--space-2)"></i><br>Resolva questões para receber dicas personalizadas do Mentor IA.</div>';
             } else if (total === 0 && streak > 0) {
               mentorEl.innerHTML = buildMentorTip('sparkles', 'Mantenha o ritmo!', 'Você está há ' + streak + ' dia' + (streak > 1 ? 's' : '') + ' estudando. A consistência é o segredo da aprovação. Que tal resolver algumas questões hoje?');
             } else if (acc < 50) {
@@ -9576,8 +9583,8 @@ window.addEventListener('resize', () => {
       }
 
       function buildMentorTip(icon, title, body) {
-        return '<div class="drawer-mentor-tip">' +
-          '<div class="mentor-head"><span class="mentor-icon"><i data-lucide="' + icon + '" width="14" height="14"></i></span><strong>' + title + '</strong></div>' +
+        return '<div class="drawer-mentor-tip" role="dialog" aria-modal="true">' +
+          '<div class="mentor-head"><span class="mentor-icon"><i aria-hidden="true" data-lucide="' + icon + '" width="14" height="14"></i></span><strong>' + title + '</strong></div>' +
           body + '</div>';
       }
 
@@ -9828,4 +9835,16 @@ window.addEventListener('resize', () => {
   </script>
   
   <script src="src/mentor-class-controller.js" defer></script>
+
+<script>
+// P2 Accessibility Keyboard Navigation
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    if (e.target.getAttribute('role') === 'button' || e.target.tagName.toLowerCase() === 'div' && e.target.classList.contains('chip')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  }
+});
+</script>
 </body>
