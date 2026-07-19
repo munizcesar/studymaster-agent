@@ -7461,6 +7461,14 @@ function renderStep4Aivos360(container) {
         <div style="overflow-y: auto; flex: 1;">
           ${editalHTML}
         </div>
+        <button 
+            onclick="resetarJornada()" 
+            style="margin-top: 24px; width: 100%; padding: 12px; background: transparent; border: 1px solid #EF4444; color: #EF4444; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;"
+            onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
+            onmouseout="this.style.background='transparent'"
+        >
+            <i data-lucide="trash-2"></i> Encerrar Mentoria Atual
+        </button>
       </div>
 
       <!-- CENTRO: A Rota -->
@@ -7498,7 +7506,17 @@ function renderStep4Aivos360(container) {
       <div class="bottom-sheet-overlay" id="mobile-overlay" onclick="this.classList.remove('open'); document.getElementById('mobile-sheet').classList.remove('open');"></div>
       <div class="bottom-sheet" id="mobile-sheet">
         <div class="edital-vivo-title" style="margin-bottom: 24px;"><i data-lucide="book-open"></i> Edital Vivo</div>
-        ${editalHTML}
+        <div style="overflow-y: auto; max-height: 50vh; margin-bottom: 24px;">
+            ${editalHTML}
+        </div>
+        <button 
+            onclick="resetarJornada()" 
+            style="width: 100%; padding: 12px; background: transparent; border: 1px solid #EF4444; color: #EF4444; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;"
+            onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
+            onmouseout="this.style.background='transparent'"
+        >
+            <i data-lucide="trash-2"></i> Encerrar Mentoria Atual
+        </button>
       </div>
 
       <!-- FAB Mentor -->

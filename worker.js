@@ -2162,11 +2162,11 @@ self.onmessage = async function(event) {
     if (command === 'START_SESSION') {
         try {
             // 1. Extrai o contexto enviado pelo frontend
-            const { editalData, nivel, foco } = payload;
+            const { editalData, nivel, foco, banca } = payload;
             
             // 2. Simula o tempo de resposta da API / Processamento da IA
             // Substitua este bloco pela sua chamada real fetch() para o backend/LLM
-            const questoesGeradas = await gerarSessaoEstudosSimulada(editalData, nivel, foco);
+            const questoesGeradas = await gerarSessaoEstudosSimulada(editalData, nivel, foco, banca);
 
             // 3. Devolve a resposta pronta para a UI renderizar
             self.postMessage({
@@ -2185,7 +2185,7 @@ self.onmessage = async function(event) {
 };
 
 // Função real chamando o backend do Mentor Class
-async function gerarSessaoEstudosSimulada(editalData, nivel, foco) {
+async function gerarSessaoEstudosSimulada(editalData, nivel, foco, banca) {
     const response = await fetch("https://mentor-class-backend.cesarmuniz0816.workers.dev/api/gerar-sessao", {
         method: "POST",
         headers: {
@@ -2194,7 +2194,8 @@ async function gerarSessaoEstudosSimulada(editalData, nivel, foco) {
         body: JSON.stringify({
             editalData,
             nivel,
-            foco
+            foco,
+            banca
         })
     });
 

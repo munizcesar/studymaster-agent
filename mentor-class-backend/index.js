@@ -25,6 +25,14 @@ REGRAS:
 }
 `;
 
+const bancaPrompts = {
+  "CEBRASPE": "Use o modelo Certo/Errado. Foque em pegadinhas de jurisprudência e exceções à regra. Evite enunciados longos.",
+  "FGV": "Use casos práticos longos. As alternativas devem ser extremamente similares entre si, exigindo interpretação profunda.",
+  "VUNESP": "Seja literal. Foque na letra da lei (Lei seca) e na memorização de prazos.",
+  "FCC": "Equilíbrio entre lei seca e jurisprudência pacificada. Casos concretos diretos e curtos.",
+  "CESGRANRIO": "Questões diretas, com alto nível de detalhamento técnico e cálculos (se aplicável)."
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -89,6 +97,8 @@ async function handleParseEdital(request, env) {
     throw new Error("Texto do edital insuficiente ou ausente na camada de backend.");
   }
 
+  console.log(`[AUDIT] Parse de Edital iniciado. Modelo: ${env.MODEL_PARSER} | Tamanho do texto: ${texto.length} caracteres`);
+
   // Chamada apontada para a API do Groq
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -118,10 +128,17 @@ async function handleParseEdital(request, env) {
 }
 
 async function handleGerarSessao(request, env) {
-  const { editalData, nivel, foco } = await request.json();
+  const { editalData, nivel, foco, banca } = await request.json();
+
+  const estiloBanca = banca && bancaPrompts[banca.toUpperCase()] 
+    ? bancaPrompts[banca.toUpperCase()] 
+    : "Seja objetivo, claro e mantenha o rigor técnico.";
 
   const prompt = `Gere 3 questões desafiadoras com foco em ${foco} para um aluno de nível ${nivel}, embasadas estritamente nas disciplinas:${JSON.stringify(editalData.disciplinas)}. 
+  Diretriz de Estilo da Banca (${banca || 'Geral'}): ${estiloBanca}
   Retorne APENAS um array JSON puro (sem marcação \`\`\`) contendo objetos com: id, disciplina, enunciado, alternativas (array de 4 strings), correta (letra), comentarioMentor (adotando a persona do Mentor Tático).`;
+
+  console.log(`[AUDIT] Sessão iniciada. Banca: ${banca || 'Geral'} | Nível: ${nivel} | Foco: ${foco} | Modelo: ${env.MODEL_MENTOR}`);
 
   // Chamada apontada para a API do Groq
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {

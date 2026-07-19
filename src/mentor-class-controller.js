@@ -379,3 +379,28 @@ function renderizarSessaoAtiva(container, questoes) {
         });
     });
 }
+
+// ==========================================
+// KILL SWITCH (RESET DE JORNADA)
+// ==========================================
+window.resetarJornada = function() {
+    const confirmacao = confirm("⚠️ ATENÇÃO: Isso vai apagar todo o seu histórico atual, metas e o edital processado. Deseja realmente iniciar uma nova jornada do zero?");
+    
+    if (confirmacao) {
+        // 1. Destrói o cache do navegador
+        localStorage.removeItem('mentor_class_save_v1');
+        localStorage.removeItem('sm_state'); // Garantia de reset para chaves antigas
+        
+        // 2. Oblitera o estado atual da memória RAM
+        window.state = {
+            currentStep: 1,
+            mode: null,
+            editalProcessado: null
+        };
+        
+        console.log("🗑️ Cache obliterado. Resetando sistema...");
+        
+        // 3. Força o recarregamento total da página limpando a interface
+        window.location.reload();
+    }
+};
