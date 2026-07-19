@@ -17,7 +17,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Aivo, SIZE_PRESETS } from './aivo-mascot';
+import AivoTourOverlay, { Aivo, SIZE_PRESETS } from './aivo-mascot';
 
 /* ── State mapping: old (aivos-char-system) → new (Aivo) ── */
 const STATE_MAP = {
@@ -120,7 +120,10 @@ function ensurePresenceReady() {
     presenceRoot = createRoot(container);
     // Render inicial eager: garante que o container nunca fique vazio
     presenceRoot.render(
-      <Aivo size={presenceData.size} state={presenceData.state} themeMode={getThemeMode()} />
+      <>
+        <Aivo size={presenceData.size} state={presenceData.state} themeMode={getThemeMode()} />
+        <AivoTourOverlay />
+      </>
     );
   }
 
@@ -130,7 +133,12 @@ function ensurePresenceReady() {
     const st = getState(newState);
     presenceData = { size: s, state: st };
     if (presenceRoot) {
-      presenceRoot.render(<Aivo size={s} state={st} themeMode={getThemeMode()} />);
+      presenceRoot.render(
+        <>
+          <Aivo size={s} state={st} themeMode={getThemeMode()} />
+          <AivoTourOverlay />
+        </>
+      );
     }
   };
 
@@ -143,7 +151,10 @@ function ensurePresenceReady() {
 const themeObserver = new MutationObserver(() => {
   if (presenceRoot) {
     presenceRoot.render(
-      <Aivo size={presenceData.size} state={presenceData.state} themeMode={getThemeMode()} />
+      <>
+        <Aivo size={presenceData.size} state={presenceData.state} themeMode={getThemeMode()} />
+        <AivoTourOverlay />
+      </>
     );
   }
 });
