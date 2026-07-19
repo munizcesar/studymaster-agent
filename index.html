@@ -9203,40 +9203,9 @@ window.addEventListener('resize', () => {
         } catch(e) {}
       }
 
-      /* Create auto-dismiss bubble */
-      var bubble = document.createElement('div');
-      bubble.id = 'aivo-welcome-bubble';
-      bubble.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:380px;animation:bubbleIn 0.4s cubic-bezier(0.16,1,0.3,1);';
-      bubble.innerHTML =
-        `<div style='flex:1;min-width:0;'>` +
-          `<strong style='display:block;font-family:var(--font-display);font-size:var(--text-sm);color:var(--color-text);margin-bottom:2px;'>AIVO</strong>` +
-          `<p style='margin:0;color:var(--color-text-muted);font-size:var(--text-xs);line-height:1.5;'>${welcomeMessage}</p>` +
-        `</div>`;
-
-      document.body.appendChild(bubble);
-
-      /* Trigger Presence to move AIVO to bubble position */
-      var bubbleEl = document.getElementById('aivo-welcome-bubble');
-      if (bubbleEl && window.AivoAPI) {
-        window.AivoAPI.render(bubbleEl, { size: 56, state: 'greeting' });
-      }
-
-      /* Add CSS animation for bubble */
-      if (!document.getElementById('aivo-bubble-style')) {
-        var style = document.createElement('style');
-        style.id = 'aivo-bubble-style';
-        style.textContent = '@keyframes bubbleIn{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes bubbleOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(20px) scale(0.95)}}';
-        document.head.appendChild(style);
-      }
-
-      /* Auto-dismiss after 6 seconds */
-      setTimeout(function() {
-        var b = document.getElementById('aivo-welcome-bubble');
-        if (b) {
-          b.style.animation = 'bubbleOut 0.3s cubic-bezier(0.16,1,0.3,1) forwards';
-          setTimeout(function() { if (b.parentNode) b.remove(); }, 400);
-        }
-      }, 6000);
+      window.dispatchEvent(new CustomEvent('aivo-tour', {
+        detail: { message: welcomeMessage, state: 'greeting' }
+      }));
     }, 2000);
 
     /* Inicializar Coach Intelligence */

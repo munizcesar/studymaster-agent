@@ -491,13 +491,12 @@ export default function AivoTourOverlay() {
     <div
       style={{
         position: 'relative',
-        width: isChatOpen ? '420px' : '120px',
-        height: isChatOpen ? '500px' : '120px',
+        width: '120px',
+        height: '120px',
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'flex-end',
         pointerEvents: 'none',
-        transition: 'width 0.4s ease, height 0.4s ease'
       }}
     >
       {/* Chat UI */}
@@ -510,8 +509,9 @@ export default function AivoTourOverlay() {
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             style={{
               position: 'absolute',
-              right: '160px',
+              right: '100%',
               bottom: '0',
+              marginRight: '24px',
               width: '360px',
               height: '500px',
               background: '#ffffff',
