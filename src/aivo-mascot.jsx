@@ -644,9 +644,10 @@ export default function AivoShowcase() {
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
           <Aivo size={240} state={heroState} themeMode={themeMode} lookTarget={lookTarget} />
-          <div style={{ marginTop: 22, fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: colors.inkSoft, display: "flex", gap: 8, alignItems: "center" }}>
+          {/* State debug hidden by user request */}
+          <div style={{ display: 'none' }}>
             <span style={{ width: 6, height: 6, borderRadius: 999, background: colors.accent, display: "inline-block" }} />
-            state: {heroState} · {STATE_CAPTIONS[heroState]}
+            state: {heroState} — {STATE_CAPTIONS[heroState]}
           </div>
         </div>
 
