@@ -76,7 +76,9 @@ export class PresenceManager {
 
   goHome(onComplete?: () => void): void {
     this._currentAnchor = null;
-    this.animate({ x: HOME_X, y: HOME_Y, rotate: 0, side: 'bottom' }, onComplete);
+    const homeX = window.innerWidth - MASCOT_SIZE - 16;
+    const homeY = window.innerHeight - MASCOT_SIZE - 100;
+    this.animate({ x: homeX, y: homeY, rotate: 0, side: 'bottom' }, onComplete);
   }
 
   private animate(pos: Position, onComplete?: () => void): void {
