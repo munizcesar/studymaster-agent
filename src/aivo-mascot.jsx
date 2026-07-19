@@ -1,11 +1,28 @@
-import React, { useState, useEffect, useRef, useId, useCallback } from "react";
+import React, { useState, useEffect, useRef, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Mic, Check, X, ChevronRight } from "lucide-react";
+import { Sun, Moon, Mic, Check, X } from "lucide-react";
 
 /**
  * <Aivo />
- * (Visual Core mantido intacto - Apenas a lógica visual SVG original)
+ * Mascote oficial da AIVOS — duas esferas (cabeça + corpo) com sombreamento
+ * em gradiente simulando acabamento 3D fosco/glossy, inspirado na referência
+ * enviada. Sem contorno de linha: a forma é definida só por luz e sombra.
+ *
+ * Decisões desta versão:
+ *  - 3D "de mentira" via gradientes SVG, não WebGL/Three.js — mesma
+ *    performance leve de sempre, roda liso em qualquer celular de aluno.
+ *  - Sobrancelha voltou, mas discreta: é uma sombra suave sobre o material
+ *    (opacidade baixa, sem contorno reto), quase invisível no neutro e mais
+ *    presente nas expressões — não é mais uma barra sólida "colada" em cima.
+ *  - Boca só aparece em parte dos estados (ver MOUTH_MAP) — no repouso o
+ *    rosto é só os dois olhos, como na referência.
+ *  - Os 20 estados e toda a "vida" (respiração orgânica, microtremor por
+ *    olho, corpo seguindo o olhar) continuam os mesmos de antes.
+ *
+ * Props:
+ *  - size, state, themeMode, lookTarget, className, style — iguais à versão anterior
  */
+
 export const SIZE_PRESETS = { xs: 24, sm: 40, md: 64, lg: 120, xl: 200, xxl: 280 };
 
 const PALETTE = {
@@ -53,22 +70,66 @@ const BODY_VARIANTS = {
   proud: { animate: { rotate: [0, 4, 0], y: [0, 1, 0], x: 0, scaleX: 1, scaleY: 1 }, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
+// "speaking" tem boca animada à parte (ver render) — não entra neste mapa.
+// Boca só em success/celebrating — o resto do tempo o rosto é só olhos,
+// pra um ar mais sério/tecnológico e menos "sorriso permanente de desenho".
 const MOUTH_MAP = {
-  idle: "none", calm: "none", greeting: "smile", sleepy: "none", focus: "none",
-  typing: "none", password: "none", listening: "none", thinking: "flat", curious: "none",
-  loading: "none", surprised: "open", confused: "flat", error: "flat", concerned: "soft",
-  success: "smile", celebrating: "smile", happy: "smile", proud: "smile",
+  idle: "none", calm: "none", greeting: "none", sleepy: "none", focus: "none",
+  typing: "none", password: "none", listening: "none", thinking: "none", curious: "none",
+  loading: "none", surprised: "none", confused: "none", error: "none", concerned: "none",
+  success: "smile", celebrating: "smile", happy: "none", proud: "none",
 };
+
+const STATE_CAPTIONS = {
+  idle: "acompanhando o cursor",
+  calm: "presença tranquila, sem pressa",
+  greeting: "olá — pronto para ajudar",
+  sleepy: "em espera, ninguém por aqui",
+  focus: "atento ao campo",
+  typing: "acompanhando o que você escreve",
+  password: "protegendo sua privacidade",
+  listening: "ouvindo com atenção",
+  speaking: "respondendo",
+  thinking: "avaliando com calma",
+  curious: "reparando em algo novo",
+  loading: "processando",
+  surprised: "não esperava por isso",
+  confused: "não ficou claro",
+  error: "algo não funcionou",
+  concerned: "isso pode precisar de atenção",
+  success: "confirmado",
+  celebrating: "conquista registrada",
+  happy: "tudo tranquilo por aqui",
+  proud: "bom progresso",
+};
+
+const STATE_GROUPS = [
+  { label: "base", states: ["idle", "calm", "greeting", "sleepy"] },
+  { label: "atenção", states: ["focus", "typing", "password", "listening", "speaking"] },
+  { label: "raciocínio", states: ["thinking", "curious", "loading"] },
+  { label: "atrito", states: ["confused", "error", "concerned", "surprised"] },
+  { label: "conquista", states: ["success", "celebrating", "happy", "proud"] },
+];
 
 const BLINK_EYES = ["idle", "focus", "curious", "thinking", "concerned", "happy", "proud", "confused", "calm", "listening"];
 const BREATH_STATES = ["idle", "calm", "happy", "sleepy"];
 
 const FIXED_GAZE = {
-  greeting: { x: 0, y: -1 }, sleepy: { x: 0, y: 0 }, typing: { x: 0, y: 6 },
-  password: { x: 0, y: 0 }, listening: { x: 0, y: -1 }, speaking: { x: 0, y: 0 },
-  thinking: { x: -3.6, y: -4.2 }, loading: { x: 0, y: 0 }, surprised: { x: 0, y: 0 },
-  confused: { x: 2, y: 1 }, error: { x: 0, y: 0 }, concerned: { x: 0, y: 2 },
-  success: { x: 0, y: 0 }, celebrating: { x: 0, y: 0 }, proud: { x: 0, y: 0 },
+  greeting: { x: 0, y: -1 },
+  sleepy: { x: 0, y: 0 },
+  typing: { x: 0, y: 6 },
+  password: { x: 0, y: 0 },
+  listening: { x: 0, y: -1 },
+  speaking: { x: 0, y: 0 },
+  thinking: { x: -3.6, y: -4.2 },
+  loading: { x: 0, y: 0 },
+  surprised: { x: 0, y: 0 },
+  confused: { x: 2, y: 1 },
+  error: { x: 0, y: 0 },
+  concerned: { x: 0, y: 2 },
+  success: { x: 0, y: 0 },
+  celebrating: { x: 0, y: 0 },
+  proud: { x: 0, y: 0 },
 };
 
 function prefersReducedMotion() {
@@ -76,6 +137,8 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+// sem sobrancelha fixa, a expressão precisa vir do próprio olho: largura,
+// altura e ângulo mudam mais aqui do que na versão anterior.
 function getEyeAnim(state, blinking, side) {
   if (blinking && BLINK_EYES.includes(state)) return { scaleX: 1, scaleY: 0.08, rotate: 0, opacity: 1 };
   switch (state) {
@@ -98,6 +161,8 @@ function getEyeAnim(state, blinking, side) {
   }
 }
 
+// sobrancelha discreta — mesma lógica emocional de antes, só que agora é
+// renderizada como sombra suave sobre o material, não uma barra sólida
 function getBrowAnim(state, side) {
   switch (state) {
     case "greeting": return { rotate: 0, y: -4, opacity: 0.5 };
@@ -140,6 +205,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => window.removeEventListener("pointermove", handleMove);
   }, []);
 
+  // piscadas naturais
   useEffect(() => {
     if (!BLINK_EYES.includes(state) || reducedMotion) return;
     let cancelled = false;
@@ -157,6 +223,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => { cancelled = true; clearTimeout(t); };
   }, [state, reducedMotion]);
 
+  // olhar espontâneo — pequenos desvios aleatórios em idle/calm
   useEffect(() => {
     if ((state !== "idle" && state !== "calm") || reducedMotion) { setGlance({ x: 0, y: 0 }); return; }
     let cancelled = false;
@@ -176,6 +243,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => { cancelled = true; clearTimeout(t); };
   }, [state, reducedMotion]);
 
+  // microssacadas — cada olho treme sozinho, em intervalo levemente diferente do outro
   useEffect(() => {
     if (reducedMotion) { setJitterL({ x: 0, y: 0 }); return; }
     let cancelled = false;
@@ -206,6 +274,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => { cancelled = true; clearTimeout(t); };
   }, [reducedMotion]);
 
+  // respiração orgânica — profundidade e duração variam a cada ciclo
   useEffect(() => {
     if (!BREATH_STATES.includes(state) || reducedMotion) { setBreath({ y: 0, scaleY: 1 }); return; }
     let cancelled = false;
@@ -226,6 +295,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => { cancelled = true; clearTimeout(t); };
   }, [state, reducedMotion]);
 
+  // boca animada durante "speaking"
   useEffect(() => {
     if (state !== "speaking") { setSpeakFrame(0); return; }
     let cancelled = false;
@@ -241,6 +311,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
     return () => { cancelled = true; clearTimeout(t); };
   }, [state]);
 
+  // para onde os olhos olham
   useEffect(() => {
     if (state === "calm") { setEyeOffset({ x: glance.x, y: 1.5 + glance.y }); return; }
     if (FIXED_GAZE[state]) { setEyeOffset(FIXED_GAZE[state]); return; }
@@ -286,7 +357,7 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
         ...style,
       }}
     >
-      <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={`Aivo Mascot`}>
+      <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={`Aivo — ${STATE_CAPTIONS[state] || state}`}>
         <defs>
           <radialGradient id={`sphere-${uid}`} cx="32%" cy="26%" r="85%">
             <stop offset="0%" stopColor={colors.sphereHi} />
@@ -307,32 +378,60 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
         <motion.g animate={{ x: bodyLeanX, rotate: bodyLeanRotate }} transition={{ type: "spring", stiffness: 90, damping: 14 }} style={{ originX: 0.5, originY: 0.5 }}>
           <AnimatePresence>
             {state === "loading" && (
-              <motion.circle key="ring-loading" cx="100" cy="100" r={RING_R} fill="none" stroke={colors.accent} strokeWidth={strokeW + 3} strokeLinecap="round" strokeDasharray={ringDash} initial={{ opacity: 0 }} animate={{ opacity: 1, rotate: 360 }} exit={{ opacity: 0 }} transition={{ rotate: { repeat: Infinity, ease: "linear", duration: 1.1 }, opacity: { duration: 0.2 } }} style={{ originX: 0.5, originY: 0.5 }} />
+              <motion.circle
+                key="ring-loading" cx="100" cy="100" r={RING_R} fill="none" stroke={colors.accent}
+                strokeWidth={strokeW + 3} strokeLinecap="round" strokeDasharray={ringDash}
+                initial={{ opacity: 0 }} animate={{ opacity: 1, rotate: 360 }} exit={{ opacity: 0 }}
+                transition={{ rotate: { repeat: Infinity, ease: "linear", duration: 1.1 }, opacity: { duration: 0.2 } }}
+                style={{ originX: 0.5, originY: 0.5 }}
+              />
             )}
             {state === "listening" && (
-              <motion.circle key="ring-listening" cx="100" cy="100" r={RING_R} fill="none" stroke={colors.accent} strokeWidth={strokeW + 2} strokeLinecap="round" strokeDasharray="5 11" initial={{ opacity: 0 }} animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.03, 1] }} exit={{ opacity: 0 }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} style={{ originX: 0.5, originY: 0.5 }} />
+              <motion.circle
+                key="ring-listening" cx="100" cy="100" r={RING_R} fill="none" stroke={colors.accent}
+                strokeWidth={strokeW + 2} strokeLinecap="round" strokeDasharray="5 11"
+                initial={{ opacity: 0 }} animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.03, 1] }} exit={{ opacity: 0 }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                style={{ originX: 0.5, originY: 0.5 }}
+              />
             )}
           </AnimatePresence>
 
           <motion.g animate={bodyAnimate} transition={bodyTransition} style={{ originX: 0.5, originY: 0.5 }}>
             <ellipse cx={BODY_BALL.cx} cy={HEAD.cy + HEAD.r - 8} rx="19" ry="7" fill={colors.eyeDeep} opacity="0.14" filter={`url(#soft-${uid})`} />
-            <circle cx={BODY_BALL.cx} cy={BODY_BALL.cy} r={BODY_BALL.r} fill={`url(#sphere-${uid})`} stroke={colors.sphereEdge} strokeWidth={strokeW} />
-            <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill={`url(#sphere-${uid})`} stroke={colors.sphereEdge} strokeWidth={strokeW} />
+            <circle cx={BODY_BALL.cx} cy={BODY_BALL.cy} r={BODY_BALL.r} fill={`url(#sphere-${uid})`} />
+            <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill={`url(#sphere-${uid})`} />
             <ellipse cx={HEAD.cx - 26} cy={HEAD.cy - 35} rx="21" ry="28" fill="#FFFFFF" opacity={themeMode === "light" ? 0.4 : 0.22} filter={`url(#soft-${uid})`} />
 
             <motion.g animate={{ y: getBrowAnim(state, "left").y }} transition={{ duration: 0.25, ease: "easeOut" }}>
-              <motion.rect x={BROW_L.x - 9} y={BROW_L.y - browH / 2} width="18" height={browH} rx={browH / 2} fill={colors.eyeDeepSoft} animate={{ rotate: getBrowAnim(state, "left").rotate, opacity: getBrowAnim(state, "left").opacity }} transition={{ duration: 0.25, ease: "easeOut" }} style={{ originX: 0.5, originY: 0.5 }} />
+              <motion.rect
+                x={BROW_L.x - 9} y={BROW_L.y - browH / 2} width="18" height={browH} rx={browH / 2}
+                fill={colors.eyeDeepSoft}
+                animate={{ rotate: getBrowAnim(state, "left").rotate, opacity: getBrowAnim(state, "left").opacity }}
+                transition={{ duration: 0.25, ease: "easeOut" }} style={{ originX: 0.5, originY: 0.5 }}
+              />
             </motion.g>
             <motion.g animate={{ y: getBrowAnim(state, "right").y }} transition={{ duration: 0.25, ease: "easeOut" }}>
-              <motion.rect x={BROW_R.x - 9} y={BROW_R.y - browH / 2} width="18" height={browH} rx={browH / 2} fill={colors.eyeDeepSoft} animate={{ rotate: getBrowAnim(state, "right").rotate, opacity: getBrowAnim(state, "right").opacity }} transition={{ duration: 0.25, ease: "easeOut" }} style={{ originX: 0.5, originY: 0.5 }} />
+              <motion.rect
+                x={BROW_R.x - 9} y={BROW_R.y - browH / 2} width="18" height={browH} rx={browH / 2}
+                fill={colors.eyeDeepSoft}
+                animate={{ rotate: getBrowAnim(state, "right").rotate, opacity: getBrowAnim(state, "right").opacity }}
+                transition={{ duration: 0.25, ease: "easeOut" }} style={{ originX: 0.5, originY: 0.5 }}
+              />
             </motion.g>
 
             <motion.g animate={{ x: eyeOffset.x, y: eyeOffset.y }} transition={{ type: "spring", stiffness: 260, damping: 20 }}>
               <motion.g animate={{ x: jitterL.x, y: jitterL.y }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
-                <motion.rect x={EYE_L.x - 8} y={EYE_L.y - 17} width="16" height="34" rx="8" fill={`url(#eye-${uid})`} animate={getEyeAnim(state, blinking, "left")} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }} />
+                <motion.rect
+                  x={EYE_L.x - 8} y={EYE_L.y - 17} width="16" height="34" rx="8" fill={`url(#eye-${uid})`}
+                  animate={getEyeAnim(state, blinking, "left")} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }}
+                />
               </motion.g>
               <motion.g animate={{ x: jitterR.x, y: jitterR.y }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
-                <motion.rect x={EYE_R.x - 8} y={EYE_R.y - 17} width="16" height="34" rx="8" fill={`url(#eye-${uid})`} animate={getEyeAnim(state, blinking, "right")} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }} />
+                <motion.rect
+                  x={EYE_R.x - 8} y={EYE_R.y - 17} width="16" height="34" rx="8" fill={`url(#eye-${uid})`}
+                  animate={getEyeAnim(state, blinking, "right")} transition={{ duration: 0.18 }} style={{ originX: 0.5, originY: 0.5 }}
+                />
               </motion.g>
             </motion.g>
 
@@ -366,296 +465,286 @@ export function Aivo({ size = 120, state = "idle", themeMode = "light", lookTarg
   );
 }
 
+/**
+ * <AivoTourOverlay />
+ * Card de notificação para tours/dicas guiadas — sem seta de balão de fala,
+ * fundo escuro sofisticado (estilo notificação de macOS/SaaS), botão fantasma.
+ * É um componente de apresentação: ele não se posiciona sozinho na tela —
+ * quem usa envolve num container próprio (position: fixed/absolute) com as
+ * coordenadas certas pro elemento que está sendo indicado no tour.
+ *
+ * Props:
+ *  - message      texto da dica
+ *  - onDismiss    função chamada ao clicar em "Entendi" (some o botão se omitido)
+ *  - mascotState  estado do Aivo dentro do card (padrão "focus")
+ *  - themeMode    tema do Aivo (o card em si é sempre escuro, de propósito)
+ *  - dismissLabel texto do botão (padrão "Entendi")
+ */
+export function AivoTourOverlay({ message, onDismiss, mascotState = "focus", themeMode = "light", dismissLabel = "Entendi", style, className = "" }) {
+  return (
+    <div className={`mascot-wrapper ${className}`} style={style}>
+      {message && (
+        <div className="speech-bubble">
+          {message}
+          {onDismiss && (
+            <button
+              type="button" 
+              onClick={onDismiss}
+              className="btn-entendi"
+            >
+              {dismissLabel} &gt;
+            </button>
+          )}
+        </div>
+      )}
+      <div className="mascot-avatar">
+        <Aivo size={44} state={mascotState} themeMode={themeMode} style={{ flexShrink: 0 }} />
+      </div>
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
-/*  Gerenciador do Tour Guiado (Novo Sistema Flutuante Inteligente)   */
+/*  Página de demonstração                                             */
 /* ------------------------------------------------------------------ */
 
-export default function AivoTourOverlay() {
-  const [tourState, setTourState] = useState({
-    active: false,
-    message: "",
-    mascotState: "idle",
-  });
-  
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatHistory, setChatHistory] = useState([]);
-  const [inputText, setInputText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const chatMessagesEndRef = useRef(null);
+function SectionLabel({ children, colors }) {
+  return (
+    <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, letterSpacing: "0.08em", textTransform: "uppercase", color: colors.inkSoft, fontWeight: 500, margin: 0 }}>
+      {children}
+    </h2>
+  );
+}
 
-  // O mascote sempre usa tema claro para ter destaque, mesmo no dark mode
-  const themeMode = "light";
+function fieldLabelStyle(colors) {
+  return { display: "block", fontSize: 12.5, color: colors.inkSoft, marginBottom: 6 };
+}
 
-  // Listener Global de eventos de tour
-  useEffect(() => {
-    const handleTourEvent = (e) => {
-      if (e.detail?.close) {
-        setTourState(prev => ({ ...prev, active: false, mascotState: 'idle' }));
-        return;
-      }
-      setTourState({
-        active: true,
-        message: e.detail.message || "Olá!",
-        mascotState: e.detail.state || "greeting",
-      });
-      if (e.detail.state === "speaking") {
-        setTimeout(() => {
-          setTourState(prev => ({ ...prev, mascotState: "idle" }));
-        }, 3000);
-      }
-    };
-    window.addEventListener('aivo-tour', handleTourEvent);
-    return () => window.removeEventListener('aivo-tour', handleTourEvent);
-  }, []);
+function inputStyle(colors) {
+  return {
+    width: "100%", padding: "10px 12px", fontSize: 14, borderRadius: 10,
+    border: `1px solid ${colors.line}`, background: colors.paper, color: colors.ink,
+    outline: "none", fontFamily: "'Inter', sans-serif",
+  };
+}
 
-  // Listener para sincronizar a emoção (rosto) do mascote com a engine legada
-  useEffect(() => {
-    const handleEmotionEvent = (e) => {
-      if (e.detail?.emotion) {
-        setTourState(prev => ({ ...prev, mascotState: e.detail.emotion }));
-      }
-    };
-    window.addEventListener('aivo-engine-emotion', handleEmotionEvent);
-    return () => window.removeEventListener('aivo-engine-emotion', handleEmotionEvent);
-  }, []);
+function flowButtonStyle(colors, variant) {
+  return {
+    display: "flex", alignItems: "center", gap: 7, fontFamily: "'Inter', sans-serif", fontWeight: 500,
+    fontSize: 13.5, padding: "10px 16px", borderRadius: 10, cursor: "pointer",
+    border: `1px solid ${variant === "solid" ? colors.ink : colors.line}`,
+    background: variant === "solid" ? colors.ink : colors.card,
+    color: variant === "solid" ? colors.card : colors.ink,
+  };
+}
 
-  useEffect(() => {
-    if (chatMessagesEndRef.current) {
-      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatHistory, isTyping, isChatOpen]);
+export default function AivoShowcase() {
+  const [themeMode, setThemeMode] = useState("light");
+  const [heroState, setHeroState] = useState("idle");
+  const [lookTarget, setLookTarget] = useState(null);
+  const [tourVisible, setTourVisible] = useState(false);
+  const nameRef = useRef(null);
+  const passRef = useRef(null);
+  const sequenceTimeouts = useRef([]);
+  const colors = PALETTE[themeMode];
 
-  const handleDismiss = () => {
-    setTourState(prev => ({ ...prev, mascotState: "success" }));
-    setTimeout(() => {
-      setTourState(prev => ({ ...prev, active: false, mascotState: 'idle' }));
-    }, 1200);
+  const clearSequence = () => {
+    sequenceTimeouts.current.forEach(clearTimeout);
+    sequenceTimeouts.current = [];
   };
 
-  const toggleChat = (e) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    if (tourState.active) handleDismiss();
-    
-    // Se estava fechado e vai abrir, dá as boas vindas se history estiver vazio
-    setIsChatOpen(prev => {
-      if (!prev && chatHistory.length === 0) {
-        setChatHistory([
-          { role: 'assistant', content: 'Olá! Sou o Prof. AIVOS, seu mentor 360º. Como posso ajudar com os seus estudos ou com o que está vendo na tela agora?' }
-        ]);
-      }
-      return !prev;
+  useEffect(() => () => clearSequence(), []);
+
+  useEffect(() => {
+    setHeroState("greeting");
+    const t = setTimeout(() => setHeroState("idle"), 1300);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    let inactivityTimer;
+    const goSleepy = () => setHeroState((s) => (s === "idle" ? "sleepy" : s));
+    const wakeUp = () => {
+      clearTimeout(inactivityTimer);
+      setHeroState((s) => (s === "sleepy" ? "idle" : s));
+      inactivityTimer = setTimeout(goSleepy, 14000);
+    };
+    window.addEventListener("pointermove", wakeUp);
+    window.addEventListener("keydown", wakeUp);
+    window.addEventListener("click", wakeUp);
+    inactivityTimer = setTimeout(goSleepy, 14000);
+    return () => {
+      window.removeEventListener("pointermove", wakeUp);
+      window.removeEventListener("keydown", wakeUp);
+      window.removeEventListener("click", wakeUp);
+      clearTimeout(inactivityTimer);
+    };
+  }, []);
+
+  const selectState = (s) => {
+    clearSequence();
+    setLookTarget(null);
+    setHeroState(s);
+  };
+
+  const runSequence = (steps) => {
+    clearSequence();
+    setLookTarget(null);
+    steps.forEach(([s, delay]) => {
+      const id = setTimeout(() => setHeroState(s), delay);
+      sequenceTimeouts.current.push(id);
     });
   };
 
-  const handleSendMessage = async () => {
-    if (!inputText.trim()) return;
-    const userMsg = inputText.trim();
-    setInputText("");
-    
-    const newHistory = [...chatHistory, { role: 'user', content: userMsg }];
-    setChatHistory(newHistory);
-    setIsTyping(true);
-    setTourState(prev => ({ ...prev, mascotState: 'thinking' }));
+  const simulateCorrect = () => runSequence([["loading", 0], ["success", 900], ["celebrating", 1600], ["happy", 2700], ["idle", 4400]]);
+  const simulateIncorrect = () => runSequence([["loading", 0], ["confused", 900], ["concerned", 2000], ["idle", 3600]]);
+  const simulateVoice = () => runSequence([["listening", 0], ["speaking", 1800], ["success", 4000], ["idle", 4800]]);
 
-    try {
-      let screenContext = '';
-      if (typeof window !== 'undefined' && document.querySelector('main')) {
-         screenContext = document.querySelector('main').innerText.slice(0, 3000);
-      }
-      
-      const payload = {
-        mode: 'prof-aivos',
-        message: userMsg,
-        history: chatHistory, // pass previous history (does not include the new userMsg yet so worker should handle? No, worker handleProfAivosChat adds userMsg internally if we pass it in message. Wait, worker.js uses message. Let's pass the prior history).
-        screenContext: screenContext
-      };
-      
-      const res = await fetch(window.WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      
-      const data = await res.json();
-      
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.reply || 'Houve um erro na comunicação.' }]);
-      setTourState(prev => ({ ...prev, mascotState: 'speaking' }));
-      setTimeout(() => setTourState(prev => ({ ...prev, mascotState: 'idle' })), 3000);
-    } catch (e) {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Desculpe, ocorreu um erro de conexão.' }]);
-      setTourState(prev => ({ ...prev, mascotState: 'error' }));
-    } finally {
-      setIsTyping(false);
+  const focusField = (ref, state) => {
+    clearSequence();
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setLookTarget({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
     }
+    setHeroState(state);
+  };
+
+  const blurField = () => {
+    setLookTarget(null);
+    setHeroState("idle");
   };
 
   return (
     <div
+      className="aivo-demo-root"
       style={{
-        position: 'relative',
-        width: '120px',
-        height: '120px',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'flex-end',
-        pointerEvents: 'none',
+        "--accent": colors.accent, minHeight: "100vh", background: colors.paper, color: colors.ink,
+        fontFamily: "'Inter', sans-serif", transition: "background 0.3s ease, color 0.3s ease",
       }}
     >
-      {/* Chat UI */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-            style={{
-              position: 'absolute',
-              right: '100%',
-              bottom: '0',
-              marginRight: '24px',
-              width: '360px',
-              height: '500px',
-              background: '#ffffff',
-              borderRadius: '24px',
-              boxShadow: '0 12px 48px rgba(0,0,0,0.15)',
-              border: '1px solid rgba(0,0,0,0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              pointerEvents: 'auto',
-              overflow: 'hidden',
-              zIndex: 20
-            }}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        .aivo-demo-root :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+        .aivo-demo-root * { box-sizing: border-box; }
+        .aivo-demo-root ::selection { background: var(--accent); color: #fff; }
+      `}</style>
+
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "28px 24px 64px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.06em", color: colors.inkSoft, textTransform: "uppercase" }}>
+            aivo · aivos · 20 estados
+          </span>
+          <button
+            type="button" onClick={() => setThemeMode(themeMode === "light" ? "dark" : "light")} aria-label="Alternar tema"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 10, border: `1px solid ${colors.line}`, background: colors.card, color: colors.ink, cursor: "pointer" }}
           >
-            {/* Header */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)', background: '#FAFAF8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34C759' }} />
-                <span style={{ fontWeight: 600, fontSize: '15px', color: '#1a1a1a' }}>Prof. AIVOS</span>
+            {themeMode === "light" ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <Aivo size={240} state={heroState} themeMode={themeMode} lookTarget={lookTarget} />
+          <div style={{ marginTop: 22, fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: colors.inkSoft, display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: colors.accent, display: "inline-block" }} />
+            state: {heroState} · {STATE_CAPTIONS[heroState]}
+          </div>
+        </div>
+
+        <h1 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 28, textAlign: "center", margin: "18px 0 8px", letterSpacing: "-0.01em" }}>
+          Aivo
+        </h1>
+        <p style={{ textAlign: "center", color: colors.inkSoft, fontSize: 15, lineHeight: 1.6, maxWidth: 460, margin: "0 auto 40px" }}>
+          Duas esferas, luz e sombra — sem contorno de linha. A sobrancelha é quase invisível em repouso e só aparece quando a expressão pede; a boca também é exceção, não regra.
+        </p>
+
+        <div style={{ height: 1, background: colors.line, margin: "0 0 32px" }} />
+
+        <section style={{ marginBottom: 44 }}>
+          <SectionLabel colors={colors}>fluxo — responder uma questão</SectionLabel>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
+            <button type="button" onClick={simulateCorrect} style={flowButtonStyle(colors, "solid")}>
+              <Check size={15} /> resposta correta
+            </button>
+            <button type="button" onClick={simulateIncorrect} style={flowButtonStyle(colors, "outline")}>
+              <X size={15} /> resposta incorreta
+            </button>
+            <button type="button" onClick={simulateVoice} style={flowButtonStyle(colors, "outline")}>
+              <Mic size={15} /> pergunta por voz
+            </button>
+          </div>
+        </section>
+
+        <section style={{ marginBottom: 44 }}>
+          <SectionLabel colors={colors}>testar cada estado</SectionLabel>
+          <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+            {STATE_GROUPS.map((group) => (
+              <div key={group.label} style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: colors.inkSoft, width: 68, flexShrink: 0 }}>{group.label}</span>
+                {group.states.map((s) => {
+                  const active = heroState === s;
+                  return (
+                    <button
+                      key={s} type="button" aria-pressed={active} onClick={() => selectState(s)}
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace", fontSize: 12, padding: "6px 12px", borderRadius: 999,
+                        border: `1px solid ${active ? colors.ink : colors.line}`,
+                        background: active ? colors.ink : colors.card, color: active ? colors.card : colors.ink, cursor: "pointer",
+                      }}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
               </div>
-              <button onClick={toggleChat} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6E6E73' }}>
-                <X size={18} />
-              </button>
-            </div>
-            
-            {/* Messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#FAFAF8' }}>
-              {chatHistory.map((msg, i) => (
-                <div key={i} style={{ 
-                  alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  background: msg.role === 'user' ? '#1B365D' : '#ffffff',
-                  color: msg.role === 'user' ? '#ffffff' : '#1a1a1a',
-                  padding: '12px 16px',
-                  borderRadius: msg.role === 'user' ? '16px 16px 0 16px' : '16px 16px 16px 0',
-                  maxWidth: '85%',
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                  border: msg.role === 'user' ? 'none' : '1px solid rgba(0,0,0,0.06)'
-                }}>
-                  {msg.content}
-                </div>
-              ))}
-              {isTyping && (
-                <div style={{ alignSelf: 'flex-start', background: '#ffffff', padding: '12px 16px', borderRadius: '16px 16px 16px 0', border: '1px solid rgba(0,0,0,0.06)' }}>
-                  <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ display: 'flex', gap: '4px' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6E6E73' }}/>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6E6E73' }}/>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6E6E73' }}/>
-                  </motion.div>
-                </div>
-              )}
-              <div ref={chatMessagesEndRef} />
-            </div>
+            ))}
+          </div>
+        </section>
 
-            {/* Input */}
-            <div style={{ padding: '16px', background: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px' }}>
-              <input
-                type="text"
-                placeholder="Pergunte sobre a tela ou estudos..."
-                value={inputText}
-                onChange={e => setInputText(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                style={{
-                  flex: 1, padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)',
-                  background: '#F4F4F5', fontSize: '14px', outline: 'none'
-                }}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputText.trim() || isTyping}
-                style={{
-                  background: '#1B365D', color: '#fff', border: 'none', borderRadius: '12px',
-                  width: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                  opacity: (!inputText.trim() || isTyping) ? 0.6 : 1
-                }}
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <section style={{ marginBottom: 44 }}>
+          <SectionLabel colors={colors}>exemplo em um formulário</SectionLabel>
+          <div style={{ marginTop: 14, background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 16, padding: 22 }}>
+            <label style={fieldLabelStyle(colors)}>Nome</label>
+            <input ref={nameRef} type="text" placeholder="Como podemos te chamar?" onFocus={() => focusField(nameRef, "focus")} onBlur={blurField} style={inputStyle(colors)} />
+            <label style={{ ...fieldLabelStyle(colors), marginTop: 16 }}>Senha</label>
+            <input ref={passRef} type="password" placeholder="••••••••" onFocus={() => focusField(passRef, "password")} onBlur={blurField} style={inputStyle(colors)} />
+          </div>
+        </section>
 
-      {/* Balão de fala antigo (Tour) */}
-      <AnimatePresence>
-        {tourState.active && !isChatOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            style={{
-              background: '#ffffff',
-              border: '1px solid rgba(0,0,0,0.12)',
-              borderRadius: '16px',
-              padding: '16px',
-              width: '280px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-              pointerEvents: 'auto',
-              position: 'absolute',
-              right: '100%',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              marginRight: '16px',
-              zIndex: 10,
-            }}
-          >
-            <p style={{ color: '#1a1a1a', fontSize: '14px', lineHeight: '1.5', marginBottom: '12px', fontWeight: 500 }}>
-              {tourState.message}
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={handleDismiss} style={{ background: '#1B365D', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                Entendi ›
-              </button>
+        <section>
+          <SectionLabel colors={colors}>em um chat</SectionLabel>
+          <div style={{ marginTop: 14, display: "flex", alignItems: "flex-end", gap: 10 }}>
+            <Aivo size={34} state="idle" themeMode={themeMode} />
+            <div style={{ background: colors.card, border: `1px solid ${colors.line}`, borderRadius: "4px 14px 14px 14px", padding: "10px 14px", fontSize: 14, color: colors.ink, maxWidth: 260 }}>
+              Precisa de ajuda para continuar?
             </div>
-            <div style={{ position: 'absolute', right: '-8px', top: '50%', marginTop: '-8px', width: '16px', height: '16px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.12)', borderBottom: 'none', borderLeft: 'none', transform: 'rotate(45deg)' }} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </section>
 
-      {/* Mascote */}
-      <motion.div
-        animate={isChatOpen 
-          ? { scale: 1, rotate: 0 } 
-          : tourState.active 
-            ? { scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] } 
-            : { scale: 1, rotate: 0 }
-        }
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-        onClick={toggleChat}
-      >
-        <Aivo
-          size={isChatOpen ? 160 : 100}
-          state={isChatOpen && isTyping ? 'thinking' : tourState.mascotState}
-          themeMode={themeMode}
-        />
-      </motion.div>
+        <section style={{ marginBottom: 44 }}>
+          <SectionLabel colors={colors}>tour / dica guiada</SectionLabel>
+          <div style={{ marginTop: 14, position: "relative" }}>
+            <button type="button" onClick={() => setTourVisible((v) => !v)} style={flowButtonStyle(colors, "outline")}>
+              {tourVisible ? "esconder" : "mostrar"} card de dica
+            </button>
+            {tourVisible && (
+              <div style={{ marginTop: 14 }}>
+                <AivoTourOverlay
+                  message="Clique aqui para revisar as questões que você errou nesta simulação."
+                  onDismiss={() => setTourVisible(false)}
+                  mascotState="focus"
+                  themeMode={themeMode}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
+        <p style={{ marginTop: 56, fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: colors.inkSoft, textAlign: "center", lineHeight: 1.7 }}>
+          {"<Aivo size={} state={} themeMode={} lookTarget={} />"}
+          <br />{"<AivoTourOverlay message={} onDismiss={} mascotState={} />"}
+          <br />accent é placeholder — trocar pelo hex oficial da AIVOS
+        </p>
+      </div>
     </div>
   );
 }
