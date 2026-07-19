@@ -1459,7 +1459,7 @@ const PROF_AIVOS_SYSTEM_PROMPT = `Você é o **Prof. AIVOS**, um professor virtu
 {studentData}`;
 
 async function handleProfAivosChat(body, env) {
-  const { message, history = [], studentData = '', currentEdital = null, currentConcurso = null } = body;
+  const { message, history = [], studentData = '', currentEdital = null, currentConcurso = null, screenContext = '' } = body;
 
   if (!message || !message.trim()) {
     return { reply: 'Olá! Como posso te ajudar com seus estudos hoje? 🎓' };
@@ -1499,6 +1499,9 @@ Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que pre
   }
   if (currentConcurso) {
     contextInfo += `\nCONCURSO ATUAL: ${currentConcurso}\n`;
+  }
+  if (screenContext) {
+    contextInfo += `\n[MUITO IMPORTANTE] O QUE O ALUNO ESTÁ VENDO AGORA NA TELA:\n${screenContext}\n\nResponda considerando este contexto se a dúvida do aluno for sobre a questão, texto ou interface exibida na tela.`;
   }
   
   // Construir histórico de mensagens

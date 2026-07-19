@@ -377,6 +377,13 @@ export default function AivoTourOverlay() {
     message: "",
     mascotState: "idle",
   });
+  
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const chatMessagesEndRef = useRef(null);
+
   // O mascote sempre usa tema claro para ter destaque, mesmo no dark mode
   const themeMode = "light";
 
@@ -413,6 +420,12 @@ export default function AivoTourOverlay() {
     return () => window.removeEventListener('aivo-engine-emotion', handleEmotionEvent);
   }, []);
 
+  useEffect(() => {
+    if (chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatHistory, isTyping, isChatOpen]);
+
   const handleDismiss = () => {
     setTourState(prev => ({ ...prev, mascotState: "success" }));
     setTimeout(() => {
@@ -420,21 +433,171 @@ export default function AivoTourOverlay() {
     }, 1200);
   };
 
+  const toggleChat = () => {
+    if (tourState.active) handleDismiss();
+    
+    // Se estava fechado e vai abrir, dá as boas vindas se history estiver vazio
+    if (!isChatOpen && chatHistory.length === 0) {
+      setChatHistory([
+        { role: 'assistant', content: 'Olá! Sou o Prof. AIVOS, seu mentor 360º. Como posso ajudar com os seus estudos ou com o que está vendo na tela agora?' }
+      ]);
+    }
+    setIsChatOpen(!isChatOpen);
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputText.trim()) return;
+    const userMsg = inputText.trim();
+    setInputText("");
+    
+    const newHistory = [...chatHistory, { role: 'user', content: userMsg }];
+    setChatHistory(newHistory);
+    setIsTyping(true);
+    setTourState(prev => ({ ...prev, mascotState: 'thinking' }));
+
+    try {
+      let screenContext = '';
+      if (typeof window !== 'undefined' && document.querySelector('main')) {
+         screenContext = document.querySelector('main').innerText.slice(0, 3000);
+      }
+      
+      const payload = {
+        mode: 'prof-aivos',
+        message: userMsg,
+        history: chatHistory, // pass previous history (does not include the new userMsg yet so worker should handle? No, worker handleProfAivosChat adds userMsg internally if we pass it in message. Wait, worker.js uses message. Let's pass the prior history).
+        screenContext: screenContext
+      };
+      
+      const res = await fetch(window.WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.reply || 'Houve um erro na comunicação.' }]);
+      setTourState(prev => ({ ...prev, mascotState: 'speaking' }));
+      setTimeout(() => setTourState(prev => ({ ...prev, mascotState: 'idle' })), 3000);
+    } catch (e) {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Desculpe, ocorreu um erro de conexão.' }]);
+      setTourState(prev => ({ ...prev, mascotState: 'error' }));
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   return (
     <div
       style={{
         position: 'relative',
-        width: '120px',
-        height: '120px',
+        width: isChatOpen ? '420px' : '120px',
+        height: isChatOpen ? '500px' : '120px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
         pointerEvents: 'none',
+        transition: 'width 0.4s ease, height 0.4s ease'
       }}
     >
-      {/* Balão de fala — só aparece quando tour está ativo */}
+      {/* Chat UI */}
       <AnimatePresence>
-        {tourState.active && (
+        {isChatOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+            style={{
+              position: 'absolute',
+              right: '160px',
+              bottom: '0',
+              width: '360px',
+              height: '500px',
+              background: '#ffffff',
+              borderRadius: '24px',
+              boxShadow: '0 12px 48px rgba(0,0,0,0.15)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              pointerEvents: 'auto',
+              overflow: 'hidden',
+              zIndex: 20
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)', background: '#FAFAF8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34C759' }} />
+                <span style={{ fontWeight: 600, fontSize: '15px', color: '#1a1a1a' }}>Prof. AIVOS</span>
+              </div>
+              <button onClick={toggleChat} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6E6E73' }}>
+                <X size={18} />
+              </button>
+            </div>
+            
+            {/* Messages */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#FAFAF8' }}>
+              {chatHistory.map((msg, i) => (
+                <div key={i} style={{ 
+                  alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                  background: msg.role === 'user' ? '#1B365D' : '#ffffff',
+                  color: msg.role === 'user' ? '#ffffff' : '#1a1a1a',
+                  padding: '12px 16px',
+                  borderRadius: msg.role === 'user' ? '16px 16px 0 16px' : '16px 16px 16px 0',
+                  maxWidth: '85%',
+                  fontSize: '14px',
+                  lineHeight: '1.5',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  border: msg.role === 'user' ? 'none' : '1px solid rgba(0,0,0,0.06)'
+                }}>
+                  {msg.content}
+                </div>
+              ))}
+              {isTyping && (
+                <div style={{ alignSelf: 'flex-start', background: '#ffffff', padding: '12px 16px', borderRadius: '16px 16px 16px 0', border: '1px solid rgba(0,0,0,0.06)' }}>
+                  <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ display: 'flex', gap: '4px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6E6E73' }}/>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6E6E73' }}/>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6E6E73' }}/>
+                  </motion.div>
+                </div>
+              )}
+              <div ref={chatMessagesEndRef} />
+            </div>
+
+            {/* Input */}
+            <div style={{ padding: '16px', background: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px' }}>
+              <input
+                type="text"
+                placeholder="Pergunte sobre a tela ou estudos..."
+                value={inputText}
+                onChange={e => setInputText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                style={{
+                  flex: 1, padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)',
+                  background: '#F4F4F5', fontSize: '14px', outline: 'none'
+                }}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputText.trim() || isTyping}
+                style={{
+                  background: '#1B365D', color: '#fff', border: 'none', borderRadius: '12px',
+                  width: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  opacity: (!inputText.trim() || isTyping) ? 0.6 : 1
+                }}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Balão de fala antigo (Tour) */}
+      <AnimatePresence>
+        {tourState.active && !isChatOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -460,64 +623,30 @@ export default function AivoTourOverlay() {
               {tourState.message}
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                onClick={handleDismiss}
-                style={{
-                  background: '#1B365D',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 16px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
+              <button onClick={handleDismiss} style={{ background: '#1B365D', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 Entendi ›
               </button>
             </div>
-            {/* Seta apontando para o mascote (à direita do balão) */}
-            <div style={{
-              position: 'absolute',
-              right: '-8px',
-              top: '50%',
-              marginTop: '-8px',
-              width: '16px',
-              height: '16px',
-              background: '#ffffff',
-              border: '1px solid rgba(0,0,0,0.12)',
-              borderBottom: 'none',
-              borderLeft: 'none',
-              transform: 'rotate(45deg)',
-            }} />
+            <div style={{ position: 'absolute', right: '-8px', top: '50%', marginTop: '-8px', width: '16px', height: '16px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.12)', borderBottom: 'none', borderLeft: 'none', transform: 'rotate(45deg)' }} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Mascote — sempre visível */}
+      {/* Mascote */}
       <motion.div
-        animate={tourState.active
-          ? { scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }
-          : { scale: 1, rotate: 0 }
+        animate={isChatOpen 
+          ? { scale: 1, rotate: 0 } 
+          : tourState.active 
+            ? { scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] } 
+            : { scale: 1, rotate: 0 }
         }
         transition={{ duration: 0.6, ease: 'easeOut' }}
         style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-        onClick={() => {
-          if (tourState.active) {
-            handleDismiss();
-          }
-          // Abrir o chat / IA
-          if (typeof window !== 'undefined' && window.toggleDrawer) {
-            window.toggleDrawer(true);
-          }
-        }}
+        onClick={toggleChat}
       >
         <Aivo
-          size={100}
-          state={tourState.mascotState}
+          size={isChatOpen ? 160 : 100}
+          state={isChatOpen && isTyping ? 'thinking' : tourState.mascotState}
           themeMode={themeMode}
         />
       </motion.div>
