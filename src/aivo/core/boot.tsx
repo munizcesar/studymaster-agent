@@ -123,19 +123,18 @@ function boot(): void {
   if (rootCreated) return; // Born once
 
   const engine = AivoEngine.getInstance();
-  const presence = PresenceManager.getInstance();
   const logger = AivoLogger.getInstance();
   const bus = getAivoBus();
 
-  // 1. Init presence (creates #aivo-presence if needed)
-  if (!presence.init()) {
-    // Retry on DOMContentLoaded — re-executes full boot
-    document.addEventListener('DOMContentLoaded', () => boot());
-    return;
+  // 1. Create a minimal hidden host div directly on body (bypasses PresenceManager opacity:0)
+  let container = document.getElementById('aivo-react-host') as HTMLElement | null;
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'aivo-react-host';
+    container.style.cssText = 'position:fixed;width:0;height:0;overflow:visible;pointer-events:none;z-index:0;top:0;left:0;';
+    document.body.appendChild(container);
   }
 
-  const container = presence.getContainer();
-  if (!container) return;
 
   // 2. Create single React root (never again)
   const root = createRoot(container);
