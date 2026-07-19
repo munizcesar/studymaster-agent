@@ -19,13 +19,93 @@
  *   Ready — alive forever
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import AivoTourOverlay, { Aivo } from '../../aivo-mascot';
+import { Aivo } from '../../aivo-mascot';
 import { AivoEngine } from './engine';
 import { PresenceManager } from './presence';
 import { AivoLogger } from './debug';
 import { getAivoBus } from './event-bus';
+
+/**
+ * Componente flutuante do mascote — usa createPortal para sair
+ * de QUALQUER hierarquia DOM e viver direto no document.body.
+ */
+function AivoFloatingAvatar({ engine }: { engine: any }) {
+  const [emotion, setEmotion] = useState<string>('idle');
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleEmotion = (e: any) => {
+      if (e?.detail?.emotion) setEmotion(e.detail.emotion);
+    };
+    window.addEventListener('aivo-engine-emotion', handleEmotion);
+
+    const handleTour = (e: any) => {
+      if (e?.detail?.message) setMessage(e.detail.message);
+    };
+    window.addEventListener('aivo-tour', handleTour);
+
+    return () => {
+      window.removeEventListener('aivo-engine-emotion', handleEmotion);
+      window.removeEventListener('aivo-tour', handleTour);
+    };
+  }, []);
+
+  const content = (
+    <div
+      style={{
+        position: 'fixed',
+        right: 25,
+        bottom: 25,
+        zIndex: 2147483647,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: 10,
+        pointerEvents: 'auto',
+      }}
+    >
+      {message && (
+        <div
+          style={{
+            background: '#1B365D',
+            color: '#F3F4F6',
+            padding: '14px 16px',
+            borderRadius: 16,
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.35)',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14,
+            lineHeight: 1.5,
+            maxWidth: 260,
+          }}
+        >
+          {message}
+          <button
+            onClick={() => setMessage(null)}
+            style={{
+              display: 'block',
+              marginTop: 10,
+              background: 'none',
+              border: 'none',
+              color: '#9CA3AF',
+              cursor: 'pointer',
+              fontSize: 13,
+              padding: 0,
+            }}
+          >
+            Entendi &gt;
+          </button>
+        </div>
+      )}
+      <Aivo size={64} state={emotion as any} themeMode="dark" />
+    </div>
+  );
+
+  return ReactDOM.createPortal(content, document.body) as any;
+}
 
 let rootCreated = false;
 
@@ -51,9 +131,9 @@ function boot(): void {
   const root = createRoot(container);
   rootCreated = true;
 
-  // 3. Eager render
+  // 3. Eager render — portal-based floating avatar
   function render() {
-    root.render(<AivoTourOverlay />);
+    root.render(<AivoFloatingAvatar engine={engine} />);
   }
   render();
 
