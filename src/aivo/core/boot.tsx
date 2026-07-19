@@ -73,9 +73,23 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
       // Fecha o balao se tiver mensagem
       setMessage(null);
       setShowBubble(false);
-    } else {
-      // Alterna o balão de fala (abre se fechado, fecha se aberto)
-      setShowBubble(prev => !prev);
+      return;
+    } 
+
+    // Tenta abrir o chat lateral do Aivo (Redbot)
+    if ((window as any).coachRedbot?.toggleSidebar) {
+      (window as any).coachRedbot.toggleSidebar();
+    }
+
+    // Tenta focar no chat do Professor (Mentor)
+    if ((window as any).profAivosMentor?.openChat) {
+      (window as any).profAivosMentor.openChat();
+    }
+
+    // Tenta abrir o Drawer Principal (Side Drawer)
+    const drawerToggle = document.querySelector('[data-drawer-toggle]') as HTMLElement;
+    if (drawerToggle) {
+      drawerToggle.click();
     }
   };
 
