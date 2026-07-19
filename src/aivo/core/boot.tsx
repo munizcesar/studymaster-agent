@@ -79,18 +79,18 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
     // Tenta abrir o chat lateral do Aivo (Redbot)
     if ((window as any).coachRedbot?.toggleSidebar) {
       (window as any).coachRedbot.toggleSidebar();
+      return;
     }
 
     // Tenta focar no chat do Professor (Mentor)
     if ((window as any).profAivosMentor?.openChat) {
       (window as any).profAivosMentor.openChat();
+      return;
     }
 
-    // Tenta abrir o Drawer Principal (Side Drawer)
-    const drawerToggle = document.querySelector('[data-drawer-toggle]') as HTMLElement;
-    if (drawerToggle) {
-      drawerToggle.click();
-    }
+    // Se nenhum chat estiver disponível na view atual (ex: tela de questões),
+    // apenas alterna o balão de fala (comportamento padrão original)
+    setShowBubble(prev => !prev);
   };
 
   // SEMPRE renderiza o avatar oficial — nunca troca por icone generico
