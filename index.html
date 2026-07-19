@@ -68,6 +68,108 @@
       pointer-events: auto;
     }
 
+    /* ── AIVO FLOATING PORTAL ── */
+    .mascot-wrapper {
+      position: fixed !important;
+      right: 25px !important;
+      bottom: 25px !important;
+      left: auto !important;
+      top: auto !important;
+      z-index: 2147483647 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-end !important;
+      gap: 10px !important;
+      pointer-events: auto !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+    .mascot-avatar {
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      user-select: none;
+      transition: transform 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mascot-avatar:hover { transform: scale(1.08); }
+    .speech-bubble {
+      position: relative !important;
+      max-width: 260px !important;
+      pointer-events: auto !important;
+      background: #1B365D;
+      color: #F3F4F6;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.25);
+      font-family: Inter, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      animation: aivoBubbleIn 0.25s ease both;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      right: 18px;
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #1B365D;
+    }
+    @keyframes aivoBubbleIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .btn-entendi {
+      display: block;
+      margin-top: 10px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #9CA3AF;
+      transition: color 0.2s ease;
+      pointer-events: auto !important;
+    }
+    .btn-entendi:hover { color: #FFFFFF; }
+    .aivo-recall-fab {
+      position: fixed !important;
+      right: 25px !important;
+      bottom: 25px !important;
+      z-index: 2147483647 !important;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      border: 2px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: aivoFabPulse 2.5s ease-in-out infinite;
+      transition: transform 0.2s ease;
+      pointer-events: auto !important;
+      font-size: 22px;
+      color: white;
+      line-height: 1;
+      box-shadow: 0 8px 24px rgba(79,70,229,0.5);
+    }
+    .aivo-recall-fab:hover { transform: scale(1.12); }
+    @keyframes aivoFabPulse {
+      0%,100% { box-shadow: 0 8px 24px rgba(79,70,229,0.5), 0 0 0 0 rgba(99,102,241,0.4); }
+      50%     { box-shadow: 0 8px 24px rgba(79,70,229,0.5), 0 0 0 10px rgba(99,102,241,0); }
+    }
+    @media (max-width: 768px) {
+      .mascot-wrapper, .aivo-recall-fab { right: 15px !important; bottom: 15px !important; }
+      .speech-bubble { max-width: 200px !important; font-size: 13px; }
+    }
+
     :root {
       /* ── InSpotGO Color Palette ── */
       --color-bg:             #ffffff;
