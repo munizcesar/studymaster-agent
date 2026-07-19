@@ -6770,6 +6770,64 @@ function recordSessionToHistory(entry) {
   } catch {}
 }
 
+
+function saveActiveSession() {
+  const essentialState = {
+    generatedQuestions: state.generatedQuestions,
+    answered: state.answered,
+    correct: state.correct,
+    answerResults: state.answerResults,
+    sessionHistory: state.sessionHistory,
+    qNavState: qNavState,
+    difficulty: state.difficulty,
+    alternativas: state.alternativas,
+    idioma: state.idioma,
+    mode: state.mode,
+    subject: state.subject,
+    bancaFoco: state.bancaFoco,
+    concurso: state.concurso
+  };
+  safeStorageSet('sm_active_session', JSON.stringify(essentialState));
+}
+
+function clearActiveSession() {
+  localStorage.removeItem('sm_active_session');
+}
+
+function restoreActiveSession() {
+  const saved = safeStorageGet('sm_active_session');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.generatedQuestions && parsed.generatedQuestions.length > 0 && parsed.answered < parsed.generatedQuestions.length) {
+        state.generatedQuestions = parsed.generatedQuestions;
+        state.answered = parsed.answered;
+        state.correct = parsed.correct || 0;
+        state.answerResults = parsed.answerResults || [];
+        state.sessionHistory = parsed.sessionHistory || { answers: [], correct: 0, wrong: 0 };
+        
+        state.difficulty = parsed.difficulty || 'medium';
+        state.alternativas = parsed.alternativas || 5;
+        state.idioma = parsed.idioma || 'pt-BR';
+        state.mode = parsed.mode;
+        state.subject = parsed.subject;
+        state.bancaFoco = parsed.bancaFoco;
+        state.concurso = parsed.concurso;
+
+        if (parsed.qNavState) {
+          qNavState = parsed.qNavState;
+        } else {
+          qNavState = { currentIdx: parsed.answered, selected: new Array(parsed.generatedQuestions.length).fill(null), results: parsed.answerResults };
+        }
+        return true;
+      }
+    } catch (e) {
+      console.error('Error restoring active session', e);
+    }
+  }
+  return false;
+}
+
 function safeStorageGet(key) {
   try {
     return localStorage.getItem(key);
@@ -8486,6 +8544,7 @@ function validateQuestionSchema(q) {
 window._celebrationTimer = null;
 
 function renderQuestions(questions) {
+  saveActiveSession();
   const container = document.getElementById('questions-container');
   const chips     = document.getElementById('summary-chips');
   const sessionResult = document.getElementById('session-result');
@@ -8518,6 +8577,7 @@ function renderQuestions(questions) {
   retryWrongBtn.classList.add('hidden');
   updateScore();
 
+  saveActiveSession();
   const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto') ? state.bancaFoco : state.bancaInferida;
   const idiomaLabel = { 'pt-BR': 'Português (BR)', 'en': 'English (EN)', 'es': 'Español (ES)' };
   chips.innerHTML = `
@@ -8649,6 +8709,7 @@ function handleDesktopAnswer(questions, idx, selectedKey) {
   if (isCorrect) incrementCorrectToday(); else incrementWrongToday();
   updateScore();
 
+  saveActiveSession();
   // Atualizar apenas a questão respondida
   const list = document.getElementById('questions-list');
   const opts = list.querySelectorAll(`[data-question-idx="${idx}"].option-btn`);
@@ -8766,6 +8827,7 @@ function handleSingleAnswer(questions, idx, selectedKey) {
   if (isCorrect) incrementCorrectToday(); else incrementWrongToday();
   updateScore();
 
+  saveActiveSession();
   // Atualiza UI sem re-renderizar o card inteiro
   const list = document.getElementById('questions-list');
   const opts = list.querySelectorAll('.option-btn');
@@ -8788,6 +8850,7 @@ function handleSingleAnswer(questions, idx, selectedKey) {
 }
 
 function showSessionResult() {
+  clearActiveSession();
   const resultBox = document.getElementById('session-result');
   const stats = document.getElementById('session-stats');
   const summary = document.getElementById('session-summary');
@@ -9456,7 +9519,7 @@ window.addEventListener('resize', () => {
           <div class="rs-section-title"><i aria-hidden="true" data-lucide="clock" width="14" height="14"></i> Sessões Recentes</div>
         </div>
         <div class="drawer-history-list" role="dialog" aria-modal="true" id="drawerHistoryList">
-          <div class="drawer-empty" role="dialog" aria-modal="true">Nenhuma sessão ainda. <br>Resolva questões para ver seu histórico.</div>
+          <div class="drawer-empty">Nenhuma sessão ainda. <br>Resolva questões para ver seu histórico.</div>
         </div>
       </div>
       <!-- Atalhos (4 modos reais) -->
@@ -9551,13 +9614,13 @@ window.addEventListener('resize', () => {
               list.innerHTML = historyArr.slice(-5).reverse().map(function(s) {
                 pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
                 cls = pct >= 50 ? 'good' : 'bad';
-                return '<div class="drawer-history-item" role="dialog" aria-modal="true">' +
-                  '<div class="drawer-history-score ' + cls + '" role="dialog" aria-modal="true">' + pct + '%</div>' +
-                  '<div class="drawer-history-info" role="dialog" aria-modal="true"><strong>' + (s.label || s.mode || 'Estudo') + '</strong><span>' + s.total + ' questões · ' + s.correct + ' acertos</span></div>' +
-                  '<div class="drawer-history-time" role="dialog" aria-modal="true">' + (s.date || '') + '</div></div>';
+                return '<div class="drawer-history-item">' +
+                  '<div class="drawer-history-score ' + cls + '">' + pct + '%</div>' +
+                  '<div class="drawer-history-info"><strong>' + (s.label || s.mode || 'Estudo') + '</strong><span>' + s.total + ' questões · ' + s.correct + ' acertos</span></div>' +
+                  '<div class="drawer-history-time">' + (s.date || '') + '</div></div>';
               }).join('');
             } else {
-              list.innerHTML = '<div class="drawer-empty" role="dialog" aria-modal="true">Nenhuma sessão ainda.<br>Resolva questões para ver seu histórico.</div>';
+              list.innerHTML = '<div class="drawer-empty">Nenhuma sessão ainda.<br>Resolva questões para ver seu histórico.</div>';
             }
           }
         } catch(e) {}
@@ -9567,7 +9630,7 @@ window.addEventListener('resize', () => {
           mentorEl = document.getElementById('drawerMentorContent');
           if (mentorEl) {
             if (total === 0 && streak === 0) {
-              mentorEl.innerHTML = '<div class="drawer-empty" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="sparkles" width="24" height="24" style="display:inline-block;opacity:0.3;margin-bottom:var(--space-2)"></i><br>Resolva questões para receber dicas personalizadas do Mentor IA.</div>';
+              mentorEl.innerHTML = '<div class="drawer-empty"><i aria-hidden="true" data-lucide="sparkles" width="24" height="24" style="display:inline-block;opacity:0.3;margin-bottom:var(--space-2)"></i><br>Resolva questões para receber dicas personalizadas do Mentor IA.</div>';
             } else if (total === 0 && streak > 0) {
               mentorEl.innerHTML = buildMentorTip('sparkles', 'Mantenha o ritmo!', 'Você está há ' + streak + ' dia' + (streak > 1 ? 's' : '') + ' estudando. A consistência é o segredo da aprovação. Que tal resolver algumas questões hoje?');
             } else if (acc < 50) {
@@ -9583,7 +9646,7 @@ window.addEventListener('resize', () => {
       }
 
       function buildMentorTip(icon, title, body) {
-        return '<div class="drawer-mentor-tip" role="dialog" aria-modal="true">' +
+        return '<div class="drawer-mentor-tip">' +
           '<div class="mentor-head"><span class="mentor-icon"><i aria-hidden="true" data-lucide="' + icon + '" width="14" height="14"></i></span><strong>' + title + '</strong></div>' +
           body + '</div>';
       }
