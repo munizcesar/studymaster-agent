@@ -21,7 +21,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Aivo } from '../../aivo-mascot';
+import AivoTourOverlay, { Aivo } from '../../aivo-mascot';
 import { AivoEngine } from './engine';
 import { PresenceManager } from './presence';
 import { AivoLogger } from './debug';
@@ -55,7 +55,12 @@ function boot(): void {
   function render() {
     const html = document.documentElement;
     const theme = html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    root.render(<Aivo size={120} state="idle" themeMode={theme} />);
+    root.render(
+      <>
+        <Aivo size={120} state="idle" themeMode={theme} />
+        <AivoTourOverlay />
+      </>
+    );
   }
   render();
 
@@ -66,7 +71,12 @@ function boot(): void {
   // 5. Re-render on emotion changes
   engine.events.on('emotion:change', (data) => {
     const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    root.render(<Aivo size={120} state={(data?.emotion as any) || 'idle'} themeMode={theme} />);
+    root.render(
+      <>
+        <Aivo size={120} state={(data?.emotion as any) || 'idle'} themeMode={theme} />
+        <AivoTourOverlay />
+      </>
+    );
     (window as any).__AIVO_ROOT_EXISTS__ = true;
   });
 
