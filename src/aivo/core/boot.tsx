@@ -53,54 +53,31 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
     };
   }, []);
 
+  const handleToggle = () => setMessage(null);
+
   const content = (
-    <div
-      style={{
-        position: 'fixed',
-        right: 25,
-        bottom: 25,
-        zIndex: 2147483647,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: 10,
-        pointerEvents: 'auto',
-      }}
-    >
+    <div className="mascot-wrapper">
       {message && (
-        <div
-          style={{
-            background: '#1B365D',
-            color: '#F3F4F6',
-            padding: '14px 16px',
-            borderRadius: 16,
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.35)',
-            fontFamily: "'Inter', sans-serif",
-            fontSize: 14,
-            lineHeight: 1.5,
-            maxWidth: 260,
-          }}
-        >
+        <div className="speech-bubble">
           {message}
-          <button
-            onClick={() => setMessage(null)}
-            style={{
-              display: 'block',
-              marginTop: 10,
-              background: 'none',
-              border: 'none',
-              color: '#9CA3AF',
-              cursor: 'pointer',
-              fontSize: 13,
-              padding: 0,
-            }}
-          >
+          <button onClick={handleToggle} className="btn-entendi">
             Entendi &gt;
           </button>
         </div>
       )}
-      <Aivo size={64} state={emotion as any} themeMode="dark" />
+      <div 
+        className="mascot-avatar" 
+        onClick={() => {
+          handleToggle();
+          // Fallback para abrir o chat se o usuário clicar no avatar quando não há balão
+          if (!message && (window as any).AivosPresence?.toggleChat) {
+            (window as any).AivosPresence.toggleChat();
+          }
+        }}
+        style={{ cursor: 'pointer' }}
+      >
+        <Aivo size={64} state={emotion as any} themeMode="dark" />
+      </div>
     </div>
   );
 
