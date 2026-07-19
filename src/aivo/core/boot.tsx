@@ -67,7 +67,13 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
   };
 
   const handleAvatarClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    if (e.nativeEvent) {
+      e.nativeEvent.preventDefault();
+      e.nativeEvent.stopPropagation();
+    }
+
     console.log('[AIVO] Avatar clicado');
     if (message) {
       // Fecha o balao se tiver mensagem
@@ -76,16 +82,22 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
       return;
     } 
 
-    // Tenta abrir o chat lateral do Aivo (Redbot)
-    if ((window as any).coachRedbot?.toggleSidebar) {
-      (window as any).coachRedbot.toggleSidebar();
-      return;
+    // Tenta abrir o chat lateral do Aivo (Redbot) somente se ele estiver ativo/visível na view
+    const redbotToggle = document.querySelector('.redbot-sidebar-toggle') as HTMLElement;
+    if (redbotToggle && redbotToggle.offsetParent !== null) {
+      if ((window as any).coachRedbot?.toggleSidebar) {
+        (window as any).coachRedbot.toggleSidebar();
+        return;
+      }
     }
 
-    // Tenta focar no chat do Professor (Mentor)
-    if ((window as any).profAivosMentor?.openChat) {
-      (window as any).profAivosMentor.openChat();
-      return;
+    // Tenta focar no chat do Professor (Mentor) somente se o card estiver ativo/visível
+    const mentorCard = document.querySelector('.prof-aivos-mentor-card') as HTMLElement;
+    if (mentorCard && mentorCard.offsetParent !== null) {
+      if ((window as any).profAivosMentor?.openChat) {
+        (window as any).profAivosMentor.openChat();
+        return;
+      }
     }
 
     // Se nenhum chat estiver disponível na view atual (ex: tela de questões),
