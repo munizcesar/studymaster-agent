@@ -1892,6 +1892,50 @@ var worker_default = {
         }
       }
 
+      
+      if (url.pathname === '/api/editais/ingest' && request.method === 'POST') {
+        try {
+          const formData = await request.formData();
+          const file = formData.get('pdf');
+          const metadadosStr = formData.get('metadados');
+          
+          if (!file || !metadadosStr) {
+             return new Response(JSON.stringify({ success: false, error: "Arquivo ou metadados faltando" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const metadados = JSON.parse(metadadosStr);
+          const pdfKey = `editais/${crypto.randomUUID()}-${file.name || 'document.pdf'}`;
+          
+          // Upload para o R2 (env.PDF_STORAGE)
+          if (env.PDF_STORAGE) {
+             await env.PDF_STORAGE.put(pdfKey, file.stream(), {
+               httpMetadata: { contentType: file.type || 'application/pdf' }
+             });
+          }
+
+          // Salvar metadados no DB_EDITAIS (D1)
+          if (env.DB_EDITAIS) {
+             await env.DB_EDITAIS.prepare(
+               "INSERT INTO editais (id, orgao, cargo, banca, salario, data_prova, texto_integral, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+             ).bind(
+               crypto.randomUUID(),
+               metadados.orgao || "",
+               metadados.cargo || "",
+               metadados.banca || "",
+               metadados.salario || "",
+               metadados.data_prova || "",
+               metadados.texto_integral || "",
+               pdfKey
+             ).run();
+          }
+
+          return new Response(JSON.stringify({ success: true, message: "Upload e ingestão concluídos", pdfKey }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        } catch (err) {
+          console.error("/api/editais/ingest Error:", err);
+          return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
       if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
       try {
         const payload = await request.json();
