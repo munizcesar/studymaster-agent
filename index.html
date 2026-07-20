@@ -7358,8 +7358,8 @@ function init() {
       // Mascot click fix (Bypass react stopPropagation e ajustes de P2)
       document.addEventListener('click', (e) => {
         if (e.target.closest('.mascot-avatar') || e.target.closest('#aivo-presence')) {
-          if (typeof toggleDrawer === 'function') {
-            toggleDrawer();
+          if (window.toggleDrawer) {
+            window.toggleDrawer();
           }
           const avatar = document.querySelector('.mascot-avatar');
           if (avatar) {
@@ -9797,6 +9797,7 @@ window.addEventListener('resize', () => {
         document.body.style.overflow = nextState ? 'hidden' : '';
         if (nextState) updateDrawerContent();
       }
+      window.toggleDrawer = toggleDrawer;
 
       function updateDrawerContent() {
         var el, total, correct, wrong, acc, streak, historyArr, list, mentorEl, pct, cls, accColor;
