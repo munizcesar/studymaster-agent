@@ -7358,9 +7358,45 @@ function init() {
       // Mascot click fix (Bypass react stopPropagation e ajustes de P2)
       document.addEventListener('click', (e) => {
         if (e.target.closest('.mascot-avatar') || e.target.closest('#aivo-presence')) {
+          
+          // 1. Force open sideDrawer Mentor tab
           if (window.toggleDrawer) {
-            window.toggleDrawer();
+            window.toggleDrawer(true);
+            const mentorTab = document.querySelector('[data-drawer-tab="mentor"]');
+            if (mentorTab) mentorTab.click();
           }
+
+          // 2. Force open Coach Redbot
+          if (window.coachRedbot && typeof window.coachRedbot.toggleSidebar === 'function') {
+            window.coachRedbot.toggleSidebar();
+          }
+
+          // 3. Force open Prof Aivos Mentor
+          if (window.initProfAivosMentor && !window.profAivosMentor) {
+            window.initProfAivosMentor();
+          }
+          if (window.profAivosMentor && typeof window.profAivosMentor.openChat === 'function') {
+            window.profAivosMentor.openChat();
+          }
+
+          // 4. BRUTE FORCE VISIBILITY via CSS to guarantee it shows up
+          ['sideDrawer', 'prof-aivos-chat-area', 'coach-redbot-area'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.style.setProperty('display', 'flex', 'important');
+              el.style.setProperty('z-index', '9999999', 'important');
+              el.style.setProperty('visibility', 'visible', 'important');
+              el.style.setProperty('opacity', '1', 'important');
+            }
+          });
+          document.querySelectorAll('.redbot-sidebar').forEach(el => {
+            el.classList.add('open');
+            el.style.setProperty('display', 'flex', 'important');
+            el.style.setProperty('z-index', '9999999', 'important');
+            el.style.setProperty('visibility', 'visible', 'important');
+          });
+
+          // Animate the mascot
           const avatar = document.querySelector('.mascot-avatar');
           if (avatar) {
              avatar.classList.add('chat-open');
