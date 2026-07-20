@@ -10343,7 +10343,8 @@ window.nextFlashcard = (status) => {
 
        try {
           const WORKER_URL = window.WORKER_URL || 'https://studymaster-worker.cesarmuniz0816.workers.dev';
-          const res = await fetch(`${WORKER_URL}/api/editais/search`, {
+          console.log('Enviando payload:', JSON.stringify({ query: query.trim() }));
+            const res = await fetch(`${WORKER_URL}/api/editais/search`, {
              method: 'POST',
              headers: { 'Content-Type': 'application/json' },
              body: JSON.stringify({ query: query.trim() })
