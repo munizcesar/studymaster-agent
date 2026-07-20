@@ -1764,7 +1764,135 @@ var worker_default = {
     }
 
     const url = new URL(request.url);
-    if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
+    
+      if (url.pathname === '/api/editais/search' && request.method === 'POST') {
+        try {
+          const payload = await request.json();
+          const { query = "", filters = {} } = payload;
+          
+          let orgaoSearchTerm = query.trim();
+          let sqlQuery = "SELECT id, orgao, cargo, banca, salario, data_prova, texto_integral FROM editais WHERE 1=1";
+          const queryParams = [];
+          
+          // Passo A: Tratar aliases no D1
+          if (orgaoSearchTerm && env.DB_EDITAIS) {
+            try {
+               const aliasResult = await env.DB_EDITAIS.prepare("SELECT orgao_real FROM aliases WHERE alias LIKE ? LIMIT 1").bind('%' + orgaoSearchTerm + '%').first();
+               if (aliasResult && aliasResult.orgao_real) {
+                 orgaoSearchTerm = aliasResult.orgao_real;
+               }
+            } catch(e) {
+               console.error("Erro ao buscar alias:", e);
+            }
+          }
+
+          if (orgaoSearchTerm) {
+            sqlQuery += " AND (orgao LIKE ? OR cargo LIKE ?)";
+            queryParams.push('%' + orgaoSearchTerm + '%', '%' + orgaoSearchTerm + '%');
+          }
+          
+          if (filters.estado) {
+            sqlQuery += " AND estado = ?";
+            queryParams.push(filters.estado);
+          }
+          if (filters.banca) {
+            sqlQuery += " AND banca = ?";
+            queryParams.push(filters.banca);
+          }
+          if (filters.nivel) {
+            sqlQuery += " AND nivel = ?";
+            queryParams.push(filters.nivel);
+          }
+          if (filters.cargo) {
+            sqlQuery += " AND cargo LIKE ?";
+            queryParams.push('%' + filters.cargo + '%');
+          }
+
+          let exactMatches = [];
+          if (env.DB_EDITAIS) {
+              try {
+                  const sqlResults = await env.DB_EDITAIS.prepare(sqlQuery).bind(...queryParams).all();
+                  exactMatches = sqlResults.results || [];
+              } catch (e) {
+                  console.error("Erro no DB_EDITAIS:", e);
+              }
+          }
+
+          // Passo B: Vectorize (Semantic Search)
+          let semanticMatches = [];
+          if (query && env.AI && env.VECTORIZE_EDITAIS) {
+            try {
+              const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: [query] });
+              if (embeddingResult && embeddingResult.data && embeddingResult.data[0]) {
+                 const vecQuery = await env.VECTORIZE_EDITAIS.query(embeddingResult.data[0], { topK: 10, returnMetadata: 'all' });
+                 semanticMatches = vecQuery.matches || [];
+              }
+            } catch(e) {
+              console.error("Erro no Vectorize:", e);
+            }
+          }
+
+          // Passo C: Fusão
+          const finalResultsMap = new Map();
+
+          for (const row of exactMatches) {
+             finalResultsMap.set(row.id, {
+                id: row.id,
+                orgao: row.orgao,
+                cargo: row.cargo,
+                banca: row.banca,
+                salario: row.salario,
+                data_prova: row.data_prova,
+                snippet: (row.texto_integral || "").substring(0, 300) + "...",
+                score: 1.0,
+                source: "exact"
+             });
+          }
+
+          for (const match of semanticMatches) {
+             if (finalResultsMap.has(match.id)) {
+                const existing = finalResultsMap.get(match.id);
+                existing.score += match.score;
+                existing.source = "hybrid";
+             } else {
+                const meta = match.metadata || {};
+                // Verifica filtros para o Vectorize também
+                let keep = true;
+                if (filters.estado && meta.estado && meta.estado !== filters.estado) keep = false;
+                if (filters.banca && meta.banca && meta.banca !== filters.banca) keep = false;
+                if (filters.nivel && meta.nivel && meta.nivel !== filters.nivel) keep = false;
+                
+                if (keep) {
+                    finalResultsMap.set(match.id, {
+                      id: meta.id || match.id,
+                      orgao: meta.orgao || "Desconhecido",
+                      cargo: meta.cargo || "Desconhecido",
+                      banca: meta.banca || "Desconhecida",
+                      salario: meta.salario || "",
+                      data_prova: meta.data_prova || "",
+                      snippet: (meta.snippet || meta.texto_integral || "").substring(0, 300) + "...",
+                      score: match.score,
+                      source: "semantic"
+                    });
+                }
+             }
+          }
+
+          const mergedResults = Array.from(finalResultsMap.values()).sort((a, b) => b.score - a.score);
+
+          return new Response(JSON.stringify({
+            success: true,
+            query: orgaoSearchTerm,
+            results: mergedResults
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+        } catch (err) {
+          console.error("/api/editais/search Error:", err);
+          return new Response(JSON.stringify({ success: false, error: err.message || "Erro interno na busca" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
+      if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
       try {
         const payload = await request.json();
         // payload should be an array of questions: [{id, statement, options, banca, subject, exam, difficulty, correctAnswer, year}]
