@@ -198,19 +198,16 @@ class ProfAivosMentor {
 
     // 🔧 API pública para o avatar flutuante abrir o chat
     this.openChat = () => {
-      // Se goToStep existir (navegação do wizard), usa ele para ir ao Step 3
-      if (typeof window.goToStep === 'function') {
-        window.goToStep(3);
-        return;
-      }
-      // Fallback: o container já está na página — rola até ele
       const area = document.getElementById('prof-aivos-chat-area');
       if (area) {
         area.style.display = 'block';
+        area.style.position = 'fixed';
+        area.style.bottom = '90px';
+        area.style.right = '20px';
+        area.style.zIndex = '999999';
         area.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
-      // Último recurso: tenta renderizar dentro do dashboard
       this.renderChatUI();
     };
 
