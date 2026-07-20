@@ -1893,6 +1893,45 @@ var worker_default = {
       }
 
       
+      
+      
+      if (url.pathname === '/api/editais/extract-metadata' && request.method === 'POST') {
+        try {
+          const payload = await request.json();
+          const { text } = payload;
+          if (!text) throw new Error("Texto não fornecido");
+          
+          if (!env.AI) throw new Error("Cloudflare AI não disponível");
+          
+          const prompt = `Você é um assistente especialista em analisar editais de concursos públicos. 
+Extraia as seguintes informações do texto do edital abaixo e retorne APENAS um JSON válido, sem markdown, sem explicações.
+Chaves do JSON: orgao, cargo, banca, ano, tipo (concurso, processo seletivo), estado, salario, data_prova, escolaridade.
+
+Texto do Edital:
+${text.substring(0, 8000)}`;
+
+          const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+             messages: [
+                { role: "system", content: "Retorne apenas JSON válido e nada mais." },
+                { role: "user", content: prompt }
+             ]
+          });
+          
+          let resultText = response.response || "";
+          resultText = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
+          
+          try {
+             const metadata = JSON.parse(resultText);
+             return new Response(JSON.stringify({ success: true, metadata }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          } catch(e) {
+             return new Response(JSON.stringify({ success: false, error: "Falha ao dar parse no JSON da IA", raw: resultText }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        } catch (err) {
+          console.error("/api/editais/extract-metadata Error:", err);
+          return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
       if (url.pathname === '/api/editais/ingest' && request.method === 'POST') {
         try {
           const formData = await request.formData();
@@ -1905,20 +1944,52 @@ var worker_default = {
 
           const metadados = JSON.parse(metadadosStr);
           const pdfKey = `editais/${crypto.randomUUID()}-${file.name || 'document.pdf'}`;
+          const editalId = crypto.randomUUID();
           
-          // Upload para o R2 (env.PDF_STORAGE)
+          // 1. Upload para o R2
           if (env.PDF_STORAGE) {
              await env.PDF_STORAGE.put(pdfKey, file.stream(), {
                httpMetadata: { contentType: file.type || 'application/pdf' }
              });
           }
 
-          // Salvar metadados no DB_EDITAIS (D1)
+          // 2. Vectorize
+          if (env.AI && env.VECTORIZE_EDITAIS && metadados.texto_integral) {
+             const chunks = [];
+             const text = metadados.texto_integral;
+             for (let i = 0; i < text.length; i += 1000) {
+                 chunks.push(text.substring(i, i + 1000));
+             }
+             
+             // Usa apenas o primeiro chunk para busca geral, ou processa tudo (limitado pelo tempo de execução do worker, então vamos limitar a 5 chunks)
+             const textsToEmbed = chunks.slice(0, 5);
+             const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: textsToEmbed });
+             
+             if (embeddingResult && embeddingResult.data) {
+                 const vectors = embeddingResult.data.map((vec, idx) => ({
+                    id: `${editalId}-chunk-${idx}`,
+                    values: vec,
+                    metadata: {
+                       id: editalId,
+                       orgao: metadados.orgao || "",
+                       cargo: metadados.cargo || "",
+                       banca: metadados.banca || "",
+                       estado: metadados.estado || "",
+                       salario: metadados.salario || "",
+                       data_prova: metadados.data_prova || "",
+                       snippet: textsToEmbed[idx].substring(0, 300)
+                    }
+                 }));
+                 await env.VECTORIZE_EDITAIS.upsert(vectors);
+             }
+          }
+
+          // 3. Salvar metadados no DB_EDITAIS (D1)
           if (env.DB_EDITAIS) {
              await env.DB_EDITAIS.prepare(
                "INSERT INTO editais (id, orgao, cargo, banca, salario, data_prova, texto_integral, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
              ).bind(
-               crypto.randomUUID(),
+               editalId,
                metadados.orgao || "",
                metadados.cargo || "",
                metadados.banca || "",
@@ -1929,14 +2000,14 @@ var worker_default = {
              ).run();
           }
 
-          return new Response(JSON.stringify({ success: true, message: "Upload e ingestão concluídos", pdfKey }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ success: true, message: "Upload e ingestão concluídos", id: editalId, pdfKey }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         } catch (err) {
           console.error("/api/editais/ingest Error:", err);
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       }
 
-      if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
+        if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
       try {
         const payload = await request.json();
         // payload should be an array of questions: [{id, statement, options, banca, subject, exam, difficulty, correctAnswer, year}]
