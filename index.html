@@ -7358,49 +7358,60 @@ function init() {
       // Mascot click fix (Bypass react stopPropagation e ajustes de P2)
       document.addEventListener('click', (e) => {
         if (e.target.closest('.mascot-avatar') || e.target.closest('#aivo-presence')) {
-          
-          // 1. Force open sideDrawer Mentor tab
-          if (window.toggleDrawer) {
-            window.toggleDrawer(true);
-            const mentorTab = document.querySelector('[data-drawer-tab="mentor"]');
-            if (mentorTab) mentorTab.click();
-          }
-
-          // 2. Force open Coach Redbot
-          if (window.coachRedbot && typeof window.coachRedbot.toggleSidebar === 'function') {
-            window.coachRedbot.toggleSidebar();
-          }
-
-          // 3. Force open Prof Aivos Mentor
-          if (window.initProfAivosMentor && !window.profAivosMentor) {
-            window.initProfAivosMentor();
-          }
-          if (window.profAivosMentor && typeof window.profAivosMentor.openChat === 'function') {
-            window.profAivosMentor.openChat();
-          }
-
-          // 4. BRUTE FORCE VISIBILITY via CSS to guarantee it shows up
-          ['sideDrawer', 'prof-aivos-chat-area', 'coach-redbot-area'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-              el.style.setProperty('display', 'flex', 'important');
-              el.style.setProperty('z-index', '9999999', 'important');
-              el.style.setProperty('visibility', 'visible', 'important');
-              el.style.setProperty('opacity', '1', 'important');
-            }
-          });
-          document.querySelectorAll('.redbot-sidebar').forEach(el => {
-            el.classList.add('open');
-            el.style.setProperty('display', 'flex', 'important');
-            el.style.setProperty('z-index', '9999999', 'important');
-            el.style.setProperty('visibility', 'visible', 'important');
-          });
-
-          // Animate the mascot
+          e.preventDefault(); e.stopPropagation();
           const avatar = document.querySelector('.mascot-avatar');
           if (avatar) {
              avatar.classList.add('chat-open');
              setTimeout(() => avatar.classList.remove('chat-open'), 300);
+          }
+          
+          if (window.initProfAivosMentor && !window.profAivosMentor) {
+              window.initProfAivosMentor();
+          }
+          if (window.profAivosMentor && typeof window.profAivosMentor.openChat === 'function') {
+              window.profAivosMentor.openChat();
+              const chatArea = document.getElementById('prof-aivos-chat-area');
+              if (chatArea) {
+                 // Transforma em janela flutuante exclusiva
+                 chatArea.style.position = 'fixed';
+                 chatArea.style.bottom = '90px';
+                 chatArea.style.right = '20px';
+                 chatArea.style.width = '400px';
+                 chatArea.style.maxWidth = '90vw';
+                 chatArea.style.height = '600px';
+                 chatArea.style.maxHeight = '70vh';
+                 chatArea.style.zIndex = '999999';
+                 chatArea.style.margin = '0';
+                 chatArea.style.boxShadow = '0 10px 40px rgba(0,0,0,0.4)';
+                 chatArea.style.display = 'flex';
+                 
+                 // Adiciona botao de fechar caso nao exista
+                 if (!chatArea.querySelector('.floating-close-btn')) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'floating-close-btn';
+                    closeBtn.innerHTML = 'X';
+                    closeBtn.style.position = 'absolute';
+                    closeBtn.style.top = '10px';
+                    closeBtn.style.right = '10px';
+                    closeBtn.style.background = 'var(--color-surface-offset, rgba(0,0,0,0.5))';
+                    closeBtn.style.color = 'var(--color-text, white)';
+                    closeBtn.style.border = '1px solid var(--color-border, transparent)';
+                    closeBtn.style.borderRadius = '50%';
+                    closeBtn.style.width = '30px';
+                    closeBtn.style.height = '30px';
+                    closeBtn.style.cursor = 'pointer';
+                    closeBtn.style.zIndex = '99999';
+                    closeBtn.style.display = 'flex';
+                    closeBtn.style.alignItems = 'center';
+                    closeBtn.style.justifyContent = 'center';
+                    closeBtn.style.fontWeight = 'bold';
+                    closeBtn.onclick = (ev) => {
+                       ev.stopPropagation();
+                       chatArea.style.display = 'none';
+                    };
+                    chatArea.appendChild(closeBtn);
+                 }
+              }
           }
         }
       }, true);
