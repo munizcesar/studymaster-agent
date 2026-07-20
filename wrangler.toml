@@ -31,7 +31,7 @@ binding = "PROVAS_INDEX"
 index_name = "studymaster-provas"
 
 
-[[r2_buckets]]
-binding = "PDF_STORAGE"
-bucket_name = "studymaster-pdfs"
+# [[r2_buckets]]
+# binding = "PDF_STORAGE"
+# bucket_name = "studymaster-pdfs"
 

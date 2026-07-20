@@ -1934,7 +1934,14 @@ ${text.substring(0, 8000)}`;
 
       if (url.pathname === '/api/editais/ingest' && request.method === 'POST') {
         try {
+          
+          // FEATURE TEMPORARIAMENTE DESABILITADA (Aguardando Configuração do R2)
+          if (!env.PDF_STORAGE) {
+             return new Response(JSON.stringify({ success: false, error: "Feature temporariamente desabilitada: Upload e ingestão requerem a ativação do R2 no Cloudflare Dashboard." }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          
           const formData = await request.formData();
+
           const file = formData.get('pdf');
           const metadadosStr = formData.get('metadados');
           
