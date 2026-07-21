@@ -1,20 +1,29 @@
-node_modules/
-.DS_Store
-*.log
-.env
-.env.local
-.env.*.local
-*.pem
-.idea/
-.vscode/debug
-.cache/
-.cloudflare/
-.wrangler/
-__pycache__/
-*.py[cod]
-data/
-nul
+# .gitignore for StudyMaster project
+# Ignore generated PDFs and other artifacts
+*.pdf
 
-# Test artifacts
-screenshot-*.png
-deployed-*
+# Ignore SQL scripts used for testing, migrations, synthetic loads
+*.sql
+
+# Ignore Python helper scripts (not used in production)
+*.py
+
+# Ignore logs, temporary files, editor backup files
+*.log
+*.tmp
+
+# Node modules (if any local copies exist)
+node_modules/
+
+# Build output directories (if any)
+dist/
+build/
+
+# Ignore test scripts that are not part of production
+scripts/*_test.js
+scripts/gate3_counts.sql
+scripts/deep_pagination_test.js
+scripts/generate_load.js
+scripts/stress_test.js
+scripts/smoke_test.js
+scripts/smoke_test_prod.js
