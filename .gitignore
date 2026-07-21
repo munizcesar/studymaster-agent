@@ -1,29 +1,98 @@
-# .gitignore for StudyMaster project
-# Ignore generated PDFs and other artifacts
-*.pdf
+# ==============================================
+# .gitignore — StudyMaster Agent
+# ==============================================
 
-# Ignore SQL scripts used for testing, migrations, synthetic loads
-*.sql
+# ---- Wrangler / Cloudflare internals --------
+.wrangler/
 
-# Ignore Python helper scripts (not used in production)
-*.py
-
-# Ignore logs, temporary files, editor backup files
-*.log
-*.tmp
-
-# Node modules (if any local copies exist)
+# ---- Node ----
 node_modules/
 
-# Build output directories (if any)
+# ---- Build output ---------
 dist/
 build/
+deployed-bundle.js
+deployed-index.html
+inline_script_*.js
+val_script_*.js
+_entry.mjs
 
-# Ignore test scripts that are not part of production
-scripts/*_test.js
-scripts/gate3_counts.sql
+# ---- PDFs (editais reais, testes, etc.) -----
+*.pdf
+
+# ---- SQL scripts de teste / carga sintética --
+*.sql
+
+# ---- Dados locais / sintéticos ---------------
+data/
+synthetic_load.sql
+
+# ---- Python scripts auxiliares ---------------
+*.py
+*.pyc
+__pycache__/
+scripts/__pycache__/
+
+# ---- Logs e temporários ----------------------
+*.log
+*.tmp
+nul
+on
+
+# ---- Capturas de tela e imagens de sessão ---
+screenshot-*.png
+
+# ---- Backups de HTML -------------------------
+index-backup.html
+index.backup*.html
+index.before-*.html
+preview_source.html
+og-image-generator.html
+
+# ---- Scripts auxiliares de teste (raiz) ------
+download.js
+download.py
+download_uc.py
+binary_search_error.js
+fix-*.py
+fix-*.js
+fix-quiz-layout.js
+check_syntax.py
+find_*.py
+apply-color-system.py
+build_full_index.py
+integrate-quality.py
+patch.py
+generate-og-image.ps1
+test-badge-e2e.js
+test-banca-e2e.js
+test-concursos-worker.js
+test-contract.mjs
+test-fase1-anti-hallucination.js
+test-fase6.mjs
+test-flow.mjs
+test-rag-integration.js
+test-redbot-prompt.js
+fix-worker-syntax.js
+worker-complete.js
+worker-quality-patch.js
+
+# ---- Scripts de stress/carga (scripts/) ------
 scripts/deep_pagination_test.js
 scripts/generate_load.js
+scripts/gate3_counts.sql
 scripts/stress_test.js
 scripts/smoke_test.js
 scripts/smoke_test_prod.js
+
+# ---- Arquivos de sessão / scratch ------------
+scratch/
+provas_teste/
+test-results/
+estrutura.txt
+payload.json
+"tore chat history after reload"
+tore
+
+# ---- Misc ------------------------------------
+*.txt
