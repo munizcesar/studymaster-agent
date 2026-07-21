@@ -1,31 +1,31 @@
-name = "studymaster-worker"
+﻿name = "studymaster-worker"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
 # Deploy: wrangler deploy
-# Adicionar variável de ambiente via painel Cloudflare ou:
+# Adicionar variÃ¡vel de ambiente via painel Cloudflare ou:
 # wrangler secret put GROQ_API_KEY
 
 [vars]
-# Não coloque a chave aqui! Use wrangler secret ou o painel do Cloudflare
+# NÃ£o coloque a chave aqui! Use wrangler secret ou o painel do Cloudflare
 # Settings > Workers & Pages > studymaster-worker > Settings > Variables
 
-# Cloudflare KV — cache de resultados RAG para reduzir latência e evitar rate limits
+# Cloudflare KV â€” cache de resultados RAG para reduzir latÃªncia e evitar rate limits
 [[kv_namespaces]]
 binding = "RAG_CACHE"
 id = "d6bf7bb52f304aaab32e2387b505c4fe"
 
-# Cloudflare AI — para geração de embeddings (BGE-M3, 1024 dimensões)
+# Cloudflare AI â€” para geraÃ§Ã£o de embeddings (BGE-M3, 1024 dimensÃµes)
 [ai]
 binding = "AI"
 
-# Cloudflare Vectorize — banco vetorial do Vade Mecum
+# Cloudflare Vectorize â€” banco vetorial do Vade Mecum
 # Criar com: wrangler vectorize create studymaster-knowledge --dimensions=1024 --metric=cosine
 [[vectorize]]
 binding = "KNOWLEDGE_INDEX"
 index_name = "studymaster-knowledge"
 
-# Cloudflare Vectorize � banco vetorial de Provas Reais (1024 dimens�es via BGE-M3)
+# Cloudflare Vectorize — banco vetorial de Provas Reais (1024 dimensões via BGE-M3)
 [[vectorize]]
 binding = "PROVAS_INDEX"
 index_name = "studymaster-provas"
@@ -34,4 +34,10 @@ index_name = "studymaster-provas"
 # [[r2_buckets]]
 # binding = "PDF_STORAGE"
 # bucket_name = "studymaster-pdfs"
+
+
+[[d1_databases]]
+binding = "DB_EDITAIS"
+database_name = "studymaster-editais"
+database_id = "98ef0f12-2e65-440b-8ec8-4105e8e47a68"
 

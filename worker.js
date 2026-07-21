@@ -1,5 +1,6 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+import { ulid } from 'ulidx';
 
 // .wrangler/tmp/bundle-wPSdqD/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
@@ -1768,10 +1769,38 @@ var worker_default = {
       if (url.pathname === '/api/editais/search' && request.method === 'POST') {
         try {
           const payload = await request.json();
-          const { query = "", filters = {} } = payload;
+          const { query = "", filters = {}, limit = 20, cursor = null } = payload;
           
+          let cursorData = null;
+          if (cursor) {
+            try {
+               const decoded = atob(cursor.replace(/-/g, '+').replace(/_/g, '/'));
+               cursorData = JSON.parse(decoded);
+               if (!cursorData.data_abertura || !cursorData.id) throw new Error();
+            } catch {
+               return new Response(JSON.stringify({ success: false, error: "INVALID_CURSOR" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+          }
+
           let orgaoSearchTerm = query.trim();
-          let sqlQuery = "SELECT id, orgao, cargo, banca, salario, data_prova, texto_integral FROM editais WHERE 1=1";
+          let sqlQuery = `
+            SELECT 
+              c.id, 
+              o.nome || ' (' || o.sigla || ')' as orgao, 
+              crg.nome as cargo, 
+              b.nome as banca, 
+              'R$ ' || crg.salario_inicial as salario, 
+              c.data_abertura as data_prova,
+              '' as texto_integral,
+              c.data_abertura as _data_abertura
+            FROM concursos c
+            JOIN orgaos o ON c.orgao_id = o.id
+            LEFT JOIN cargos crg ON crg.concurso_id = c.id
+            LEFT JOIN concurso_bancas cb ON cb.concurso_id = c.id
+            LEFT JOIN bancas b ON cb.banca_id = b.id
+            LEFT JOIN concurso_localidades cl ON cl.concurso_id = c.id
+            WHERE 1=1
+          `;
           const queryParams = [];
           
           // Passo A: Tratar aliases no D1
@@ -1787,26 +1816,34 @@ var worker_default = {
           }
 
           if (orgaoSearchTerm) {
-            sqlQuery += " AND (orgao LIKE ? OR cargo LIKE ?)";
-            queryParams.push('%' + orgaoSearchTerm + '%', '%' + orgaoSearchTerm + '%');
+            sqlQuery += " AND (o.nome LIKE ? OR o.sigla LIKE ? OR crg.nome LIKE ?)";
+            queryParams.push('%' + orgaoSearchTerm + '%', '%' + orgaoSearchTerm + '%', '%' + orgaoSearchTerm + '%');
           }
           
           if (filters.estado) {
-            sqlQuery += " AND estado = ?";
+            sqlQuery += " AND cl.estado = ?";
             queryParams.push(filters.estado);
           }
           if (filters.banca) {
-            sqlQuery += " AND banca = ?";
+            sqlQuery += " AND b.nome = ?";
             queryParams.push(filters.banca);
           }
           if (filters.nivel) {
-            sqlQuery += " AND nivel = ?";
-            queryParams.push(filters.nivel);
+            sqlQuery += " AND crg.escolaridade LIKE ?";
+            queryParams.push('%' + filters.nivel + '%');
           }
           if (filters.cargo) {
-            sqlQuery += " AND cargo LIKE ?";
+            sqlQuery += " AND crg.nome LIKE ?";
             queryParams.push('%' + filters.cargo + '%');
           }
+
+          if (cursorData) {
+            sqlQuery += " AND (c.data_abertura, c.id) < (?, ?)";
+            queryParams.push(cursorData.data_abertura, cursorData.id);
+          }
+
+          sqlQuery += " ORDER BY c.data_abertura DESC, c.id DESC LIMIT ?";
+          queryParams.push(limit);
 
           let exactMatches = [];
           if (env.DB_EDITAIS) {
@@ -1880,10 +1917,18 @@ var worker_default = {
 
           const mergedResults = Array.from(finalResultsMap.values()).sort((a, b) => b.score - a.score);
 
+          let next_cursor = null;
+          if (exactMatches.length === limit) {
+              const lastExact = exactMatches[exactMatches.length - 1];
+              const rawCursor = JSON.stringify({ data_abertura: lastExact._data_abertura, id: lastExact.id });
+              next_cursor = btoa(rawCursor).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          }
+
           return new Response(JSON.stringify({
             success: true,
             query: orgaoSearchTerm,
-            results: mergedResults
+            results: mergedResults,
+            pagination: { next_cursor }
           }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
         } catch (err) {
@@ -1950,8 +1995,8 @@ ${text.substring(0, 8000)}`;
           }
 
           const metadados = JSON.parse(metadadosStr);
-          const pdfKey = `editais/${crypto.randomUUID()}-${file.name || 'document.pdf'}`;
-          const editalId = crypto.randomUUID();
+          const pdfKey = `editais/doc_${ulid()}-${file.name || 'document.pdf'}`;
+          const editalId = `doc_${ulid()}`;
           
           // 1. Upload para o R2
           if (env.PDF_STORAGE) {
