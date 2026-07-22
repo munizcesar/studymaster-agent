@@ -1830,21 +1830,44 @@ var worker_default = {
           `;
           const queryParams = [];
           
-          // Passo A: Tratar aliases no D1
-          if (orgaoSearchTerm && env.DB_EDITAIS) {
-            try {
-               const aliasResult = await env.DB_EDITAIS.prepare("SELECT orgao_real FROM aliases WHERE alias LIKE ? LIMIT 1").bind('%' + orgaoSearchTerm + '%').first();
-               if (aliasResult && aliasResult.orgao_real) {
-                 orgaoSearchTerm = aliasResult.orgao_real;
-               }
-            } catch(e) {
-               console.error("Erro ao buscar alias:", e);
+          orgaoSearchTerm = query.trim();
+          
+          // Função auxiliar para normalizar colunas no SQLite simulando um "unaccent"
+          const sqlNormalize = (col) => {
+            let expr = `LOWER(${col})`;
+            const maps = {
+              'á':'a','à':'a','ã':'a','â':'a',
+              'é':'e','ê':'e',
+              'í':'i',
+              'ó':'o','õ':'o','ô':'o',
+              'ú':'u',
+              'ç':'c',
+              'Á':'a','À':'a','Ã':'a','Â':'a',
+              'É':'e','Ê':'e',
+              'Í':'i',
+              'Ó':'o','Õ':'o','Ô':'o',
+              'Ú':'u',
+              'Ç':'c',
+              '-':'', '.':'', '(':'', ')':''
+            };
+            for (const [k, v] of Object.entries(maps)) {
+              expr = `REPLACE(${expr}, '${k}', '${v}')`;
             }
-          }
+            return expr;
+          };
 
-          if (orgaoSearchTerm) {
-            sqlQuery += " AND (o.nome LIKE ? OR o.sigla LIKE ? OR crg.nome LIKE ?)";
-            queryParams.push('%' + orgaoSearchTerm + '%', '%' + orgaoSearchTerm + '%', '%' + orgaoSearchTerm + '%');
+          const normQuery = orgaoSearchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[-.\(\)]/g, "").trim().replace(/\s+/g, '%');
+
+          if (normQuery) {
+            const normO = sqlNormalize('o.nome');
+            const normS = sqlNormalize('o.sigla');
+            const normC = sqlNormalize('crg.nome');
+            const normSlug = sqlNormalize('c.slug');
+            const normAno = `CAST(c.ano AS TEXT)`;
+
+            sqlQuery += ` AND (${normO} LIKE ? OR ${normS} LIKE ? OR ${normC} LIKE ? OR ${normSlug} LIKE ? OR ${normAno} LIKE ?)`;
+            const likeParam = '%' + normQuery + '%';
+            queryParams.push(likeParam, likeParam, likeParam, likeParam, likeParam);
           }
           
           if (filters.estado) {
