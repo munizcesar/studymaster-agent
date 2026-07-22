@@ -1,4 +1,4 @@
-﻿name = "studymaster-worker"
+name = "studymaster-worker"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
@@ -41,3 +41,14 @@ binding = "DB_EDITAIS"
 database_name = "studymaster-editais"
 database_id = "98ef0f12-2e65-440b-8ec8-4105e8e47a68"
 
+# Cloudflare Queue — fila de ingestão assíncrona (Sprint 4)
+[[queues.producers]]
+binding = "INGEST_QUEUE"
+queue = "studymaster-ingest-queue"
+
+[[queues.consumers]]
+queue = "studymaster-ingest-queue"
+max_batch_size = 1
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "studymaster-ingest-dlq"

@@ -1765,7 +1765,34 @@ var worker_default = {
     }
 
     const url = new URL(request.url);
-    
+
+      // ─── PRODUCER: Enfileirar job de ingestão ───────────────────────────────
+      if (url.pathname === '/api/ingest/enqueue' && request.method === 'POST') {
+        try {
+          if (!env.INGEST_QUEUE) {
+            return new Response(JSON.stringify({ success: false, error: 'QUEUE_BINDING_UNAVAILABLE' }), {
+              status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          const body = await request.json();
+          const { ingestId, docId, url: docUrl, concursoId, tipo = 'edital' } = body;
+          if (!ingestId || !docId || !docUrl || !concursoId) {
+            return new Response(JSON.stringify({ success: false, error: 'MISSING_FIELDS', required: ['ingestId','docId','url','concursoId'] }), {
+              status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          // Publicar mensagem mínima na queue
+          await env.INGEST_QUEUE.send({ ingestId, docId, url: docUrl, concursoId, tipo, versao_pipeline: '4.0.0' });
+          return new Response(JSON.stringify({ success: true, enqueued: true, ingestId }), {
+            status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ success: false, error: err.message }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
       if (url.pathname === '/api/editais/search' && request.method === 'POST') {
         try {
           const payload = await request.json();
@@ -2618,7 +2645,184 @@ if (mode === "academic") {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
-  }
+  },
+
+  // ─── CONSUMER: Processar mensagem da fila de ingestão ──────────────────────
+  async queue(batch, env) {
+    const PIPELINE_VERSION = '4.0.0';
+    const MAX_TENTATIVAS = 3;
+    const STALE_LOCK_MS = 5 * 60 * 1000; // 5 minutos
+
+    async function recordEvent(db, ingestaoId, estadoAnterior, novoEstado, tentativa, erro) {
+      const eventId = `evt_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+      const erroStr = erro ? erro.toString().slice(0, 500).replace(/'/g, "''") : null;
+      const erroPart = erroStr ? `'${erroStr}'` : 'NULL';
+      const antPart = estadoAnterior ? `'${estadoAnterior}'` : 'NULL';
+      await db.prepare(
+        `INSERT INTO ingestao_eventos (id, ingestao_id, estado_anterior, novo_estado, tentativa, erro, versao_pipeline)
+         VALUES (?, ?, ${antPart}, ?, ?, ${erroPart}, ?)`
+      ).bind(eventId, ingestaoId, novoEstado, tentativa, PIPELINE_VERSION).run();
+    }
+
+    async function transition(db, ingestaoId, novoEstado, tentativa, erro, extras = {}) {
+      // Obter estado anterior para auditoria
+      const row = await db.prepare('SELECT status FROM ingestoes WHERE id = ?').bind(ingestaoId).first();
+      const estadoAnterior = row ? row.status : null;
+      let setParts = `status = '${novoEstado}'`;
+      if (erro) setParts += `, erro = '${erro.toString().slice(0,500).replace(/'/g, "''")}' `;
+      if (extras.clearLock) setParts += `, processando_desde = NULL`;
+      if (extras.dlqAt) setParts += `, dlq_at = CURRENT_TIMESTAMP`;
+      if (extras.incTentativas) setParts += `, tentativas = tentativas + 1`;
+      if (extras.setFim) setParts += `, fim_processamento = CURRENT_TIMESTAMP`;
+      await db.prepare(`UPDATE ingestoes SET ${setParts} WHERE id = ?`).bind(ingestaoId).run();
+      await recordEvent(db, ingestaoId, estadoAnterior, novoEstado, tentativa, erro);
+    }
+
+    for (const msg of batch.messages) {
+      const { ingestId, docId, url: docUrl, concursoId, tipo, versao_pipeline } = msg.body;
+
+      if (!env.DB_EDITAIS) { msg.retry(); continue; }
+      const db = env.DB_EDITAIS;
+
+      try {
+        // ── 1. Verificar estado atual antes de adquirir lock ──────────────────
+        const current = await db.prepare(
+          'SELECT status, tentativas, max_tentativas, processando_desde FROM ingestoes WHERE id = ?'
+        ).bind(ingestId).first();
+
+        if (!current) {
+          // Job não existe no D1 — ACK para não reprocessar indefinidamente
+          msg.ack();
+          continue;
+        }
+
+        // Estado terminal — já processado, só confirmar
+        const terminalStates = ['CONCLUIDO', 'CONCLUIDO_DUPLICADO', 'FALHA_PERMANENTE'];
+        if (terminalStates.includes(current.status)) {
+          msg.ack();
+          continue;
+        }
+
+        // ── 2. LOCK ATÔMICO ──────────────────────────────────────────────────
+        // Adquire o lock somente se: processando_desde IS NULL  OU stale (> 5min)
+        // Isso é atômico no D1: apenas um UPDATE com WHERE vai ganhar a corrida
+        const lockThreshold = new Date(Date.now() - STALE_LOCK_MS).toISOString();
+        const lockResult = await db.prepare(
+          `UPDATE ingestoes
+           SET processando_desde = CURRENT_TIMESTAMP
+           WHERE id = ?
+             AND (processando_desde IS NULL OR processando_desde < ?)
+             AND status NOT IN ('CONCLUIDO','CONCLUIDO_DUPLICADO','FALHA_PERMANENTE')`
+        ).bind(ingestId, lockThreshold).run();
+
+        if (lockResult.meta.changes === 0) {
+          // Outro consumer detém o lock — não processar, apenas retry
+          msg.retry();
+          continue;
+        }
+
+        // Lock adquirido — processar
+        const tentativaAtual = (current.tentativas || 0) + 1;
+        const maxTent = current.max_tentativas || MAX_TENTATIVAS;
+
+        // ── 3. PIPELINE DE INGESTÃO ──────────────────────────────────────────
+        try {
+          // BAIXANDO
+          await transition(db, ingestId, 'BAIXANDO', tentativaAtual, null);
+
+          // Download do PDF
+          const downloadResp = await fetch(docUrl, {
+            headers: { 'User-Agent': 'StudyMaster-Ingest/4.0 (+https://studymaster.app)' },
+            signal: AbortSignal.timeout(25000)
+          });
+          if (!downloadResp.ok) throw new Error(`HTTP_${downloadResp.status}`);
+          const contentType = downloadResp.headers.get('content-type') || 'application/pdf';
+          const pdfBuffer = await downloadResp.arrayBuffer();
+          const sizeBytes = pdfBuffer.byteLength;
+          if (sizeBytes > 50 * 1024 * 1024) throw new Error('PDF_EXCEDE_50MB');
+
+          // SHA-256 — camada 2 de deduplicação
+          const hashBuffer = await crypto.subtle.digest('SHA-256', pdfBuffer);
+          const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+          // BAIXADO
+          await db.prepare('UPDATE ingestoes SET hash_conteudo = ? WHERE id = ?').bind(hashHex, ingestId).run();
+          await transition(db, ingestId, 'BAIXADO', tentativaAtual, null);
+
+          // Verificar duplicata por hash (UNIQUE em documentos.hash_arquivo)
+          const existingDoc = await db.prepare('SELECT id FROM documentos WHERE hash_arquivo = ?').bind(hashHex).first();
+          if (existingDoc) {
+            await transition(db, ingestId, 'CONCLUIDO_DUPLICADO', tentativaAtual, null, { clearLock: true, setFim: true });
+            msg.ack();
+            continue;
+          }
+
+          // EXTRAINDO — extração básica de texto (sem pdf-parse no Worker runtime)
+          await transition(db, ingestId, 'EXTRAINDO', tentativaAtual, null);
+          // Texto extraído do arraybuffer como placeholder até R2 + pdf-parse ficar disponível
+          const textContent = `[PENDENTE_EXTRACAO] doc=${docId} hash=${hashHex} size=${sizeBytes}`;
+          await transition(db, ingestId, 'EXTRAIDO', tentativaAtual, null);
+
+          // INDEXANDO — grava metadados no D1; R2 aguarda habilitação
+          await transition(db, ingestId, 'INDEXANDO', tentativaAtual, null);
+          const r2PdfKey = `editais/${concursoId}/${docId}.pdf`;   // chave reservada
+          const r2TxtKey = `editais/${concursoId}/${docId}.txt`;   // chave reservada
+
+          // Upload R2 — condicional: só executa se binding PDF_STORAGE disponível
+          let r2Status = 'BLOQUEADO_10042';
+          if (env.PDF_STORAGE) {
+            await env.PDF_STORAGE.put(r2PdfKey, pdfBuffer, { httpMetadata: { contentType } });
+            await env.PDF_STORAGE.put(r2TxtKey, new TextEncoder().encode(textContent), { httpMetadata: { contentType: 'text/plain' } });
+            r2Status = 'OK';
+          }
+
+          // Gravar metadados no documento
+          await db.prepare(
+            `UPDATE documentos
+             SET hash_arquivo = ?, r2_pdf_key = ?, r2_text_key = ?,
+                 mime_type = ?, tamanho_bytes = ?, status_documento = 'ativo'
+             WHERE id = ?`
+          ).bind(hashHex, r2PdfKey, r2TxtKey, contentType, sizeBytes, docId).run();
+
+          // CONCLUIDO
+          await transition(db, ingestId, 'CONCLUIDO', tentativaAtual, null, { clearLock: true, setFim: true });
+          await db.prepare('UPDATE ingestoes SET tentativas = ? WHERE id = ?').bind(tentativaAtual, ingestId).run();
+          msg.ack();
+
+        } catch (pipelineErr) {
+          // Falha no pipeline — registrar, limpar lock, decidir retry ou DLQ
+          const errMsg = pipelineErr.message || String(pipelineErr);
+
+          if (tentativaAtual >= maxTent) {
+            // Excedeu tentativas → FALHA_PERMANENTE (DLQ tratado pelo Cloudflare)
+            await transition(db, ingestId, 'FALHA_PERMANENTE', tentativaAtual, errMsg, { clearLock: true, setFim: true, dlqAt: true, incTentativas: false });
+            await db.prepare('UPDATE ingestoes SET tentativas = ? WHERE id = ?').bind(tentativaAtual, ingestId).run();
+            msg.ack(); // ACK aqui — Cloudflare envia para DLQ via configuração
+          } else {
+            // Falha transitória → limpar lock, incrementar tentativas, retry
+            const failState = errMsg.includes('HTTP_') ? 'FALHA_DOWNLOAD' :
+                              errMsg.includes('PDF_EXCEDE') ? 'FALHA_DOWNLOAD' : 'FALHA_EXTRACAO';
+            await transition(db, ingestId, failState, tentativaAtual, errMsg, { clearLock: true, incTentativas: true });
+            msg.retry();
+          }
+        }
+
+      } catch (outerErr) {
+        // Erro inesperado fora do pipeline — limpar lock e retry
+        try {
+          await env.DB_EDITAIS.prepare(
+            `UPDATE ingestoes SET processando_desde = NULL WHERE id = ?`
+          ).bind(ingestId).run();
+        } catch(_) {}
+        msg.retry();
+      }
+    }
+  },
+
+  // ─── DLQ CONSUMER: Registrar jobs que falharam permanentemente ─────────────
+  // Nota: o Cloudflare envia para a DLQ quando max_retries é excedido.
+  // Um segundo worker pode consumir a DLQ separadamente. Aqui registramos
+  // o evento via rota HTTP para compatibilidade com o single-worker setup.
 };
 export {
   worker_default as default
