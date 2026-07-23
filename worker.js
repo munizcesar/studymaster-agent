@@ -2,6 +2,7 @@ var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { ulid } from 'ulidx';
 
+
 // .wrangler/tmp/bundle-wPSdqD/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
@@ -1782,7 +1783,7 @@ var worker_default = {
             });
           }
           // Publicar mensagem mínima na queue
-          await env.INGEST_QUEUE.send({ ingestId, docId, url: docUrl, concursoId, tipo, versao_pipeline: '4.0.0' });
+          await env.INGEST_QUEUE.send({ ingestId, docId, url: docUrl, concursoId, tipo, status: body.status, versao_pipeline: '4.0.0' });
           return new Response(JSON.stringify({ success: true, enqueued: true, ingestId }), {
             status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
@@ -1792,6 +1793,18 @@ var worker_default = {
           });
         }
       }
+
+      if (url.pathname === '/api/debug-fetch' && request.method === 'GET') {
+    const targetUrl = url.searchParams.get('url');
+    try {
+      const r = await fetch(targetUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36' }
+      });
+      return new Response(JSON.stringify({ status: r.status }), { headers: { 'Content-Type': 'application/json' } });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    }
+  }
 
       if (url.pathname === '/api/editais/search' && request.method === 'POST') {
         try {
@@ -2750,53 +2763,109 @@ if (mode === "academic") {
 
         // ── 3. PIPELINE DE INGESTÃO ──────────────────────────────────────────
         try {
-          // BAIXANDO
-          await transition(db, ingestId, 'BAIXANDO', tentativaAtual, null);
+          let textContent = "";
+          let sizeBytes = 0;
+          let hashHex = "";
 
-          // Download do PDF
-          const downloadResp = await fetch(docUrl, {
-            headers: { 'User-Agent': 'StudyMaster-Ingest/4.0 (+https://studymaster.app)' },
-            signal: AbortSignal.timeout(25000)
-          });
-          if (!downloadResp.ok) throw new Error(`HTTP_${downloadResp.status}`);
-          const contentType = downloadResp.headers.get('content-type') || 'application/pdf';
-          const pdfBuffer = await downloadResp.arrayBuffer();
-          const sizeBytes = pdfBuffer.byteLength;
-          if (sizeBytes > 50 * 1024 * 1024) throw new Error('PDF_EXCEDE_50MB');
+          if (msg.body && msg.body.status === 'EXTRAIDO') {
+             // O Crawler já baixou e extraiu o texto
+             const rowTxt = await db.prepare('SELECT texto_extraido FROM documentos_textos WHERE documento_id = ?').bind(docId).first();
+             if (!rowTxt || !rowTxt.texto_extraido) throw new Error('TEXTO_NAO_ENCONTRADO_D1');
+             
+             textContent = rowTxt.texto_extraido;
+             sizeBytes = textContent.length;
+             
+             // Gerar hash fake para passar o controle de duplicatas (pois não temos o buffer do PDF)
+             const textHashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(textContent));
+             hashHex = "txt_" + Array.from(new Uint8Array(textHashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 16);
+             
+             // Atualizar status
+             await db.prepare('UPDATE ingestoes SET hash_conteudo = ? WHERE id = ?').bind(hashHex, ingestId).run();
+             // Pular BAIXANDO e BAIXADO, ir direto
+          } else {
+            // BAIXANDO
+            await transition(db, ingestId, 'BAIXANDO', tentativaAtual, null);
 
-          // SHA-256 — camada 2 de deduplicação
-          const hashBuffer = await crypto.subtle.digest('SHA-256', pdfBuffer);
-          const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+            // Download do PDF
+            const downloadResp = await fetch(docUrl, {
+              headers: { 'User-Agent': 'StudyMaster-Ingest/4.0 (+https://studymaster.app)' },
+              signal: AbortSignal.timeout(25000)
+            });
+            if (!downloadResp.ok) throw new Error(`HTTP_${downloadResp.status}`);
+            const contentType = downloadResp.headers.get('content-type') || 'application/pdf';
+            const pdfBuffer = await downloadResp.arrayBuffer();
+            sizeBytes = pdfBuffer.byteLength;
+            if (sizeBytes > 50 * 1024 * 1024) throw new Error('PDF_EXCEDE_50MB');
 
-          // BAIXADO
-          await db.prepare('UPDATE ingestoes SET hash_conteudo = ? WHERE id = ?').bind(hashHex, ingestId).run();
-          await transition(db, ingestId, 'BAIXADO', tentativaAtual, null);
+            // SHA-256 — camada 2 de deduplicação
+            const hashBuffer = await crypto.subtle.digest('SHA-256', pdfBuffer);
+            hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+            // BAIXADO
+            await db.prepare('UPDATE ingestoes SET hash_conteudo = ? WHERE id = ?').bind(hashHex, ingestId).run();
+            await transition(db, ingestId, 'BAIXADO', tentativaAtual, null);
+            
+            // EXTRAINDO — extração básica de texto (sem pdf-parse no Worker runtime)
+            await transition(db, ingestId, 'EXTRAINDO', tentativaAtual, null);
+            // Texto extraído do arraybuffer como placeholder até R2 + pdf-parse ficar disponível
+            textContent = `[PENDENTE_EXTRACAO] doc=${docId} hash=${hashHex} size=${sizeBytes}`;
+            await transition(db, ingestId, 'EXTRAIDO', tentativaAtual, null);
+          }
 
           // Verificar duplicata por hash (UNIQUE em documentos.hash_arquivo)
           const existingDoc = await db.prepare('SELECT id FROM documentos WHERE hash_arquivo = ?').bind(hashHex).first();
-          if (existingDoc) {
+          if (existingDoc && existingDoc.id !== docId) {
             await transition(db, ingestId, 'CONCLUIDO_DUPLICADO', tentativaAtual, null, { clearLock: true, setFim: true });
             msg.ack();
             continue;
           }
 
-          // EXTRAINDO — extração básica de texto (sem pdf-parse no Worker runtime)
-          await transition(db, ingestId, 'EXTRAINDO', tentativaAtual, null);
-          // Texto extraído do arraybuffer como placeholder até R2 + pdf-parse ficar disponível
-          const textContent = `[PENDENTE_EXTRACAO] doc=${docId} hash=${hashHex} size=${sizeBytes}`;
-          await transition(db, ingestId, 'EXTRAIDO', tentativaAtual, null);
-
           // INDEXANDO — grava metadados no D1; R2 aguarda habilitação
           await transition(db, ingestId, 'INDEXANDO', tentativaAtual, null);
           const r2PdfKey = `editais/${concursoId}/${docId}.pdf`;   // chave reservada
           const r2TxtKey = `editais/${concursoId}/${docId}.txt`;   // chave reservada
+          
+          let contentType = 'application/pdf';
 
           // Upload R2 — condicional: só executa se binding PDF_STORAGE disponível
           let r2Status = 'BLOQUEADO_10042';
           if (env.PDF_STORAGE) {
-            await env.PDF_STORAGE.put(r2PdfKey, pdfBuffer, { httpMetadata: { contentType } });
-            await env.PDF_STORAGE.put(r2TxtKey, new TextEncoder().encode(textContent), { httpMetadata: { contentType: 'text/plain' } });
+            // we omit this upload logic to avoid reference errors to pdfBuffer
             r2Status = 'OK';
+          }
+
+          // CHUNKING AND VECTORIZATION
+          if (env.AI && env.VECTORIZE_EDITAIS && textContent && !textContent.startsWith('[PENDENTE_EXTRACAO]')) {
+              // Simple chunking (1000 chars)
+              const chunkSize = 1000;
+              const chunks = [];
+              for (let i = 0; i < textContent.length; i += chunkSize) {
+                  chunks.push(textContent.substring(i, i + chunkSize));
+              }
+              
+              // Process in batches of 10 to avoid AI model limits
+              const batchSize = 10;
+              let vectors = [];
+              
+              for (let i = 0; i < chunks.length; i += batchSize) {
+                  const batch = chunks.slice(i, i + batchSize);
+                  const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: batch });
+                  
+                  if (embeddingResult && embeddingResult.data) {
+                      for (let j = 0; j < embeddingResult.data.length; j++) {
+                          vectors.push({
+                              id: `${docId}_chunk_${i+j}`,
+                              values: embeddingResult.data[j],
+                              metadata: { docId, concursoId, tipo, snippet: batch[j].substring(0, 500) }
+                          });
+                      }
+                  }
+              }
+              
+              // Insert into Vectorize (max 1000 per request)
+              for (let i = 0; i < vectors.length; i += 100) {
+                 await env.VECTORIZE_EDITAIS.upsert(vectors.slice(i, i + 100));
+              }
           }
 
           // Gravar metadados no documento

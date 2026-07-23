@@ -22,7 +22,7 @@ binding = "AI"
 # Cloudflare Vectorize â€” banco vetorial do Vade Mecum
 # Criar com: wrangler vectorize create studymaster-knowledge --dimensions=1024 --metric=cosine
 [[vectorize]]
-binding = "KNOWLEDGE_INDEX"
+binding = "VECTORIZE_EDITAIS"
 index_name = "studymaster-knowledge"
 
 # Cloudflare Vectorize — banco vetorial de Provas Reais (1024 dimensões via BGE-M3)
