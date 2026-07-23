@@ -7,6 +7,23 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Não lançado]
 
+## [Sprint 7] — Arquitetura Multi-Fonte de Editais (2026-07-23)
+*   **Refactor**: Desacoplamento de código CEBRASPE e VUNESP para `scripts/adapters/`.
+*   **Feature**: Criação do `scripts/core/pipeline.js` orquestrando o fluxo D1 -> Queue -> Idempotência.
+*   **Estabilidade**: Implementação de sistema de *retries* explícitos no D1 CLI (`db.js`) para contornar instabilidades e falhas de conexão remota.
+*   **Limpeza**: Remoção completa de scripts de crawler antigos e monolíticos.
+*   *Mais detalhes*: [docs/sprints/SPRINT_7_FINAL.md](docs/sprints/SPRINT_7_FINAL.md)
+
+---
+
+## [Sprint 6] — Validação Final e Relatório de Execução (CEBRASPE) (2026-07-23)
+*   **Feature**: Ingestão ponta-a-ponta validada local e remotamente (D1 -> Queue -> Worker).
+*   **AI**: Modelagem vetorial final implementada com modelo `@cf/baai/bge-m3`.
+*   **DB**: Resolução do gargalo de payload `SQLITE_TOOBIG` com particionamento local manual em `documentos_textos`.
+*   **Busca**: Criação do Endpoint REST `/api/editais/search` com união de D1 (metadados) + Vectorize (k-NN embeddings).
+*   *Mais detalhes*: [docs/sprints/SPRINT_6_FINAL.md](docs/sprints/SPRINT_6_FINAL.md)
+
+---
 ### Planejado
 - Relatório de desempenho do usuário
 - Modo revisão (questões erradas)
