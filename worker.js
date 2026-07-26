@@ -1940,15 +1940,16 @@ var worker_default = {
           };
 
           if (normQuery) {
-            const normO = sqlNormalize('o.nome');
-            const normS = sqlNormalize('o.sigla');
-            const normC = sqlNormalize('crg.nome');
+            const normO    = sqlNormalize('o.nome');
+            const normS    = sqlNormalize('o.sigla');
+            const normC    = sqlNormalize('crg.nome');
             const normSlug = sqlNormalize('c.slug');
-            const normAno = `CAST(c.ano AS TEXT)`;
+            const normAno  = `CAST(c.ano AS TEXT)`;
+            const normB    = sqlNormalize('b.nome'); // banca search (ex: 'vunesp')
 
-            sqlQuery += ` AND (${normO} LIKE ? OR ${normS} LIKE ? OR ${normC} LIKE ? OR ${normSlug} LIKE ? OR ${normAno} LIKE ?)`;
+            sqlQuery += ` AND (${normO} LIKE ? OR ${normS} LIKE ? OR ${normC} LIKE ? OR ${normSlug} LIKE ? OR ${normAno} LIKE ? OR ${normB} LIKE ?)`;
             const likeParam = '%' + normQuery + '%';
-            queryParams.push(likeParam, likeParam, likeParam, likeParam, likeParam);
+            queryParams.push(likeParam, likeParam, likeParam, likeParam, likeParam, likeParam);
           }
           
           if (filters.estado) {
@@ -1993,7 +1994,11 @@ var worker_default = {
             (async () => {
               if (!expandedQueryForVectorize || !env.AI || !env.VECTORIZE_EDITAIS) return [];
               try {
-                const emb = await env.AI.run('@cf/baai/bge-m3', { text: [expandedQueryForVectorize] });
+                // Use both original query AND expanded form so abbreviation context is preserved
+                const vecQueryText = (expandedQueryForVectorize && expandedQueryForVectorize !== orgaoSearchTerm)
+                  ? orgaoSearchTerm + ' ' + expandedQueryForVectorize
+                  : (expandedQueryForVectorize || orgaoSearchTerm);
+                const emb = await env.AI.run('@cf/baai/bge-m3', { text: [vecQueryText] });
                 if (!emb || !emb.data || !emb.data[0]) return [];
                 const vq = await env.VECTORIZE_EDITAIS.query(emb.data[0], { topK: 15, returnMetadata: 'all' });
                 return vq.matches || [];
@@ -2013,15 +2018,14 @@ var worker_default = {
           //          hybrid (both) = exact_weight + semantic_boost
           const EXACT_WEIGHT = 2.0;
 
-          // fusionMap: key = concurso identity (orgao|year), value = result object
+          // fusionMap: key = canonical concurso identity
+          // - For D1 results: use the DB record ID directly (ensures each concurso is distinct)
+          // - For Vectorize: use meta.concurso_id or the base doc ID before _chunk_
           const fusionMap = new Map();
 
-          // Helper: extract identity key from a result
-          const concursoKey = (r) => {
-            const orgao = (r.orgao || '').trim().toLowerCase().substring(0, 60);
-            const year  = r.data_prova ? String(new Date(r.data_prova).getUTCFullYear()) : '';
-            return orgao + '|' + year;
-          };
+          // Helper: extract Vectorize dedup key
+          const vecKey = (meta, matchId) =>
+            meta.concurso_id || meta.id || String(matchId).split('_chunk_')[0];
 
           // Helper: field completeness score (for choosing the best record when deduping)
           const completeness = (r) =>
@@ -2046,7 +2050,8 @@ var worker_default = {
               score: EXACT_WEIGHT,
               source: 'exact',
             };
-            const key = concursoKey(r);
+            // D1 key = actual DB concurso ID → different cities never collapse
+            const key = row.id;
             if (!fusionMap.has(key)) {
               fusionMap.set(key, r);
             } else {
@@ -2078,7 +2083,7 @@ var worker_default = {
               score: match.score,
               source: 'semantic',
             };
-            const key = concursoKey(sem);
+            const key = vecKey(meta, match.id);
 
             if (fusionMap.has(key)) {
               const ex = fusionMap.get(key);
@@ -2098,7 +2103,6 @@ var worker_default = {
 
           // ── Passo D: Filtro de identidade + ranking final ────────────────────
           const mergedResults = Array.from(fusionMap.values())
-            .filter(r => fv(r.orgao) || fv(r.cargo) || fv(r.banca))
             .sort((a, b) => {
               if (b.score !== a.score) return b.score - a.score;
               return completeness(b) - completeness(a);
