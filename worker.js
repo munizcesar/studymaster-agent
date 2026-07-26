@@ -1976,109 +1976,133 @@ var worker_default = {
           sqlQuery += " ORDER BY c.data_abertura DESC, c.id DESC LIMIT ?";
           queryParams.push(limit);
 
-          let exactMatches = [];
-          if (env.DB_EDITAIS) {
+          // ── Passo B: Execução paralela (D1 lexical + Vectorize semântico) ──────
+          const [d1Result, vecResult] = await Promise.all([
+            // Branch 1 — Busca lexical no D1
+            (async () => {
+              if (!env.DB_EDITAIS) return [];
               try {
-                  const sqlResults = await env.DB_EDITAIS.prepare(sqlQuery).bind(...queryParams).all();
-                  exactMatches = sqlResults.results || [];
+                const r = await env.DB_EDITAIS.prepare(sqlQuery).bind(...queryParams).all();
+                return r.results || [];
               } catch (e) {
-                  console.error("Erro no DB_EDITAIS:", e);
+                console.error('[search] D1 error:', e);
+                return [];
               }
-          }
+            })(),
+            // Branch 2 — Busca semântica no Vectorize
+            (async () => {
+              if (!expandedQueryForVectorize || !env.AI || !env.VECTORIZE_EDITAIS) return [];
+              try {
+                const emb = await env.AI.run('@cf/baai/bge-m3', { text: [expandedQueryForVectorize] });
+                if (!emb || !emb.data || !emb.data[0]) return [];
+                const vq = await env.VECTORIZE_EDITAIS.query(emb.data[0], { topK: 15, returnMetadata: 'all' });
+                return vq.matches || [];
+              } catch (e) {
+                console.error('[search] Vectorize error:', e);
+                return [];
+              }
+            })(),
+          ]);
 
-          // Passo B: Vectorize (Semantic Search)
-          let semanticMatches = [];
-          if (query && env.AI && env.VECTORIZE_EDITAIS) {
-            try {
-              const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: [expandedQueryForVectorize] });
-              if (embeddingResult && embeddingResult.data && embeddingResult.data[0]) {
-                 const vecQuery = await env.VECTORIZE_EDITAIS.query(embeddingResult.data[0], { topK: 10, returnMetadata: 'all' });
-                 semanticMatches = vecQuery.matches || [];
-              }
-            } catch(e) {
-              console.error("Erro no Vectorize:", e);
+          const exactMatches  = d1Result;
+          const semanticMatches = vecResult;
+
+          // ── Passo C: Fusão ponderada ─────────────────────────────────────────
+          // Weights: exact match from D1 = 2.0 (high confidence, structured data)
+          //          semantic from Vectorize = score as-is (0.4–0.6, lower confidence)
+          //          hybrid (both) = exact_weight + semantic_boost
+          const EXACT_WEIGHT = 2.0;
+
+          // fusionMap: key = concurso identity (orgao|year), value = result object
+          const fusionMap = new Map();
+
+          // Helper: extract identity key from a result
+          const concursoKey = (r) => {
+            const orgao = (r.orgao || '').trim().toLowerCase().substring(0, 60);
+            const year  = r.data_prova ? String(new Date(r.data_prova).getUTCFullYear()) : '';
+            return orgao + '|' + year;
+          };
+
+          // Helper: field completeness score (for choosing the best record when deduping)
+          const completeness = (r) =>
+            (r.orgao ? 2 : 0) + (r.cargo ? 2 : 0) + (r.banca ? 1 : 0) + (r.salario ? 1 : 0);
+
+          // Helper: is field value valid (not null/empty/Desconhecido)
+          const fv = (v, bad = ['desconhecido','desconhecida','null','undefined','']) => {
+            if (v === null || v === undefined) return false;
+            return !bad.includes(String(v).trim().toLowerCase());
+          };
+
+          // 1. Index all D1 exact matches by concurso key with high base score
+          for (const row of exactMatches) {
+            const r = {
+              id: row.id,
+              orgao: fv(row.orgao) ? row.orgao : null,
+              cargo: fv(row.cargo) ? row.cargo : null,
+              banca: fv(row.banca) ? row.banca : null,
+              salario: fv(row.salario) && row.salario !== 'R$ null' && row.salario !== 'R$ ' ? row.salario : null,
+              data_prova: row.data_prova || null,
+              snippet: null,
+              score: EXACT_WEIGHT,
+              source: 'exact',
+            };
+            const key = concursoKey(r);
+            if (!fusionMap.has(key)) {
+              fusionMap.set(key, r);
+            } else {
+              const ex = fusionMap.get(key);
+              ex.score = Math.max(ex.score, r.score);
+              // Merge fields: prefer non-null values
+              if (!ex.cargo && r.cargo) ex.cargo = r.cargo;
+              if (!ex.banca && r.banca) ex.banca = r.banca;
+              if (!ex.salario && r.salario) ex.salario = r.salario;
             }
           }
 
-          // Passo C: Fusão
-          const finalResultsMap = new Map();
-
-          for (const row of exactMatches) {
-             finalResultsMap.set(row.id, {
-                id: row.id,
-                orgao: row.orgao,
-                cargo: row.cargo,
-                banca: row.banca,
-                salario: row.salario,
-                data_prova: row.data_prova,
-                snippet: (row.texto_integral || "").substring(0, 300) + "...",
-                score: 1.0,
-                source: "exact"
-             });
-          }
-
+          // 2. Fold in semantic matches — boost existing records or add new ones (lower weight)
           for (const match of semanticMatches) {
-             const meta = match.metadata || {};
-             
-             // Skip semantic matches with no real identifiable metadata
-             const hasValidOrgao = meta.orgao && meta.orgao !== 'Desconhecido' && meta.orgao.trim() !== '';
-             const hasValidCargo = meta.cargo && meta.cargo !== 'Desconhecido' && meta.cargo.trim() !== '';
-             const hasValidBanca = meta.banca && meta.banca !== 'Desconhecida' && meta.banca.trim() !== '';
-             
-             if (!hasValidOrgao && !hasValidCargo && !hasValidBanca) continue;
-             
-             if (finalResultsMap.has(match.id)) {
-                const existing = finalResultsMap.get(match.id);
-                existing.score += match.score;
-                existing.source = "hybrid";
-             } else {
-                // Verifica filtros para o Vectorize também
-                let keep = true;
-                if (filters.estado && meta.estado && meta.estado !== filters.estado) keep = false;
-                if (filters.banca && meta.banca && meta.banca !== filters.banca) keep = false;
-                if (filters.nivel && meta.nivel && meta.nivel !== filters.nivel) keep = false;
-                
-                if (keep) {
-                    finalResultsMap.set(match.id, {
-                      id: meta.id || match.id,
-                      orgao: hasValidOrgao ? meta.orgao : null,
-                      cargo: hasValidCargo ? meta.cargo : null,
-                      banca: hasValidBanca ? meta.banca : null,
-                      salario: meta.salario || null,
-                      data_prova: meta.data_prova || null,
-                      snippet: (meta.snippet || meta.texto_integral || "").substring(0, 300) + "...",
-                      score: match.score,
-                      source: "semantic"
-                    });
-                }
-             }
+            const meta = match.metadata || {};
+            const hasOrgao = fv(meta.orgao);
+            const hasCargo = fv(meta.cargo);
+            const hasBanca = fv(meta.banca);
+            if (!hasOrgao && !hasCargo && !hasBanca) continue;
+
+            const sem = {
+              id: meta.id || match.id,
+              orgao: hasOrgao ? meta.orgao : null,
+              cargo: hasCargo ? meta.cargo : null,
+              banca: hasBanca ? meta.banca : null,
+              salario: fv(meta.salario) ? meta.salario : null,
+              data_prova: meta.data_prova || null,
+              snippet: (meta.snippet || meta.texto_integral || '').substring(0, 300) + '...',
+              score: match.score,
+              source: 'semantic',
+            };
+            const key = concursoKey(sem);
+
+            if (fusionMap.has(key)) {
+              const ex = fusionMap.get(key);
+              ex.score += match.score * 0.3; // dampened boost
+              ex.source = 'hybrid';
+              if (!ex.cargo && sem.cargo) ex.cargo = sem.cargo;
+              if (!ex.banca && sem.banca) ex.banca = sem.banca;
+              if (!ex.snippet && sem.snippet) ex.snippet = sem.snippet;
+            } else {
+              let keep = true;
+              if (filters.estado && meta.estado && meta.estado !== filters.estado) keep = false;
+              if (filters.banca  && meta.banca  && meta.banca  !== filters.banca)  keep = false;
+              if (filters.nivel  && meta.nivel  && meta.nivel  !== filters.nivel)  keep = false;
+              if (keep) fusionMap.set(key, sem);
+            }
           }
 
-          // Filter out results that have no meaningful identity for the user
-          const validResults = Array.from(finalResultsMap.values()).filter(r => {
-             const hasOrgao = r.orgao && r.orgao.trim() !== '' && r.orgao !== 'Desconhecido';
-             const hasCargo = r.cargo && r.cargo.trim() !== '' && r.cargo !== 'Desconhecido';
-             const hasBanca = r.banca && r.banca.trim() !== '' && r.banca !== 'Desconhecida';
-             return hasOrgao || hasCargo || hasBanca;
-          });
-
-          // Deduplicate: same concurso may produce multiple rows (one per cargo from LEFT JOIN)
-          // Group by orgao + data_prova then keep the most complete record
-          const concursoMap = new Map();
-          for (const r of validResults) {
-             const key = (r.orgao || '') + '|' + (r.data_prova || '');
-             if (!concursoMap.has(key)) {
-                concursoMap.set(key, r);
-             } else {
-                const existing = concursoMap.get(key);
-                // Prefer the record that has more fields
-                const existingScore = (existing.cargo ? 1 : 0) + (existing.banca ? 1 : 0) + (existing.salario ? 1 : 0);
-                const newScore = (r.cargo ? 1 : 0) + (r.banca ? 1 : 0) + (r.salario ? 1 : 0);
-                if (newScore > existingScore) concursoMap.set(key, r);
-             }
-          }
-
-          const mergedResults = Array.from(concursoMap.values()).sort((a, b) => b.score - a.score);
+          // ── Passo D: Filtro de identidade + ranking final ────────────────────
+          const mergedResults = Array.from(fusionMap.values())
+            .filter(r => fv(r.orgao) || fv(r.cargo) || fv(r.banca))
+            .sort((a, b) => {
+              if (b.score !== a.score) return b.score - a.score;
+              return completeness(b) - completeness(a);
+            });
 
           let next_cursor = null;
           if (exactMatches.length === limit) {
