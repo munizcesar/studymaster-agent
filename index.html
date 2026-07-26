@@ -10501,30 +10501,54 @@ window.nextFlashcard = (status) => {
           const data = await res.json();
           
           if (data.results && data.results.length > 0) {
-             const grouped = {};
              const isV = (val) => val && String(val).toLowerCase() !== 'null' && String(val).trim() !== '' && String(val).toLowerCase() !== 'desconhecido' && String(val).toLowerCase() !== 'desconhecida';
              
-             data.results.forEach(r => {
-                const baseId = String(r.id).split('_chunk_')[0];
-                
-                if (!grouped[baseId]) {
-                   grouped[baseId] = { ...r, id: baseId };
-                   if (!isV(grouped[baseId].orgao)) grouped[baseId].orgao = '';
-                   if (!isV(grouped[baseId].cargo)) grouped[baseId].cargo = '';
-                   if (!isV(grouped[baseId].banca)) grouped[baseId].banca = '';
-                   if (!isV(grouped[baseId].salario)) grouped[baseId].salario = '';
-                   if (!isV(grouped[baseId].data_prova)) grouped[baseId].data_prova = '';
-                } else {
-                   const g = grouped[baseId];
-                   if (!isV(g.orgao) && isV(r.orgao)) g.orgao = r.orgao;
-                   if (!isV(g.cargo) && isV(r.cargo)) g.cargo = r.cargo;
-                   if (!isV(g.banca) && isV(r.banca)) g.banca = r.banca;
-                   if (!isV(g.salario) && isV(r.salario)) g.salario = r.salario;
-                   if (!isV(g.data_prova) && isV(r.data_prova)) g.data_prova = r.data_prova;
-                }
+             // 1. Filtrar o que não é minimamente confiável
+             let validData = data.results.filter(r => isV(r.orgao) && (isV(r.cargo) || isV(r.banca)));
+             
+             // 2. Filtro geográfico cruzado
+             const detectState = (str) => {
+                 if (!str) return null;
+                 const s = String(str).toLowerCase();
+                 if (s.match(/\b(sp|são paulo)\b/)) return 'SP';
+                 if (s.match(/\b(ma|maranh[aã]o)\b/)) return 'MA';
+                 if (s.match(/\b(rj|rio de janeiro)\b/)) return 'RJ';
+                 if (s.match(/\b(mg|minas gerais)\b/)) return 'MG';
+                 if (s.match(/\b(ba|bahia)\b/)) return 'BA';
+                 if (s.match(/\b(ce|ceará)\b/)) return 'CE';
+                 if (s.match(/\b(pe|pernambuco)\b/)) return 'PE';
+                 if (s.match(/\b(df|distrito federal)\b/)) return 'DF';
+                 if (s.match(/\b(pr|paraná)\b/)) return 'PR';
+                 if (s.match(/\b(rs|rio grande do sul)\b/)) return 'RS';
+                 if (s.match(/\b(sc|santa catarina)\b/)) return 'SC';
+                 return null;
+             };
+             
+             const queryState = detectState(query);
+             if (queryState) {
+                 validData = validData.filter(r => {
+                     const metaStr = `${r.orgao} ${r.cargo} ${r.banca}`;
+                     const resultState = detectState(metaStr);
+                     return !(resultState && resultState !== queryState);
+                 });
+             }
+             
+             // 3. Dedup por assinatura (Orgao + Cargo + Banca) para não depender do formato do ID
+             const grouped = {};
+             validData.forEach(r => {
+                 const sig = (r.orgao||'') + '|' + (r.cargo||'') + '|' + (r.banca||'');
+                 if (!grouped[sig]) {
+                     grouped[sig] = r;
+                 }
              });
              
              const finalResults = Object.values(grouped);
+             
+             if (finalResults.length === 0) {
+                 resultsContainer.innerHTML = '<div style="padding: 16px; background: var(--color-card); border-radius: 8px; border: 1px solid var(--color-border); color: var(--color-text-muted);">Nenhum edital encontrado com informações suficientes para esta busca.</div>';
+                 return;
+             }
+             
              window.currentSearchResults = finalResults;
              
              resultsContainer.innerHTML = finalResults.map((r, i) => {
