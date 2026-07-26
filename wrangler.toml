@@ -31,9 +31,9 @@ binding = "PROVAS_INDEX"
 index_name = "studymaster-provas"
 
 
-# [[r2_buckets]]
-# binding = "PDF_STORAGE"
-# bucket_name = "studymaster-pdfs"
+[[r2_buckets]]
+binding = "PDF_STORAGE"
+bucket_name = "studymaster-pdfs"
 
 
 [[d1_databases]]
@@ -50,10 +50,43 @@ queue = "studymaster-ingest-queue"
 binding = "DISCOVERY_QUEUE"
 queue = "studymaster-discovery-queue"
 
+[[queues.producers]]
+binding = "FETCH_QUEUE"
+queue = "studymaster-fetch-queue"
+
+[[queues.producers]]
+binding = "EXTRACTION_QUEUE"
+queue = "studymaster-extraction-queue"
+
+[[queues.producers]]
+binding = "METADATA_QUEUE"
+queue = "studymaster-metadata-queue"
+
 [[queues.consumers]]
 queue = "studymaster-discovery-queue"
 max_batch_size = 5
 max_batch_timeout = 10
+max_retries = 3
+dead_letter_queue = "studymaster-ingest-dlq"
+
+[[queues.consumers]]
+queue = "studymaster-fetch-queue"
+max_batch_size = 2
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "studymaster-ingest-dlq"
+
+[[queues.consumers]]
+queue = "studymaster-extraction-queue"
+max_batch_size = 2
+max_batch_timeout = 60
+max_retries = 3
+dead_letter_queue = "studymaster-ingest-dlq"
+
+[[queues.consumers]]
+queue = "studymaster-metadata-queue"
+max_batch_size = 2
+max_batch_timeout = 60
 max_retries = 3
 dead_letter_queue = "studymaster-ingest-dlq"
 
