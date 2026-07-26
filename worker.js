@@ -1,3 +1,4 @@
+import { DiscoveryEngine } from './src/discovery/UniversalDiscovery.js';
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { ulid } from 'ulidx';
@@ -2812,6 +2813,11 @@ if (mode === "academic") {
   },
 
   // ─── CONSUMER: Processar mensagem da fila de ingestão ──────────────────────
+  async scheduled(event, env, ctx) {
+    const engine = new DiscoveryEngine(env);
+    await engine.run();
+  },
+
   async queue(batch, env) {
     const PIPELINE_VERSION = '4.0.0';
     const MAX_TENTATIVAS = 3;

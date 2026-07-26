@@ -46,9 +46,23 @@ database_id = "98ef0f12-2e65-440b-8ec8-4105e8e47a68"
 binding = "INGEST_QUEUE"
 queue = "studymaster-ingest-queue"
 
+[[queues.producers]]
+binding = "DISCOVERY_QUEUE"
+queue = "studymaster-discovery-queue"
+
+[[queues.consumers]]
+queue = "studymaster-discovery-queue"
+max_batch_size = 5
+max_batch_timeout = 10
+max_retries = 3
+dead_letter_queue = "studymaster-ingest-dlq"
+
 [[queues.consumers]]
 queue = "studymaster-ingest-queue"
 max_batch_size = 1
 max_batch_timeout = 5
 max_retries = 3
 dead_letter_queue = "studymaster-ingest-dlq"
+
+[triggers]
+crons = [ 0 12 * * * ]
