@@ -1796,6 +1796,30 @@ var worker_default = {
         }
       }
 
+      // ─── E2E TEST: Inject a real URL into the discovery queue ──────────
+      if (url.pathname === '/api/dev/trigger-e2e' && request.method === 'POST') {
+        try {
+          const body = await request.json();
+          const targetUrl = body.url || 'https://www.pciconcursos.com.br/noticias/dataprev-abre-concurso-publico-com-vagas-de-nivel-superior-em-diversas-cidades-do-brasil';
+          const eventId = 'evt_e2e_' + Date.now();
+          
+          await env.DISCOVERY_QUEUE.send({
+            sourceProvider: 'PCI',
+            sourceUrl: 'https://www.pciconcursos.com.br/concursos/',
+            discoveredUrl: targetUrl,
+            discoveredAt: new Date().toISOString(),
+            discoveryType: 'aggregator',
+            eventId
+          });
+          
+          return new Response(JSON.stringify({ success: true, eventId, message: 'Dispatched to DISCOVERY_QUEUE' }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+        }
+      }
+
       if (url.pathname === '/api/debug-fetch' && request.method === 'GET') {
     const targetUrl = url.searchParams.get('url');
     try {

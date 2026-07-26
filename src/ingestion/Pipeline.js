@@ -7,16 +7,17 @@ export class IngestionPipeline {
 
   async transition(db, eventId, novoEstado, erro = null) {
     try {
-      let setParts = `status = '${novoEstado}', updated_at = CURRENT_TIMESTAMP`;
+      let setParts = `status = '${novoEstado}'`;
       if (erro) setParts += `, erro = '${erro.toString().slice(0, 500).replace(/'/g, "''")}' `;
       if (['COMPLETED', 'DUPLICATED', 'REJECTED_VALIDATION', 'FAILED_PERMANENT'].includes(novoEstado)) {
-        setParts += `, completed_at = CURRENT_TIMESTAMP`;
+        setParts += `, fim_processamento = CURRENT_TIMESTAMP`;
       }
+      const dummyDocId = `doc_01edital`;
       await db.prepare(`
-        INSERT INTO ingestoes (id, status, erro, created_at, updated_at) 
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        INSERT INTO ingestoes (id, documento_id, status, inicio_processamento) 
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(id) DO UPDATE SET ${setParts}
-      `).bind(eventId, novoEstado, erro ? erro.toString().slice(0, 500) : null).run();
+      `).bind(eventId, dummyDocId, novoEstado).run();
     } catch (e) {
       console.error(`Transition error for ${eventId}:`, e);
     }
@@ -113,17 +114,18 @@ export class IngestionPipeline {
       let metadata = {};
       try {
         if (this.env.AI) {
-           const prompt = `Extract JSON from this text: ${data.textoBruto.substring(0, 2000)}. Keys needed: orgao, cargo, banca, ano.`;
-           const response = await this.env.AI.run('@cf/meta/llama-3-8b-instruct', { messages: [{role:'user', content:prompt}] });
-           metadata = { 
-               orgao: "Polícia Civil de São Paulo", 
-               cargo: "Investigador", 
-               banca: "Vunesp", 
-               ano: new Date().getFullYear() 
-           };
+           const prompt = `Extract metadata from this text as JSON. REQUIRED exact keys: "orgao", "cargo", "banca", "ano". Return ONLY valid JSON.\nText:\n${data.textoBruto.substring(0, 3000)}`;
+           const aiResponse = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [{role:'user', content:prompt}] });
+           
+           let jsonStr = aiResponse.response;
+           const match = jsonStr.match(/\{[\s\S]*\}/);
+           if (match) jsonStr = match[0];
+           
+           metadata = JSON.parse(jsonStr);
         }
       } catch (e) {
-          metadata = { orgao: "Mock Orgao", cargo: "Mock Cargo", banca: "Mock Banca", ano: 2026 };
+          console.error("LLM Parse Error:", e);
+          metadata = {};
       }
 
       if (!metadata.orgao || !metadata.cargo || metadata.orgao.includes("Mock")) {
@@ -164,14 +166,23 @@ export class IngestionPipeline {
       }
 
       await this.env.DB_EDITAIS.prepare(`
-        INSERT INTO documentos (id, concurso_id, hash_arquivo, url_origem, formato)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(data.documentId, concursoId, data.hashArquivo || 'no_hash', data.officialUrl || 'no_url', 'pdf').run();
+        INSERT INTO documentos (id, concurso_id, fonte_id, tipo, status_documento, hash_arquivo, url_origem, data_publicacao)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        data.documentId, 
+        concursoId, 
+        'fnt_00discovery', // Mock fonte_id for now as we don't have sources table properly linked
+        'Edital', 
+        'ATIVO', 
+        data.hashArquivo || 'no_hash', 
+        data.officialUrl || 'no_url',
+        new Date().toISOString()
+      ).run();
 
       await this.transition(this.env.DB_EDITAIS, data.eventId, 'INDEXING');
 
       if (this.env.AI && this.env.VECTORIZE_EDITAIS) {
-         const emb = await this.env.AI.run('@cf/baai/bge-m3', { text: [data.textoBruto.substring(0, 1000)] });
+         const emb = await this.env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [data.textoBruto.substring(0, 1000)] });
          if (emb && emb.data && emb.data[0]) {
              await this.env.VECTORIZE_EDITAIS.insert([{
                  id: data.documentId + "_chunk_0",
