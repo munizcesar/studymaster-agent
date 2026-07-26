@@ -1823,6 +1823,78 @@ var worker_default = {
           }
 
           let orgaoSearchTerm = query.trim();
+          
+          // ── Query pre-processing ──────────────────────────────────────────────
+          // 1. Normalize: lowercase + strip accents + strip punctuation
+          const preNorm = (s) => s.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[-.()/]/g, " ").replace(/\s+/g, " ").trim();
+
+          // 2. Alias expansion table — abbreviation → canonical term(s)
+          const ALIASES = {
+            'pf': 'policia federal',
+            'dpf': 'policia federal',
+            'prf': 'policia rodoviaria federal',
+            'pm': 'policia militar',
+            'pc': 'policia civil',
+            'pcsp': 'policia civil sao paulo',
+            'pcma': 'policia civil maranhao',
+            'pcrj': 'policia civil rio de janeiro',
+            'pcmg': 'policia civil minas gerais',
+            'pcdf': 'policia civil distrito federal',
+            'gm': 'guarda municipal',
+            'gcm': 'guarda civil municipal',
+            'tj': 'tribunal de justica',
+            'trf': 'tribunal regional federal',
+            'trt': 'tribunal regional do trabalho',
+            'tse': 'tribunal superior eleitoral',
+            'stf': 'supremo tribunal federal',
+            'stj': 'superior tribunal de justica',
+            'tcu': 'tribunal de contas da uniao',
+            'tce': 'tribunal de contas do estado',
+            'mp': 'ministerio publico',
+            'mpf': 'ministerio publico federal',
+            'mpu': 'ministerio publico da uniao',
+            'rfb': 'receita federal',
+            'irs': 'receita federal',
+            'inss': 'inss',
+            'abin': 'agencia brasileira de inteligencia',
+            'anac': 'agencia nacional de aviacao civil',
+            'anatel': 'agencia nacional de telecomunicacoes',
+            'aneel': 'agencia nacional de energia eletrica',
+            'anvisa': 'agencia nacional de vigilancia sanitaria',
+            'ibge': 'instituto brasileiro de geografia e estatistica',
+            'bndes': 'banco nacional desenvolvimento',
+            'bb': 'banco do brasil',
+            'cef': 'caixa economica federal',
+            'correios': 'empresa brasileira de correios',
+            'eb': 'exercito brasileiro',
+            'mb': 'marinha do brasil',
+            'fab': 'forca aerea brasileira',
+            'tjsp': 'tribunal de justica sao paulo',
+            'tjrj': 'tribunal de justica rio de janeiro',
+            'tjmg': 'tribunal de justica minas gerais',
+            'trfsp': 'tribunal regional federal sao paulo',
+          };
+
+          // 3. Stop words to remove from query
+          const STOP_WORDS = new Set(['de','da','do','dos','das','e','o','a','os','as','para','em','no','na','nos','nas','um','uma','por','com','concurso','edital','cargo','vagas']);
+
+          // 4. Expand and clean the query
+          const rawTokens = preNorm(orgaoSearchTerm).split(' ').filter(Boolean);
+          const expandedTokens = [];
+          for (const tok of rawTokens) {
+            if (ALIASES[tok]) {
+              ALIASES[tok].split(' ').forEach(w => expandedTokens.push(w));
+            } else if (!STOP_WORDS.has(tok)) {
+              expandedTokens.push(tok);
+            }
+          }
+          const effectiveTokens = expandedTokens.length > 0 ? expandedTokens : rawTokens.filter(t => !STOP_WORDS.has(t));
+          
+          const normQuery = effectiveTokens.join('%');
+          const expandedQueryForVectorize = effectiveTokens.join(' ') || orgaoSearchTerm;
+
           let sqlQuery = `
             SELECT 
               c.id, 
@@ -1842,8 +1914,6 @@ var worker_default = {
             WHERE 1=1
           `;
           const queryParams = [];
-          
-          orgaoSearchTerm = query.trim();
           
           // Função auxiliar para normalizar colunas no SQLite simulando um "unaccent"
           const sqlNormalize = (col) => {
@@ -1868,8 +1938,6 @@ var worker_default = {
             }
             return expr;
           };
-
-          const normQuery = orgaoSearchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[-.\(\)]/g, "").trim().replace(/\s+/g, '%');
 
           if (normQuery) {
             const normO = sqlNormalize('o.nome');
@@ -1922,7 +1990,7 @@ var worker_default = {
           let semanticMatches = [];
           if (query && env.AI && env.VECTORIZE_EDITAIS) {
             try {
-              const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: [query] });
+              const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: [expandedQueryForVectorize] });
               if (embeddingResult && embeddingResult.data && embeddingResult.data[0]) {
                  const vecQuery = await env.VECTORIZE_EDITAIS.query(embeddingResult.data[0], { topK: 10, returnMetadata: 'all' });
                  semanticMatches = vecQuery.matches || [];
