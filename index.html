@@ -10501,8 +10501,9 @@ window.nextFlashcard = (status) => {
           const data = await res.json();
           
           if (data.results && data.results.length > 0) {
-             resultsContainer.innerHTML = data.results.map(r => `
-               <a href="#concurso-${r.id}" onclick="event.preventDefault(); const t = this.querySelector('.not-implemented'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);" style="display: block; text-decoration: none; color: inherit; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px; padding: 16px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+             window.currentSearchResults = data.results;
+             resultsContainer.innerHTML = data.results.map((r, i) => `
+               <a href="#concurso-${r.id}" onclick="event.preventDefault(); window.openEditalDetail(${i});" style="display: block; text-decoration: none; color: inherit; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px; padding: 16px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                  <h4 style="margin: 0 0 8px 0; color: var(--color-primary); font-size: 1.1rem;">${r.orgao}</h4>
                  <div style="font-size: 0.9rem; color: var(--color-text); margin-bottom: 8px;">
                     <strong>Cargo:</strong> ${r.cargo} | <strong>Banca:</strong> ${r.banca}
@@ -10510,9 +10511,6 @@ window.nextFlashcard = (status) => {
                  <p style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0; line-height: 1.4;">
                     ${r.snippet}
                  </p>
-                 <div class="not-implemented" style="display: none; margin-top: 12px; padding: 8px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border-radius: 4px; font-size: 0.85rem; text-align: center; border: 1px dashed var(--color-primary);">
-                    🚧 A página de detalhes deste concurso (${r.id}) estará disponível em breve.
-                 </div>
                </a>
              `).join('');
           } else {
@@ -10535,7 +10533,85 @@ window.nextFlashcard = (status) => {
           });
        }
     });
+
+    window.currentSearchResults = [];
+    window.openEditalDetail = (index) => {
+       const r = window.currentSearchResults[index];
+       if (!r) return;
+       
+       const isValid = (val) => val && val.trim() !== '' && val.toLowerCase() !== 'desconhecido' && val.toLowerCase() !== 'desconhecida';
+       
+       document.getElementById('edital-detail-title').textContent = isValid(r.orgao) ? r.orgao : 'Detalhes do Documento';
+       
+       const cargoEl = document.getElementById('edital-detail-cargo-container');
+       if (isValid(r.cargo)) {
+          cargoEl.style.display = 'block';
+          document.getElementById('edital-detail-cargo').textContent = r.cargo;
+       } else {
+          cargoEl.style.display = 'none';
+       }
+
+       const bancaEl = document.getElementById('edital-detail-banca-container');
+       if (isValid(r.banca)) {
+          bancaEl.style.display = 'block';
+          document.getElementById('edital-detail-banca').textContent = r.banca;
+       } else {
+          bancaEl.style.display = 'none';
+       }
+
+       const salarioEl = document.getElementById('edital-detail-salario-container');
+       if (isValid(r.salario) && r.salario !== 'R$ null' && r.salario !== 'R$ ') {
+          salarioEl.style.display = 'block';
+          document.getElementById('edital-detail-salario').textContent = r.salario;
+       } else {
+          salarioEl.style.display = 'none';
+       }
+
+       const dataEl = document.getElementById('edital-detail-data-container');
+       if (isValid(r.data_prova)) {
+          dataEl.style.display = 'block';
+          document.getElementById('edital-detail-data').textContent = new Date(r.data_prova).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+       } else {
+          dataEl.style.display = 'none';
+       }
+
+       const snippetEl = document.getElementById('edital-detail-snippet-container');
+       if (isValid(r.snippet)) {
+          snippetEl.style.display = 'block';
+          document.getElementById('edital-detail-snippet').innerHTML = r.snippet.replace(/\n/g, '<br>');
+       } else {
+          snippetEl.style.display = 'none';
+       }
+
+       document.getElementById('edital-detail-modal').style.display = 'flex';
+    };
   </script>
+
+<!-- Edital Detail Modal -->
+<div id="edital-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999999; align-items:center; justify-content:center;">
+  <div style="background:var(--color-surface); padding:24px; border-radius:12px; width:90%; max-width:700px; max-height:90vh; overflow-y:auto; border:1px solid var(--color-border); box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+      <h2 id="edital-detail-title" style="margin:0; color:var(--color-primary); font-size: 1.5rem;"></h2>
+      <button onclick="document.getElementById('edital-detail-modal').style.display='none'" style="background:none; border:none; color:var(--color-text); cursor:pointer;"><i data-lucide="x"></i> X</button>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+      <div id="edital-detail-cargo-container"><strong style="color:var(--color-text-muted);">Cargo:</strong> <span id="edital-detail-cargo" style="color:var(--color-text);"></span></div>
+      <div id="edital-detail-banca-container"><strong style="color:var(--color-text-muted);">Banca:</strong> <span id="edital-detail-banca" style="color:var(--color-text);"></span></div>
+      <div id="edital-detail-salario-container"><strong style="color:var(--color-text-muted);">Salário:</strong> <span id="edital-detail-salario" style="color:var(--color-text);"></span></div>
+      <div id="edital-detail-data-container"><strong style="color:var(--color-text-muted);">Data da Prova:</strong> <span id="edital-detail-data" style="color:var(--color-text);"></span></div>
+    </div>
+
+    <div id="edital-detail-snippet-container">
+      <h4 style="color:var(--color-text); margin-bottom: 8px;">Detalhes / Trecho Encontrado</h4>
+      <div id="edital-detail-snippet" style="background:var(--color-bg); padding:16px; border-radius:8px; border:1px solid var(--color-border); color:var(--color-text-muted); font-size:0.95rem; line-height:1.5;"></div>
+    </div>
+    
+    <div style="margin-top:24px; text-align:center;">
+      <button class="btn btn-primary" onclick="document.getElementById('edital-detail-modal').style.display='none'">Fechar Detalhes</button>
+    </div>
+  </div>
+</div>
 
 <!-- Admin Ingest Modal -->
 <div id="admin-ingest-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999999; align-items:center; justify-content:center;">
