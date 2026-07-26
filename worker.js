@@ -1950,12 +1950,20 @@ var worker_default = {
           }
 
           for (const match of semanticMatches) {
+             const meta = match.metadata || {};
+             
+             // Skip semantic matches with no real identifiable metadata
+             const hasValidOrgao = meta.orgao && meta.orgao !== 'Desconhecido' && meta.orgao.trim() !== '';
+             const hasValidCargo = meta.cargo && meta.cargo !== 'Desconhecido' && meta.cargo.trim() !== '';
+             const hasValidBanca = meta.banca && meta.banca !== 'Desconhecida' && meta.banca.trim() !== '';
+             
+             if (!hasValidOrgao && !hasValidCargo && !hasValidBanca) continue;
+             
              if (finalResultsMap.has(match.id)) {
                 const existing = finalResultsMap.get(match.id);
                 existing.score += match.score;
                 existing.source = "hybrid";
              } else {
-                const meta = match.metadata || {};
                 // Verifica filtros para o Vectorize também
                 let keep = true;
                 if (filters.estado && meta.estado && meta.estado !== filters.estado) keep = false;
@@ -1965,11 +1973,11 @@ var worker_default = {
                 if (keep) {
                     finalResultsMap.set(match.id, {
                       id: meta.id || match.id,
-                      orgao: meta.orgao || "Desconhecido",
-                      cargo: meta.cargo || "Desconhecido",
-                      banca: meta.banca || "Desconhecida",
-                      salario: meta.salario || "",
-                      data_prova: meta.data_prova || "",
+                      orgao: hasValidOrgao ? meta.orgao : null,
+                      cargo: hasValidCargo ? meta.cargo : null,
+                      banca: hasValidBanca ? meta.banca : null,
+                      salario: meta.salario || null,
+                      data_prova: meta.data_prova || null,
                       snippet: (meta.snippet || meta.texto_integral || "").substring(0, 300) + "...",
                       score: match.score,
                       source: "semantic"
@@ -1978,7 +1986,31 @@ var worker_default = {
              }
           }
 
-          const mergedResults = Array.from(finalResultsMap.values()).sort((a, b) => b.score - a.score);
+          // Filter out results that have no meaningful identity for the user
+          const validResults = Array.from(finalResultsMap.values()).filter(r => {
+             const hasOrgao = r.orgao && r.orgao.trim() !== '' && r.orgao !== 'Desconhecido';
+             const hasCargo = r.cargo && r.cargo.trim() !== '' && r.cargo !== 'Desconhecido';
+             const hasBanca = r.banca && r.banca.trim() !== '' && r.banca !== 'Desconhecida';
+             return hasOrgao || hasCargo || hasBanca;
+          });
+
+          // Deduplicate: same concurso may produce multiple rows (one per cargo from LEFT JOIN)
+          // Group by orgao + data_prova then keep the most complete record
+          const concursoMap = new Map();
+          for (const r of validResults) {
+             const key = (r.orgao || '') + '|' + (r.data_prova || '');
+             if (!concursoMap.has(key)) {
+                concursoMap.set(key, r);
+             } else {
+                const existing = concursoMap.get(key);
+                // Prefer the record that has more fields
+                const existingScore = (existing.cargo ? 1 : 0) + (existing.banca ? 1 : 0) + (existing.salario ? 1 : 0);
+                const newScore = (r.cargo ? 1 : 0) + (r.banca ? 1 : 0) + (r.salario ? 1 : 0);
+                if (newScore > existingScore) concursoMap.set(key, r);
+             }
+          }
+
+          const mergedResults = Array.from(concursoMap.values()).sort((a, b) => b.score - a.score);
 
           let next_cursor = null;
           if (exactMatches.length === limit) {
