@@ -1904,7 +1904,7 @@ var worker_default = {
               b.nome as banca, 
               'R$ ' || crg.salario_inicial as salario, 
               c.data_abertura as data_prova,
-              '' as texto_integral,
+              d.url_origem as url,
               c.data_abertura as _data_abertura
             FROM concursos c
             JOIN orgaos o ON c.orgao_id = o.id
@@ -1912,6 +1912,7 @@ var worker_default = {
             LEFT JOIN concurso_bancas cb ON cb.concurso_id = c.id
             LEFT JOIN bancas b ON cb.banca_id = b.id
             LEFT JOIN concurso_localidades cl ON cl.concurso_id = c.id
+            LEFT JOIN documentos d ON d.concurso_id = c.id
             WHERE 1=1
           `;
           const queryParams = [];
@@ -2023,14 +2024,24 @@ var worker_default = {
           // - For D1 results: use the DB record ID directly (ensures each concurso is distinct)
           // - For Vectorize: use meta.concurso_id or the base doc ID before _chunk_
           const fusionMap = new Map();
+          const sigToId = new Map();
 
-          // Helper: extract Vectorize dedup key
-          const vecKey = (meta, matchId) =>
-            meta.concurso_id || meta.id || String(matchId).split('_chunk_')[0];
+          // Helper: normalize signature for matching (orgao_cargo_ano)
+          const getSig = (r) => {
+              const o = (r.orgao || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              const c = (r.cargo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              let a = '';
+              if (r.ano) a = String(r.ano);
+              else if (r.data_prova) {
+                  const dt = new Date(r.data_prova);
+                  if (!isNaN(dt.getTime())) a = String(dt.getUTCFullYear());
+              }
+              return `${o}_${c}_${a}`;
+          };
 
           // Helper: field completeness score (for choosing the best record when deduping)
           const completeness = (r) =>
-            (r.orgao ? 2 : 0) + (r.cargo ? 2 : 0) + (r.banca ? 1 : 0) + (r.salario ? 1 : 0);
+            (r.orgao ? 2 : 0) + (r.cargo ? 2 : 0) + (r.banca ? 1 : 0) + (r.salario ? 1 : 0) + (r.url ? 2 : 0);
 
           // Helper: is field value valid (not null/empty/Desconhecido)
           const fv = (v, bad = ['desconhecido','desconhecida','null','undefined','']) => {
@@ -2047,22 +2058,26 @@ var worker_default = {
               banca: fv(row.banca) ? row.banca : null,
               salario: fv(row.salario) && row.salario !== 'R$ null' && row.salario !== 'R$ ' ? row.salario : null,
               data_prova: row.data_prova || null,
+              url: fv(row.url) ? row.url : null,
               snippet: null,
               score: EXACT_WEIGHT,
               source: 'exact',
             };
-            // D1 key = actual DB concurso ID → different cities never collapse
-            const key = row.id;
+            
+            const key = String(row.id);
             if (!fusionMap.has(key)) {
               fusionMap.set(key, r);
             } else {
               const ex = fusionMap.get(key);
               ex.score = Math.max(ex.score, r.score);
-              // Merge fields: prefer non-null values
               if (!ex.cargo && r.cargo) ex.cargo = r.cargo;
               if (!ex.banca && r.banca) ex.banca = r.banca;
               if (!ex.salario && r.salario) ex.salario = r.salario;
+              if (!ex.url && r.url) ex.url = r.url;
             }
+            
+            const sig = getSig(r);
+            if (sig && sig !== '__') sigToId.set(sig, key);
           }
 
           // 2. Fold in semantic matches — boost existing records or add new ones (lower weight)
@@ -2080,11 +2095,23 @@ var worker_default = {
               banca: hasBanca ? meta.banca : null,
               salario: fv(meta.salario) ? meta.salario : null,
               data_prova: meta.data_prova || null,
+              url: fv(meta.url) ? meta.url : (fv(meta.url_origem) ? meta.url_origem : null),
               snippet: (meta.snippet || meta.texto_integral || '').substring(0, 300) + '...',
               score: match.score,
               source: 'semantic',
             };
-            const key = vecKey(meta, match.id);
+            
+            let key = meta.concurso_id ? String(meta.concurso_id) : null;
+            
+            if (!key) {
+               const sig = getSig(meta);
+               if (sig && sig !== '__' && sigToId.has(sig)) {
+                   key = sigToId.get(sig);
+               } else {
+                   // Fallback signature to deduplicate Vectorize chunks of the same logical concurso
+                   key = (sig && sig !== '__') ? 'sig_' + sig : (meta.id || String(match.id).split('_chunk_')[0]);
+               }
+            }
 
             if (fusionMap.has(key)) {
               const ex = fusionMap.get(key);
@@ -2092,6 +2119,7 @@ var worker_default = {
               ex.source = 'hybrid';
               if (!ex.cargo && sem.cargo) ex.cargo = sem.cargo;
               if (!ex.banca && sem.banca) ex.banca = sem.banca;
+              if (!ex.url && sem.url) ex.url = sem.url;
               if (!ex.snippet && sem.snippet) ex.snippet = sem.snippet;
             } else {
               let keep = true;

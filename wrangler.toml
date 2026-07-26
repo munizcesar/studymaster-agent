@@ -65,4 +65,4 @@ max_retries = 3
 dead_letter_queue = "studymaster-ingest-dlq"
 
 [triggers]
-crons = [ 0 12 * * * ]
+crons = [ "0 12 * * *" ]
