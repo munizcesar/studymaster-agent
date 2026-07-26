@@ -10501,18 +10501,49 @@ window.nextFlashcard = (status) => {
           const data = await res.json();
           
           if (data.results && data.results.length > 0) {
-             window.currentSearchResults = data.results;
-             resultsContainer.innerHTML = data.results.map((r, i) => `
+             const grouped = {};
+             const isV = (val) => val && String(val).toLowerCase() !== 'null' && String(val).trim() !== '' && String(val).toLowerCase() !== 'desconhecido' && String(val).toLowerCase() !== 'desconhecida';
+             
+             data.results.forEach(r => {
+                const baseId = String(r.id).split('_chunk_')[0];
+                
+                if (!grouped[baseId]) {
+                   grouped[baseId] = { ...r, id: baseId };
+                   if (!isV(grouped[baseId].orgao)) grouped[baseId].orgao = '';
+                   if (!isV(grouped[baseId].cargo)) grouped[baseId].cargo = '';
+                   if (!isV(grouped[baseId].banca)) grouped[baseId].banca = '';
+                   if (!isV(grouped[baseId].salario)) grouped[baseId].salario = '';
+                   if (!isV(grouped[baseId].data_prova)) grouped[baseId].data_prova = '';
+                } else {
+                   const g = grouped[baseId];
+                   if (!isV(g.orgao) && isV(r.orgao)) g.orgao = r.orgao;
+                   if (!isV(g.cargo) && isV(r.cargo)) g.cargo = r.cargo;
+                   if (!isV(g.banca) && isV(r.banca)) g.banca = r.banca;
+                   if (!isV(g.salario) && isV(r.salario)) g.salario = r.salario;
+                   if (!isV(g.data_prova) && isV(r.data_prova)) g.data_prova = r.data_prova;
+                }
+             });
+             
+             const finalResults = Object.values(grouped);
+             window.currentSearchResults = finalResults;
+             
+             resultsContainer.innerHTML = finalResults.map((r, i) => {
+               const showOrgao = isV(r.orgao) ? r.orgao : 'Documento sem órgão especificado';
+               const showCargo = isV(r.cargo) ? `<strong>Cargo:</strong> ${r.cargo}` : '';
+               const showBanca = isV(r.banca) ? `<strong>Banca:</strong> ${r.banca}` : '';
+               const separator = (showCargo && showBanca) ? ' | ' : '';
+               
+               return `
                <a href="#concurso-${r.id}" onclick="event.preventDefault(); window.openEditalDetail(${i});" style="display: block; text-decoration: none; color: inherit; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px; padding: 16px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                 <h4 style="margin: 0 0 8px 0; color: var(--color-primary); font-size: 1.1rem;">${r.orgao}</h4>
-                 <div style="font-size: 0.9rem; color: var(--color-text); margin-bottom: 8px;">
-                    <strong>Cargo:</strong> ${r.cargo} | <strong>Banca:</strong> ${r.banca}
+                 <h4 style="margin: 0 0 8px 0; color: var(--color-primary); font-size: 1.1rem;">${showOrgao}</h4>
+                 <div style="font-size: 0.9rem; color: var(--color-text); margin-bottom: 8px; display: ${(showCargo || showBanca) ? 'block' : 'none'};">
+                    ${showCargo}${separator}${showBanca}
                  </div>
                  <p style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0; line-height: 1.4;">
-                    ${r.snippet}
+                    ${r.snippet || ''}
                  </p>
                </a>
-             `).join('');
+             `}).join('');
           } else {
              resultsContainer.innerHTML = '<div style="padding: 16px; background: var(--color-card); border-radius: 8px; border: 1px solid var(--color-border); color: var(--color-text-muted);">Nenhum edital encontrado para sua busca.</div>';
           }
@@ -10539,7 +10570,7 @@ window.nextFlashcard = (status) => {
        const r = window.currentSearchResults[index];
        if (!r) return;
        
-       const isValid = (val) => val && val.trim() !== '' && val.toLowerCase() !== 'desconhecido' && val.toLowerCase() !== 'desconhecida';
+       const isValid = (val) => val && String(val).toLowerCase() !== 'null' && String(val).trim() !== '' && String(val).toLowerCase() !== 'desconhecido' && String(val).toLowerCase() !== 'desconhecida';
        
        document.getElementById('edital-detail-title').textContent = isValid(r.orgao) ? r.orgao : 'Detalhes do Documento';
        
