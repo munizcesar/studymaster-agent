@@ -17,7 +17,7 @@ async function test(query) {
   
   console.log(`Results: ${data.results.length}`);
   data.results.forEach((r, i) => {
-    console.log(`  [${i+1}] ID: ${r.id} | Órgão: ${r.orgao} | Cargo: ${r.cargo} | Banca: ${r.banca} | Ano: ${r.ano || r.data_prova}`);
+    console.log(`  [${i+1}] ID: ${r.id} | Órgão: ${r.orgao} | Cargo: ${r.cargo} | Banca: ${r.banca} | Ano: ${r.ano || r.data_prova}\n        URL: ${r.url}`);
   });
 }
 
@@ -25,10 +25,16 @@ async function main() {
   const queries = [
     'pc sp 2023',
     'pc sp 2013',
+    'polícia civil',
+    'polícia civil 2013',
+    'polícia',
     'inss',
+    'inss 2024',
     'guarda municipal campinas',
-    'polícia federal',
-    'xjxjxjxyz'
+    'concurso guarda municipal campinas 2024',
+    'vunesp',
+    '2023',
+    'consulta_xyz_inexistente'
   ];
   
   for (const q of queries) {

@@ -1906,8 +1906,38 @@ async function fetchDiscoveryUniversal(query, env) {
         
         if (results.length === 0) return [];
         
-        let best = results.find(r => r.url.endsWith('.pdf') || r.url.includes('.gov.br') || r.url.includes('vunesp') || r.url.includes('cebraspe') || r.url.includes('fgv.br'));
-        if (!best) best = results[0];
+        const agregadores = [
+            'qconcursos', 'concursosporarea', 'pciconcursos', 
+            'grancursosonline', 'estrategiaconcursos', 'jcconcursos', 
+            'concursosnobrasil', 'direcaoconcursos', 'folhadirigida', 
+            'acheconcursos', 'aprovaconcursos', 'estrategia'
+        ];
+        
+        const bancas = [
+            'vunesp', 'cebraspe', 'fgv.br', 'ibfc.org', 
+            'institutoaocp', 'idecan', 'concursosfcc', 
+            'quadrix', 'fundatec', 'institutomais', 'consulplan'
+        ];
+        
+        const validResults = results.filter(r => {
+            const url = r.url.toLowerCase();
+            
+            // Rejeita domínios que são claramente agregadores (mesmo que tenham .pdf)
+            if (agregadores.some(ag => url.includes(ag))) return false;
+            
+            // Deve ser um domínio oficial governamental ou de banca conhecida
+            const isGov = url.includes('.gov.br') || url.includes('.jus.br') || url.includes('.leg.br') || url.includes('.mp.br');
+            const isBanca = bancas.some(b => url.includes(b));
+            
+            return isGov || isBanca;
+        });
+        
+        if (validResults.length === 0) return [];
+        
+        // Prioridade: 1º PDF oficial, 2º página oficial do órgão, 3º página oficial da banca
+        let best = validResults.find(r => r.url.toLowerCase().endsWith('.pdf'));
+        if (!best) best = validResults.find(r => r.url.toLowerCase().includes('.gov.br'));
+        if (!best) best = validResults[0];
         
         const yearMatch = query.match(/\b(19|20)\d{2}\b/);
         const ano = yearMatch ? yearMatch[0] : new Date().getFullYear();
