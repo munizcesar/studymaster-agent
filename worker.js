@@ -2074,8 +2074,20 @@ var worker_default = {
             return !bad.includes(String(v).trim().toLowerCase());
           };
 
+          const isOfficialUrl = (u) => {
+              if (!u) return false;
+              const agg = ['pciconcursos', 'jcconcursos', 'grancursos', 'direcaoconcursos', 'qconcursos', 'estrategiaconcursos', 'acheconcursos', 'folhadirigida', 'concursosnobrasil', 'focusconcursos', 'aprovaconcursos', 'g1.globo.com', 'noticias', 'blog', 'estrategia'];
+              const low = u.toLowerCase();
+              return !agg.some(a => low.includes(a));
+          };
+
           // 1. Index all D1 exact matches by concurso key with high base score
           for (const row of exactMatches) {
+            let finalUrl = null;
+            if (fv(row.url) && isOfficialUrl(row.url)) {
+                finalUrl = row.url;
+            }
+
             const r = {
               id: row.id,
               orgao: fv(row.orgao) ? row.orgao : null,
@@ -2083,7 +2095,7 @@ var worker_default = {
               banca: fv(row.banca) ? row.banca : null,
               salario: fv(row.salario) && row.salario !== 'R$ null' && row.salario !== 'R$ ' ? row.salario : null,
               data_prova: row.data_prova || null,
-              url: fv(row.url) ? row.url : null,
+              url: finalUrl,
               snippet: null,
               score: EXACT_WEIGHT,
               source: 'exact',
@@ -2113,6 +2125,12 @@ var worker_default = {
             const hasBanca = fv(meta.banca);
             if (!hasOrgao && !hasCargo && !hasBanca) continue;
 
+            let finalSemUrl = null;
+            let rawUrl = fv(meta.url) ? meta.url : (fv(meta.url_origem) ? meta.url_origem : null);
+            if (rawUrl && isOfficialUrl(rawUrl)) {
+                finalSemUrl = rawUrl;
+            }
+
             const sem = {
               id: meta.id || match.id,
               orgao: hasOrgao ? meta.orgao : null,
@@ -2120,7 +2138,7 @@ var worker_default = {
               banca: hasBanca ? meta.banca : null,
               salario: fv(meta.salario) ? meta.salario : null,
               data_prova: meta.data_prova || null,
-              url: fv(meta.url) ? meta.url : (fv(meta.url_origem) ? meta.url_origem : null),
+              url: finalSemUrl,
               snippet: (meta.snippet || meta.texto_integral || '').substring(0, 300) + '...',
               score: match.score,
               source: 'semantic',
