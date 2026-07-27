@@ -1867,22 +1867,38 @@ function isQuerySatisfiedByLocalResults(query, results) {
 }
 
 async function fetchDiscoveryUniversal(query, env) {
-    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent('edital concurso ' + query)}`;
+    const url = `https://lite.duckduckgo.com/lite/`;
     try {
-        const ddgRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }});
+        const q = encodeURIComponent('edital concurso ' + query);
+        const ddgRes = await fetch(url, { 
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
+            },
+            body: 'q=' + q
+        });
+        
         if (!ddgRes.ok) return [];
         const html = await ddgRes.text();
         
-        const titleRegex = /<h2 class="result__title">\s*<a[^>]+uddg=([^"&]+)[^>]*>([\s\S]*?)<\/a>\s*<\/h2>/g;
-        const snippetRegex = /<a class="result__snippet[^>]*>([\s\S]*?)<\/a>/g;
+        const titleRegex = /<a rel="nofollow" href="([^"]+)" class='result-link'>([\s\S]*?)<\/a>/g;
+        const snippetRegex = /<td class='result-snippet'>([\s\S]*?)<\/td>/g;
         let tMatch;
         let sMatch;
         const results = [];
         
         while ((tMatch = titleRegex.exec(html)) !== null && results.length < 5) {
             sMatch = snippetRegex.exec(html);
+            let resultUrl = tMatch[1];
+            
+            // Ignorar links de anúncio do DuckDuckGo
+            if (resultUrl.includes('ad_domain=') || resultUrl.includes('duckduckgo.com/y.js')) {
+                continue;
+            }
+            
             results.push({
-                url: decodeURIComponent(tMatch[1]),
+                url: resultUrl,
                 title: tMatch[2].replace(/<[^>]+>/g, '').trim(),
                 snippet: sMatch ? sMatch[1].replace(/<[^>]+>/g, '').trim() : ''
             });

@@ -23,16 +23,12 @@ async function test(query) {
 
 async function main() {
   const queries = [
-    'pc sp',
+    'pc sp 2023',
     'pc sp 2013',
-    'polícia civil',
-    'polícia',
-    'guarda municipal',
-    'polícia federal',
     'inss',
-    'tribunal',
-    'vunesp',
-    '2023'
+    'guarda municipal campinas',
+    'polícia federal',
+    'xjxjxjxyz'
   ];
   
   for (const q of queries) {
