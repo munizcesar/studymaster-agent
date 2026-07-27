@@ -1832,6 +1832,100 @@ var worker_default = {
     }
   }
 
+// --- Lógica de Discovery Universal Fallback ---
+function isQuerySatisfiedByLocalResults(query, results) {
+  if (!results || results.length === 0) return false;
+  const yearMatch = query.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) {
+    const requestedYear = yearMatch[0];
+    let yearFound = false;
+    for (const r of results) {
+      if ((r.ano && String(r.ano).includes(requestedYear)) || 
+          (r.data_prova && String(r.data_prova).includes(requestedYear)) ||
+          (r.nome && String(r.nome).includes(requestedYear))) {
+         yearFound = true; break;
+      }
+    }
+    if (!yearFound) return false;
+  }
+  
+  const queryTokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 2 && !t.match(/\b(19|20)\d{2}\b/));
+  if (queryTokens.length > 0) {
+      let matches = false;
+      for (const r of results) {
+          const text = (r.orgao + " " + r.cargo + " " + r.nome + " " + (r.sigla||'')).toLowerCase();
+          let c = 0;
+          for (const t of queryTokens) {
+              if (text.includes(t)) c++;
+          }
+          if (c > 0) { matches = true; break; }
+      }
+      if (!matches) return false;
+  }
+  
+  return true;
+}
+
+async function fetchDiscoveryUniversal(query, env) {
+    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent('edital concurso ' + query)}`;
+    try {
+        const ddgRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }});
+        if (!ddgRes.ok) return [];
+        const html = await ddgRes.text();
+        
+        const titleRegex = /<h2 class="result__title">\s*<a[^>]+uddg=([^"&]+)[^>]*>([\s\S]*?)<\/a>\s*<\/h2>/g;
+        const snippetRegex = /<a class="result__snippet[^>]*>([\s\S]*?)<\/a>/g;
+        let tMatch;
+        let sMatch;
+        const results = [];
+        
+        while ((tMatch = titleRegex.exec(html)) !== null && results.length < 5) {
+            sMatch = snippetRegex.exec(html);
+            results.push({
+                url: decodeURIComponent(tMatch[1]),
+                title: tMatch[2].replace(/<[^>]+>/g, '').trim(),
+                snippet: sMatch ? sMatch[1].replace(/<[^>]+>/g, '').trim() : ''
+            });
+        }
+        
+        if (results.length === 0) return [];
+        
+        let best = results.find(r => r.url.endsWith('.pdf') || r.url.includes('.gov.br') || r.url.includes('vunesp') || r.url.includes('cebraspe') || r.url.includes('fgv.br'));
+        if (!best) best = results[0];
+        
+        const yearMatch = query.match(/\b(19|20)\d{2}\b/);
+        const ano = yearMatch ? yearMatch[0] : new Date().getFullYear();
+        
+        const discoveryItem = {
+            id: 'ext_' + Date.now(),
+            orgao: best.title.substring(0, 80),
+            cargo: null,
+            banca: null,
+            ano: ano,
+            url: best.url,
+            isDiscovery: true,
+            snippet: best.snippet
+        };
+        
+        if (env.DISCOVERY_QUEUE) {
+            env.DISCOVERY_QUEUE.send({
+                sourceProvider: 'universal_fallback',
+                sourceUrl: url,
+                discoveredUrl: best.url,
+                discoveredAt: new Date().toISOString(),
+                discoveryType: 'search_fallback',
+                metadata: { query, title: best.title }
+            }).catch(e => console.error("Error queueing discovery:", e));
+        }
+        
+        return [discoveryItem];
+    } catch(e) {
+        console.error("Discovery error:", e);
+        return [];
+    }
+}
+// ------------------------------------------
+
       if (url.pathname === '/api/editais/search' && request.method === 'POST') {
         try {
           const payload = await request.json();
@@ -2174,12 +2268,21 @@ var worker_default = {
           }
 
           // ── Passo D: Filtro de identidade + ranking final ────────────────────
-          const mergedResults = Array.from(fusionMap.values())
+          let mergedResults = Array.from(fusionMap.values())
             .sort((a, b) => {
               if (b.score !== a.score) return b.score - a.score;
               return completeness(b) - completeness(a);
             });
 
+          // ── Lógica de Fallback de Descoberta Universal ───────────────────────
+          if (!isQuerySatisfiedByLocalResults(orgaoSearchTerm, mergedResults)) {
+             const discoveryResults = await fetchDiscoveryUniversal(orgaoSearchTerm, env);
+             if (discoveryResults && discoveryResults.length > 0) {
+                 // Se achou na web algo válido e a busca original estava insatisfatória,
+                 // retornamos primeiramente os resultados recém descobertos.
+                 mergedResults = discoveryResults;
+             }
+          }
           let next_cursor = null;
           if (exactMatches.length === limit) {
               const lastExact = exactMatches[exactMatches.length - 1];
