@@ -1866,78 +1866,110 @@ function isQuerySatisfiedByLocalResults(query, results) {
   return true;
 }
 
-async function fetchDiscoveryUniversal(query, env) {
+async function performDDGLiteSearch(queryStr) {
     const url = `https://lite.duckduckgo.com/lite/`;
-    try {
-        const q = encodeURIComponent('edital concurso ' + query);
-        const ddgRes = await fetch(url, { 
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
-            },
-            body: 'q=' + q
+    const q = encodeURIComponent(queryStr);
+    const ddgRes = await fetch(url, { 
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
+        },
+        body: 'q=' + q
+    });
+    
+    if (!ddgRes.ok) return [];
+    const html = await ddgRes.text();
+    
+    const titleRegex = /<a rel="nofollow" href="([^"]+)" class='result-link'>([\s\S]*?)<\/a>/g;
+    const snippetRegex = /<td class='result-snippet'>([\s\S]*?)<\/td>/g;
+    let tMatch;
+    let sMatch;
+    const results = [];
+    
+    while ((tMatch = titleRegex.exec(html)) !== null && results.length < 5) {
+        sMatch = snippetRegex.exec(html);
+        let resultUrl = tMatch[1];
+        if (resultUrl.includes('ad_domain=') || resultUrl.includes('duckduckgo.com/y.js')) {
+            continue;
+        }
+        results.push({
+            url: resultUrl,
+            title: tMatch[2].replace(/<[^>]+>/g, '').trim(),
+            snippet: sMatch ? sMatch[1].replace(/<[^>]+>/g, '').trim() : ''
         });
+    }
+    return results;
+}
+
+function filterOfficialResults(results) {
+    const agregadores = [
+        'qconcursos', 'concursosporarea', 'pciconcursos', 
+        'grancursosonline', 'estrategiaconcursos', 'jcconcursos', 
+        'concursosnobrasil', 'direcaoconcursos', 'folhadirigida', 
+        'acheconcursos', 'aprovaconcursos', 'estrategia'
+    ];
+    const bancas = [
+        'vunesp', 'cebraspe', 'fgv.br', 'ibfc.org', 
+        'institutoaocp', 'idecan', 'concursosfcc', 
+        'quadrix', 'fundatec', 'institutomais', 'consulplan'
+    ];
+    
+    const validResults = results.filter(r => {
+        const url = r.url.toLowerCase();
+        if (agregadores.some(ag => url.includes(ag))) return false;
         
-        if (!ddgRes.ok) return [];
-        const html = await ddgRes.text();
+        const isGov = url.includes('.gov.br') || url.includes('.jus.br') || url.includes('.leg.br') || url.includes('.mp.br');
+        const isBanca = bancas.some(b => url.includes(b));
+        return isGov || isBanca;
+    });
+    
+    if (validResults.length === 0) return null;
+    
+    let best = validResults.find(r => r.url.toLowerCase().endsWith('.pdf'));
+    if (!best) best = validResults.find(r => r.url.toLowerCase().includes('.gov.br'));
+    if (!best) best = validResults[0];
+    return best;
+}
+
+async function fetchDiscoveryUniversal(query, env) {
+    try {
+        // Step 1: Busca Inicial
+        const initialResults = await performDDGLiteSearch('edital concurso ' + query);
+        if (initialResults.length === 0) return [];
         
-        const titleRegex = /<a rel="nofollow" href="([^"]+)" class='result-link'>([\s\S]*?)<\/a>/g;
-        const snippetRegex = /<td class='result-snippet'>([\s\S]*?)<\/td>/g;
-        let tMatch;
-        let sMatch;
-        const results = [];
+        let best = filterOfficialResults(initialResults);
         
-        while ((tMatch = titleRegex.exec(html)) !== null && results.length < 5) {
-            sMatch = snippetRegex.exec(html);
-            let resultUrl = tMatch[1];
-            
-            // Ignorar links de anúncio do DuckDuckGo
-            if (resultUrl.includes('ad_domain=') || resultUrl.includes('duckduckgo.com/y.js')) {
-                continue;
+        // Step 2: Resolução em Cadeia
+        if (!best) {
+            // Nenhum oficial encontrado, mas temos resultados (agregadores). Vamos extrair pistas.
+            let pistas = '';
+            for (let i = 0; i < Math.min(3, initialResults.length); i++) {
+                pistas += initialResults[i].title + ' ' + initialResults[i].snippet + ' ';
             }
+            pistas = pistas.toLowerCase();
             
-            results.push({
-                url: resultUrl,
-                title: tMatch[2].replace(/<[^>]+>/g, '').trim(),
-                snippet: sMatch ? sMatch[1].replace(/<[^>]+>/g, '').trim() : ''
-            });
+            const bancas = [
+                'vunesp', 'cebraspe', 'cespe', 'fgv', 'ibfc', 
+                'aocp', 'idecan', 'fcc', 'quadrix', 'fundatec', 'consulplan'
+            ];
+            
+            let bancaEncontrada = bancas.find(b => pistas.includes(b)) || '';
+            
+            // Busca Direcionada
+            const secondQuery = `edital concurso ${query} ${bancaEncontrada}`.trim();
+            const secondResults = await performDDGLiteSearch(secondQuery);
+            best = filterOfficialResults(secondResults);
+            
+            if (!best && !bancaEncontrada) {
+                // Se não achou banca e nem site oficial, tenta explicitamente forçar domínios gov
+                const thirdQuery = `${query} site:gov.br`;
+                const thirdResults = await performDDGLiteSearch(thirdQuery);
+                best = filterOfficialResults(thirdResults);
+            }
         }
         
-        if (results.length === 0) return [];
-        
-        const agregadores = [
-            'qconcursos', 'concursosporarea', 'pciconcursos', 
-            'grancursosonline', 'estrategiaconcursos', 'jcconcursos', 
-            'concursosnobrasil', 'direcaoconcursos', 'folhadirigida', 
-            'acheconcursos', 'aprovaconcursos', 'estrategia'
-        ];
-        
-        const bancas = [
-            'vunesp', 'cebraspe', 'fgv.br', 'ibfc.org', 
-            'institutoaocp', 'idecan', 'concursosfcc', 
-            'quadrix', 'fundatec', 'institutomais', 'consulplan'
-        ];
-        
-        const validResults = results.filter(r => {
-            const url = r.url.toLowerCase();
-            
-            // Rejeita domínios que são claramente agregadores (mesmo que tenham .pdf)
-            if (agregadores.some(ag => url.includes(ag))) return false;
-            
-            // Deve ser um domínio oficial governamental ou de banca conhecida
-            const isGov = url.includes('.gov.br') || url.includes('.jus.br') || url.includes('.leg.br') || url.includes('.mp.br');
-            const isBanca = bancas.some(b => url.includes(b));
-            
-            return isGov || isBanca;
-        });
-        
-        if (validResults.length === 0) return [];
-        
-        // Prioridade: 1º PDF oficial, 2º página oficial do órgão, 3º página oficial da banca
-        let best = validResults.find(r => r.url.toLowerCase().endsWith('.pdf'));
-        if (!best) best = validResults.find(r => r.url.toLowerCase().includes('.gov.br'));
-        if (!best) best = validResults[0];
+        if (!best) return [];
         
         const yearMatch = query.match(/\b(19|20)\d{2}\b/);
         const ano = yearMatch ? yearMatch[0] : new Date().getFullYear();
