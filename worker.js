@@ -1869,16 +1869,29 @@ function isQuerySatisfiedByLocalResults(query, results) {
 async function performDDGLiteSearch(queryStr) {
     const url = `https://lite.duckduckgo.com/lite/`;
     const q = encodeURIComponent(queryStr);
-    const ddgRes = await fetch(url, { 
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
-        },
-        body: 'q=' + q
-    });
+    let ddgRes;
+    try {
+        ddgRes = await fetch(url, { 
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
+            },
+            body: 'q=' + q
+        });
+    } catch (networkErr) {
+        console.warn(`[Discovery] DDG network error (timeout/DNS): ${networkErr.message}`);
+        const r = []; r._blocked = true; return r;
+    }
     
-    if (!ddgRes.ok) return [];
+    if (!ddgRes.ok) {
+        if (ddgRes.status === 403 || ddgRes.status === 429) {
+            console.warn(`[Discovery] DDG rate-limited (HTTP ${ddgRes.status}) para query: ${queryStr}`);
+            const r = []; r._blocked = true; return r;
+        }
+        console.warn(`[Discovery] DDG HTTP ${ddgRes.status} para query: ${queryStr}`);
+        return [];
+    }
     const html = await ddgRes.text();
     
     const titleRegex = /<a rel="nofollow" href="([^"]+)" class='result-link'>([\s\S]*?)<\/a>/g;
@@ -1934,15 +1947,23 @@ function filterOfficialResults(results) {
 
 async function fetchDiscoveryUniversal(query, env) {
     try {
+        console.log(`[Discovery] Iniciando busca universal para: ${query}`);
         // Step 1: Busca Inicial
         const initialResults = await performDDGLiteSearch('edital concurso ' + query);
-        if (initialResults.length === 0) return [];
+        if (initialResults._blocked) {
+            console.warn(`[Discovery] DDG bloqueou a requisição. Abortando discovery (não é falha de busca).`);
+            return [];
+        }
+        if (initialResults.length === 0) {
+            console.log(`[Discovery] Primeira busca retornou 0 resultados.`);
+            return [];
+        }
         
         let best = filterOfficialResults(initialResults);
         
         // Step 2: Resolução em Cadeia
         if (!best) {
-            // Nenhum oficial encontrado, mas temos resultados (agregadores). Vamos extrair pistas.
+            console.log(`[Discovery] Nenhum oficial de primeira. Analisando agregadores...`);
             let pistas = '';
             for (let i = 0; i < Math.min(3, initialResults.length); i++) {
                 pistas += initialResults[i].title + ' ' + initialResults[i].snippet + ' ';
@@ -1951,26 +1972,56 @@ async function fetchDiscoveryUniversal(query, env) {
             
             const bancas = [
                 'vunesp', 'cebraspe', 'cespe', 'fgv', 'ibfc', 
-                'aocp', 'idecan', 'fcc', 'quadrix', 'fundatec', 'consulplan'
+                'aocp', 'idecan', 'fcc', 'quadrix', 'fundatec', 'consulplan',
+                'shdias', 'zambini', 'ibam'
             ];
             
             let bancaEncontrada = bancas.find(b => pistas.includes(b)) || '';
+            if (bancaEncontrada) {
+                console.log(`[Discovery] Banca identificada nas pistas: ${bancaEncontrada}`);
+                const secondQuery = `edital concurso ${query} ${bancaEncontrada}`.trim();
+                console.log(`[Discovery] Segunda Busca (Banca): ${secondQuery}`);
+                const secondResults = await performDDGLiteSearch(secondQuery);
+                if (secondResults._blocked) {
+                    console.warn(`[Discovery] DDG bloqueou na segunda busca. Abortando.`);
+                    return [];
+                }
+                best = filterOfficialResults(secondResults);
+            } else {
+                console.log(`[Discovery] Nenhuma banca fixada identificada nas pistas.`);
+            }
             
-            // Busca Direcionada
-            const secondQuery = `edital concurso ${query} ${bancaEncontrada}`.trim();
-            const secondResults = await performDDGLiteSearch(secondQuery);
-            best = filterOfficialResults(secondResults);
-            
-            if (!best && !bancaEncontrada) {
-                // Se não achou banca e nem site oficial, tenta explicitamente forçar domínios gov
+            if (!best) {
                 const thirdQuery = `${query} site:gov.br`;
+                console.log(`[Discovery] Terceira Busca (Gov.br): ${thirdQuery}`);
                 const thirdResults = await performDDGLiteSearch(thirdQuery);
+                if (thirdResults._blocked) {
+                    console.warn(`[Discovery] DDG bloqueou na terceira busca. Abortando.`);
+                    return [];
+                }
                 best = filterOfficialResults(thirdResults);
             }
+            
+            if (!best) {
+                const fourthQuery = `edital "${query}" site:gov.br`;
+                console.log(`[Discovery] Quarta Busca (Variação): ${fourthQuery}`);
+                const fourthResults = await performDDGLiteSearch(fourthQuery);
+                if (fourthResults._blocked) {
+                    console.warn(`[Discovery] DDG bloqueou na quarta busca. Abortando.`);
+                    return [];
+                }
+                best = filterOfficialResults(fourthResults);
+            }
+        } else {
+            console.log(`[Discovery] Oficial encontrado de primeira: ${best.url}`);
         }
         
-        if (!best) return [];
+        if (!best) {
+            console.log(`[Discovery] Todas as tentativas falharam. Nenhuma fonte oficial encontrada no DuckDuckGo.`);
+            return [];
+        }
         
+        console.log(`[Discovery] SUCESSO. URL final resolvida: ${best.url}`);
         const yearMatch = query.match(/\b(19|20)\d{2}\b/);
         const ano = yearMatch ? yearMatch[0] : new Date().getFullYear();
         
@@ -1988,7 +2039,7 @@ async function fetchDiscoveryUniversal(query, env) {
         if (env.DISCOVERY_QUEUE) {
             env.DISCOVERY_QUEUE.send({
                 sourceProvider: 'universal_fallback',
-                sourceUrl: url,
+                sourceUrl: 'universal_search',
                 discoveredUrl: best.url,
                 discoveredAt: new Date().toISOString(),
                 discoveryType: 'search_fallback',
