@@ -1909,8 +1909,76 @@ async function performDDGLiteSearch(queryStr) {
         results.push({
             url: resultUrl,
             title: tMatch[2].replace(/<[^>]+>/g, '').trim(),
-            snippet: sMatch ? sMatch[1].replace(/<[^>]+>/g, '').trim() : ''
+            snippet: sMatch ? sMatch[1].replace(/<[^>]+>/g, '').trim() : '',
+            _provider: 'DDG'
         });
+    }
+    return results;
+}
+
+async function performYahooSearch(queryStr) {
+    const url = `https://br.search.yahoo.com/search?p=${encodeURIComponent(queryStr)}`;
+    let yRes;
+    try {
+        yRes = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+    } catch (networkErr) {
+        console.warn(`[Discovery] Yahoo network error: ${networkErr.message}`);
+        const r = []; r._blocked = true; return r;
+    }
+    
+    if (!yRes.ok) {
+        if (yRes.status === 403 || yRes.status === 429) {
+            console.warn(`[Discovery] Yahoo rate-limited (HTTP ${yRes.status}) para query: ${queryStr}`);
+            const r = []; r._blocked = true; return r;
+        }
+        console.warn(`[Discovery] Yahoo HTTP ${yRes.status} para query: ${queryStr}`);
+        return [];
+    }
+    
+    const html = await yRes.text();
+    const results = [];
+    const blockRegex = /<div class="(?:[^"]*\s)?algo(?:-[^"]*)?(?:\s[^"]*)?"[^>]*><div class="compTitle[^>]*><h3 class="title"><a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a><\/h3>[\s\S]*?<div class="compText[^>]*>([\s\S]*?)<\/div>/g;
+    
+    let match;
+    while ((match = blockRegex.exec(html)) !== null && results.length < 5) {
+        let resultUrl = match[1];
+        let title = match[2].replace(/<[^>]+>/g, '').trim();
+        let snippet = match[3].replace(/<[^>]+>/g, '').trim();
+        
+        if (resultUrl.includes('RU=')) {
+            const ruMatch = resultUrl.match(/RU=([^/]+)/);
+            if (ruMatch) {
+                resultUrl = decodeURIComponent(ruMatch[1]);
+            }
+        }
+        
+        results.push({
+            url: resultUrl,
+            title,
+            snippet,
+            _provider: 'YAHOO'
+        });
+    }
+    return results;
+}
+
+async function performSearch(queryStr) {
+    let results = await performDDGLiteSearch(queryStr);
+    
+    // If DDG blocked us, try Yahoo as fallback
+    if (results._blocked) {
+        console.log(`[Discovery] DDG indisponível para "${queryStr}". Acionando fallback secundário (Yahoo).`);
+        const yResults = await performYahooSearch(queryStr);
+        // If Yahoo also blocked or failed, propagate the block flag
+        if (yResults._blocked) {
+            console.warn(`[Discovery] Falha completa: DDG e Yahoo estão bloqueados.`);
+            return yResults;
+        }
+        return yResults;
     }
     return results;
 }
@@ -2073,7 +2141,7 @@ async function fetchDiscoveryUniversal(query, env) {
         // Generate initial strategy
         const initialQuery = 'edital concurso ' + query;
         console.log(`[Discovery] Estratégia 1 (direta): ${initialQuery}`);
-        const initialResults = await performDDGLiteSearch(initialQuery);
+        const initialResults = await performSearch(initialQuery);
         
         if (initialResults._blocked) {
             console.warn(`[Discovery] DDG bloqueou a requisição. Registrando limitação.`);
@@ -2104,7 +2172,7 @@ async function fetchDiscoveryUniversal(query, env) {
         for (let i = 1; i < strategies.length && !best && !ddgBlocked; i++) {
             const strat = strategies[i];
             console.log(`[Discovery] Estratégia ${i+1} (${strat.label}): ${strat.query}`);
-            const results = await performDDGLiteSearch(strat.query);
+            const results = await performSearch(strat.query);
             
             if (results._blocked) {
                 console.warn(`[Discovery] DDG bloqueou na estratégia ${i+1}. Parando tentativas externas.`);
@@ -2131,7 +2199,7 @@ async function fetchDiscoveryUniversal(query, env) {
             if (enrichedPistas.banca && enrichedPistas.banca !== pistas.banca) {
                 const focusedQuery = `${query} ${enrichedPistas.banca} edital site:gov.br`;
                 console.log(`[Discovery] Estratégia final (pistas enriquecidas): ${focusedQuery}`);
-                const focusedResults = await performDDGLiteSearch(focusedQuery);
+                const focusedResults = await performSearch(focusedQuery);
                 if (focusedResults._blocked) {
                     ddgBlocked = true;
                 } else {
