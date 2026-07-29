@@ -1920,138 +1920,274 @@ function filterOfficialResults(results) {
         'qconcursos', 'concursosporarea', 'pciconcursos', 
         'grancursosonline', 'estrategiaconcursos', 'jcconcursos', 
         'concursosnobrasil', 'direcaoconcursos', 'folhadirigida', 
-        'acheconcursos', 'aprovaconcursos', 'estrategia'
+        'acheconcursos', 'aprovaconcursos', 'estrategia',
+        'valeconcursos', 'concursoreal', 'mapadaprova',
+        'g1.globo.com', 'uol.com.br', 'terra.com.br',
+        'r7.com', 'gabarite', 'blogdofernandoconceicao',
+        'estudegratis', 'simuladosbr', 'questoesgratis',
+        'adminconcursos', 'apostilasopcao', 'editalconcursos',
+        'lfg.com.br', 'cursosparaconcursos'
     ];
-    const bancas = [
+    const bancasDomains = [
         'vunesp', 'cebraspe', 'fgv.br', 'ibfc.org', 
-        'institutoaocp', 'idecan', 'concursosfcc', 
-        'quadrix', 'fundatec', 'institutomais', 'consulplan'
+        'institutoaocp', 'idecan', 'concursosfcc', 'fcc.org',
+        'quadrix', 'fundatec', 'institutomais', 'consulplan',
+        'shdias.com', 'zambini', 'ibam.org', 'nossorumo',
+        'objetivas.com', 'makiyama', 'rfranciscucio'
     ];
     
     const validResults = results.filter(r => {
         const url = r.url.toLowerCase();
-        if (agregadores.some(ag => url.includes(ag))) return false;
+        // Extract hostname for domain checks
+        let hostname = '';
+        try { hostname = new URL(url.startsWith('http') ? url : 'https://' + url).hostname; } catch { hostname = url; }
         
-        const isGov = url.includes('.gov.br') || url.includes('.jus.br') || url.includes('.leg.br') || url.includes('.mp.br');
-        const isBanca = bancas.some(b => url.includes(b));
+        if (agregadores.some(ag => hostname.includes(ag))) return false;
+        
+        const isGov = hostname.includes('.gov.br') || hostname.includes('.jus.br') || hostname.includes('.leg.br') || hostname.includes('.mp.br') || hostname.includes('.edu.br');
+        // Check banca domains against hostname ONLY, not the full URL path
+        const isBanca = bancasDomains.some(b => hostname.includes(b));
         return isGov || isBanca;
     });
     
     if (validResults.length === 0) return null;
     
+    // Priority: PDF on official domain > .gov.br page > banca page > first valid
     let best = validResults.find(r => r.url.toLowerCase().endsWith('.pdf'));
-    if (!best) best = validResults.find(r => r.url.toLowerCase().includes('.gov.br'));
+    if (!best) best = validResults.find(r => { try { return new URL(r.url).hostname.includes('.gov.br'); } catch { return false; } });
     if (!best) best = validResults[0];
     return best;
 }
 
+// ── Discovery Universal Engine ─────────────────────────────────────────────
+// Generic search engine that works for ANY concurso query without hardcoded cases.
+
+function extractPistasFromResults(results, query) {
+    const pistas = { banca: '', orgao: '', cidade: '', estado: '', ano: '', cargo: '' };
+    
+    // Concatenate text from top results
+    let fullText = '';
+    for (let i = 0; i < Math.min(5, results.length); i++) {
+        fullText += (results[i].title || '') + ' ' + (results[i].snippet || '') + ' ';
+    }
+    fullText = fullText.toLowerCase();
+    
+    // Extract banca
+    const bancasKnown = [
+        'vunesp', 'cebraspe', 'cespe', 'fgv', 'ibfc', 
+        'aocp', 'idecan', 'fcc', 'quadrix', 'fundatec', 'consulplan',
+        'shdias', 'zambini', 'ibam', 'nosso rumo', 'makiyama',
+        'instituto mais', 'objetivas', 'cetap', 'funcab', 'iades',
+        'copeve', 'comperve', 'uece', 'ufmt', 'cops'
+    ];
+    pistas.banca = bancasKnown.find(b => fullText.includes(b)) || '';
+    
+    // Extract year from query
+    const yearMatch = query.match(/\b(19|20)\d{2}\b/);
+    if (yearMatch) pistas.ano = yearMatch[0];
+    
+    // Extract state abbreviation
+    const estados = ['ac','al','ap','am','ba','ce','df','es','go','ma','mt','ms','mg','pa','pb','pr','pe','pi','rj','rn','rs','ro','rr','sc','sp','se','to'];
+    const queryTokens = query.toLowerCase().split(/\s+/);
+    for (const tok of queryTokens) {
+        if (estados.includes(tok) && tok.length === 2) { pistas.estado = tok; break; }
+    }
+    
+    // Extract orgão hints from query itself (generic)
+    const orgaoPatterns = [
+        /prefeitura\s+(?:de\s+|municipal\s+(?:de\s+)?)?([\w\sáéíóúàãõâêôçü-]+)/i,
+        /municipio\s+(?:de\s+)?([\w\sáéíóúàãõâêôçü-]+)/i,
+        /tribunal\s+(?:de\s+|regional\s+)?([\w\sáéíóúàãõâêôçü-]+)/i,
+        /universidade\s+(?:federal\s+|estadual\s+)?(?:de\s+|do\s+)?([\w\sáéíóúàãõâêôçü-]+)/i,
+    ];
+    for (const pat of orgaoPatterns) {
+        const m = query.match(pat);
+        if (m) { pistas.orgao = m[1].trim(); break; }
+    }
+    
+    // Detect cidade from snippets (look for "Município de X" or "Prefeitura de X")
+    if (!pistas.cidade) {
+        const cidadeMatch = fullText.match(/(?:município|prefeitura|cidade)\s+(?:de|do|da)\s+([\wáéíóúàãõâêôçü-]+)/i);
+        if (cidadeMatch) pistas.cidade = cidadeMatch[1].trim();
+    }
+    
+    return pistas;
+}
+
+function generateSearchStrategies(query, pistas) {
+    const strategies = [];
+    const q = query.trim();
+    
+    // Strategy 1: Direct search (most specific)
+    strategies.push({ query: `edital concurso ${q}`, label: 'direta' });
+    
+    // Strategy 2: Concurso público variation
+    strategies.push({ query: `concurso público ${q} edital`, label: 'concurso-publico' });
+    
+    // Strategy 3: Gov.br scoped
+    strategies.push({ query: `${q} edital site:gov.br`, label: 'gov-scoped' });
+    
+    // Strategy 4: With banca if identified
+    if (pistas.banca) {
+        strategies.push({ query: `edital ${q} ${pistas.banca}`, label: 'banca-direta' });
+    }
+    
+    // Strategy 5: PDF search
+    strategies.push({ query: `${q} edital PDF concurso`, label: 'pdf-search' });
+    
+    return strategies;
+}
+
+function isResultRelevantToQuery(result, query) {
+    // Validates that a discovery result is actually relevant to the user's query,
+    // not just a generic gov.br page about concursos.
+    const queryNorm = query.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[-.()/]/g, " ").replace(/\s+/g, " ").trim();
+    
+    const queryTokens = queryNorm.split(' ').filter(t => t.length > 2 && !t.match(/^\d{4}$/));
+    if (queryTokens.length === 0) return true; // nothing to check
+    
+    const resultText = ((result.title || '') + ' ' + (result.snippet || '') + ' ' + (result.url || ''))
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    // At least 1 meaningful token from the query must appear in the result
+    let matchCount = 0;
+    for (const token of queryTokens) {
+        if (resultText.includes(token)) matchCount++;
+    }
+    
+    // Require at least 30% of tokens to match, minimum 1
+    const threshold = Math.max(1, Math.ceil(queryTokens.length * 0.3));
+    return matchCount >= threshold;
+}
+
 async function fetchDiscoveryUniversal(query, env) {
     try {
-        console.log(`[Discovery] Iniciando busca universal para: ${query}`);
-        // Step 1: Busca Inicial
-        const initialResults = await performDDGLiteSearch('edital concurso ' + query);
+        console.log(`[Discovery] Iniciando busca universal para: "${query}"`);
+        let ddgBlocked = false;
+        let allResults = []; // Accumulate all DDG results across strategies
+        let best = null;
+        
+        // Generate initial strategy
+        const initialQuery = 'edital concurso ' + query;
+        console.log(`[Discovery] Estratégia 1 (direta): ${initialQuery}`);
+        const initialResults = await performDDGLiteSearch(initialQuery);
+        
         if (initialResults._blocked) {
-            console.warn(`[Discovery] DDG bloqueou a requisição. Abortando discovery (não é falha de busca).`);
-            return [];
-        }
-        if (initialResults.length === 0) {
-            console.log(`[Discovery] Primeira busca retornou 0 resultados.`);
-            return [];
-        }
-        
-        let best = filterOfficialResults(initialResults);
-        
-        // Step 2: Resolução em Cadeia
-        if (!best) {
-            console.log(`[Discovery] Nenhum oficial de primeira. Analisando agregadores...`);
-            let pistas = '';
-            for (let i = 0; i < Math.min(3, initialResults.length); i++) {
-                pistas += initialResults[i].title + ' ' + initialResults[i].snippet + ' ';
-            }
-            pistas = pistas.toLowerCase();
-            
-            const bancas = [
-                'vunesp', 'cebraspe', 'cespe', 'fgv', 'ibfc', 
-                'aocp', 'idecan', 'fcc', 'quadrix', 'fundatec', 'consulplan',
-                'shdias', 'zambini', 'ibam'
-            ];
-            
-            let bancaEncontrada = bancas.find(b => pistas.includes(b)) || '';
-            if (bancaEncontrada) {
-                console.log(`[Discovery] Banca identificada nas pistas: ${bancaEncontrada}`);
-                const secondQuery = `edital concurso ${query} ${bancaEncontrada}`.trim();
-                console.log(`[Discovery] Segunda Busca (Banca): ${secondQuery}`);
-                const secondResults = await performDDGLiteSearch(secondQuery);
-                if (secondResults._blocked) {
-                    console.warn(`[Discovery] DDG bloqueou na segunda busca. Abortando.`);
-                    return [];
-                }
-                best = filterOfficialResults(secondResults);
-            } else {
-                console.log(`[Discovery] Nenhuma banca fixada identificada nas pistas.`);
-            }
-            
-            if (!best) {
-                const thirdQuery = `${query} site:gov.br`;
-                console.log(`[Discovery] Terceira Busca (Gov.br): ${thirdQuery}`);
-                const thirdResults = await performDDGLiteSearch(thirdQuery);
-                if (thirdResults._blocked) {
-                    console.warn(`[Discovery] DDG bloqueou na terceira busca. Abortando.`);
-                    return [];
-                }
-                best = filterOfficialResults(thirdResults);
-            }
-            
-            if (!best) {
-                const fourthQuery = `edital "${query}" site:gov.br`;
-                console.log(`[Discovery] Quarta Busca (Variação): ${fourthQuery}`);
-                const fourthResults = await performDDGLiteSearch(fourthQuery);
-                if (fourthResults._blocked) {
-                    console.warn(`[Discovery] DDG bloqueou na quarta busca. Abortando.`);
-                    return [];
-                }
-                best = filterOfficialResults(fourthResults);
-            }
+            console.warn(`[Discovery] DDG bloqueou a requisição. Registrando limitação.`);
+            ddgBlocked = true;
         } else {
-            console.log(`[Discovery] Oficial encontrado de primeira: ${best.url}`);
+            allResults = allResults.concat(initialResults);
+            best = filterOfficialResults(initialResults);
+            if (best && isResultRelevantToQuery(best, query)) {
+                console.log(`[Discovery] Oficial encontrado na estratégia 1: ${best.url}`);
+                return buildDiscoveryResponse(best, query, env);
+            }
+            if (best) {
+                console.log(`[Discovery] Oficial encontrado mas não relevante para a query. Continuando.`);
+                best = null;
+            }
+        }
+        
+        // Extract pistas from whatever we have so far
+        const pistas = allResults.length > 0 ? extractPistasFromResults(allResults, query) : extractPistasFromResults([], query);
+        if (pistas.banca) console.log(`[Discovery] Banca identificada: ${pistas.banca}`);
+        if (pistas.cidade) console.log(`[Discovery] Cidade identificada: ${pistas.cidade}`);
+        if (pistas.estado) console.log(`[Discovery] Estado identificado: ${pistas.estado}`);
+        
+        // Generate remaining strategies
+        const strategies = generateSearchStrategies(query, pistas);
+        
+        // Skip strategy 1 (already done), execute the rest
+        for (let i = 1; i < strategies.length && !best && !ddgBlocked; i++) {
+            const strat = strategies[i];
+            console.log(`[Discovery] Estratégia ${i+1} (${strat.label}): ${strat.query}`);
+            const results = await performDDGLiteSearch(strat.query);
+            
+            if (results._blocked) {
+                console.warn(`[Discovery] DDG bloqueou na estratégia ${i+1}. Parando tentativas externas.`);
+                ddgBlocked = true;
+                break;
+            }
+            
+            allResults = allResults.concat(results);
+            const candidate = filterOfficialResults(results);
+            if (candidate && isResultRelevantToQuery(candidate, query)) {
+                best = candidate;
+                console.log(`[Discovery] Oficial relevante encontrado na estratégia ${i+1}: ${best.url}`);
+                break;
+            }
+        }
+        
+        // If still no official result but we have aggregator results, try one more
+        // focused resolution using extracted pistas
+        if (!best && !ddgBlocked && allResults.length > 0) {
+            // Re-extract pistas with more data
+            const enrichedPistas = extractPistasFromResults(allResults, query);
+            
+            // Build a focused orgão+banca query
+            if (enrichedPistas.banca && enrichedPistas.banca !== pistas.banca) {
+                const focusedQuery = `${query} ${enrichedPistas.banca} edital site:gov.br`;
+                console.log(`[Discovery] Estratégia final (pistas enriquecidas): ${focusedQuery}`);
+                const focusedResults = await performDDGLiteSearch(focusedQuery);
+                if (focusedResults._blocked) {
+                    ddgBlocked = true;
+                } else {
+                    const candidate = filterOfficialResults(focusedResults);
+                    if (candidate && isResultRelevantToQuery(candidate, query)) {
+                        best = candidate;
+                        console.log(`[Discovery] Oficial relevante encontrado na estratégia final: ${best.url}`);
+                    }
+                }
+            }
         }
         
         if (!best) {
-            console.log(`[Discovery] Todas as tentativas falharam. Nenhuma fonte oficial encontrada no DuckDuckGo.`);
+            if (ddgBlocked) {
+                console.warn(`[Discovery] Busca incompleta por bloqueio do DDG. Não é possível confirmar inexistência.`);
+            } else {
+                console.log(`[Discovery] Todas as estratégias executadas. Nenhuma fonte oficial relevante encontrada.`);
+            }
             return [];
         }
         
-        console.log(`[Discovery] SUCESSO. URL final resolvida: ${best.url}`);
-        const yearMatch = query.match(/\b(19|20)\d{2}\b/);
-        const ano = yearMatch ? yearMatch[0] : new Date().getFullYear();
-        
-        const discoveryItem = {
-            id: 'ext_' + Date.now(),
-            orgao: best.title.substring(0, 80),
-            cargo: null,
-            banca: null,
-            ano: ano,
-            url: best.url,
-            isDiscovery: true,
-            snippet: best.snippet
-        };
-        
-        if (env.DISCOVERY_QUEUE) {
-            env.DISCOVERY_QUEUE.send({
-                sourceProvider: 'universal_fallback',
-                sourceUrl: 'universal_search',
-                discoveredUrl: best.url,
-                discoveredAt: new Date().toISOString(),
-                discoveryType: 'search_fallback',
-                metadata: { query, title: best.title }
-            }).catch(e => console.error("Error queueing discovery:", e));
-        }
-        
-        return [discoveryItem];
+        return buildDiscoveryResponse(best, query, env);
     } catch(e) {
-        console.error("Discovery error:", e);
+        console.error("[Discovery] Erro inesperado:", e);
         return [];
     }
+}
+
+function buildDiscoveryResponse(best, query, env) {
+    const yearMatch = query.match(/\b(19|20)\d{2}\b/);
+    const ano = yearMatch ? yearMatch[0] : new Date().getFullYear();
+    
+    const discoveryItem = {
+        id: 'ext_' + Date.now(),
+        orgao: best.title.substring(0, 80),
+        cargo: null,
+        banca: null,
+        ano: ano,
+        url: best.url,
+        isDiscovery: true,
+        snippet: best.snippet
+    };
+    
+    if (env.DISCOVERY_QUEUE) {
+        env.DISCOVERY_QUEUE.send({
+            sourceProvider: 'universal_fallback',
+            sourceUrl: 'universal_search',
+            discoveredUrl: best.url,
+            discoveredAt: new Date().toISOString(),
+            discoveryType: 'search_fallback',
+            metadata: { query, title: best.title }
+        }).catch(e => console.error("Error queueing discovery:", e));
+    }
+    
+    console.log(`[Discovery] SUCESSO. URL final: ${best.url}`);
+    return [discoveryItem];
 }
 // ------------------------------------------
 
