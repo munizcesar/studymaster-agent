@@ -2958,8 +2958,12 @@ PROTOCOLOS DE GARANTIA:
           const data = await response.json();
           const content = data?.choices?.[0]?.message?.content;
           
+          let parsed;
           try {
-              const parsed = JSON.parse(content);
+              let cleanContent = content || "{}";
+              cleanContent = cleanContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+              parsed = JSON.parse(cleanContent);
+              
               logStructuredEvent("lab_ia_success", { mode });
               if (mode === "flashcards") {
                   return new Response(JSON.stringify({ success: true, cards: parsed.cards || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -2968,7 +2972,8 @@ PROTOCOLOS DE GARANTIA:
               } else if (mode === "livre") {
                   return new Response(JSON.stringify({ success: true, questions: parsed.questions || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
               }
-          } catch {
+          } catch (e) {
+              logStructuredEvent("lab_ia_failed", { error: "Parse error: " + e.message, content });
               return new Response(JSON.stringify({ success: false, userMessage: "Falha ao gerar conteúdo (formato inválido da IA)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
@@ -3046,8 +3051,11 @@ O JSON DEVE OBRIGATORIAMENTE ter este formato exato:
           const data = await response.json();
           const content = data?.choices?.[0]?.message?.content;
           
+          let parsed;
           try {
-              const parsed = JSON.parse(content);
+              let cleanContent = content || "{}";
+              cleanContent = cleanContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+              parsed = JSON.parse(cleanContent);
               return new Response(JSON.stringify({ success: true, intervention: parsed }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           } catch {
               return new Response(JSON.stringify({ success: false, userMessage: "Falha ao processar intervenção (JSON inválido)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
