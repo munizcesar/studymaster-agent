@@ -36,6 +36,17 @@ var corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400"
 };
+
+// ── FASE 6: Observabilidade e Auditoria ──
+function logStructuredEvent(operation, details = {}) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    operation: operation,
+    ...details
+  };
+  // Em produção, isso seria enviado para um Datadog, ELK, ou serviço Cloudflare Analytics
+  console.log(JSON.stringify(logEntry));
+}
 var CONCURSOS_CONFIG = {
   filters: {
     "concursos.portugues": {
@@ -1850,7 +1861,6 @@ var worker_default = {
 
     const url = new URL(request.url);
 
-      // ─── PRODUCER: Enfileirar job de ingestão ───────────────────────────────
       if (url.pathname === '/api/ingest/enqueue' && request.method === 'POST') {
         try {
           if (!env.INGEST_QUEUE) {
@@ -1865,19 +1875,19 @@ var worker_default = {
               status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
           }
-          // Publicar mensagem mínima na queue
           await env.INGEST_QUEUE.send({ ingestId, docId, url: docUrl, concursoId, tipo, status: body.status, versao_pipeline: '4.0.0' });
+          logStructuredEvent("ingest_enqueued", { ingestId, docId });
           return new Response(JSON.stringify({ success: true, enqueued: true, ingestId }), {
             status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         } catch (err) {
+          logStructuredEvent("ingest_enqueue_failed", { error: err.message });
           return new Response(JSON.stringify({ success: false, error: err.message }), {
             status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
       }
 
-      // ─── E2E TEST: Inject a real URL into the discovery queue ──────────
       if (url.pathname === '/api/dev/trigger-e2e' && request.method === 'POST') {
         try {
           const body = await request.json();
@@ -1913,7 +1923,6 @@ var worker_default = {
     }
   }
 
-// --- Lógica de Discovery Universal Fallback ---
 function isQuerySatisfiedByLocalResults(query, results) {
   if (!results || results.length === 0) return false;
   const yearMatch = query.match(/\b(19|20)\d{2}\b/);
@@ -2031,41 +2040,33 @@ function filterOfficialResults(results) {
     
     const validResults = results.filter(r => {
         const url = r.url.toLowerCase();
-        // Extract hostname for domain checks
         let hostname = '';
         try { hostname = new URL(url.startsWith('http') ? url : 'https://' + url).hostname; } catch { hostname = url; }
         
         if (agregadores.some(ag => hostname.includes(ag))) return false;
         
         const isGov = hostname.includes('.gov.br') || hostname.includes('.jus.br') || hostname.includes('.leg.br') || hostname.includes('.mp.br') || hostname.includes('.edu.br');
-        // Check banca domains against hostname ONLY, not the full URL path
         const isBanca = bancasDomains.some(b => hostname.includes(b));
         return isGov || isBanca;
     });
     
     if (validResults.length === 0) return null;
     
-    // Priority: PDF on official domain > .gov.br page > banca page > first valid
     let best = validResults.find(r => r.url.toLowerCase().endsWith('.pdf'));
     if (!best) best = validResults.find(r => { try { return new URL(r.url).hostname.includes('.gov.br'); } catch { return false; } });
     if (!best) best = validResults[0];
     return best;
 }
 
-// ── Discovery Universal Engine ─────────────────────────────────────────────
-// Generic search engine that works for ANY concurso query without hardcoded cases.
-
 function extractPistasFromResults(results, query) {
     const pistas = { banca: '', orgao: '', cidade: '', estado: '', ano: '', cargo: '' };
     
-    // Concatenate text from top results
     let fullText = '';
     for (let i = 0; i < Math.min(5, results.length); i++) {
         fullText += (results[i].title || '') + ' ' + (results[i].snippet || '') + ' ';
     }
     fullText = fullText.toLowerCase();
     
-    // Extract banca
     const bancasKnown = [
         'vunesp', 'cebraspe', 'cespe', 'fgv', 'ibfc', 
         'aocp', 'idecan', 'fcc', 'quadrix', 'fundatec', 'consulplan',
@@ -2075,18 +2076,15 @@ function extractPistasFromResults(results, query) {
     ];
     pistas.banca = bancasKnown.find(b => fullText.includes(b)) || '';
     
-    // Extract year from query
     const yearMatch = query.match(/\b(19|20)\d{2}\b/);
     if (yearMatch) pistas.ano = yearMatch[0];
     
-    // Extract state abbreviation
     const estados = ['ac','al','ap','am','ba','ce','df','es','go','ma','mt','ms','mg','pa','pb','pr','pe','pi','rj','rn','rs','ro','rr','sc','sp','se','to'];
     const queryTokens = query.toLowerCase().split(/\s+/);
     for (const tok of queryTokens) {
         if (estados.includes(tok) && tok.length === 2) { pistas.estado = tok; break; }
     }
     
-    // Extract orgão hints from query itself (generic)
     const orgaoPatterns = [
         /prefeitura\s+(?:de\s+|municipal\s+(?:de\s+)?)?([\w\sáéíóúàãõâêôçü-]+)/i,
         /municipio\s+(?:de\s+)?([\w\sáéíóúàãõâêôçü-]+)/i,
@@ -2098,7 +2096,6 @@ function extractPistasFromResults(results, query) {
         if (m) { pistas.orgao = m[1].trim(); break; }
     }
     
-    // Detect cidade from snippets (look for "Município de X" or "Prefeitura de X")
     if (!pistas.cidade) {
         const cidadeMatch = fullText.match(/(?:município|prefeitura|cidade)\s+(?:de|do|da)\s+([\wáéíóúàãõâêôçü-]+)/i);
         if (cidadeMatch) pistas.cidade = cidadeMatch[1].trim();
@@ -2111,47 +2108,36 @@ function generateSearchStrategies(query, pistas) {
     const strategies = [];
     const q = query.trim();
     
-    // Strategy 1: Direct search (most specific)
     strategies.push({ query: `edital concurso ${q}`, label: 'direta' });
-    
-    // Strategy 2: Concurso público variation
     strategies.push({ query: `concurso público ${q} edital`, label: 'concurso-publico' });
-    
-    // Strategy 3: Gov.br scoped
     strategies.push({ query: `${q} edital site:gov.br`, label: 'gov-scoped' });
     
-    // Strategy 4: With banca if identified
     if (pistas.banca) {
         strategies.push({ query: `edital ${q} ${pistas.banca}`, label: 'banca-direta' });
     }
     
-    // Strategy 5: PDF search
     strategies.push({ query: `${q} edital PDF concurso`, label: 'pdf-search' });
     
     return strategies;
 }
 
 function isResultRelevantToQuery(result, query) {
-    // Validates that a discovery result is actually relevant to the user's query,
-    // not just a generic gov.br page about concursos.
     const queryNorm = query.toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[-.()/]/g, " ").replace(/\s+/g, " ").trim();
     
     const queryTokens = queryNorm.split(' ').filter(t => t.length > 2 && !t.match(/^\d{4}$/));
-    if (queryTokens.length === 0) return true; // nothing to check
+    if (queryTokens.length === 0) return true; 
     
     const resultText = ((result.title || '') + ' ' + (result.snippet || '') + ' ' + (result.url || ''))
         .toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
-    // At least 1 meaningful token from the query must appear in the result
     let matchCount = 0;
     for (const token of queryTokens) {
         if (resultText.includes(token)) matchCount++;
     }
     
-    // Require at least 30% of tokens to match, minimum 1
     const threshold = Math.max(1, Math.ceil(queryTokens.length * 0.3));
     return matchCount >= threshold;
 }
@@ -2160,47 +2146,34 @@ async function fetchDiscoveryUniversal(query, env) {
     try {
         console.log(`[Discovery] Iniciando busca universal para: "${query}"`);
         let ddgBlocked = false;
-        let allResults = []; // Accumulate all DDG results across strategies
+        let allResults = []; 
         let best = null;
         
-        // Generate initial strategy
         const initialQuery = 'edital concurso ' + query;
-        console.log(`[Discovery] Estratégia 1 (direta): ${initialQuery}`);
         const initialResults = await performSearch(initialQuery, env);
         
         if (initialResults._blocked) {
-            console.warn(`[Discovery] DDG bloqueou a requisição. Registrando limitação.`);
             ddgBlocked = true;
         } else {
             allResults = allResults.concat(initialResults);
             best = filterOfficialResults(initialResults);
             if (best && isResultRelevantToQuery(best, query)) {
-                console.log(`[Discovery] Oficial encontrado na estratégia 1: ${best.url}`);
+                logStructuredEvent("discovery_found", { query, url: best.url });
                 return buildDiscoveryResponse(best, query, env);
             }
             if (best) {
-                console.log(`[Discovery] Oficial encontrado mas não relevante para a query. Continuando.`);
                 best = null;
             }
         }
         
-        // Extract pistas from whatever we have so far
         const pistas = allResults.length > 0 ? extractPistasFromResults(allResults, query) : extractPistasFromResults([], query);
-        if (pistas.banca) console.log(`[Discovery] Banca identificada: ${pistas.banca}`);
-        if (pistas.cidade) console.log(`[Discovery] Cidade identificada: ${pistas.cidade}`);
-        if (pistas.estado) console.log(`[Discovery] Estado identificado: ${pistas.estado}`);
-        
-        // Generate remaining strategies
         const strategies = generateSearchStrategies(query, pistas);
         
-        // Skip strategy 1 (already done), execute the rest
         for (let i = 1; i < strategies.length && !best && !ddgBlocked; i++) {
             const strat = strategies[i];
-            console.log(`[Discovery] Estratégia ${i+1} (${strat.label}): ${strat.query}`);
             const results = await performSearch(strat.query, env);
             
             if (results._blocked) {
-                console.warn(`[Discovery] DDG bloqueou na estratégia ${i+1}. Parando tentativas externas.`);
                 ddgBlocked = true;
                 break;
             }
@@ -2209,21 +2182,16 @@ async function fetchDiscoveryUniversal(query, env) {
             const candidate = filterOfficialResults(results);
             if (candidate && isResultRelevantToQuery(candidate, query)) {
                 best = candidate;
-                console.log(`[Discovery] Oficial relevante encontrado na estratégia ${i+1}: ${best.url}`);
+                logStructuredEvent("discovery_found", { query, url: best.url });
                 break;
             }
         }
         
-        // If still no official result but we have aggregator results, try one more
-        // focused resolution using extracted pistas
         if (!best && !ddgBlocked && allResults.length > 0) {
-            // Re-extract pistas with more data
             const enrichedPistas = extractPistasFromResults(allResults, query);
             
-            // Build a focused orgão+banca query
             if (enrichedPistas.banca && enrichedPistas.banca !== pistas.banca) {
                 const focusedQuery = `${query} ${enrichedPistas.banca} edital site:gov.br`;
-                console.log(`[Discovery] Estratégia final (pistas enriquecidas): ${focusedQuery}`);
                 const focusedResults = await performSearch(focusedQuery, env);
                 if (focusedResults._blocked) {
                     ddgBlocked = true;
@@ -2231,24 +2199,20 @@ async function fetchDiscoveryUniversal(query, env) {
                     const candidate = filterOfficialResults(focusedResults);
                     if (candidate && isResultRelevantToQuery(candidate, query)) {
                         best = candidate;
-                        console.log(`[Discovery] Oficial relevante encontrado na estratégia final: ${best.url}`);
+                        logStructuredEvent("discovery_found", { query, url: best.url });
                     }
                 }
             }
         }
         
         if (!best) {
-            if (ddgBlocked) {
-                console.warn(`[Discovery] Busca incompleta por bloqueio do DDG. Não é possível confirmar inexistência.`);
-            } else {
-                console.log(`[Discovery] Todas as estratégias executadas. Nenhuma fonte oficial relevante encontrada.`);
-            }
+            logStructuredEvent("discovery_failed", { query });
             return [];
         }
         
         return buildDiscoveryResponse(best, query, env);
     } catch(e) {
-        console.error("[Discovery] Erro inesperado:", e);
+        logStructuredEvent("discovery_error", { error: e.message });
         return [];
     }
 }
@@ -2279,10 +2243,8 @@ function buildDiscoveryResponse(best, query, env) {
         }).catch(e => console.error("Error queueing discovery:", e));
     }
     
-    console.log(`[Discovery] SUCESSO. URL final: ${best.url}`);
     return [discoveryItem];
 }
-// ------------------------------------------
 
       if (url.pathname === '/api/editais/search' && request.method === 'POST') {
         try {
@@ -2301,14 +2263,10 @@ function buildDiscoveryResponse(best, query, env) {
           }
 
           let orgaoSearchTerm = query.trim();
-          
-          // ── Query pre-processing ──────────────────────────────────────────────
-          // 1. Normalize: lowercase + strip accents + strip punctuation
           const preNorm = (s) => s.toLowerCase()
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
             .replace(/[-.()/]/g, " ").replace(/\s+/g, " ").trim();
 
-          // 2. Alias expansion table — abbreviation → canonical term(s)
           const ALIASES = {
             'pf': 'policia federal',
             'dpf': 'policia federal',
@@ -2355,10 +2313,8 @@ function buildDiscoveryResponse(best, query, env) {
             'trfsp': 'tribunal regional federal sao paulo',
           };
 
-          // 3. Stop words to remove from query
           const STOP_WORDS = new Set(['de','da','do','dos','das','e','o','a','os','as','para','em','no','na','nos','nas','um','uma','por','com','concurso','edital','cargo','vagas']);
 
-          // 4. Expand and clean the query
           const rawTokens = preNorm(orgaoSearchTerm).split(' ').filter(Boolean);
           const expandedTokens = [];
           for (const tok of rawTokens) {
@@ -2394,7 +2350,6 @@ function buildDiscoveryResponse(best, query, env) {
           `;
           const queryParams = [];
           
-          // Função auxiliar para normalizar colunas no SQLite simulando um "unaccent"
           const sqlNormalize = (col) => {
             let expr = `LOWER(${col})`;
             const maps = {
@@ -2424,7 +2379,7 @@ function buildDiscoveryResponse(best, query, env) {
             const normC    = sqlNormalize('crg.nome');
             const normSlug = sqlNormalize('c.slug');
             const normAno  = `CAST(c.ano AS TEXT)`;
-            const normB    = sqlNormalize('b.nome'); // banca search (ex: 'vunesp')
+            const normB    = sqlNormalize('b.nome'); 
 
             sqlQuery += ` AND (${normO} LIKE ? OR ${normS} LIKE ? OR ${normC} LIKE ? OR ${normSlug} LIKE ? OR ${normAno} LIKE ? OR ${normB} LIKE ?)`;
             const likeParam = '%' + normQuery + '%';
@@ -2456,9 +2411,7 @@ function buildDiscoveryResponse(best, query, env) {
           sqlQuery += " ORDER BY c.data_abertura DESC, c.id DESC LIMIT ?";
           queryParams.push(limit);
 
-          // ── Passo B: Execução paralela (D1 lexical + Vectorize semântico) ──────
           const [d1Result, vecResult] = await Promise.all([
-            // Branch 1 — Busca lexical no D1
             (async () => {
               if (!env.DB_EDITAIS) return [];
               try {
@@ -2469,11 +2422,9 @@ function buildDiscoveryResponse(best, query, env) {
                 return [];
               }
             })(),
-            // Branch 2 — Busca semântica no Vectorize
             (async () => {
               if (!expandedQueryForVectorize || !env.AI || !env.VECTORIZE_EDITAIS) return [];
               try {
-                // Use both original query AND expanded form so abbreviation context is preserved
                 const vecQueryText = (expandedQueryForVectorize && expandedQueryForVectorize !== orgaoSearchTerm)
                   ? orgaoSearchTerm + ' ' + expandedQueryForVectorize
                   : (expandedQueryForVectorize || orgaoSearchTerm);
@@ -2491,19 +2442,10 @@ function buildDiscoveryResponse(best, query, env) {
           const exactMatches  = d1Result;
           const semanticMatches = vecResult;
 
-          // ── Passo C: Fusão ponderada ─────────────────────────────────────────
-          // Weights: exact match from D1 = 2.0 (high confidence, structured data)
-          //          semantic from Vectorize = score as-is (0.4–0.6, lower confidence)
-          //          hybrid (both) = exact_weight + semantic_boost
           const EXACT_WEIGHT = 2.0;
-
-          // fusionMap: key = canonical concurso identity
-          // - For D1 results: use the DB record ID directly (ensures each concurso is distinct)
-          // - For Vectorize: use meta.concurso_id or the base doc ID before _chunk_
           const fusionMap = new Map();
           const sigToId = new Map();
 
-          // Helper: normalize signature for matching (orgao_cargo_ano)
           const getSig = (r) => {
               const o = (r.orgao || '').toLowerCase().replace(/[^a-z0-9]/g, '');
               const c = (r.cargo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2516,11 +2458,9 @@ function buildDiscoveryResponse(best, query, env) {
               return `${o}_${c}_${a}`;
           };
 
-          // Helper: field completeness score (for choosing the best record when deduping)
           const completeness = (r) =>
             (r.orgao ? 2 : 0) + (r.cargo ? 2 : 0) + (r.banca ? 1 : 0) + (r.salario ? 1 : 0) + (r.url ? 2 : 0);
 
-          // Helper: is field value valid (not null/empty/Desconhecido)
           const fv = (v, bad = ['desconhecido','desconhecida','null','undefined','']) => {
             if (v === null || v === undefined) return false;
             return !bad.includes(String(v).trim().toLowerCase());
@@ -2533,7 +2473,6 @@ function buildDiscoveryResponse(best, query, env) {
               return !agg.some(a => low.includes(a));
           };
 
-          // 1. Index all D1 exact matches by concurso key with high base score
           for (const row of exactMatches) {
             let finalUrl = null;
             if (fv(row.url) && isOfficialUrl(row.url)) {
@@ -2569,7 +2508,6 @@ function buildDiscoveryResponse(best, query, env) {
             if (sig && sig !== '__') sigToId.set(sig, key);
           }
 
-          // 2. Fold in semantic matches — boost existing records or add new ones (lower weight)
           for (const match of semanticMatches) {
             const meta = match.metadata || {};
             const hasOrgao = fv(meta.orgao);
@@ -2603,14 +2541,13 @@ function buildDiscoveryResponse(best, query, env) {
                if (sig && sig !== '__' && sigToId.has(sig)) {
                    key = sigToId.get(sig);
                } else {
-                   // Fallback signature to deduplicate Vectorize chunks of the same logical concurso
                    key = (sig && sig !== '__') ? 'sig_' + sig : (meta.id || String(match.id).split('_chunk_')[0]);
                }
             }
 
             if (fusionMap.has(key)) {
               const ex = fusionMap.get(key);
-              ex.score += match.score * 0.3; // dampened boost
+              ex.score += match.score * 0.3;
               ex.source = 'hybrid';
               if (!ex.cargo && sem.cargo) ex.cargo = sem.cargo;
               if (!ex.banca && sem.banca) ex.banca = sem.banca;
@@ -2625,19 +2562,15 @@ function buildDiscoveryResponse(best, query, env) {
             }
           }
 
-          // ── Passo D: Filtro de identidade + ranking final ────────────────────
           let mergedResults = Array.from(fusionMap.values())
             .sort((a, b) => {
               if (b.score !== a.score) return b.score - a.score;
               return completeness(b) - completeness(a);
             });
 
-          // ── Lógica de Fallback de Descoberta Universal ───────────────────────
           if (!isQuerySatisfiedByLocalResults(orgaoSearchTerm, mergedResults)) {
              const discoveryResults = await fetchDiscoveryUniversal(orgaoSearchTerm, env);
              if (discoveryResults && discoveryResults.length > 0) {
-                 // Se achou na web algo válido e a busca original estava insatisfatória,
-                 // retornamos primeiramente os resultados recém descobertos.
                  mergedResults = discoveryResults;
              }
           }
@@ -2647,6 +2580,8 @@ function buildDiscoveryResponse(best, query, env) {
               const rawCursor = JSON.stringify({ data_abertura: lastExact._data_abertura, id: lastExact.id });
               next_cursor = btoa(rawCursor).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
           }
+          
+          logStructuredEvent("search_completed", { query: orgaoSearchTerm, resultsCount: mergedResults.length });
 
           return new Response(JSON.stringify({
             success: true,
@@ -2656,13 +2591,11 @@ function buildDiscoveryResponse(best, query, env) {
           }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
         } catch (err) {
-          console.error("/api/editais/search Error:", err);
+          logStructuredEvent("search_failed", { error: err.message });
           return new Response(JSON.stringify({ success: false, error: err.message || "Erro interno na busca" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       }
 
-      
-      
       
       if (url.pathname === '/api/editais/extract-metadata' && request.method === 'POST') {
         try {
@@ -2691,20 +2624,19 @@ ${text.substring(0, 8000)}`;
           
           try {
              const metadata = JSON.parse(resultText);
+             logStructuredEvent("metadata_extracted", { orgao: metadata.orgao });
              return new Response(JSON.stringify({ success: true, metadata }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           } catch(e) {
              return new Response(JSON.stringify({ success: false, error: "Falha ao dar parse no JSON da IA", raw: resultText }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
         } catch (err) {
-          console.error("/api/editais/extract-metadata Error:", err);
+          logStructuredEvent("metadata_failed", { error: err.message });
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       }
 
       if (url.pathname === '/api/editais/ingest' && request.method === 'POST') {
         try {
-          
-          // FEATURE TEMPORARIAMENTE DESABILITADA (Aguardando Configuração do R2)
           if (!env.PDF_STORAGE) {
              return new Response(JSON.stringify({ success: false, error: "Feature temporariamente desabilitada: Upload e ingestão requerem a ativação do R2 no Cloudflare Dashboard." }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
@@ -2722,14 +2654,12 @@ ${text.substring(0, 8000)}`;
           const pdfKey = `editais/doc_${ulid()}-${file.name || 'document.pdf'}`;
           const editalId = `doc_${ulid()}`;
           
-          // 1. Upload para o R2
           if (env.PDF_STORAGE) {
              await env.PDF_STORAGE.put(pdfKey, file.stream(), {
                httpMetadata: { contentType: file.type || 'application/pdf' }
              });
           }
 
-          // 2. Vectorize
           if (env.AI && env.VECTORIZE_EDITAIS && metadados.texto_integral) {
              const chunks = [];
              const text = metadados.texto_integral;
@@ -2737,7 +2667,6 @@ ${text.substring(0, 8000)}`;
                  chunks.push(text.substring(i, i + 1000));
              }
              
-             // Usa apenas o primeiro chunk para busca geral, ou processa tudo (limitado pelo tempo de execução do worker, então vamos limitar a 5 chunks)
              const textsToEmbed = chunks.slice(0, 5);
              const embeddingResult = await env.AI.run('@cf/baai/bge-m3', { text: textsToEmbed });
              
@@ -2760,7 +2689,6 @@ ${text.substring(0, 8000)}`;
              }
           }
 
-          // 3. Salvar metadados no DB_EDITAIS (D1)
           if (env.DB_EDITAIS) {
              await env.DB_EDITAIS.prepare(
                "INSERT INTO editais (id, orgao, cargo, banca, salario, data_prova, texto_integral, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
@@ -2776,9 +2704,10 @@ ${text.substring(0, 8000)}`;
              ).run();
           }
 
+          logStructuredEvent("edital_ingested", { editalId, orgao: metadados.orgao });
           return new Response(JSON.stringify({ success: true, message: "Upload e ingestão concluídos", id: editalId, pdfKey }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         } catch (err) {
-          console.error("/api/editais/ingest Error:", err);
+          logStructuredEvent("edital_ingest_failed", { error: err.message });
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       }
@@ -2786,7 +2715,6 @@ ${text.substring(0, 8000)}`;
         if (url.pathname === '/api/ingest-provas' && request.method === 'POST') {
       try {
         const payload = await request.json();
-        // payload should be an array of questions: [{id, statement, options, banca, subject, exam, difficulty, correctAnswer, year}]
         const textsToEmbed = payload.map(q => {
           const opts = (q.options || []).map(o => o.text).join(' ');
           return `${q.statement} ${opts} Banca: ${q.banca} Assunto: ${q.subject || 'Geral'}`.substring(0, 1024);
@@ -2813,8 +2741,10 @@ ${text.substring(0, 8000)}`;
         }));
 
         const result = await env.PROVAS_INDEX.upsert(vectors);
+        logStructuredEvent("provas_ingested", { count: vectors.length });
         return new Response(JSON.stringify({ success: true, count: vectors.length, result }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (err) {
+        logStructuredEvent("provas_ingest_failed", { error: err.message });
         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
@@ -2891,6 +2821,7 @@ ${text.substring(0, 8000)}`;
             }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
           const result = await handleEssayCoachSession(sessionState, env);
+          logStructuredEvent("redacao_session", { stage: sessionState.stage });
           return new Response(JSON.stringify(result), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
@@ -2903,7 +2834,6 @@ ${text.substring(0, 8000)}`;
       }
 
       if (mode === "concurso" || mode === "concursos") {
-        // [FIX] Removido fallback hardcoded "concursos.portugues" — filter deve vir explícito no body
         if (!filter) {
           return new Response(JSON.stringify({
             success: false,
@@ -2918,11 +2848,11 @@ ${text.substring(0, 8000)}`;
         if (body.banca && body.banca !== 'A definir' && body.banca !== 'auto' && env.PROVAS_INDEX) {
             const realProvas = await fetchRealProvas(body, env);
             if (realProvas.success) {
+                logStructuredEvent("concurso_real_provas", { filter, banca: body.banca });
                 return new Response(JSON.stringify(realProvas), {
                     headers: { ...corsHeaders, "Content-Type": "application/json" }
                 });
             }
-            console.warn(`[Provas Reais] Fallback ativado: ${realProvas.userMessage || realProvas.error}`);
         }
 
         const result = await generateConcursosRAGQuestion(
@@ -2937,29 +2867,68 @@ ${text.substring(0, 8000)}`;
           },
           env
         );
+        logStructuredEvent("concurso_rag_generated", { filter });
         return new Response(JSON.stringify(result), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
 
-      // ── FASE 4: LABORATÓRIO DE IA (Resumos e Flashcards) ──
-      if (mode === "resumo" || mode === "flashcards") {
+      if (mode === "ingest_url") {
+        const url = body.url;
+        if (!url) {
+          logStructuredEvent("ingestion_failed", { reason: "Missing URL" });
+          return new Response(JSON.stringify({ success: false, error: "Faltando 'url' no corpo." }), { status: 400, headers: corsHeaders });
+        }
+        
+        logStructuredEvent("ingestion_started", { url });
         try {
-          if (!freeText || !freeText.trim()) {
-            return new Response(JSON.stringify({ success: false, userMessage: "Nenhum material fornecido." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              const jinaResponse = await fetch(`https://r.jina.ai/${url}`, {
+                  headers: {
+                      'Accept': 'application/json'
+                  }
+              });
+
+              if (!jinaResponse.ok) {
+                  throw new Error(`Falha ao extrair conteúdo da fonte. HTTP Status: ${jinaResponse.status}`);
+              }
+
+              const jinaData = await jinaResponse.json();
+              const cleanContent = jinaData.data.content.trim();
+              
+              logStructuredEvent("ingestion_success", { url, length: cleanContent.length });
+              return new Response(JSON.stringify({ success: true, extractedText: cleanContent }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          } catch (e) {
+              logStructuredEvent("ingestion_failed", { url, error: e.message });
+              return new Response(JSON.stringify({ success: false, userMessage: e.message }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+      }
+
+      if (mode === "resumo" || mode === "flashcards" || mode === "livre") {
+        try {
+          if (!freeText || freeText.trim().length < 300) {
+            return new Response(JSON.stringify({ success: false, userMessage: "Conteúdo insuficiente para gerar recursos de estudo (mínimo de 300 caracteres)." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
-          const textContext = freeText.slice(0, 15000); // Evitar max tokens
+          const textContext = freeText.slice(0, 25000); 
+          const protocolInstructions = `
+PROTOCOLOS DE GARANTIA:
+1. Source Fidelity: O conteúdo gerado deve ser fundamentado EXCLUSIVAMENTE no Documento Canônico (texto fornecido). NÃO complete com conhecimento externo.
+2. Provenance: Cada item gerado deve possuir referência ao trecho de origem (campo "evidence" e "location").
+3. Scope Control: Se a informação não estiver presente, informe: "Informação não encontrada no material fornecido."
+4. Validation: Todo conteúdo gerado deve ser estritamente checado contra a fonte.
+5. Coverage: Contemple os principais tópicos da fonte.
+6. Question Quality (se aplicável): Questões devem possuir resposta determinável a partir da fonte, sem ambiguidade.
+8. Confidence: Registre um nível de confiança ("Alta", "Média", "Baixa") para cada item.`;
 
-          let systemPrompt = "";
+          let systemPrompt = "Você é um motor de extração de conhecimento multimodal estrito. Retorne APENAS JSON válido, sem markdown envolvendo.";
           let userPrompt = "";
 
           if (mode === "resumo") {
-              systemPrompt = "Você é um assistente de estudos especialista em concursos. Seu objetivo é estruturar o texto fornecido pelo usuário em um resumo altamente eficiente em formato Markdown.";
-              userPrompt = `Crie um resumo esquematizado do texto a seguir. Utilize bullet points, destaque conceitos-chave com negrito e, se possível, inclua mnemônicos. Responda APENAS com o texto do resumo, sem introduções adicionais.\n\nTEXTO:\n${textContext}`;
+              userPrompt = `${protocolInstructions}\n\nCrie um Resumo Inteligente do texto a seguir. O JSON DEVE ter o formato:\n{ "resumo": "Resumo estruturado em markdown (use bullet points, negrito)", "confidence": "Alta" }\n\nTEXTO ORIGINAL:\n${textContext}`;
           } else if (mode === "flashcards") {
-              systemPrompt = "Você é um gerador de flashcards. Retorne APENAS um objeto JSON válido, sem markdown envolvendo, contendo um array 'cards' com objetos { 'front': 'pergunta focada', 'back': 'resposta curta' }.";
-              userPrompt = `Gere até 10 flashcards baseados no texto a seguir para estudo por repetição espaçada. O JSON DEVE ter o formato { "cards": [ { "front": "...", "back": "..." } ] }.\n\nTEXTO:\n${textContext}`;
+              userPrompt = `${protocolInstructions}\n\nGere flashcards baseados no texto. O JSON DEVE ter o formato:\n{ "cards": [ { "front": "Pergunta", "back": "Resposta", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Trecho exato do texto", "location": "Localização", "validationStatus": "Alta Confiança" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
+          } else if (mode === "livre") {
+              userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }
 
           const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -2969,34 +2938,119 @@ ${text.substring(0, 8000)}`;
                   'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                  model: 'llama-3.1-8b-instant',
+                  model: 'llama-3.3-70b-versatile',
                   messages: [
                       { role: 'system', content: systemPrompt },
                       { role: 'user', content: userPrompt }
                   ],
-                  temperature: 0.3,
-                  max_tokens: 1500,
-                  ...(mode === "flashcards" ? { response_format: { type: 'json_object' } } : {})
+                  temperature: 0.2,
+                  max_tokens: 3000,
+                  response_format: { type: 'json_object' }
               })
           });
 
           if (!response.ok) {
               const errText = await response.text();
+              logStructuredEvent("lab_ia_failed", { mode, error: errText });
               return new Response(JSON.stringify({ success: false, userMessage: "Erro no serviço de IA.", details: errText }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           const data = await response.json();
           const content = data?.choices?.[0]?.message?.content;
           
-          if (mode === "flashcards") {
-              try {
-                  const parsed = JSON.parse(content);
+          try {
+              const parsed = JSON.parse(content);
+              logStructuredEvent("lab_ia_success", { mode });
+              if (mode === "flashcards") {
                   return new Response(JSON.stringify({ success: true, cards: parsed.cards || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-              } catch {
-                  return new Response(JSON.stringify({ success: false, userMessage: "Falha ao gerar flashcards (formato inválido)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              } else if (mode === "resumo") {
+                  return new Response(JSON.stringify({ success: true, resumo: parsed.resumo || "Não foi possível gerar." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              } else if (mode === "livre") {
+                  return new Response(JSON.stringify({ success: true, questions: parsed.questions || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
               }
-          } else {
-              return new Response(JSON.stringify({ success: true, resumo: content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          } catch {
+              return new Response(JSON.stringify({ success: false, userMessage: "Falha ao gerar conteúdo (formato inválido da IA)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+        } catch (error) {
+          logStructuredEvent("lab_ia_fatal", { error: error.message });
+          return new Response(JSON.stringify({ success: false, userMessage: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+
+      if (mode === "reforco_adaptativo") {
+        try {
+          const { wrongQuestion, topic, evidence, freeText } = body;
+          
+          if (!wrongQuestion || !freeText) {
+            return new Response(JSON.stringify({ success: false, userMessage: "Dados insuficientes para diagnóstico." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const systemPrompt = "Você é um Motor de Domínio do Conhecimento focado em Estudo Adaptativo. Sua missão é diagnosticar o erro do aluno de forma didática, gerar um reforço rápido e testá-lo novamente. Retorne APENAS JSON válido.";
+          const userPrompt = `O aluno errou uma questão no quiz. 
+TÓPICO IDENTIFICADO: ${topic || "Geral"}
+QUESTÃO ERRADA: ${wrongQuestion}
+EVIDÊNCIA CORRETA (Do Documento Canônico): ${evidence || "Não especificada."}
+
+TEXTO BASE (Contexto):
+${freeText.slice(0, 10000)}
+
+Com base EXCLUSIVAMENTE nessas informações, aja como um professor particular e gere a intervenção de Estudo Adaptativo.
+O JSON DEVE OBRIGATORIAMENTE ter este formato exato:
+{
+  "diagnostico": "Explicação muito curta e direta (máx 2 frases) de onde o aluno se confundiu.",
+  "reforco": "Texto simples e direto explicando o conceito correto baseado na evidência.",
+  "flashcard": {
+    "front": "Pergunta direta sobre a evidência",
+    "back": "Resposta curta"
+  },
+  "novaQuestao": {
+    "statement": "Crie uma NOVA pergunta de múltipla escolha focada no mesmo tópico/evidência, mas formulada de forma diferente para testar se o aluno aprendeu.",
+    "options": [
+      {"key": "A", "text": "Opção A"},
+      {"key": "B", "text": "Opção B"},
+      {"key": "C", "text": "Opção C"},
+      {"key": "D", "text": "Opção D"}
+    ],
+    "correctAnswer": "A",
+    "explanation": "Explicação da nova questão.",
+    "topic": "${topic || "Geral"}",
+    "evidence": "Mesma evidência ou paráfrase baseada no texto",
+    "isRecovery": true
+  }
+}`;
+
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  model: 'llama-3.3-70b-versatile',
+                  messages: [
+                      { role: 'system', content: systemPrompt },
+                      { role: 'user', content: userPrompt }
+                  ],
+                  temperature: 0.3,
+                  max_tokens: 2000,
+                  response_format: { type: 'json_object' }
+              })
+          });
+
+          if (!response.ok) {
+              const errText = await response.text();
+              return new Response(JSON.stringify({ success: false, userMessage: "Erro no serviço de diagnóstico.", details: errText }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const data = await response.json();
+          const content = data?.choices?.[0]?.message?.content;
+          
+          try {
+              const parsed = JSON.parse(content);
+              return new Response(JSON.stringify({ success: true, intervention: parsed }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          } catch {
+              return new Response(JSON.stringify({ success: false, userMessage: "Falha ao processar intervenção (JSON inválido)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
         } catch (error) {
@@ -3004,7 +3058,7 @@ ${text.substring(0, 8000)}`;
         }
       }
 
-      // ── FREE STUDY MODES ──
+      // ── FASE 5: RAG CONTEXTUAL E TUTOR (Substitui o free-chat antigo) ──
       if (mode === "free-chat") {
         try {
           if (!freeText || !freeText.trim()) {
@@ -3019,26 +3073,44 @@ ${text.substring(0, 8000)}`;
             });
           }
           const chatHistory = body.chatHistory || [];
-          const systemPrompt = `Você é um assistente de estudo especializado em concursos públicos brasileiros.
+          const masteryData = body.masteryData || {};
+          
+          // Chunking dinâmico do Documento Canônico
+          const textContext = freeText.slice(0, 30000); 
+          const paragraphs = textContext.split(/\n\s*\n/);
+          let chunkStr = "";
+          paragraphs.forEach((p, i) => {
+            if (p.trim().length > 15) {
+              chunkStr += `[Chunk ${i+1}] ${p.trim()}\n\n`;
+            }
+          });
 
-MATERIAL DE ESTUDO DO ALUNO:
-${freeText.slice(0, 8000)}
+          let adaptiveContext = "";
+          if (Object.keys(masteryData).length > 0) {
+            adaptiveContext = `\nHISTÓRICO ADAPTATIVO DO ALUNO:\n${JSON.stringify(masteryData)}\nSe o aluno perguntar sobre um tópico em que ele tem 'wrong' > 0, seja extremamente didático e paciente, informando que percebeu a dificuldade no quiz.\n`;
+          }
 
-REGRAS:
-- Responda APENAS com base no material fornecido acima.
-- Se a pergunta não puder ser respondida com o material, diga educadamente.
-- Use linguagem clara e didática, como um professor particular.
-- Destaque conceitos importantes, artigos de lei.
-- Responda em português do Brasil.
-- Seja conciso mas completo.`;
+          const systemPrompt = `Você é o Tutor Contextual do StudyMaster, operando sob uma arquitetura RAG (Recuperação).
+O aluno enviou uma dúvida e você tem acesso ao Documento Canônico fragmentado em Chunks abaixo.
+
+DOCUMENTO CANÔNICO (Chunks Numerados):
+${chunkStr}
+${adaptiveContext}
+
+REGRAS OBRIGATÓRIAS DE MODO:
+1. MODO 1 (Padrão): Responda EXCLUSIVAMENTE usando os chunks fornecidos acima.
+2. MODO 2 (Conhecimento Externo): Se e SOMENTE SE o usuário pedir explicitamente para "usar conhecimento externo", "pesquisar fora" ou "explicar algo fora do texto", você DEVE iniciar a resposta exatamente com o banner "[MODO 2 - CONHECIMENTO COMPLEMENTAR]".
+3. Se a informação não estiver nos chunks e o usuário NÃO ativou o Modo 2, responda EXATAMENTE: "Informação não encontrada no material fornecido."
+
+RASTREABILIDADE (Obrigatório no Modo 1):
+Sempre que extrair uma informação, você DEVE citar a origem colocando \`[Chunk X]\` ao final da frase (exemplo: "A lei proíbe essa ação [Chunk 4]."). Responda de forma clara e didática em português.`;
 
           const messages = [
-            { role: "system", content: systemPrompt },
-            { role: "assistant", content: "Olá! Sou seu assistente de estudo. Pergunte sobre o material que você carregou! 📚" }
+            { role: "system", content: systemPrompt }
           ];
 
           if (Array.isArray(chatHistory)) {
-            for (const h of chatHistory.slice(-10)) {
+            for (const h of chatHistory.slice(-6)) {
               if (h.role && h.content) messages.push({ role: h.role, content: h.content });
             }
           }
@@ -3053,8 +3125,8 @@ REGRAS:
             body: JSON.stringify({
               model: "llama-3.3-70b-versatile",
               messages,
-              temperature: 0.3,
-              max_tokens: 1200
+              temperature: 0.1,
+              max_tokens: 1500
             })
           });
 
@@ -3066,6 +3138,7 @@ REGRAS:
 
           const data = await groqResponse.json();
           const reply = data?.choices?.[0]?.message?.content || "Desculpe, não consegui processar sua pergunta.";
+          
           return new Response(JSON.stringify({ reply }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });

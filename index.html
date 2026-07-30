@@ -8436,111 +8436,98 @@ function renderStep2Redacao(container) {
 
 function renderStep2Livre(container) {
   container.innerHTML = `
-    <div class="free-container">
-      <div class="free-header">
-        <h2 class="step-title">Estudar com seu Material</h2>
-        <p class="step-subtitle">Cole textos ou envie arquivos para gerar questões inteligentes baseadas no seu conteúdo</p>
+    <div class="aivos360-setup" style="display: flex; flex-direction: column; gap: var(--space-4);">
+      <div class="setup-header">
+        <h3 style="margin-bottom: var(--space-2); color: var(--color-text);">Importar Material</h3>
+        <p style="color: var(--color-text-muted); font-size: 0.95rem;">Cole um texto, link (YouTube/Site) ou envie um PDF para transformá-lo em recursos de estudo estruturados.</p>
       </div>
 
-      <div class="free-status-card">
-        <span class="free-quality" id="free-quality"><i aria-hidden="true" data-lucide="circle-alert" width="16" height="16"></i> Aguardando material</span>
-      </div>
-
-      <div class="free-workspace">
-        <div class="free-panel">
-          <div class="free-panel-header">
-            <div>
-              <span class="free-panel-kicker"><i aria-hidden="true" data-lucide="file-text" width="13" height="13"></i> Campo de Texto</span>
-              <strong class="free-panel-title">Cole seu conteúdo aqui</strong>
-              <p class="free-panel-note">Edital, resumo, anotações, apostila ou qualquer material de estudo</p>
-            </div>
-          </div>
-          <textarea id="free-txt" class="free-editor" placeholder="Cole aqui edital, resumo, anotações, apostila, questões comentadas ou transcrição de aula/vídeo.">${state.freeText}</textarea>
-          <div class="free-meter">
-            <span id="free-counter"><strong>${state.freeText.length}</strong> caracteres · <strong>0</strong> palavras</span>
-            <span id="free-depth">Base inicial</span>
-          </div>
+      <div class="setup-cards" style="display: grid; grid-template-columns: 1fr; gap: var(--space-4);">
+        <!-- Opção 1: Link -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i aria-hidden="true" data-lucide="link" width="18" height="18"></i> Importar de Link (YouTube / Artigo)
+          </label>
+          <input type="url" id="free-link-input" placeholder="Cole o link do YouTube, Notícia ou Blog aqui..." style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
         </div>
 
-        <aside class="free-side" aria-label="Ações e orientações do material livre">
-          <div class="free-action-panel">
-            <div class="free-action-title">
-              <i aria-hidden="true" data-lucide="upload-cloud" width="18" height="18"></i>
-              Enviar arquivo
-            </div>
-            <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: var(--space-3);">Ou arraste um arquivo aqui</p>
-            <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" class="hidden">
-            <div class="upload-area" id="free-upload-area" role="button" tabindex="0" aria-label="Enviar arquivo para extração de texto">
-              <div class="free-upload-copy">
-                <i aria-hidden="true" data-lucide="folder-up" width="28" height="28"></i>
-                <strong>Clique para enviar</strong>
-                <p style="color:var(--color-text-muted); font-size: var(--text-xs);">PDF, DOCX, TXT, MD, JPG, PNG, WEBP</p>
-              </div>
-            </div>
+        <!-- Opção 2: PDF -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i aria-hidden="true" data-lucide="upload-cloud" width="18" height="18"></i> Upload de Arquivo (PDF / Texto)
+          </label>
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <label for="free-file-input" class="btn-secondary" style="cursor: pointer; padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.9rem;">
+              Escolher arquivo
+            </label>
+            <input id="free-file-input" type="file" accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp" style="display: none;" onchange="document.getElementById('free-file-name').textContent = this.files[0] ? this.files[0].name : 'Nenhum arquivo selecionado'">
+            <span id="free-file-name" style="color: var(--color-text-muted); font-size: 0.9rem;">Nenhum arquivo selecionado</span>
           </div>
+          <div class="upload-progress" id="upload-progress" style="display:none; margin-top: 10px;">
+            <p id="upload-progress-text" style="font-size: 0.8rem; margin-bottom: 4px;">Extraindo conteúdo do arquivo…</p>
+            <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
+          </div>
+          <p class="upload-error" id="upload-error" aria-live="polite" style="color: var(--color-error); font-size: 0.85rem; margin-top: 4px;"></p>
+        </div>
 
-          <div class="free-help-panel">
-            <strong><i aria-hidden="true" data-lucide="sparkles" width="16" height="16"></i> Dicas para melhores questões</strong>
-            <ul>
-              <li><span>Use trechos com conceitos, exemplos e regras</span></li>
-              <li><span>PDFs escaneados passam por OCR automático</span></li>
-              <li><span>Materiais maiores geram questões mais contextualizadas</span></li>
-            </ul>
+        <!-- Opção 3: Texto Bruto -->
+        <div class="config-group session-config-card primary" style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+          <label class="config-label" style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+            <i aria-hidden="true" data-lucide="file-text" width="18" height="18"></i> Colar Texto
+          </label>
+          <textarea id="free-txt" rows="4" placeholder="Cole o texto de resumos, editais ou anotações..." style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); resize: vertical;">${state.freeText}</textarea>
+          <div class="free-meter" style="margin-top: 8px; font-size: 0.85rem; display: flex; justify-content: space-between; color: var(--color-text-muted);">
+            <span id="free-counter"><strong>${state.freeText.length}</strong> caracteres · <strong>0</strong> palavras</span>
+            <span id="free-quality"><i aria-hidden="true" data-lucide="circle-alert" width="14" height="14"></i> Aguardando material</span>
           </div>
-        </aside>
+        </div>
       </div>
 
-          <div class="lab-actions-container" id="lab-actions" style="display: none;">
-            <button type="button" class="btn-lab-action" onclick="generateResumo()">
-              <i aria-hidden="true" data-lucide="align-left" width="24" height="24"></i>
-              Resumo Inteligente
-            </button>
-            <button type="button" class="btn-lab-action" onclick="generateFlashcards()">
-              <i aria-hidden="true" data-lucide="layers" width="24" height="24"></i>
-              Flashcards (Anki)
-            </button>
-            <button type="button" class="btn-lab-action" onclick="document.getElementById('next-btn').click()">
-              <i aria-hidden="true" data-lucide="help-circle" width="24" height="24"></i>
-              Bateria de Questões
-            </button>
-          </div>
-
-
-      <div class="upload-progress" id="upload-progress">
-        <p id="upload-progress-text">Extraindo conteúdo do arquivo…</p>
-        <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
+      <div class="lab-actions-container" id="lab-actions" style="display: none; margin-top: var(--space-4);">
+        <button type="button" class="btn-lab-action" onclick="generateResumo()">
+          <i aria-hidden="true" data-lucide="align-left" width="24" height="24"></i>
+          Gerar Documento Canônico & Resumo
+        </button>
+        <button type="button" class="btn-lab-action" onclick="generateFlashcards()">
+          <i aria-hidden="true" data-lucide="layers" width="24" height="24"></i>
+          Extrair Flashcards
+        </button>
+        <button type="button" class="btn-lab-action" onclick="generateQuizLivre()">
+          <i aria-hidden="true" data-lucide="help-circle" width="24" height="24"></i>
+          Montar Bateria de Questões
+        </button>
       </div>
-      <p class="upload-error" id="upload-error" aria-live="polite"></p>
     </div>`;
 
   const freeTextArea = document.getElementById('free-txt');
   const freeCounter = document.getElementById('free-counter');
-  const freeDepth = document.getElementById('free-depth');
   const freeQuality = document.getElementById('free-quality');
   const fileInput = document.getElementById('free-file-input');
-  const uploadArea = document.getElementById('free-upload-area');
+  
+  // Use the PDF card as the dropzone
+  const uploadArea = document.getElementById('free-upload-area') || document.body;
 
   const updateCounter = () => {
     const length = state.freeText.length;
     const words = state.freeText.trim() ? state.freeText.trim().split(/\s+/).length : 0;
-    freeCounter.innerHTML = `<strong>${length.toLocaleString('pt-BR')}</strong> caracteres · <strong>${words.toLocaleString('pt-BR')}</strong> palavras`;
+    if(freeCounter) {
+      freeCounter.innerHTML = `<strong>${length.toLocaleString('pt-BR')}</strong> caracteres · <strong>${words.toLocaleString('pt-BR')}</strong> palavras`;
+    }
 
-    freeQuality.classList.remove('ready', 'warning');
-    if (length >= 4000) {
-      freeQuality.classList.add('ready');
-      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="check-circle-2" width="14" height="14"></i> Material extenso';
-      freeDepth.textContent = 'Ótimo para perguntas contextualizadas';
-    } else if (length >= 400) {
-      freeQuality.classList.add('ready');
-      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="badge-check" width="14" height="14"></i> Boa base';
-      freeDepth.textContent = 'Bom volume para gerar questões focadas';
-    } else if (length > 0) {
-      freeQuality.classList.add('warning');
-      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="arrow-right-circle" width="14" height="14"></i> Pronto para seguir';
-      freeDepth.textContent = 'Texto curto: ideal para perguntas objetivas';
-    } else {
-      freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
-      freeDepth.textContent = 'Base inicial';
+    if(freeQuality) {
+      freeQuality.classList.remove('ready', 'warning');
+      if (length >= 4000) {
+        freeQuality.classList.add('ready');
+        freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="check-circle-2" width="14" height="14"></i> Material extenso';
+      } else if (length >= 400) {
+        freeQuality.classList.add('ready');
+        freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="badge-check" width="14" height="14"></i> Boa base';
+      } else if (length > 0) {
+        freeQuality.classList.add('warning');
+        freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="arrow-right-circle" width="14" height="14"></i> Pronto para gerar';
+      } else {
+        freeQuality.innerHTML = '<i aria-hidden="true" data-lucide="circle-alert" width="14" height="14"></i> Aguardando material';
+      }
     }
 
     if (state.mode === 'livre') {
@@ -8565,6 +8552,49 @@ function renderStep2Livre(container) {
     updateCounter();
     updateNavButtons();
   });
+
+  const linkInput = document.getElementById('free-link-input');
+  if (linkInput) {
+    linkInput.addEventListener('change', async e => {
+      const url = e.target.value.trim();
+      if (!url) return;
+      
+      const prevText = linkInput.placeholder;
+      linkInput.disabled = true;
+      linkInput.placeholder = "Processando link... Aguarde...";
+      linkInput.value = "";
+      
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'ingest_url', url })
+        });
+        const data = await res.json();
+        if (data.success && data.canonicalDocument) {
+          state.freeText = data.canonicalDocument.content;
+          if (freeTextArea) freeTextArea.value = state.freeText;
+          updateCounter();
+          updateNavButtons();
+          
+          const currentToast = document.querySelector('.toast');
+          if (currentToast) currentToast.remove();
+          const toast = document.createElement('div');
+          toast.className = 'toast';
+          toast.textContent = "Conteúdo importado com sucesso da URL!";
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        } else {
+          throw new Error(data.userMessage || "Erro ao importar link");
+        }
+      } catch (err) {
+        alert("Falha na importação: " + err.message);
+      } finally {
+        linkInput.disabled = false;
+        linkInput.placeholder = prevText;
+      }
+    });
+  }
 
   uploadArea.addEventListener('click', () => fileInput.click());
   uploadArea.addEventListener('keydown', e => {
@@ -9148,6 +9178,17 @@ function handleDesktopAnswer(questions, idx, selectedKey) {
   const expBox = document.getElementById(`qn-exp-${idx}`);
   if (expBox) expBox.classList.add('visible');
 
+  // FASE 4: Gatilho de Reforço Adaptativo
+  if (!isCorrect && state.freeText && !q.isRecovery) {
+    if (typeof triggerAdaptiveReinforcement === "function") {
+      triggerAdaptiveReinforcement(q, idx, expBox);
+    }
+  } else if (!isCorrect && q.isRecovery) {
+    if (state.mastery && state.mastery[q.topic || 'Geral']) state.mastery[q.topic || 'Geral'].recoveryFailed = true;
+  } else if (isCorrect && q.isRecovery) {
+    if (state.mastery && state.mastery[q.topic || 'Geral']) state.mastery[q.topic || 'Geral'].recovered = true;
+  }
+
   if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
   if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(isCorrect);
   
@@ -9264,10 +9305,173 @@ function handleSingleAnswer(questions, idx, selectedKey) {
   const expBox = document.getElementById('qn-exp');
   if (expBox) expBox.classList.add('visible');
 
+  // FASE 4: Gatilho de Reforço Adaptativo (Mobile)
+  if (!isCorrect && state.freeText && !q.isRecovery) {
+    if (typeof triggerAdaptiveReinforcement === "function") {
+      triggerAdaptiveReinforcement(q, idx, expBox);
+    }
+  } else if (!isCorrect && q.isRecovery) {
+    if (state.mastery && state.mastery[q.topic || 'Geral']) state.mastery[q.topic || 'Geral'].recoveryFailed = true;
+  } else if (isCorrect && q.isRecovery) {
+    if (state.mastery && state.mastery[q.topic || 'Geral']) state.mastery[q.topic || 'Geral'].recovered = true;
+  }
+
   if (isCorrect) confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, colors: ['#0D47FF','#00B8FF','#7C4DFF','#FF2D20','#FF6A00'] });
   if (window.setAivosAnswerFeedback) setAivosAnswerFeedback(isCorrect);
   if (state.answered === questions.length) {
     setTimeout(showSessionResult, 600);
+  }
+}
+
+async function triggerAdaptiveReinforcement(q, idx, expBox) {
+  state.mastery = state.mastery || {};
+  const topic = q.topic || "Geral";
+  state.mastery[topic] = state.mastery[topic] || { wrong: 0, recovered: 0 };
+  state.mastery[topic].wrong++;
+
+  // FASE 4.1: REGRA ANTI-LOOP
+  if (state.mastery[topic].wrong > 2) {
+    const adaptBox = document.createElement('div');
+    adaptBox.className = 'adaptive-reinforcement-box';
+    adaptBox.innerHTML = `
+      <h4 style="margin:0 0 10px 0; color:var(--accent-danger);"><i aria-hidden="true" data-lucide="alert-triangle" width="16" height="16"></i> Limite de Recuperação Atingido</h4>
+      <p style="margin:0; font-size:14px; opacity:0.9;">Você apresentou dificuldade contínua no tópico <strong>${topic}</strong>.</p>
+      <p style="margin:10px 0 0 0; font-size:13px; opacity:0.8;">O sistema registrou este tópico para revisão futura. Sugerimos que você consulte o Documento Canônico ou o Tutor Contextual antes de tentar novas questões sobre o mesmo assunto.</p>
+    `;
+    adaptBox.style.marginTop = '15px';
+    adaptBox.style.padding = '15px';
+    adaptBox.style.background = 'var(--bg-card)';
+    adaptBox.style.borderLeft = '4px solid var(--accent-danger)';
+    adaptBox.style.borderRadius = '8px';
+    expBox.appendChild(adaptBox);
+    lucide.createIcons();
+    return; // Encerra o ciclo sem gerar nova questão
+  }
+
+  const adaptBox = document.createElement('div');
+  adaptBox.className = 'adaptive-reinforcement-box';
+  adaptBox.innerHTML = `<div class="loader-pulse" style="display:inline-block; margin-right:8px;"></div> <span style="font-size:14px; opacity:0.8;">Diagnosticando lacuna em: <strong>${topic}</strong>...</span>`;
+  adaptBox.style.marginTop = '15px';
+  adaptBox.style.padding = '15px';
+  adaptBox.style.background = 'var(--bg-card)';
+  adaptBox.style.borderLeft = '4px solid var(--accent-primary)';
+  adaptBox.style.borderRadius = '8px';
+  expBox.appendChild(adaptBox);
+
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'reforco_adaptativo',
+        wrongQuestion: q.statement,
+        topic: topic,
+        evidence: q.evidence,
+        freeText: state.freeText
+      })
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.userMessage || "Erro no diagnóstico.");
+
+    const inv = data.intervention;
+    adaptBox.innerHTML = `
+      <h4 style="margin:0 0 10px 0; color:var(--accent-primary); display:flex; align-items:center; gap:6px;">
+        <i aria-hidden="true" data-lucide="brain-circuit" width="16" height="16"></i> Reforço Adaptativo
+      </h4>
+      <p style="margin:0 0 10px 0; font-size:14px; opacity:0.9;"><strong>Diagnóstico:</strong> ${inv.diagnostico}</p>
+      <p style="margin:0 0 15px 0; font-size:14px; opacity:0.9;"><strong>Conceito:</strong> ${inv.reforco}</p>
+      
+      <div style="background:var(--bg-secondary); padding:10px; border-radius:6px; font-size:13px; margin-bottom:15px; border-left: 2px solid var(--accent-secondary);">
+        <strong>Flashcard Adicionado à sua Revisão:</strong><br/>
+        <span style="opacity:0.8">Q:</span> ${inv.flashcard.front}<br/>
+        <span style="opacity:0.8">R:</span> ${inv.flashcard.back}
+      </div>
+      <p style="margin:0; font-size:12px; font-weight:bold; color:var(--success);">
+        <i aria-hidden="true" data-lucide="check-circle-2" width="12" height="12"></i> Uma nova questão foi anexada ao final do quiz para testar sua retenção!
+      </p>
+    `;
+    lucide.createIcons();
+
+    if (state.generatedCards) state.generatedCards.push(inv.flashcard);
+
+    inv.novaQuestao.isRecovery = true;
+    state.generatedQuestions.push(inv.novaQuestao);
+    
+    const scoreTotal = document.getElementById('score-total');
+    if (scoreTotal) scoreTotal.textContent = state.generatedQuestions.length;
+
+    const list = document.getElementById('questions-list');
+    const newIdx = state.generatedQuestions.length - 1;
+
+    // Desktop
+    if (list.children.length > 1 || window.innerWidth >= 1024) {
+      const qHtml = document.createElement('div');
+      qHtml.className = "question-card";
+      qHtml.dataset.questionIdx = newIdx;
+      qHtml.style.border = "2px dashed var(--accent-primary)";
+      qHtml.innerHTML = `
+        <div class="question-number">Recuperação de Aprendizagem (Tópico: ${topic})</div>
+        <div class="question-statement">${inv.novaQuestao.statement}</div>
+        <div class="options-list" id="qn-opts-${newIdx}">
+          ${inv.novaQuestao.options.map(opt => 
+            `<button class="option-btn" data-key="${opt.key}" data-question-idx="${newIdx}">
+              <span class="option-key">${opt.key}</span><span>${opt.text}</span>
+            </button>`
+          ).join('')}
+        </div>
+        <button class="q-resolver-btn" id="q-resolver-${newIdx}" data-question-idx="${newIdx}" disabled>Resolver</button>
+        <div class="explanation-box" id="qn-exp-${newIdx}">
+          <strong><i aria-hidden="true" data-lucide="lightbulb" width="15" height="15"></i> Gabarito: ${inv.novaQuestao.correctAnswer}</strong><br>${inv.novaQuestao.explanation || ''}
+        </div>
+      `;
+      list.appendChild(qHtml);
+      
+      const opts = list.querySelectorAll(`[data-question-idx="${newIdx}"].option-btn`);
+      const resBtn = document.getElementById(`q-resolver-${newIdx}`);
+      
+      qNavState.results.push(null);
+      qNavState.selected.push(null);
+      state.answerResults.push(null);
+
+      opts.forEach(btn => {
+         btn.addEventListener('click', () => {
+          if (state.answered >= state.generatedQuestions.length) return;
+          const allOptsForQuestion = list.querySelectorAll(`[data-question-idx="${newIdx}"].option-btn`);
+          allOptsForQuestion.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          qNavState.selected[newIdx] = btn.dataset.key;
+          if (resBtn) resBtn.disabled = false;
+        });
+      });
+      if (resBtn) {
+        resBtn.addEventListener('click', () => {
+          const sKey = qNavState.selected[newIdx];
+          if (!sKey) return;
+          handleDesktopAnswer(state.generatedQuestions, newIdx, sKey);
+        });
+      }
+      lucide.createIcons();
+    } else {
+      // Mobile
+      qNavState.results.push(null);
+      qNavState.selected.push(null);
+      state.answerResults.push(null);
+      
+      const mobileNav = document.querySelector('.question-nav');
+      if(mobileNav) {
+          const dots = mobileNav.querySelector('.nav-dots');
+          if (dots) {
+              const ndot = document.createElement('div');
+              ndot.className = 'nav-dot';
+              ndot.style.border = '2px dashed var(--accent-primary)';
+              dots.appendChild(ndot);
+          }
+      }
+    }
+
+  } catch (err) {
+    adaptBox.innerHTML = `<p style="color:var(--accent-danger); margin:0; font-size:14px;"><i aria-hidden="true" data-lucide="alert-circle" width="14" height="14"></i> Falha ao diagnosticar lacuna: ${err.message}</p>`;
+    lucide.createIcons();
   }
 }
 
@@ -10370,8 +10574,19 @@ async function runLabTask(labMode) {
       window.currentFlashcards = data.cards;
       window.currentCardIndex = 0;
       renderCurrentFlashcard(container);
+    } else if (labMode === 'quiz_livre') {
+      state.generatedQuestions = data.questions;
+      state.answered = 0; state.correct = 0;
+      state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
+      renderQuestions(data.questions);
     }
     
+    // FASE 5: Exibe o botão do Tutor Contextual ao concluir o pipeline do Material Livre
+    if (state.mode === 'livre') {
+      const fab = document.getElementById('ml-tutor-fab');
+      if (fab) fab.style.display = 'flex';
+    }
+
     lucide.createIcons();
     updateHistoryState();
   } catch (err) {
@@ -10392,6 +10607,7 @@ async function runLabTask(labMode) {
 
 window.generateResumo = () => runLabTask('resumo');
 window.generateFlashcards = () => runLabTask('flashcards');
+window.generateQuizLivre = () => runLabTask('quiz_livre');
 
 function renderCurrentFlashcard(container) {
   if (!container) container = document.getElementById('step-3');
@@ -10774,5 +10990,81 @@ window.nextFlashcard = (status) => {
   });
 </script>
 
-</body>
+  <!-- FASE 5: Tutor Contextual (RAG) -->
+  <div id="ml-tutor-chat-area" class="redbot-chat-card" style="display:none; position:fixed; bottom:90px; right:20px; width:400px; max-width:90vw; height:600px; max-height:70vh; z-index:999999; box-shadow:0 10px 40px rgba(0,0,0,0.4); background:var(--color-surface); flex-direction:column; border-radius:var(--radius-lg); overflow:hidden; border: 1px solid var(--color-border);">
+    <div style="background:var(--accent-primary); color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <i aria-hidden="true" data-lucide="brain-circuit"></i>
+        <strong>Tutor Contextual</strong>
+      </div>
+      <button onclick="document.getElementById('ml-tutor-chat-area').style.display='none'" style="background:transparent; border:none; color:#fff; cursor:pointer;"><i aria-hidden="true" data-lucide="x"></i></button>
+    </div>
+    <div id="ml-tutor-messages" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:var(--bg-body);">
+      <div style="background:var(--bg-card); padding:10px 15px; border-radius:12px; font-size:14px; max-width:85%; border-left:3px solid var(--accent-primary); color:var(--color-text);">Olá! Sou o Tutor Contextual deste Material. Pode me perguntar qualquer coisa sobre o documento!</div>
+    </div>
+    <div style="padding:15px; background:var(--color-surface); border-top:1px solid var(--color-border); display:flex; gap:10px;">
+      <input type="text" id="ml-tutor-input" placeholder="Pergunte sobre o material..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--color-border); background:var(--bg-card); color:var(--color-text);" onkeypress="if(event.key === 'Enter') sendMLTutorMessage()">
+      <button onclick="sendMLTutorMessage()" class="btn-primary" style="padding:10px 15px;"><i aria-hidden="true" data-lucide="send"></i></button>
+    </div>
+  </div>
+  
+  <button id="ml-tutor-fab" onclick="document.getElementById('ml-tutor-chat-area').style.display='flex'" style="display:none; position:fixed; bottom:20px; right:20px; z-index:999998; width:60px; height:60px; border-radius:50%; background:var(--accent-primary); color:#fff; border:none; box-shadow:0 4px 12px rgba(0,0,0,0.3); align-items:center; justify-content:center; cursor:pointer;">
+    <i aria-hidden="true" data-lucide="message-square" width="24" height="24"></i>
+  </button>
 
+  <script>
+    const mlTutorHistory = [];
+    async function sendMLTutorMessage() {
+      const input = document.getElementById('ml-tutor-input');
+      const msg = input.value.trim();
+      if(!msg) return;
+      input.value = '';
+      
+      const msgBox = document.getElementById('ml-tutor-messages');
+      msgBox.innerHTML += `<div style="background:var(--accent-secondary); color:#fff; padding:10px 15px; border-radius:12px; font-size:14px; max-width:85%; align-self:flex-end;">${msg}</div>`;
+      msgBox.scrollTop = msgBox.scrollHeight;
+      
+      const loaderId = 'loader-' + Date.now();
+      msgBox.innerHTML += `<div id="${loaderId}" style="background:var(--bg-card); padding:10px 15px; border-radius:12px; font-size:14px; max-width:85%; align-self:flex-start; border-left:3px solid var(--accent-primary);"><div class="loader-pulse"></div></div>`;
+      msgBox.scrollTop = msgBox.scrollHeight;
+      
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'free-chat',
+            message: msg,
+            freeText: state.freeText,
+            chatHistory: mlTutorHistory,
+            masteryData: state.mastery || {}
+          })
+        });
+        const data = await res.json();
+        const loader = document.getElementById(loaderId);
+        if (loader) loader.remove();
+        
+        let reply = data.reply || "Erro ao processar.";
+        let modeIndicator = "";
+        
+        if (reply.includes("[MODO 2 - CONHECIMENTO COMPLEMENTAR]")) {
+          modeIndicator = `<div style="font-size:11px; font-weight:bold; color:var(--accent-warning); margin-bottom:6px;"><i aria-hidden="true" data-lucide="globe" width="12" height="12"></i> CONHECIMENTO EXTERNO</div>`;
+          reply = reply.replace("[MODO 2 - CONHECIMENTO COMPLEMENTAR]", "").trim();
+        }
+        
+        const formatted = marked.parse(reply);
+        msgBox.innerHTML += `<div style="background:var(--bg-card); color:var(--color-text); padding:10px 15px; border-radius:12px; font-size:14px; max-width:85%; align-self:flex-start; border-left:3px solid var(--accent-primary);">${modeIndicator}${formatted}</div>`;
+        msgBox.scrollTop = msgBox.scrollHeight;
+        
+        mlTutorHistory.push({ role: 'user', content: msg });
+        mlTutorHistory.push({ role: 'assistant', content: reply });
+        lucide.createIcons();
+      } catch(e) {
+        const loader = document.getElementById(loaderId);
+        if (loader) loader.remove();
+        msgBox.innerHTML += `<div style="color:var(--accent-danger); padding:10px; font-size:14px;">Erro de conexão com o Tutor.</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
