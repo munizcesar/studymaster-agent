@@ -9870,10 +9870,11 @@ window.addEventListener('resize', () => {
   <div class="drawer-overlay" role="dialog" aria-modal="true" id="drawerOverlay"></div>
   <aside class="side-drawer" id="sideDrawer">
     <div class="drawer-header" role="dialog" aria-modal="true">
-      <div class="drawer-header-left" role="dialog" aria-modal="true">
+      <div class="drawer-header-left" role="dialog" aria-modal="true" style="display:flex; align-items:center; gap: 8px;">
         <span class="drawer-logo" role="dialog" aria-modal="true"><i aria-hidden="true" data-lucide="graduation-cap" width="22" height="22"></i></span>
         <span class="drawer-title" role="dialog" aria-modal="true">Painel de Estudo</span>
       </div>
+      <div id="drawer-aivo-anchor" data-aivo-anchor="drawer-anchor" style="width:40px; height:40px; margin-left: auto; margin-right: 12px; pointer-events: none;"></div>
       <button class="theme-toggle" data-drawer-close aria-label="Fechar painel">
         <i aria-hidden="true" data-lucide="x" width="20" height="20"></i>
       </button>
@@ -9997,7 +9998,16 @@ window.addEventListener('resize', () => {
         drawerOverlay.classList.toggle('open', nextState);
         if (drawerBtn) drawerBtn.classList.toggle('open', nextState);
         document.body.style.overflow = nextState ? 'hidden' : '';
-        if (nextState) updateDrawerContent();
+        if (nextState) {
+          updateDrawerContent();
+          if (window.AivoPresence) {
+             window.AivoPresence.moveTo('drawer-anchor', { size: 40 });
+          }
+        } else {
+          if (window.AivoPresence) {
+             window.AivoPresence.enterStandby();
+          }
+        }
       }
       window.toggleDrawer = toggleDrawer;
 
@@ -10210,29 +10220,7 @@ window.addEventListener('resize', () => {
 
 
 
-    /* Welcome bubble (auto-dismiss) with new Aivo mascot */
-    setTimeout(function() {
-      var welcomeMessage = 'Olá! Sou o AIVO, seu assistente de estudos.';
-      if (window.AivosTracker) {
-        try {
-          var summary = AivosTracker.getSummary();
-          if (summary && summary.questions > 0) {
-            var streak = summary.streak || 0;
-            if (streak >= 5) {
-              welcomeMessage = 'Bem-vindo de volta! Voce esta com uma sequencia de ' + streak + ' acertos! \ud83d\udd25';
-            } else if (summary.accuracy >= 70) {
-              welcomeMessage = 'Bem-vindo! Seu rendimento geral e de ' + summary.accuracy + '%. Continue assim! \ud83d\udcaa';
-            } else {
-              welcomeMessage = 'Bem-vindo! Voce ja respondeu ' + summary.questions + ' questoes ate agora. Vamos estudar?';
-            }
-          }
-        } catch(e) {}
-      }
-
-      window.dispatchEvent(new CustomEvent('aivo-tour', {
-        detail: { message: welcomeMessage, state: 'greeting' }
-      }));
-    }, 2000);
+    /* Welcome bubble removed by user request */
 
     /* Inicializar Coach Intelligence */
     if (window.AivosCoachIntelligence) {
