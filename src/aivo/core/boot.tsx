@@ -27,6 +27,8 @@ import { AivoEngine } from './engine';
 import { PresenceManager } from './presence';
 import { AivoLogger } from './debug';
 import { getAivoBus } from './event-bus';
+import { AivoGlobalChat } from './chat-ui';
+import { MessageCircle } from 'lucide-react';
 
 /**
  * Componente flutuante do mascote — usa createPortal para sair
@@ -34,6 +36,9 @@ import { getAivoBus } from './event-bus';
  */
 function AivoFloatingAvatar({ engine }: { engine: any }) {
   const [emotion, setEmotion] = useState<string>('idle');
+  const [chatState, setChatState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
+  
+  // Backward compatibility state
   const [message, setMessage] = useState<string | null>(null);
   const [showBubble, setShowBubble] = useState<boolean>(true);
 
@@ -51,7 +56,6 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
     };
     window.addEventListener('aivo-tour', handleTour);
 
-    // Expoe funcao global para mostrar o balao externamente
     (window as any).AivoShow = () => setShowBubble(true);
 
     return () => {
@@ -66,58 +70,111 @@ function AivoFloatingAvatar({ engine }: { engine: any }) {
     setShowBubble(false);
   };
 
-  const handleAvatarClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.nativeEvent) {
-      e.nativeEvent.preventDefault();
-      e.nativeEvent.stopPropagation();
-    }
-
-    console.log('[AIVO] Avatar clicado');
-    if (message) {
-      // Fecha o balao se tiver mensagem
-      setMessage(null);
-      setShowBubble(false);
-      return;
-    } 
-
-    // Abre o chat lateral do Aivo (Redbot) se estiver disponível
-    if ((window as any).coachRedbot?.toggleSidebar) {
+  const handleFabClick = () => {
+    // If a legacy chat is present, we might want to toggle that instead, 
+    // but the spec says to implement the Global Chat and prepare for migration.
+    // For now, we open the global chat unless Redbot is specifically active and we want to fallback.
+    
+    // Check if legacy chats are on screen and should take precedence
+    if ((window as any).coachRedbot?.toggleSidebar && document.querySelector('.redbot-sidebar')) {
       (window as any).coachRedbot.toggleSidebar();
       return;
     }
 
-    // Abre o chat do Professor (Mentor) se estiver disponível
-    if ((window as any).profAivosMentor?.openChat) {
+    if ((window as any).profAivosMentor?.openChat && document.querySelector('.prof-aivos-chat-area')) {
       (window as any).profAivosMentor.openChat();
       return;
     }
 
-    // Se nenhum chat estiver disponível na view atual (ex: tela de questões),
-    // apenas alterna o balão de fala (comportamento padrão original)
-    setShowBubble(prev => !prev);
+    if (chatState === 'closed') {
+      setChatState('opening');
+      setTimeout(() => setChatState('open'), 500); // 500ms mascot animation
+    } else if (chatState === 'open') {
+      setChatState('closing');
+      setTimeout(() => setChatState('closed'), 500);
+    }
   };
 
-  // SEMPRE renderiza o avatar oficial — nunca troca por icone generico
+  const closeChat = () => {
+    if (chatState === 'open') {
+      setChatState('closing');
+      setTimeout(() => setChatState('closed'), 500);
+    }
+  };
+
+  // Safe area bottom calculation or simple fixed bottom
+  const bottomOffset = 20;
+
   const content = (
-    <div className="mascot-wrapper" style={{ pointerEvents: 'auto' }}>
-      {showBubble && message && (
-        <div className="speech-bubble">
-          {message}
-          <button onClick={handleDismiss} className="btn-entendi">
-            Entendi &gt;
-          </button>
+    <div style={{ pointerEvents: 'none', position: 'fixed', bottom: 0, right: 0, top: 0, left: 0, zIndex: 99999 }}>
+      
+      {/* 
+        Legacy Tour Bubble (kept for compatibility)
+      */}
+      {showBubble && message && chatState === 'closed' && (
+        <div className="mascot-wrapper" style={{ pointerEvents: 'auto', position: 'fixed', bottom: 90, right: 20 }}>
+          <div className="speech-bubble">
+            {message}
+            <button onClick={handleDismiss} className="btn-entendi">Entendi &gt;</button>
+          </div>
         </div>
       )}
+
+      {/* FAB Button */}
+      <button
+        onClick={handleFabClick}
+        aria-label="Abrir Assistente Aivo"
+        aria-expanded={chatState === 'open' || chatState === 'opening'}
+        style={{
+          position: 'fixed',
+          bottom: bottomOffset,
+          right: 20,
+          width: 56,
+          height: 56,
+          borderRadius: '28px',
+          backgroundColor: 'var(--primary-color, #1a1a1a)',
+          color: '#fff',
+          border: 'none',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          pointerEvents: 'auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          transition: 'transform 0.2s, background-color 0.2s',
+          zIndex: 100000
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+      >
+         {chatState === 'open' ? (
+           <span style={{ fontSize: 24, lineHeight: 1 }}>×</span>
+         ) : (
+           <MessageCircle size={28} />
+         )}
+      </button>
+
+      {/* Animated Mascot */}
       <div
-        className="mascot-avatar"
-        onClick={handleAvatarClick}
-        style={{ cursor: 'pointer', pointerEvents: 'auto' }}
-        title="Falar com AIVO"
+        style={{
+          position: 'fixed',
+          bottom: chatState === 'closed' || chatState === 'closing' ? bottomOffset + 28 : 560, // Animates up to chat area
+          right: chatState === 'closed' || chatState === 'closing' ? 48 : 50,
+          transform: chatState === 'closed' || chatState === 'closing' ? 'scale(0)' : 'scale(1)',
+          opacity: chatState === 'closed' ? 0 : 1,
+          transition: 'bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), right 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.4s ease, opacity 0.3s ease',
+          pointerEvents: 'none',
+          zIndex: 100001
+        }}
       >
         <Aivo size={64} state={emotion as any} themeMode="dark" />
       </div>
+
+      {/* Global Chat UI */}
+      <div style={{ pointerEvents: 'auto' }}>
+        <AivoGlobalChat isOpen={chatState === 'open'} onClose={closeChat} />
+      </div>
+      
     </div>
   );
 
