@@ -2904,7 +2904,7 @@ ${text.substring(0, 8000)}`;
           }
       }
 
-      if (mode === "resumo" || mode === "flashcards" || mode === "livre") {
+      if (mode === "resumo" || mode === "flashcards" || mode === "livre" || mode === "quiz_livre") {
         try {
           if (!freeText || freeText.trim().length < 300) {
             return new Response(JSON.stringify({ success: false, userMessage: "Conteúdo insuficiente para gerar recursos de estudo (mínimo de 300 caracteres)." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -2930,7 +2930,7 @@ PROTOCOLOS DE GARANTIA:
               const cardsCount = quantity ? Math.min(Math.max(Number(quantity), 1), 30) : 15;
               const extraInstructions = customPrompt ? `\nINSTRUÇÕES PERSONALIZADAS DO USUÁRIO:\n"${customPrompt}"\nRespeite estritamente essa instrução se aplicável ao contexto.\n` : '';
               userPrompt = `${protocolInstructions}${extraInstructions}\n\nGere exatamente ${cardsCount} flashcards mais importantes baseados no texto. O JSON DEVE ter o formato:\n{ "cards": [ { "front": "Pergunta", "back": "Resposta", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Trecho exato do texto", "location": "Localização", "validationStatus": "Alta Confiança" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
-          } else if (mode === "livre") {
+          } else if (mode === "livre" || mode === "quiz_livre") {
               userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }
 
@@ -2972,7 +2972,7 @@ PROTOCOLOS DE GARANTIA:
                   return new Response(JSON.stringify({ success: true, cards: parsed.cards || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
               } else if (mode === "resumo") {
                   return new Response(JSON.stringify({ success: true, resumo: parsed.resumo || "Não foi possível gerar." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-              } else if (mode === "livre") {
+              } else if (mode === "livre" || mode === "quiz_livre") {
                   return new Response(JSON.stringify({ success: true, questions: parsed.questions || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
               }
           } catch (e) {

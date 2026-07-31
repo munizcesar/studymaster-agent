@@ -10555,10 +10555,16 @@ window.currentCardIndex = 0;
 async function runLabTask(labMode) {
   if (!state.freeText || !state.freeText.trim()) return;
   
-  document.getElementById('generating-screen').classList.remove('hidden');
-  document.getElementById(`step-${state.currentStep}`).classList.remove('active');
+  const genScreen = document.getElementById('generating-screen');
+  if (genScreen) genScreen.classList.remove('hidden');
+  const currentStepEl = document.getElementById(`step-${state.currentStep}`);
+  if (currentStepEl) currentStepEl.classList.remove('active');
   
   try {
+    const sendConfig = (labMode === 'flashcards' || labMode === 'quiz_livre');
+    const qtyEl = document.getElementById('free-config-qty');
+    const promptEl = document.getElementById('free-config-prompt');
+
     const response = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -10566,12 +10572,16 @@ async function runLabTask(labMode) {
         mode: labMode,
         freeText: state.freeText,
         userId: state.userId,
-        quantity: labMode === 'flashcards' && document.getElementById('free-config-qty') ? document.getElementById('free-config-qty').value : undefined,
-        customPrompt: labMode === 'flashcards' && document.getElementById('free-config-prompt') ? document.getElementById('free-config-prompt').value : undefined
+        quantity: sendConfig && qtyEl ? qtyEl.value : undefined,
+        customPrompt: sendConfig && promptEl ? promptEl.value : undefined
       })
     });
     
-    if (!response.ok) throw new Error('Falha ao processar material.');
+    if (!response.ok) {
+      let errMsg = 'Falha ao processar material.';
+      try { const errBody = await response.json(); errMsg = errBody.userMessage || errBody.error || errMsg; } catch(_){}
+      throw new Error(errMsg);
+    }
     const data = await response.json();
     if (!data.success) throw new Error(data.userMessage || 'Erro desconhecido.');
     
