@@ -2909,7 +2909,7 @@ ${text.substring(0, 8000)}`;
             return new Response(JSON.stringify({ success: false, userMessage: "Conteúdo insuficiente para gerar recursos de estudo (mínimo de 300 caracteres)." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
-          const textContext = freeText.slice(0, 25000); 
+          const textContext = freeText.slice(0, 15000); // 15k chars ~= 3.7k tokens, previne TPM limits do Groq Free 
           const protocolInstructions = `
 PROTOCOLOS DE GARANTIA:
 1. Source Fidelity: O conteúdo gerado deve ser fundamentado EXCLUSIVAMENTE no Documento Canônico (texto fornecido). NÃO complete com conhecimento externo.
@@ -2926,7 +2926,7 @@ PROTOCOLOS DE GARANTIA:
           if (mode === "resumo") {
               userPrompt = `${protocolInstructions}\n\nCrie um Resumo Inteligente do texto a seguir. O JSON DEVE ter o formato:\n{ "resumo": "Resumo estruturado em markdown (use bullet points, negrito)", "confidence": "Alta" }\n\nTEXTO ORIGINAL:\n${textContext}`;
           } else if (mode === "flashcards") {
-              userPrompt = `${protocolInstructions}\n\nGere flashcards baseados no texto. O JSON DEVE ter o formato:\n{ "cards": [ { "front": "Pergunta", "back": "Resposta", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Trecho exato do texto", "location": "Localização", "validationStatus": "Alta Confiança" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
+              userPrompt = `${protocolInstructions}\n\nGere no máximo 15 flashcards mais importantes baseados no texto. O JSON DEVE ter o formato:\n{ "cards": [ { "front": "Pergunta", "back": "Resposta", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Trecho exato do texto", "location": "Localização", "validationStatus": "Alta Confiança" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           } else if (mode === "livre") {
               userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }
