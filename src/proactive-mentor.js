@@ -691,17 +691,17 @@ const PROACTIVE_TRIGGERS = [
     category: 'revisao',
     icon: '📝',
     condition: (profile, deps) => {
-      const simulados = profile.performance.simulados;
+      const simulados = profile.performance?.simulados || { total: 0, history: [] };
       if (simulados.total === 0) return true;
       const now = Date.now();
       const lastSimulado = simulados.history[simulados.history.length - 1];
       const daysSince = (now - lastSimulado.timestamp) / 86400000;
-      const totalQuestions = profile.performance.questions.total;
+      const totalQuestions = profile.performance?.questions?.total || 0;
       // Só alerta se já respondeu questões suficientes (pelo menos 30)
       return totalQuestions >= 30 && daysSince >= 14;
     },
     generateMessage: (profile, deps) => {
-      const simulados = profile.performance.simulados;
+      const simulados = profile.performance?.simulados || { total: 0, history: [] };
       const now = Date.now();
       let daysSince = 0;
       if (simulados.total > 0) {
