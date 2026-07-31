@@ -2764,7 +2764,8 @@ ${text.substring(0, 8000)}`;
         freeText,
         editalText,
         questionType = "mcq",
-        idioma = "pt-BR"
+        idioma = "pt-BR",
+        customPrompt
       } = body || {};
 
       const isPortugues = !idioma || idioma === "pt-BR";
@@ -2926,7 +2927,9 @@ PROTOCOLOS DE GARANTIA:
           if (mode === "resumo") {
               userPrompt = `${protocolInstructions}\n\nCrie um Resumo Inteligente do texto a seguir. O JSON DEVE ter o formato:\n{ "resumo": "Resumo estruturado em markdown (use bullet points, negrito)", "confidence": "Alta" }\n\nTEXTO ORIGINAL:\n${textContext}`;
           } else if (mode === "flashcards") {
-              userPrompt = `${protocolInstructions}\n\nGere no máximo 15 flashcards mais importantes baseados no texto. O JSON DEVE ter o formato:\n{ "cards": [ { "front": "Pergunta", "back": "Resposta", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Trecho exato do texto", "location": "Localização", "validationStatus": "Alta Confiança" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
+              const cardsCount = quantity ? Math.min(Math.max(Number(quantity), 1), 30) : 15;
+              const extraInstructions = customPrompt ? `\nINSTRUÇÕES PERSONALIZADAS DO USUÁRIO:\n"${customPrompt}"\nRespeite estritamente essa instrução se aplicável ao contexto.\n` : '';
+              userPrompt = `${protocolInstructions}${extraInstructions}\n\nGere exatamente ${cardsCount} flashcards mais importantes baseados no texto. O JSON DEVE ter o formato:\n{ "cards": [ { "front": "Pergunta", "back": "Resposta", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Trecho exato do texto", "location": "Localização", "validationStatus": "Alta Confiança" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           } else if (mode === "livre") {
               userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }

@@ -8483,6 +8483,26 @@ function renderStep2Livre(container) {
         </div>
       </div>
 
+      
+      <div class="lab-config-container" id="lab-config" style="display: none; margin-top: var(--space-4); background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+        <h4 style="margin-bottom: 8px; color: var(--color-text); font-size: 0.95rem;">Preferências de Geração (Opcional)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; align-items: start;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 4px;">Qtd. Flashcards</label>
+            <select id="free-config-qty" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+              <option value="5">5 cards</option>
+              <option value="10">10 cards</option>
+              <option value="15" selected>15 cards (Padrão)</option>
+              <option value="20">20 cards</option>
+              <option value="30">30 cards</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 4px;">Instrução Adicional / Estilo (Ex: NotebookLM)</label>
+            <input type="text" id="free-config-prompt" placeholder="Ex: Focar em datas; Nível difícil..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text);">
+          </div>
+        </div>
+      </div>
       <div class="lab-actions-container" id="lab-actions" style="display: none; margin-top: var(--space-4);">
         <button type="button" class="btn-lab-action" onclick="generateResumo()">
           <i aria-hidden="true" data-lucide="align-left" width="24" height="24"></i>
@@ -8532,13 +8552,16 @@ function renderStep2Livre(container) {
 
     if (state.mode === 'livre') {
       const labActions = document.getElementById('lab-actions');
+      const labConfig = document.getElementById('lab-config');
       const nBtn = document.getElementById('next-btn');
       if (labActions) {
         if (length > 0) {
           labActions.style.display = 'grid';
-          if (nBtn) nBtn.style.display = 'none'; // hide default next btn to use the lab actions instead
+          if (labConfig) labConfig.style.display = 'block';
+          if (nBtn) nBtn.style.display = 'none';
         } else {
           labActions.style.display = 'none';
+          if (labConfig) labConfig.style.display = 'none';
           if (nBtn) nBtn.style.display = 'block';
         }
       }
@@ -10542,7 +10565,9 @@ async function runLabTask(labMode) {
       body: JSON.stringify({
         mode: labMode,
         freeText: state.freeText,
-        userId: state.userId
+        userId: state.userId,
+        quantity: labMode === 'flashcards' && document.getElementById('free-config-qty') ? document.getElementById('free-config-qty').value : undefined,
+        customPrompt: labMode === 'flashcards' && document.getElementById('free-config-prompt') ? document.getElementById('free-config-prompt').value : undefined
       })
     });
     
@@ -10638,21 +10663,31 @@ function renderCurrentFlashcard(container) {
       <p class="step-subtitle">Clique no cartão para revelar a resposta. Tente forçar a memória antes de virar!</p>
     </div>
     
-    <div class="flashcard-container">
-      <div class="flashcard" id="active-flashcard" onclick="flipFlashcard()">
-        <div class="flashcard-face flashcard-front">
-          <div class="flashcard-title">Frente (Pergunta)</div>
-          <div class="flashcard-text">${card.front}</div>
-          <div class="flashcard-hint"><i aria-hidden="true" data-lucide="mouse-pointer-click" width="14" height="14"></i> Clique para revelar a resposta</div>
-        </div>
-        <div class="flashcard-face flashcard-back">
-          <div class="flashcard-title" style="color: var(--color-primary);">Verso (Resposta)</div>
-          <div class="flashcard-text">${card.back}</div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
+      <button class="btn-secondary" style="padding: 8px 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" onclick="prevFlashcard()" ${window.currentCardIndex === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+        <i aria-hidden="true" data-lucide="chevron-left"></i>
+      </button>
+
+      <div class="flashcard-container" style="flex-grow: 1; max-width: 600px;">
+        <div class="flashcard" id="active-flashcard" onclick="flipFlashcard()">
+          <div class="flashcard-face flashcard-front">
+            <div class="flashcard-title">Frente (Pergunta)</div>
+            <div class="flashcard-text">${card.front}</div>
+            <div class="flashcard-hint"><i aria-hidden="true" data-lucide="mouse-pointer-click" width="14" height="14"></i> Clique para virar o card</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <div class="flashcard-title" style="color: var(--color-primary);">Verso (Resposta)</div>
+            <div class="flashcard-text">${card.back}</div>
+          </div>
         </div>
       </div>
+
+      <button class="btn-secondary" style="padding: 8px 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" onclick="nextFlashcard('skip')">
+        <i aria-hidden="true" data-lucide="chevron-right"></i>
+      </button>
     </div>
     
-    <div class="flashcard-actions" id="flashcard-actions">
+    <div class="flashcard-actions visible" id="flashcard-actions">
       <button class="fc-btn fc-btn-err" onclick="nextFlashcard('err')"><i aria-hidden="true" data-lucide="x-circle" style="vertical-align: middle; margin-right: 6px;"></i>Errei / Não Lembrei</button>
       <button class="fc-btn fc-btn-hit" onclick="nextFlashcard('hit')"><i aria-hidden="true" data-lucide="check-circle-2" style="vertical-align: middle; margin-right: 6px;"></i>Acertei / Lembrei</button>
     </div>
@@ -10664,18 +10699,20 @@ function renderCurrentFlashcard(container) {
 
 window.flipFlashcard = () => {
   const card = document.getElementById('active-flashcard');
-  const actions = document.getElementById('flashcard-actions');
-  if (card && actions) {
-    card.classList.add('flipped');
-    card.onclick = null; // desabilita virar de volta pra manter o fluxo de ação
-    setTimeout(() => {
-      actions.classList.add('visible');
-    }, 400);
+  if (card) {
+    card.classList.toggle('flipped');
+  }
+};
+
+window.prevFlashcard = () => {
+  if (window.currentCardIndex > 0) {
+    window.currentCardIndex--;
+    renderCurrentFlashcard();
   }
 };
 
 window.nextFlashcard = (status) => {
-  // We can track spaced repetition logic here later. For now we just go next.
+  // Se for err/hit, futuramente salva métrica de repetição espaçada. Se for 'skip', só avança.
   window.currentCardIndex++;
   renderCurrentFlashcard();
 };
