@@ -10587,7 +10587,7 @@ async function runLabTask(labMode) {
     document.getElementById('back-btn').classList.remove('hidden');
     
     if (labMode === 'resumo') {
-      const mdHtml = marked.parse(data.resumo);
+      const mdHtml = marked.parse(data.resumo || data.content || data.texto || '');
       container.innerHTML = `
         <div class="step-header">
           <h2 class="step-title"><i aria-hidden="true" data-lucide="align-left"></i> Resumo Estruturado</h2>
@@ -10596,14 +10596,14 @@ async function runLabTask(labMode) {
         <div class="resumo-container">${mdHtml}</div>
       `;
     } else if (labMode === 'flashcards') {
-      window.currentFlashcards = data.cards;
+      window.currentFlashcards = data.cards || data.flashcards || data.resultado || [];
       window.currentCardIndex = 0;
       renderCurrentFlashcard(container);
     } else if (labMode === 'quiz_livre') {
-      state.generatedQuestions = data.questions;
+      state.generatedQuestions = data.questions || data.questoes || [];
       state.answered = 0; state.correct = 0;
       state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
-      renderQuestions(data.questions);
+      renderQuestions(state.generatedQuestions);
     }
     
     // FASE 5: Exibe o botão do Tutor Contextual ao concluir o pipeline do Material Livre
@@ -10615,7 +10615,9 @@ async function runLabTask(labMode) {
     lucide.createIcons();
     updateHistoryState();
   } catch (err) {
-    document.getElementById('generating-screen').classList.add('hidden');
+    console.error('runLabTask error:', err);
+    const genScreen = document.getElementById('generating-screen');
+    if (genScreen) genScreen.classList.add('hidden');
     const container = document.getElementById('step-3');
     container.innerHTML = `
       <div class="error-state visible">
@@ -10672,12 +10674,12 @@ function renderCurrentFlashcard(container) {
         <div class="flashcard" id="active-flashcard" onclick="flipFlashcard()">
           <div class="flashcard-face flashcard-front">
             <div class="flashcard-title">Frente (Pergunta)</div>
-            <div class="flashcard-text">${card.front}</div>
+            <div class="flashcard-text">${card?.front || card?.pergunta || 'Frente do card não encontrada'}</div>
             <div class="flashcard-hint"><i aria-hidden="true" data-lucide="mouse-pointer-click" width="14" height="14"></i> Clique para virar o card</div>
           </div>
           <div class="flashcard-face flashcard-back">
             <div class="flashcard-title" style="color: var(--color-primary);">Verso (Resposta)</div>
-            <div class="flashcard-text">${card.back}</div>
+            <div class="flashcard-text">${card?.back || card?.resposta || 'Verso do card não encontrado'}</div>
           </div>
         </div>
       </div>
