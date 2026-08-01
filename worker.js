@@ -1480,7 +1480,7 @@ async function handleAivoContextChat(body, env) {
     return { reply: 'Olá! Estou conectado a esta página. Como posso ajudar?' };
   }
 
-  const systemContent = `Você é o AIVO, o Assistente Contextual Inteligente do StudyMaster.
+  const systemContent = `Você é o AIVU, o Assistente Contextual Inteligente do AIVUR.
 Sua missão é ajudar o aluno utilizando o contexto da página que ele está acessando.
 
 HIERARQUIA DE EVIDÊNCIAS:
@@ -2792,7 +2792,7 @@ ${text.substring(0, 8000)}`;
           });
         } catch (chatErr) {
           return new Response(JSON.stringify({
-            reply: "Desculpe, ocorreu um erro interno no Prof. AIVOS. Tente novamente.",
+            reply: "Desculpe, ocorreu um erro interno no Prof. AIVU. Tente novamente.",
             error: chatErr.message
           }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
@@ -3121,7 +3121,7 @@ O JSON DEVE OBRIGATORIAMENTE ter este formato exato:
             adaptiveContext = `\nHISTÓRICO ADAPTATIVO DO ALUNO:\n${JSON.stringify(masteryData)}\nSe o aluno perguntar sobre um tópico em que ele tem 'wrong' > 0, seja extremamente didático e paciente, informando que percebeu a dificuldade no quiz.\n`;
           }
 
-          const systemPrompt = `Você é o Tutor Contextual do StudyMaster, operando sob uma arquitetura RAG (Recuperação).
+          const systemPrompt = `Você é o Tutor Contextual do AIVUR, operando sob uma arquitetura RAG (Recuperação).
 O aluno enviou uma dúvida e você tem acesso ao Documento Canônico fragmentado em Chunks abaixo.
 
 DOCUMENTO CANÔNICO (Chunks Numerados):
