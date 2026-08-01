@@ -7366,37 +7366,15 @@ function isMobileViewport() {
 }
 
 function scrollToWizard(delay = 0) {
-  setTimeout(async () => {
-    const wizardCard = document.getElementById('wizard-card');
-    if (!wizardCard) return;
-    const rect = wizardCard.getBoundingClientRect();
-    const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
-    const targetY = window.scrollY + rect.top - headerHeight - 16;
-    const isVisible = rect.top >= headerHeight && rect.bottom <= window.innerHeight;
-    if (isMobileViewport() || !isVisible) window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-  }, delay);
+  // Desativado a pedido do usuário
 }
 
 function scrollChoiceIntoView(target, delay = 90) {
-  if (!isMobileViewport()) return;
-  setTimeout(async () => {
-    const el = typeof target === 'string' ? document.querySelector(target) : target;
-    if (!el) return;
-    const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
-    const bottomNav = document.querySelector('.wizard-nav')?.offsetHeight || 0;
-    const rect = el.getBoundingClientRect();
-    const targetY = window.scrollY + rect.top - headerHeight - 14;
-    const lowerLimit = window.innerHeight - bottomNav - 24;
-    const needsScroll = rect.top < headerHeight + 12 || rect.bottom > lowerLimit;
-    if (needsScroll) window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-  }, delay);
+  // Desativado a pedido do usuário
 }
 
 function scrollToNextConfigGroup(fromEl) {
-  if (!isMobileViewport() || !fromEl) return;
-  const group = fromEl.closest('.config-group');
-  const next = group?.nextElementSibling;
-  if (next?.classList?.contains('config-group')) scrollChoiceIntoView(next, 120);
+  // Desativado a pedido do usuário
 }
 
 function goHome() {
@@ -9733,7 +9711,7 @@ function attachQFQuestionEventListeners(wrap, idx) {
         
         setTimeout(async () => {
           const exp = document.getElementById(`qf-exp-${idx}`);
-          if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          // if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
       });
     }
@@ -9796,7 +9774,7 @@ function renderQFResultInline() {
   document.getElementById('qf-close-inline-btn').addEventListener('click', closeFullscreen);
   
   // Scroll para o resultado
-  resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderQFQuestion(idx) {
@@ -9910,7 +9888,7 @@ function renderQFQuestion(idx) {
       
       setTimeout(async () => {
         const exp = document.getElementById(`qf-exp-${idx}`);
-        if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        // if(exp) exp.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }, 100);
     });
     }
