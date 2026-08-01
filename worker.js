@@ -2965,7 +2965,27 @@ PROTOCOLOS DE GARANTIA:
           try {
               let cleanContent = content || "{}";
               cleanContent = cleanContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-              parsed = JSON.parse(cleanContent);
+              
+              // Safe parsing attempt: find the first { } block if strict parsing fails
+              try {
+                  parsed = JSON.parse(cleanContent);
+              } catch (initialParseError) {
+                  const match = cleanContent.match(/\{[\s\S]*\}/);
+                  if (match) {
+                      parsed = JSON.parse(match[0]);
+                  } else {
+                      throw initialParseError;
+                  }
+              }
+              
+              // Deal with alternative keys or arrays hallucinated by the LLM
+              if (mode === "flashcards") {
+                  if (Array.isArray(parsed)) {
+                      parsed = { cards: parsed };
+                  } else if (!parsed.cards && (parsed.flashcards || parsed.data || parsed.resultado)) {
+                      parsed.cards = parsed.flashcards || parsed.data || parsed.resultado;
+                  }
+              }
               
               logStructuredEvent("lab_ia_success", { mode });
               if (mode === "flashcards") {
@@ -2977,7 +2997,7 @@ PROTOCOLOS DE GARANTIA:
               }
           } catch (e) {
               logStructuredEvent("lab_ia_failed", { error: "Parse error: " + e.message, content });
-              return new Response(JSON.stringify({ success: false, userMessage: "Falha ao gerar conteúdo (formato inválido da IA)." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              return new Response(JSON.stringify({ success: false, userMessage: "Falha ao processar o conteúdo gerado pela IA. O texto extraído do PDF pode ser muito complexo ou muito longo. Tente novamente." }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
         } catch (error) {
