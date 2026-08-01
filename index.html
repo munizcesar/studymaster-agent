@@ -364,7 +364,7 @@
     }
     .logo:hover { opacity: 0.8; }
     .logo span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    .logo-icon { width: 42px; height: 42px; flex-shrink: 0; }
+    .logo-icon { height: 42px; width: auto; max-width: 180px; object-fit: contain; flex-shrink: 0; }
     .logo-wordmark,
     .footer-logo {
       display: inline-flex;
@@ -5029,7 +5029,7 @@
   /* Header compact */
   .site-header { padding: var(--space-2) 0; }
   .header-inner { gap: var(--space-2); }
-  .logo-icon { width: 32px; height: 32px; }
+  .logo-icon { height: 32px; max-width: 140px; }
   .logo span { font-size: var(--text-sm); }
   .header-actions { gap: var(--space-1); }
 
