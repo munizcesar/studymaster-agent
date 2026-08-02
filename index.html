@@ -1987,7 +1987,7 @@
       justify-content: center;
       gap: var(--space-2);
       padding: var(--space-3) var(--space-6);
-      background: var(--grad-brand);
+      background: var(--color-primary);
       color: white;
       font-weight: 700;
       font-size: var(--text-base);
@@ -5255,7 +5255,7 @@ pre, code { word-break: break-word; overflow-x: auto; }
   font-size: clamp(1rem, 1.2vw, 1.125rem);
 }
 .btn-primary {
-  background: var(--grad-brand);
+  background: var(--color-primary);
   color: white;
   box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3);
 }
@@ -6908,10 +6908,10 @@ const state = {
     sessionId: null,
     history: [],
     stage: 'thesis',
-    summary: '',
-    scores: { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 },
-    banca: 'ENEM'
+    feedbackData: null,
+    evaluation: null
   },
+  freeText: '',
   aivos360State: {
     concurso: null,
     cargo: null,
@@ -7379,15 +7379,28 @@ function isMobileViewport() {
 }
 
 function scrollToWizard(delay = 0) {
-  // Desativado a pedido do usuário
+  setTimeout(() => {
+    const el = document.getElementById('wizard-container');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, delay);
 }
 
 function scrollChoiceIntoView(target, delay = 90) {
-  // Desativado a pedido do usuário
+  setTimeout(() => {
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, delay);
 }
 
 function scrollToNextConfigGroup(fromEl) {
-  // Desativado a pedido do usuário
+  setTimeout(() => {
+    if (fromEl && fromEl.nextElementSibling) {
+      fromEl.nextElementSibling.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
 }
 
 function goHome() {
