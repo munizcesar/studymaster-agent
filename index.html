@@ -10583,7 +10583,13 @@ async function runLabTask(labMode) {
     
     if (!response.ok) {
       let errMsg = 'Falha ao processar material.';
-      try { const errBody = await response.json(); errMsg = errBody.userMessage || errBody.error || errMsg; } catch(_){}
+      try {
+        const errBody = await response.json();
+        errMsg = errBody.userMessage || errBody.error || errMsg;
+        if (errBody.details) {
+            errMsg += '<br><br><span style="font-size:12px; color:var(--text-muted);">Detalhes Técnicos: ' + errBody.details + '</span>';
+        }
+      } catch(_){}
       throw new Error(errMsg);
     }
     const data = await response.json();
