@@ -273,11 +273,13 @@
       --space-4: 1rem;     --space-5: 1.25rem;  --space-6: 1.5rem;   --space-8: 2rem;
       --space-10: 2.5rem;  --space-12: 3rem;    --space-16: 4rem;
       --space-20: 5rem;
+      --hero-bg: linear-gradient(135deg, rgba(248, 250, 252, 0.85), rgba(226, 232, 240, 0.95));
     }
     [data-theme="dark"] {
       /* ── AIVUR Dark Mode ── */
       --color-bg:             #080B14;
       --color-surface:        #101522;
+      --hero-bg:              linear-gradient(135deg, rgba(36, 40, 49, 0.85), rgba(18, 20, 26, 0.95));
       --color-surface-2:      #161D2D;
       --color-surface-raised: #161D2D;
       --color-surface-offset: #1E293B;
@@ -451,7 +453,9 @@
       padding: var(--space-12) 0 var(--space-8);
       padding-block: clamp(3rem, 6vw, 5rem);
       text-align: left;
-      background: linear-gradient(135deg, var(--color-surface), var(--color-bg));
+      background: var(--hero-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: var(--color-text);
       border-bottom: 1px solid var(--color-divider);
       position: relative;
