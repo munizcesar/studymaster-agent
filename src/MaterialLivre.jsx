@@ -4,6 +4,7 @@ import {
   ArrowRight, ArrowLeft, PenLine, Eraser, Plus, Loader2, Sparkles, RotateCcw,
   BookMarked, Trash2, Bookmark, FileText, Zap, RefreshCw
 } from "lucide-react";
+import { validar, gerarExercicioPara, gerarExerciciosDaIA } from "./universal-engine";
 
 /* =========================================================================
    TOKENS VISUAIS E CSS
@@ -125,104 +126,6 @@ const GLOBAL_CSS = `
 .flashcard-text { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 500; line-height: 1.4; }
 .flashcard-hint { font-family: 'Inter', sans-serif; font-size: 11px; color: #9AA1AC; position: absolute; bottom: 12px; }
 `;
-
-/* =========================================================================
-   MOTOR DE EXERCÍCIOS E ÚTEIS
-   ========================================================================= */
-function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-
-function validar(exercicio, valorUsuario, indiceUsuario) {
-  if (exercicio.tipo === "mcq") return indiceUsuario === exercicio.correctIndex;
-  const a = String(valorUsuario).trim().toLowerCase().replace(",", ".");
-  const b = String(exercicio.resposta).trim().toLowerCase().replace(",", ".");
-  const na = parseFloat(a), nb = parseFloat(b);
-  if (!isNaN(na) && !isNaN(nb)) return Math.abs(na - nb) < 0.01;
-  return a === b;
-}
-
-function gerarExercicioPara(topico) {
-  if (topico.pool && topico.pool.length > 0) {
-    return topico.pool[randInt(0, topico.pool.length - 1)];
-  }
-  return { tipo: "texto", question: "Sem questões disponíveis.", resposta: "", explicacao: "" };
-}
-
-/* =========================================================================
-   GERAÇÃO POR IA (Anthropic API)
-   ========================================================================= */
-async function gerarExerciciosDaIA(materiaTexto, quantidade = 6) {
-  const prompt = \`Você é um elaborador de materiais de estudo para concursos públicos.
-Com base SOMENTE no conteúdo de estudo abaixo, elabore um pacote completo.
-
-O retorno deve ser APENAS um JSON válido, sem markdown, sem bloco de código, sem texto antes ou depois. Use EXATAMENTE este formato:
-{"titulo":"Nome curto do material (máx 4 palavras)","resumo":["Ponto principal 1", "Ponto principal 2", "Ponto principal 3"],"flashcards":[{"frente":"Pergunta direta do flashcard","verso":"Resposta curta e direta"}],"questoes":[{"tipo":"texto ou mcq","pergunta":"enunciado","resposta":"(obrigatório se tipo for texto)","opcoes":["(obrigatório se tipo for mcq)"],"indiceCorreto":0,"explicacao":"explicação de por que está correto"}]}
-
-- "resumo": crie 4 a 6 bullet points consolidando o conhecimento do texto.
-- "flashcards": crie pelo menos 4 cartas (frente: pergunta, verso: resposta/conceito).
-- "questoes": crie \${quantidade} questões (pode ser "texto" ou "mcq"). Para mcq forneça 5 alternativas.
-
-Conteúdo de estudo:
-"""
-\${materiaTexto}
-"""\`;
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-api-key": "SEU_API_KEY", "anthropic-version": "2023-06-01" }, // Cuidado em produção!
-    body: JSON.stringify({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  }).catch(err => {
-    console.warn("API request failed, using fallback data for demo.");
-    return { ok: false };
-  });
-
-  if (!response.ok) {
-    // FALLBACK DEMO DATA se a API falhar
-    await new Promise(r => setTimeout(r, 1500));
-    return {
-      titulo: "Material Gerado (Demo)",
-      resumo: [
-        "Este é um resumo gerado automaticamente como demonstração.",
-        "A API não estava configurada, então usamos dados falsos.",
-        "O sistema gera um resumo listado para revisão rápida."
-      ],
-      flashcards: [
-        { frente: "O que é um Flashcard?", verso: "Um cartão com pergunta de um lado e resposta do outro." },
-        { frente: "Para que serve a Revisão Ativa?", verso: "Para fortalecer as conexões da memória." }
-      ],
-      pool: Array(quantidade).fill(0).map((_, i) => ({
-        tipo: "mcq",
-        question: \`Questão gerada automaticamente \${i+1} baseada no seu texto.\`,
-        options: ["Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E"],
-        correctIndex: 0,
-        explicacao: "Esta é a explicação gerada pela IA."
-      }))
-    };
-  }
-
-  const data = await response.json();
-  const textoResposta = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\\n");
-  const limpo = textoResposta.replace(/\`\`\`json|\`\`\`/g, "").trim();
-  const parsed = JSON.parse(limpo);
-
-  const pool = (parsed.questoes || []).map(q => {
-    if (q.tipo === "mcq" && Array.isArray(q.opcoes) && q.opcoes.length >= 2) {
-      return { tipo: "mcq", question: q.pergunta, options: q.opcoes, correctIndex: q.indiceCorreto || 0, explicacao: q.explicacao || "" };
-    }
-    return { tipo: "texto", question: q.pergunta, resposta: String(q.resposta ?? ""), explicacao: q.explicacao || "" };
-  }).filter(q => q.question);
-
-  return { 
-    titulo: parsed.titulo || "Material Livre", 
-    resumo: parsed.resumo || [], 
-    flashcards: parsed.flashcards || [], 
-    pool 
-  };
-}
 
 /* =========================================================================
    Componentes Menores Partilhados
@@ -454,7 +357,8 @@ function ModalAprender({ topico, onClose, onConcluir, onExercicioResolvido, onSa
   const [selecionadoSolo, setSelecionadoSolo] = useState(null);
 
   function responderSolo(valor, idx) {
-    const certo = validar(exercicioSolo, valor, idx);
+    const res = validar(exercicioSolo, valor, idx, topico.id);
+    const certo = res.acertou;
     setSelecionadoSolo(idx ?? null);
     setFeedbackSolo(certo ? "certo" : "errado");
     onExercicioResolvido(topico.id);
@@ -538,7 +442,8 @@ function ModalRevisao({ topico, onClose, onConcluir, onExercicioResolvido, onSal
 
   function responder(valor, idx) {
     if (feedback) return;
-    const certo = validar(exercicio, valor, idx);
+    const res = validar(exercicio, valor, idx, topico.id);
+    const certo = res.acertou;
     setSelecionado(idx ?? null);
     setFeedback(certo ? "certo" : "errado");
     onExercicioResolvido(topico.id);
@@ -605,7 +510,8 @@ function ModalReforcar({ topico, onClose, onDominar, onExercicioResolvido, onSal
 
   function responder(valor, idx) {
     if (feedback) return;
-    const acertou = validar(exercicio, valor, idx);
+    const res = validar(exercicio, valor, idx, topico.id);
+    const acertou = res.acertou;
     setSelecionado(idx ?? null);
     setFeedback(acertou ? "certo" : "errado");
     onExercicioResolvido(topico.id);
