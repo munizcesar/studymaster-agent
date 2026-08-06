@@ -8515,7 +8515,7 @@ function renderStep2Livre(container) {
       <div class="lab-actions-container" id="lab-actions" style="display: none; margin-top: var(--space-4);">
         <button type="button" class="btn-lab-action" onclick="generateResumo()">
           <i aria-hidden="true" data-lucide="align-left" width="24" height="24"></i>
-          Gerar Documento Canônico & Resumo
+          Analisar e Gerar Resumo
         </button>
         <button type="button" class="btn-lab-action" onclick="generateFlashcards()">
           <i aria-hidden="true" data-lucide="layers" width="24" height="24"></i>
@@ -8603,8 +8603,9 @@ function renderStep2Livre(container) {
           body: JSON.stringify({ mode: 'ingest_url', url })
         });
         const data = await res.json();
-        if (data.success && data.canonicalDocument) {
-          state.freeText = data.canonicalDocument.content;
+        if (data.success && (data.extractedText || data.canonicalDocument)) {
+          // Worker retorna extractedText (campo atual) ou canonicalDocument.content (legado)
+          state.freeText = data.extractedText || data.canonicalDocument?.content || '';
           if (freeTextArea) freeTextArea.value = state.freeText;
           updateCounter();
           updateNavButtons();
@@ -8613,11 +8614,11 @@ function renderStep2Livre(container) {
           if (currentToast) currentToast.remove();
           const toast = document.createElement('div');
           toast.className = 'toast';
-          toast.textContent = "Conteúdo importado com sucesso da URL!";
+          toast.textContent = 'Conteúdo importado com sucesso! Cole no campo de texto abaixo se precisar.';
           document.body.appendChild(toast);
-          setTimeout(() => toast.remove(), 3000);
+          setTimeout(() => toast.remove(), 3500);
         } else {
-          throw new Error(data.userMessage || "Erro ao importar link");
+          throw new Error(data.userMessage || 'Erro ao importar link. Tente outro endereço.');
         }
       } catch (err) {
         alert("Falha na importação: " + err.message);
@@ -9042,6 +9043,9 @@ function renderQuestions(questions) {
   const sessionResult = document.getElementById('session-result');
   const retryWrongBtn = document.getElementById('retry-wrong-btn');
 
+  // Blindagem: elementos essenciais podem não existir no DOM em certos contextos
+  if (!container) { console.error('[AIVOS] renderQuestions: #questions-container não encontrado'); return; }
+
   // Validar schema de cada questao - remover invalidas para evitar quebra silenciosa
   const validQuestions = questions.filter(validateQuestionSchema);
   const skipped = questions.length - validQuestions.length;
@@ -9050,7 +9054,7 @@ function renderQuestions(questions) {
   }
   if (validQuestions.length === 0) {
     showError('Nenhuma questao valida foi recebida. Tente gerar novamente.');
-    container.classList.remove('visible');
+    if (container) container.classList.remove('visible');
     return;
   }
 
@@ -9065,8 +9069,8 @@ function renderQuestions(questions) {
   state.answerResults = qNavState.results;
   state.answered = 0; state.correct = 0;
   state.questionStartTime = Date.now();
-  sessionResult.classList.add('hidden');
-  retryWrongBtn.classList.add('hidden');
+  if (sessionResult) sessionResult.classList.add('hidden');
+  if (retryWrongBtn) retryWrongBtn.classList.add('hidden');
   updateScore();
 
   saveActiveSession();
@@ -9376,7 +9380,7 @@ async function triggerAdaptiveReinforcement(q, idx, expBox) {
     adaptBox.innerHTML = `
       <h4 style="margin:0 0 10px 0; color:var(--accent-danger);"><i aria-hidden="true" data-lucide="alert-triangle" width="16" height="16"></i> Limite de Recuperação Atingido</h4>
       <p style="margin:0; font-size:14px; opacity:0.9;">Você apresentou dificuldade contínua no tópico <strong>${topic}</strong>.</p>
-      <p style="margin:10px 0 0 0; font-size:13px; opacity:0.8;">O sistema registrou este tópico para revisão futura. Sugerimos que você consulte o Documento Canônico ou o Tutor Contextual antes de tentar novas questões sobre o mesmo assunto.</p>
+      <p style="margin:10px 0 0 0; font-size:13px; opacity:0.8;">O sistema registrou este tópico para revisão futura. Sugerimos que você consulte o Resumo do Material ou o Tutor Contextual antes de tentar novas questões sobre o mesmo assunto.</p>
     `;
     adaptBox.style.marginTop = '15px';
     adaptBox.style.padding = '15px';
@@ -10637,9 +10641,45 @@ async function runLabTask(labMode) {
       window.currentCardIndex = 0;
       renderCurrentFlashcard(container);
     } else if (labMode === 'quiz_livre') {
-      state.generatedQuestions = data.questions || data.questoes || [];
+      const qs = data.questions || data.questoes || [];
+      if (!qs.length) throw new Error('Nenhuma questão foi gerada. Tente com um texto mais longo.');
+      state.generatedQuestions = qs;
       state.answered = 0; state.correct = 0;
       state.sessionHistory = { answers: [], correct: 0, wrong: 0 };
+      // Para o modo livre, precisamos restaurar o questions-container dentro do step-3
+      // antes de chamar renderQuestions(), pois ele foi limpo pelo runLabTask
+      const step3El = document.getElementById('step-3');
+      if (step3El && !document.getElementById('questions-container')) {
+        step3El.innerHTML = `
+          <div class="questions-container" id="questions-container">
+            <div class="summary-chips" id="summary-chips"></div>
+            <div class="score-bar" id="score-bar" role="status" aria-live="polite">
+              <span class="score-label">Progresso</span>
+              <div class="score-progress"><div class="score-fill" id="score-fill"></div></div>
+              <span class="score-value" id="score-value" aria-live="polite" aria-atomic="true">0/<span id="score-total">0</span></span>
+            </div>
+            <div id="questions-list"></div>
+            <div id="aivos-celebration-placeholder" style="margin-top:var(--space-4); display:none;"></div>
+            <div class="hidden" id="session-result" role="status" aria-live="polite" aria-atomic="true"
+              style="margin-top:var(--space-3);padding:14px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-card)">
+              <div class="session-result-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-3);">
+                <div>
+                  <div style="font-weight:700;margin-bottom:6px">Resultado da sessão</div>
+                  <div id="session-stats" style="color:var(--color-text-muted)"></div>
+                </div>
+                <button type="button" class="btn-primary btn-ripple" id="session-new-btn" style="margin-top:0;white-space:nowrap;" onclick="goToStep(2)">
+                  <i aria-hidden="true" data-lucide="rotate-ccw" width="16" height="16"></i>
+                  Novo material
+                </button>
+              </div>
+              <div id="session-summary" style="color:var(--color-text);font-size:0.95rem;margin-bottom:var(--space-3);"></div>
+              <div id="session-history" role="list" style="display:flex;flex-wrap:wrap;gap:8px;font-size:0.9rem;color:var(--color-text-muted);"></div>
+              <button class="btn-primary hidden" id="retry-wrong-btn" style="margin-top:10px;max-width:320px;">
+                Refazer somente as erradas
+              </button>
+            </div>
+          </div>`;
+      }
       renderQuestions(state.generatedQuestions);
     }
     
@@ -10652,19 +10692,19 @@ async function runLabTask(labMode) {
     lucide.createIcons();
     updateHistoryState();
   } catch (err) {
-    console.error('runLabTask error:', err);
+    console.error('[Material Livre] Erro em runLabTask:', err);
     const genScreen = document.getElementById('generating-screen');
     if (genScreen) genScreen.classList.add('hidden');
-    const container = document.getElementById('step-3');
-    container.innerHTML = `
+    const errContainer = document.getElementById('step-3') || document.body;
+    errContainer.innerHTML = `
       <div class="error-state visible">
         <i aria-hidden="true" data-lucide="alert-triangle"></i>
         <h3>Erro ao processar</h3>
-        <p>${err.message}</p>
+        <p>${err.message || 'Ocorreu um erro inesperado. Tente novamente.'}</p>
         <button class="btn-primary" onclick="goToStep(2)">Voltar e Tentar Novamente</button>
       </div>
     `;
-    container.classList.add('active');
+    if (errContainer.id === 'step-3') errContainer.classList.add('active');
     lucide.createIcons();
   }
 }
