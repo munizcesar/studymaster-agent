@@ -8579,7 +8579,7 @@ function renderStep2Livre(container) {
     lucide.createIcons();
   };
 
-  freeTextArea.addEventListener('input', e => {
+  if (freeTextArea) freeTextArea.addEventListener('input', e => {
     state.freeText = e.target.value;
     updateCounter();
     updateNavButtons();
@@ -8628,25 +8628,28 @@ function renderStep2Livre(container) {
     });
   }
 
+
   // removed click listener
-  uploadArea.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
+  if (uploadArea) {
+    uploadArea.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (fileInput) fileInput.click();
+      }
+    });
+    uploadArea.addEventListener('dragover', e => {
       e.preventDefault();
-      fileInput.click();
-    }
-  });
-  uploadArea.addEventListener('dragover', e => {
-    e.preventDefault();
-    uploadArea.classList.add('dragging');
-  });
-  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragging'));
-  uploadArea.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragging');
-    const droppedFile = e.dataTransfer?.files?.[0];
-    if (droppedFile) handleFreeFileUpload(droppedFile);
-  });
-  fileInput.addEventListener('change', e => {
+      uploadArea.classList.add('dragging');
+    });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragging'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragging');
+      const droppedFile = e.dataTransfer?.files?.[0];
+      if (droppedFile) handleFreeFileUpload(droppedFile);
+    });
+  }
+  if (fileInput) fileInput.addEventListener('change', e => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) handleFreeFileUpload(selectedFile);
     fileInput.value = '';
@@ -8660,9 +8663,9 @@ function renderStep2Livre(container) {
     const formatChars = value => value.toLocaleString('pt-BR');
 
     const setProgress = (visible, label, percent = 0, showSpinner = false) => {
-      progressRoot.classList.toggle('visible', visible);
-      progressText.innerHTML = `${showSpinner ? '<span class="upload-spinner"></span>' : ''}${label}`;
-      progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+      if (progressRoot) progressRoot.classList.toggle('visible', visible);
+      if (progressText) progressText.innerHTML = `${showSpinner ? '<span class="upload-spinner"></span>' : ''}${label}`;
+      if (progressFill) progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
     };
     const showToast = message => {
       const currentToast = document.querySelector('.toast');
@@ -8729,6 +8732,7 @@ function isStepValid(step) {
 function updateNavButtons() {
   const bBtn = document.getElementById('back-btn');
   const nBtn = document.getElementById('next-btn');
+  if (!bBtn || !nBtn) return;
   // aivos360 é conversacional e termina no step-2 (dashboard + chat), sem geração de questões
   const isAivosTerminal = state.mode === 'aivos360' && state.currentStep === 2;
   if (state.currentStep === 1 || state.currentStep === 3 || isAivosTerminal) {
@@ -8761,17 +8765,21 @@ async function goToStep(target) {
     updateHistoryState();
     if (target === 3) {
       if (state.mode === 'aivos360') {
-        document.getElementById('generating-screen').classList.add('hidden');
-        document.getElementById('questions-container').classList.remove('visible');
+        const _gs = document.getElementById('generating-screen');
+        if (_gs) _gs.classList.add('hidden');
+        const _qc = document.getElementById('questions-container');
+        if (_qc) _qc.classList.remove('visible');
         renderStep3Aivos360(document.getElementById('step-3'));
         return;
       }
       if (state.mode === 'redacao') {
         // Hide screens and use Coach RedBot dashboard
-        document.getElementById('generating-screen').classList.add('hidden');
+        const _gs = document.getElementById('generating-screen');
+        if (_gs) _gs.classList.add('hidden');
         const errorState = document.getElementById('error-state');
         if (errorState) errorState.classList.add('hidden');
-        document.getElementById('questions-container').classList.remove('visible');
+        const _qc = document.getElementById('questions-container');
+        if (_qc) _qc.classList.remove('visible');
         const oldChat = document.getElementById('redacao-chat-wrapper');
         if (oldChat) oldChat.classList.add('hidden');
         renderRedacaoCoachDashboard();
@@ -8799,9 +8807,9 @@ async function callWorkerAndRender() {
   const genScreen = document.getElementById('generating-screen');
   const errorState = document.getElementById('error-state');
   const qContainer = document.getElementById('questions-container');
-  genScreen.classList.remove('hidden');
+  if (genScreen) genScreen.classList.remove('hidden');
   if (errorState) errorState.classList.add('hidden');
-  qContainer.classList.remove('visible');
+  if (qContainer) qContainer.classList.remove('visible');
 
   // Resolve banca efetiva: se foco manual definido, usa ele; senão usa banca inferida do concurso
   const bancaEfetiva = (state.bancaFoco && state.bancaFoco !== 'auto')
@@ -10600,16 +10608,20 @@ async function runLabTask(labMode) {
     const data = await response.json();
     if (!data.success) throw new Error(data.userMessage || 'Erro desconhecido.');
     
-    document.getElementById('generating-screen').classList.add('hidden');
+    const genScreenDone = document.getElementById('generating-screen');
+    if (genScreenDone) genScreenDone.classList.add('hidden');
     
     // We will use step-3 container to render the result.
     const container = document.getElementById('step-3');
+    if (!container) throw new Error('Elemento step-3 não encontrado.');
     container.innerHTML = '';
     container.classList.add('active');
     state.currentStep = 3;
     updateStepBar(3);
-    document.getElementById('next-btn').classList.add('hidden');
-    document.getElementById('back-btn').classList.remove('hidden');
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn) nextBtn.classList.add('hidden');
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) backBtn.classList.remove('hidden');
     
     if (labMode === 'resumo') {
       const mdHtml = marked.parse(data.resumo || data.content || data.texto || '');
