@@ -21,6 +21,33 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <!-- marked.js para renderizar o Resumo Inteligente -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js" crossorigin="anonymous"></script>
+  <script>
+    // Fallback: se o CDN do marked falhar, usa um renderizador MD simples embutido
+    if (typeof marked === 'undefined') {
+      window.marked = {
+        parse: function(text) {
+          if (!text) return '';
+          return text
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/`(.+?)`/g, '<code>$1</code>')
+            .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/^(.+)$/gm, function(line) {
+              return /^<[hul]/.test(line.trim()) ? line : '<p>' + line + '</p>';
+            });
+        }
+      };
+      console.warn('[AIVOS] marked.js nao carregou do CDN — usando fallback embutido');
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { corePlugins: { preflight: false } }
@@ -10628,13 +10655,63 @@ async function runLabTask(labMode) {
     if (backBtn) backBtn.classList.remove('hidden');
     
     if (labMode === 'resumo') {
-      const mdHtml = marked.parse(data.resumo || data.content || data.texto || '');
+      // Protocolo de qualidade: validar se o resumo tem conteúdo antes de renderizar
+      const rawResumo = data.resumo || data.content || data.texto || '';
+      if (!rawResumo || rawResumo.trim().length < 10) {
+        throw new Error('O resumo gerado está vazio. Verifique se o material tem conteúdo suficiente e tente novamente.');
+      }
+
+      // Renderiza markdown com segurança
+      let mdHtml;
+      try {
+        mdHtml = (typeof marked !== 'undefined') ? marked.parse(rawResumo) : rawResumo.replace(/\n/g, '<br>');
+      } catch(mdErr) {
+        console.warn('[AIVOS] Erro ao parsear markdown, usando texto puro:', mdErr);
+        mdHtml = rawResumo.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      }
+
+      // Métricas de qualidade do resumo
+      const wordCount = rawResumo.trim().split(/\s+/).length;
+      const sectionCount = (rawResumo.match(/^#+\s/gm) || []).length;
+      const hasBullets = /^[-*]\s/m.test(rawResumo);
+      const qualityLabel = wordCount > 300 ? '🟢 Resumo Completo' : wordCount > 100 ? '🟡 Resumo Parcial' : '🔴 Resumo Curto';
+      const qualityNote = wordCount > 300
+        ? 'Resumo abrangente gerado com alta fidelidade ao material original.'
+        : wordCount > 100
+        ? 'Resumo gerado. Para mais detalhes, forneça um material mais extenso.'
+        : 'Material com poucas informações — o resumo pode estar incompleto.';
+
       container.innerHTML = `
         <div class="step-header">
-          <h2 class="step-title"><i aria-hidden="true" data-lucide="align-left"></i> Resumo Estruturado</h2>
-          <p class="step-subtitle">Mnemônicos e conceitos-chave extraídos do seu material.</p>
+          <h2 class="step-title"><i aria-hidden="true" data-lucide="align-left"></i> Resumo Inteligente</h2>
+          <p class="step-subtitle">Conceitos-chave e pontos essenciais extraídos exclusivamente do seu material.</p>
         </div>
-        <div class="resumo-container">${mdHtml}</div>
+
+        <!-- Protocolo de Qualidade -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--color-card);border:1px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:var(--space-4);font-size:0.82rem;color:var(--color-text-muted);">
+          <span style="font-weight:600;color:var(--color-text);">${qualityLabel}</span>
+          <span>·</span>
+          <span>${wordCount} palavras geradas</span>
+          ${sectionCount > 0 ? `<span>· ${sectionCount} seções</span>` : ''}
+          ${hasBullets ? '<span>· com marcadores</span>' : ''}
+          <span style="margin-left:auto;font-style:italic;">${qualityNote}</span>
+        </div>
+
+        <!-- Conteúdo do resumo -->
+        <div class="resumo-container" style="line-height:1.75;">${mdHtml}</div>
+
+        <!-- Ações pós-resumo -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:var(--space-5);padding-top:var(--space-4);border-top:1px solid var(--color-border);">
+          <button class="btn-secondary" style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-md);font-size:0.9rem;cursor:pointer;" onclick="generateFlashcards()">
+            <i aria-hidden="true" data-lucide="layers" width="16" height="16"></i> Gerar Flashcards deste material
+          </button>
+          <button class="btn-secondary" style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-md);font-size:0.9rem;cursor:pointer;" onclick="generateQuizLivre()">
+            <i aria-hidden="true" data-lucide="help-circle" width="16" height="16"></i> Montar Bateria de Questões
+          </button>
+          <button class="btn-secondary" style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-md);font-size:0.9rem;cursor:pointer;" onclick="goToStep(2)">
+            <i aria-hidden="true" data-lucide="arrow-left" width="16" height="16"></i> Voltar ao Material
+          </button>
+        </div>
       `;
     } else if (labMode === 'flashcards') {
       window.currentFlashcards = data.cards || data.flashcards || data.resultado || [];
@@ -11168,7 +11245,7 @@ window.nextFlashcard = (status) => {
           reply = reply.replace("[MODO 2 - CONHECIMENTO COMPLEMENTAR]", "").trim();
         }
         
-        const formatted = marked.parse(reply);
+        const formatted = (typeof marked !== 'undefined') ? marked.parse(reply) : reply.replace(/\n/g, '<br>');
         msgBox.innerHTML += `<div style="background:var(--bg-card); color:var(--color-text); padding:10px 15px; border-radius:12px; font-size:14px; max-width:85%; align-self:flex-start; border-left:3px solid var(--accent-primary);">${modeIndicator}${formatted}</div>`;
         msgBox.scrollTop = msgBox.scrollHeight;
         
