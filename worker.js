@@ -2934,28 +2934,45 @@ PROTOCOLOS DE GARANTIA:
               userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }
 
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                  'Authorization': `Bearer ${env.GROQ_API_KEY}`,
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                  model: 'llama-3.3-70b-versatile',
-                  messages: [
-                      { role: 'system', content: systemPrompt },
-                      { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.2,
-                  max_tokens: 3000,
-                  response_format: { type: 'json_object' }
-              })
-          });
+          const modelsToTry = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+          let response;
+          let errText = '';
+
+          for (const modelName of modelsToTry) {
+              response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                      'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                      model: modelName,
+                      messages: [
+                          { role: 'system', content: systemPrompt },
+                          { role: 'user', content: userPrompt }
+                      ],
+                      temperature: 0.2,
+                      max_tokens: 3000,
+                      response_format: { type: 'json_object' }
+                  })
+              });
+              
+              if (response.ok) {
+                  break; // Sucesso, sai do loop
+              } else {
+                  errText = await response.text();
+                  console.warn(`[AIVOS] Modelo ${modelName} falhou:`, errText);
+                  // Se falhar (ex: 429 Rate Limit ou 503), tenta o próximo modelo no loop
+              }
+          }
 
           if (!response.ok) {
-              const errText = await response.text();
               logStructuredEvent("lab_ia_failed", { mode, error: errText });
-              return new Response(JSON.stringify({ success: false, userMessage: "Erro no serviço de IA.", details: errText }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              let userFriendlyMsg = "Erro no serviço de IA.";
+              if (response.status === 429) {
+                  userFriendlyMsg = "O sistema atingiu o limite de leituras por minuto. Por favor, aguarde de 30 a 60 segundos e tente novamente.";
+              }
+              return new Response(JSON.stringify({ success: false, userMessage: userFriendlyMsg, details: errText }), { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           const data = await response.json();
