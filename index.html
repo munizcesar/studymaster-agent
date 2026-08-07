@@ -10768,6 +10768,13 @@ async function runLabTask(labMode) {
 
     lucide.createIcons();
     updateHistoryState();
+
+    // Scroll suave até o conteúdo gerado (após o DOM estar pronto)
+    // quiz_livre já faz scroll via renderQuestions → scrollToWizard(100)
+    // resumo e flashcards precisam de scroll explícito aqui
+    if (labMode !== 'quiz_livre') {
+      scrollToWizard(120);
+    }
   } catch (err) {
     console.error('[Material Livre] Erro em runLabTask:', err);
     const genScreen = document.getElementById('generating-screen');
@@ -10783,6 +10790,8 @@ async function runLabTask(labMode) {
     `;
     if (errContainer.id === 'step-3') errContainer.classList.add('active');
     lucide.createIcons();
+    // Scroll para mostrar a mensagem de erro
+    scrollToWizard(80);
   }
 }
 
@@ -10808,6 +10817,7 @@ function renderCurrentFlashcard(container) {
       </div>
     `;
     lucide.createIcons();
+    scrollToWizard(60);
     return;
   }
   
@@ -10864,6 +10874,7 @@ window.prevFlashcard = () => {
   if (window.currentCardIndex > 0) {
     window.currentCardIndex--;
     renderCurrentFlashcard();
+    scrollToWizard(60);
   }
 };
 
@@ -10871,6 +10882,7 @@ window.nextFlashcard = (status) => {
   // Se for err/hit, futuramente salva métrica de repetição espaçada. Se for 'skip', só avança.
   window.currentCardIndex++;
   renderCurrentFlashcard();
+  scrollToWizard(60);
 };
 
 </script>
