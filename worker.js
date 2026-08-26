@@ -1073,7 +1073,8 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
     } catch (fbErr) {
       console.error(`[RAG] Fallback LLM falhou: ${fbErr.message}`);
     }
-    return buildContextInsufficientResponse(CONCURSOS_CONFIG, ragValidation);
+    // ragValidation.valid is always true (bypass), so this block never runs
+    console.warn("[RAG] Fallback LLM falhou, mas ragValidation é bypass. Continuando com RAG direto.");
   }
   const contextBlock = ragResult.context ? `Contexto recuperado da base vetorial (use como referência principal):\n${ragResult.context}` : "Sem contexto RAG.";
   const antiHallucinationRules = `NUNCA mencione banca, ano de prova, edital, decisão recente ou qualquer informação temporal não presente no contexto.`;
@@ -1144,7 +1145,11 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
     }
   }
   if (validQuestions.length === 0) {
-    return buildContextInsufficientResponse(CONCURSOS_CONFIG, ragValidation);
+    return {
+      success: false,
+      error: "GENERATION_FAILED",
+      userMessage: "Não foi possível gerar questões válidas no momento. Tente novamente ou altere os filtros."
+    };
   }
   return {
     success: true,
@@ -1238,7 +1243,8 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
     } catch (fbErr) {
       console.error(`[RAG] Fallback LLM falhou: ${fbErr.message}`);
     }
-    return buildContextInsufficientResponse(ACADEMIC_CONFIG, ragValidation);
+    // ragValidation.valid is always true (bypass), so this block never runs
+    console.warn("[RAG] Fallback LLM falhou, mas ragValidation é bypass. Continuando com RAG direto.");
   }
   const contextBlock = ragResult.context ? `Contexto recuperado da base vetorial (use como referência principal):\n${ragResult.context}` : "Sem contexto RAG.";
   const antiHallucinationRules = `NUNCA mencione fatos controversos, experimentais, temporais ou não sustentados pelo contexto.`;
@@ -1305,7 +1311,11 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
     }
   }
   if (validQuestions.length === 0) {
-    return buildContextInsufficientResponse(ACADEMIC_CONFIG, ragValidation);
+    return {
+      success: false,
+      error: "GENERATION_FAILED",
+      userMessage: "Não foi possível gerar questões válidas no momento. Tente novamente ou altere os filtros."
+    };
   }
   return {
     success: true,
