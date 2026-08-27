@@ -1108,11 +1108,21 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   const sessionLabel = "Concursos";
   const diffLabel = getDifficultyLabel(difficulty);
   const isCespe = banca && (banca.toLowerCase() === 'cespe' || banca.toLowerCase() === 'cebraspe');
-  const numAlts = isCespe ? 2 : 4;
-  const altKeys = isCespe ? ["C", "E"] : ["A", "B", "C", "D"];
+  const numAlts = isCespe ? 2 : 5;
+  const altKeys = isCespe ? ["C", "E"] : ["A", "B", "C", "D", "E"];
   const altKeysStr = altKeys.join(", ");
   const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
-  const systemText = `Você é um examinador acadêmico especializado em concursos públicos. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}\n\n🔴 INSTRUÇÃO CRÍTICA - LEIA COM ATENÇÃO:\nTODAS as questões DEVEM ser EXCLUSIVAMENTE sobre: ${subjectConfig.label}\nNÃO gere questões de outra disciplina, matéria ou assunto.\nCada enunciado deve estar claramente alinhado APENAS com ${subjectConfig.label}.`;
+  const systemText = `Voc� � um Examinador S�nior de Concursos P�blicos, especialista na banca VUNESP e em provas para carreiras policiais e municipais. Retorne EXCLUSIVAMENTE em formato JSON v�lido com a chave "questions".
+Responda em portugu�s do Brasil.
+
+DIRETRIZES DE GERA��O:
+- Priorize sempre a aplica��o pr�tica da letra da lei (legisla��o seca) ou cen�rios hipot�ticos curtos envolvendo agentes p�blicos.
+- O formato deve ser ESTRITAMENTE de m�ltipla escolha com 5 alternativas (A, B, C, D, E).
+- Apenas UMA alternativa pode ser a correta.
+- As incorretas (distratores) devem ser plaus�veis para testar a aten��o do candidato, evitando absurdos �bvios.
+- Use APENAS conhecimento consolidado.
+- NUNCA invente leis, artigos, n�meros ou dados.
+- O campo "fonte" de CADA quest�o deve ser preenchido rigorosamente.`;
   const exampleOptions = isCespe
     ? `        { "key": "C", "text": "Certo" },\n        { "key": "E", "text": "Errado" }`
     : `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
@@ -1277,12 +1287,22 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
   const antiHallucinationRules = `NUNCA mencione fatos controversos, experimentais, temporais ou não sustentados pelo contexto.`;
   const sessionLabel = "Academic";
   const diffLabel = getDifficultyLabel(difficulty);
-  const numAlts = 4;
-  const altKeys = ["A", "B", "C", "D"];
-  const altKeysStr = "A, B, C, D";
+  const numAlts = 5;
+  const altKeys = ["A", "B", "C", "D", "E"];
+  const altKeysStr = "A, B, C, D, E";
   const optionExplanationsExample = buildOptionExplanationsSchema(altKeys);
-  const systemText = `Você é um professor acadêmico especialista em ${areaConfig.label}. Retorne APENAS JSON válido com a chave "questions".\nResponda em português do Brasil.\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento consolidado e verificável\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido\n- ${antiHallucinationRules}\n\n🔴 INSTRUÇÃO CRÍTICA - LEIA COM ATENÇÃO:\nTODAS as questões DEVEM ser EXCLUSIVAMENTE sobre: ${areaConfig.label}\nNÃO gere questões de outra área, disciplina ou assunto.\nCada enunciado deve estar claramente alinhado APENAS com ${areaConfig.label}.`;
-  const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." }`;
+  const systemText = `Voc� � um Examinador S�nior de Concursos P�blicos, especialista na banca VUNESP e em provas para carreiras policiais e municipais. Retorne EXCLUSIVAMENTE em formato JSON v�lido com a chave "questions".
+Responda em portugu�s do Brasil.
+
+DIRETRIZES DE GERA��O:
+- Priorize sempre a aplica��o pr�tica da letra da lei (legisla��o seca) ou cen�rios hipot�ticos curtos envolvendo agentes p�blicos.
+- O formato deve ser ESTRITAMENTE de m�ltipla escolha com 5 alternativas (A, B, C, D, E).
+- Apenas UMA alternativa pode ser a correta.
+- As incorretas (distratores) devem ser plaus�veis para testar a aten��o do candidato, evitando absurdos �bvios.
+- Use APENAS conhecimento consolidado.
+- NUNCA invente leis, artigos, n�meros ou dados.
+- O campo "fonte" de CADA quest�o deve ser preenchido rigorosamente.`;
+  const exampleOptions = `        { "key": "A", "text": "..." },\n        { "key": "B", "text": "..." },\n        { "key": "C", "text": "..." },\n        { "key": "D", "text": "..." },\n        { "key": "E", "text": "..." }`;
   const userPrompt = `Modo: ${sessionLabel}\n\nGere exatamente ${quantity} questão(ões) de ${areaConfig.label} no nível ${diffLabel}.\n${subject ? `Disciplina específica: ${subject}.` : ""}\n${topic ? `Tópico específico: ${topic}.` : ""}\n\n${contextBlock}\n\nÁrea: ${areaConfig.label}\nConceitos base: ${areaConfig.conceptualBases}\n\nRetorne APENAS um objeto JSON:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão.",\n      "options": [\n${exampleOptions}\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação completa citando a teoria, conceito, fórmula, autor ou referência acadêmica exata que fundamenta a resposta. Ex: Segunda Lei de Newton (F = m · a), a força resultante...",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "Conceito/Teoria consolidado"\n    }\n  ]\n}\n\nRegras obrigatórias:\n1. Gere exatamente ${numAlts} alternativas usando ${altKeysStr}\n2. Questões corretas e sem ambiguidades\n3. Distribua gabarito entre as opções\n4. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — não invente erros grosseiros ou absurdos; use conceitos próximos, exceções ou aplicações incorretas do mesmo assunto\n5. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${getDifficultyInstruction(difficulty)}\n6. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) explicando por que cada alternativa está correta ou incorreta\n7. EXPLICAÇÃO COM REFERÊNCIA LITERAL: No campo "explanation", SEMPRE cite o dispositivo legal, artigo, parágrafo, inciso ou fundamento teórico exato que fundamenta a resposta.\n8. ${antiHallucinationRules}\n9. NENHUM texto fora do JSON`;
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
@@ -3583,12 +3603,22 @@ if (mode === "academic") {
       const optionExplanationsExample = buildOptionExplanationsSchema(altKeysList);
 
       // FASE 2.6 — PRINCÍPIOS INEGOCIÁVEIS no fluxo genérico
-      const systemText = `Você é um examinador acadêmico especializado em concursos públicos e ensino superior brasileiro. Retorne APENAS JSON válido com a chave "questions".\n${isPortugues ? "Responda em português do Brasil." : `Respond entirely in ${idiomaLabel}.`}\n\nPRINCÍPIOS INEGOCIÁVEIS:\n- Use APENAS conhecimento factício consolidado e verificado.\n- JAMAIS mencione preços, datas de lançamento, versões específicas de software ou qualquer informação volátil.\n- Produza conteúdo evergreen — válido e correto independentemente do momento em que for lido.\n- NUNCA invente leis, artigos, números, medicamentos, comandos, fórmulas ou qualquer dado.\n- O campo "fonte" de CADA questão deve ser preenchido.\n- ${areaSafetyInstruction}`;
+      const systemText = `Voc� � um Examinador S�nior de Concursos P�blicos, especialista na banca VUNESP e em provas para carreiras policiais e municipais. Retorne EXCLUSIVAMENTE em formato JSON v�lido com a chave "questions".
+Responda em portugu�s do Brasil.
+
+DIRETRIZES DE GERA��O:
+- Priorize sempre a aplica��o pr�tica da letra da lei (legisla��o seca) ou cen�rios hipot�ticos curtos envolvendo agentes p�blicos.
+- O formato deve ser ESTRITAMENTE de m�ltipla escolha com 5 alternativas (A, B, C, D, E).
+- Apenas UMA alternativa pode ser a correta.
+- As incorretas (distratores) devem ser plaus�veis para testar a aten��o do candidato, evitando absurdos �bvios.
+- Use APENAS conhecimento consolidado.
+- NUNCA invente leis, artigos, n�meros ou dados.
+- O campo "fonte" de CADA quest�o deve ser preenchido rigorosamente.`;
 
       const { contextInfo: safeContextInfo, externalBlock } = guardPromptSize(contextInfo, rawExternalBlock, systemText);
 
       // FASE 3.2, 3.3, 3.6 — distratores plausíveis, calibragem e explicação por alternativa
-      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantitySafe} questões de ${typeLabel} sobre:\n- Área: ${area || mode || "Geral"}\n${subject ? `- Disciplina: ${subject}` : ""}\n${topic ? `- Tópico: ${topic}` : ""}\n- Nível de dificuldade: ${diffLabel}\n- Idioma de saída: ${idiomaLabel}\n\nContexto confiável (fonte principal):\n${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}\n\n${externalBlock}\n\nFormato obrigatório de retorno:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão",\n      "options": [\n        { "key": "A", "text": "Alternativa A" },\n        { "key": "B", "text": "Alternativa B" },\n        { "key": "C", "text": "Alternativa C" },\n        { "key": "D", "text": "Alternativa D" }\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação completa referenciando literalmente o artigo de lei, doutrina, teoria, conceito ou fórmula que fundamenta a resposta. Ex: Art. 37, CF/88 — a administração pública obedecerá aos princípios de legalidade, impessoalidade...",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "EXEMPLO: Lei 8.112/90, Art. 12 ou Livro X, pág Y"\n    }\n  ]\n}\n\nREGRAS OBRIGATÓRIAS:\n1. ${altInstruction}\n2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".\n3. VALIDAÇÃO DE FONTE: O campo "fonte" é OBRIGATÓRIO e deve conter a referência jurídica, bibliográfica ou teórica exata. JAMAIS use termos genéricos como "Base teórica" ou "Conhecimento acadêmico".\n4. VARIABILIDADE E PROFUNDIDADE: JAMAIS gere questões óbvias, repetitivas ou de senso comum. Cada questão deve abordar um subtema distinto e exigir raciocínio/interpretação.\n5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.\n6. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — use conceitos próximos, exceções ou aplicações incorretas; nunca invente erros grosseiros.\n7. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${diffInstruction}.\n8. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) por letra, explicando o erro ou acerto.\n9. EXPLICAÇÃO COM REFERÊNCIA LITERAL: No campo "explanation", SEMPRE cite o artigo de lei, doutrina, teoria, conceito ou fórmula literal que fundamenta a resposta.\n10. NENHUM texto fora do JSON.\n11. Não use markdown, cercas de código ou comentários.`;
+      const userPrompt = `Você é um professor especialista em concursos públicos e ensino superior brasileiro.${bancaInstruction}${sessionInstruction}\n\nGere exatamente ${quantitySafe} questões de ${typeLabel} sobre:\n- Área: ${area || mode || "Geral"}\n${subject ? `- Disciplina: ${subject}` : ""}\n${topic ? `- Tópico: ${topic}` : ""}\n- Nível de dificuldade: ${diffLabel}\n- Idioma de saída: ${idiomaLabel}\n\nContexto confiável (fonte principal):\n${safeContextInfo || "Sem contexto externo recuperado; use apenas conhecimento consolidado e atemporal."}\n\n${externalBlock}\n\nFormato obrigatório de retorno:\n{\n  "questions": [\n    {\n      "id": 1,\n      "statement": "Enunciado da questão",\n      "options": [\n        { "key": "A", "text": "Alternativa A" },\n        { "key": "B", "text": "Alternativa B" },\n        { "key": "C", "text": "Alternativa C" },\n        { "key": "D", "text": "Alternativa D" },\n        { "key": "E", "text": "Alternativa E" }\n      ],\n      "correctAnswer": "A",\n      "explanation": "Explicação completa referenciando literalmente o artigo de lei, doutrina, teoria, conceito ou fórmula que fundamenta a resposta. Ex: Art. 37, CF/88 — a administração pública obedecerá aos princípios de legalidade, impessoalidade...",\n      "optionExplanations": ${optionExplanationsExample},\n      "fonte": "EXEMPLO: Lei 8.112/90, Art. 12 ou Livro X, pág Y"\n    }\n  ]\n}\n\nREGRAS OBRIGATÓRIAS:\n1. ${altInstruction}\n2. O campo "correctAnswer" deve corresponder exatamente a uma das chaves usadas em "options".\n3. VALIDAÇÃO DE FONTE: O campo "fonte" é OBRIGATÓRIO e deve conter a referência jurídica, bibliográfica ou teórica exata. JAMAIS use termos genéricos como "Base teórica" ou "Conhecimento acadêmico".\n4. VARIABILIDADE E PROFUNDIDADE: JAMAIS gere questões óbvias, repetitivas ou de senso comum. Cada questão deve abordar um subtema distinto e exigir raciocínio/interpretação.\n5. Use contexto confiável; se faltar base, faça pergunta conceitual segura e atemporal.\n6. DISTRATORES PLAUSÍVEIS (FASE 3.2): cada alternativa errada deve ser plausível e coerente com o tema — use conceitos próximos, exceções ou aplicações incorretas; nunca invente erros grosseiros.\n7. CALIBRAGEM DE DIFICULDADE (FASE 3.3): nível "${diffLabel}" — ${diffInstruction}.\n8. EXPLICAÇÃO POR ALTERNATIVA (FASE 3.6): preencha "optionExplanations" com uma frase curta (1-2 linhas) por letra, explicando o erro ou acerto.\n9. EXPLICAÇÃO COM REFERÊNCIA LITERAL: No campo "explanation", SEMPRE cite o artigo de lei, doutrina, teoria, conceito ou fórmula literal que fundamenta a resposta.\n10. NENHUM texto fora do JSON.\n11. Não use markdown, cercas de código ou comentários.`;
 
       const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantitySafe);
       if (!groqResponse.ok) {
