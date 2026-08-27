@@ -1094,12 +1094,12 @@ async function generateConcursosRAGQuestion({ filter, difficulty, quantity, prom
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
-    let userMessage = "Erro ao conectar com a IA. Tente novamente.";
+    let userMessage = err;
     if (groqResponse.status === 429) userMessage = "Limite de uso atingido. Aguarde.";
     else if (groqResponse.status === 503) userMessage = "IA com alta demanda. Tente em segundos.";
     return {
       success: false,
-      error: "Groq API error",
+      error: err,
       details: err,
       userMessage,
       statusCode: groqResponse.status
@@ -1260,12 +1260,12 @@ async function generateAcademicRAGQuestion({ area, subject, topic, difficulty, q
   const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantity);
   if (!groqResponse.ok) {
     const err = await groqResponse.text();
-    let userMessage = "Erro ao conectar com a IA. Tente novamente.";
+    let userMessage = err;
     if (groqResponse.status === 429) userMessage = "Limite de uso atingido. Aguarde.";
     else if (groqResponse.status === 503) userMessage = "IA com alta demanda. Tente em segundos.";
     return {
       success: false,
-      error: "Groq API error",
+      error: err,
       details: err,
       userMessage,
       statusCode: groqResponse.status
@@ -1422,7 +1422,7 @@ Voc\u00ea DEVE retornar APENAS um JSON v\u00e1lido, sem texto fora do JSON, segu
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "unknown");
-    throw new Error(`Groq API error ${response.status}: ${errText}`);
+    throw new Error(errText);
   }
 
   const data = await response.json();
@@ -3566,12 +3566,12 @@ if (mode === "academic") {
       const groqResponse = await callGroqWithFallback(systemText, userPrompt, env, quantitySafe);
       if (!groqResponse.ok) {
         const err = await groqResponse.text();
-        let userMessage = "Erro ao conectar com a IA. Tente novamente.";
+        let userMessage = err;
         if (groqResponse.status === 429) userMessage = "Limite de uso atingido. Aguarde.";
         else if (groqResponse.status === 503) userMessage = "IA com alta demanda. Tente em segundos.";
         return new Response(JSON.stringify({
           success: false,
-          error: "Groq API error",
+          error: err,
           details: err,
           userMessage,
           statusCode: groqResponse.status
