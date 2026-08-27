@@ -37,6 +37,38 @@ var corsHeaders = {
   "Access-Control-Max-Age": "86400"
 };
 
+const fallbackModels = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.1-8b-instant"];
+
+async function groqFetch(url, options) {
+  let bodyObj;
+  try {
+    bodyObj = JSON.parse(options.body);
+  } catch (e) {
+    return fetch(url, options);
+  }
+  
+  let lastErr = null;
+  let lastResponse = null;
+  
+  for (const model of fallbackModels) {
+    bodyObj.model = model;
+    options.body = JSON.stringify(bodyObj);
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      const errText = await response.text();
+      console.warn("[Groq Fallback] Modelo " + model + " falhou: " + response.status + " - " + errText);
+      lastErr = new Error(errText);
+      lastResponse = new Response(errText, { status: response.status, statusText: response.statusText, headers: response.headers });
+    } catch (err) {
+      console.warn("[Groq Fallback] Erro na rede com modelo " + model + ": " + err.message);
+      lastErr = err;
+    }
+  }
+  if (lastResponse) return lastResponse;
+  throw lastErr || new Error("Todos os modelos de fallback falharam.");
+}
+
 // ── FASE 6: Observabilidade e Auditoria ──
 function logStructuredEvent(operation, details = {}) {
   const logEntry = {
@@ -379,12 +411,7 @@ var ACADEMIC_CONFIG = {
   fallbackMessage: "Desculpe, ainda n\xE3o temos base de dados suficiente para esta \xE1rea. Tente novamente em breve!",
   invalidAreaMessage: /* @__PURE__ */ __name((area) => `A \xE1rea "${area}" n\xE3o foi reconhecida. Escolha uma das dispon\xEDveis: Direito, Medicina, Hist\xF3ria, Exatas, Humanas, Sa\xFAde ou Neg\xF3cios.`, "invalidAreaMessage")
 };
-var GROQ_MODELS = [
-  "openai/gpt-oss-120b",
-  "openai/gpt-oss-120b",
-  "openai/gpt-oss-120b",
-  "gemma2-9b-it"
-];
+var GROQ_MODELS = ["auto"];
 function validateConcursosFilter(filter) {
   const config = CONCURSOS_CONFIG.filters[filter];
   if (!config) {
@@ -802,7 +829,7 @@ async function callGroqWithFallback(systemText, userPrompt, env, quantity) {
   let lastErr = null;
   for (const model of GROQ_MODELS) {
     try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${env.GROQ_API_KEY}`,
@@ -1405,7 +1432,7 @@ Voc\u00ea DEVE retornar APENAS um JSON v\u00e1lido, sem texto fora do JSON, segu
   const groqKey = env.GROQ_API_KEY;
   if (!groqKey) throw new Error("GROQ_API_KEY n\u00e3o configurada");
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${groqKey}`,
@@ -1530,7 +1557,7 @@ ${pageContext?.mainContent || 'Nenhum conteúdo visível fornecido.'}
   let lastErr = null;
   for (const model of GROQ_MODELS) {
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${env.GROQ_API_KEY}`,
@@ -1629,7 +1656,7 @@ Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que pre
   messages.push({ role: 'user', content: message });
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${env.GROQ_API_KEY}`,
@@ -1745,7 +1772,7 @@ Entendi! Para te ajudar melhor, você pode:
   messages.push({ role: 'user', content: message });
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${env.GROQ_API_KEY}`,
@@ -3079,12 +3106,12 @@ PROTOCOLOS DE GARANTIA:
               userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }
 
-          const modelsToTry = ['openai/gpt-oss-120b', 'openai/gpt-oss-120b'];
+          const modelsToTry = ["auto"];
           let response;
           let errText = '';
 
           for (const modelName of modelsToTry) {
-              response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
                   method: 'POST',
                   headers: {
                       'Authorization': `Bearer ${env.GROQ_API_KEY}`,
@@ -3210,7 +3237,7 @@ O JSON DEVE OBRIGATORIAMENTE ter este formato exato:
   }
 }`;
 
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          const response = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${env.GROQ_API_KEY}`,
@@ -3309,7 +3336,7 @@ Sempre que extrair uma informação, você DEVE citar a origem colocando \`[Chun
           }
           messages.push({ role: "user", content: chatMessage });
 
-          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          const groqResponse = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${env.GROQ_API_KEY}`,
@@ -3363,7 +3390,7 @@ REGRAS:
 
 Responda APENAS com um array JSON: [{"front": "...", "back": "..."}]`;
 
-          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          const groqResponse = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${env.GROQ_API_KEY}`,
@@ -3427,7 +3454,7 @@ REGRAS:
 
 Responda APENAS com JSON: {"titulo": "...", "pontosPrincipais": [], "detalhes": "...", "dicaEstudo": "..."}`;
 
-          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          const groqResponse = await groqFetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${env.GROQ_API_KEY}`,
