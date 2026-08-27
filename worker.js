@@ -380,9 +380,9 @@ var ACADEMIC_CONFIG = {
   invalidAreaMessage: /* @__PURE__ */ __name((area) => `A \xE1rea "${area}" n\xE3o foi reconhecida. Escolha uma das dispon\xEDveis: Direito, Medicina, Hist\xF3ria, Exatas, Humanas, Sa\xFAde ou Neg\xF3cios.`, "invalidAreaMessage")
 };
 var GROQ_MODELS = [
-  "mixtral-8x7b-32768",
-  "mixtral-8x7b-32768",
-  "mixtral-8x7b-32768",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-120b",
   "gemma2-9b-it"
 ];
 function validateConcursosFilter(filter) {
@@ -1412,7 +1412,7 @@ Voc\u00ea DEVE retornar APENAS um JSON v\u00e1lido, sem texto fora do JSON, segu
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "mixtral-8x7b-32768",
+      model: "openai/gpt-oss-120b",
       messages,
       temperature: 0.35,
       max_tokens: 2048,
@@ -1636,7 +1636,7 @@ Recebi sua mensagem! Para te ajudar melhor, me dê mais detalhes sobre o que pre
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'mixtral-8x7b-32768',
+        model: 'openai/gpt-oss-120b',
         messages,
         temperature: 0.4,
         max_tokens: 1500
@@ -1752,7 +1752,7 @@ Entendi! Para te ajudar melhor, você pode:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: modelOverride || 'mixtral-8x7b-32768',
+        model: modelOverride || 'openai/gpt-oss-120b',
         messages,
         temperature: 0.35,
         max_tokens: 2000,
@@ -3079,7 +3079,7 @@ PROTOCOLOS DE GARANTIA:
               userPrompt = `${protocolInstructions}\n\nGere ${quantity || 3} questões de múltipla escolha baseadas EXCLUSIVAMENTE no texto. O JSON DEVE ter o formato:\n{ "questions": [ { "statement": "Enunciado", "options": [ {"key":"A","text":"..."}, {"key":"B","text":"..."}, {"key":"C","text":"..."}, {"key":"D","text":"..."} ], "correctAnswer": "A", "explanation": "Explicação fundamentada na fonte", "topic": "Tópico", "difficulty": "Fácil|Médio|Difícil", "evidence": "Citação exata do texto", "validationStatus": "Alta Confiança", "fonte": "Material Fornecido" } ] }\n\nTEXTO ORIGINAL:\n${textContext}`;
           }
 
-          const modelsToTry = ['mixtral-8x7b-32768', 'mixtral-8x7b-32768'];
+          const modelsToTry = ['openai/gpt-oss-120b', 'openai/gpt-oss-120b'];
           let response;
           let errText = '';
 
@@ -3217,7 +3217,7 @@ O JSON DEVE OBRIGATORIAMENTE ter este formato exato:
                   'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                  model: 'mixtral-8x7b-32768',
+                  model: 'openai/gpt-oss-120b',
                   messages: [
                       { role: 'system', content: systemPrompt },
                       { role: 'user', content: userPrompt }
@@ -3316,7 +3316,7 @@ Sempre que extrair uma informação, você DEVE citar a origem colocando \`[Chun
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              model: "mixtral-8x7b-32768",
+              model: "openai/gpt-oss-120b",
               messages,
               temperature: 0.1,
               max_tokens: 1500
@@ -3370,7 +3370,7 @@ Responda APENAS com um array JSON: [{"front": "...", "back": "..."}]`;
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              model: "mixtral-8x7b-32768",
+              model: "openai/gpt-oss-120b",
               temperature: 0.2,
               max_tokens: 2000,
               response_format: { type: "json_object" },
@@ -3434,7 +3434,7 @@ Responda APENAS com JSON: {"titulo": "...", "pontosPrincipais": [], "detalhes": 
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              model: "mixtral-8x7b-32768",
+              model: "openai/gpt-oss-120b",
               temperature: 0.2,
               max_tokens: 2000,
               response_format: { type: "json_object" },
